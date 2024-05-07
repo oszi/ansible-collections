@@ -1,0 +1,38 @@
+---
+# Path of the Borgmatic config file
+borgmatic_config_path: "/etc/borgmatic/config.yaml"
+# Path of the python3 virtualenv
+borgmatic_virtualenv_path: "/opt/borgmatic"
+
+borgmatic_config:
+  # Where to look for files to backup, and where to store those backups. See
+  # https://borgbackup.readthedocs.io/en/stable/quickstart.html and
+  # https://borgbackup.readthedocs.io/en/stable/usage.html#borg-create for details.
+  location:
+    # List of source directories to backup (required). Globs are expanded.
+    source_directories: "{{ borgmatic_sources }}"
+    # Stay on same file system?
+    one_file_system: "{{ borgmatic_one_file_system }}"
+    # Alternate borg remote executable.
+    remote_path: "{{ borgmatic_remote_path }}"
+    # Path to local or remote repository (required).
+    repositories:
+      - "{{ borgmatic_repository }}"
+    # Any paths matching these patterns are excluded from backups. Globs are expanded.
+    # See https://borgbackup.readthedocs.io/en/stable/usage.html#borg-help-patterns for details.
+    exclude_patterns: "{{ borgmatic_excludes }}"
+  # Repository storage options. See
+  # https://borgbackup.readthedocs.io/en/stable/usage.html#borg-create and
+  # https://borgbackup.readthedocs.io/en/stable/usage.html#environment-variables for details.
+  storage:
+    # Passphrase to unlock the encryption key with. Only use on repositories that were
+    # initialized with passphrase / repo key encryption.
+    encryption_passphrase: "{{ borgmatic_passphrase }}"
+    # Type of compression to use when creating archives.
+    compression: "{{ borgmatic_compression }}"
+    # Command to use instead of ssh.
+    ssh_command: "{{ borgmatic_ssh_command }}"
+  # Complex variables defined in defaults/main/borg.yml:
+  consistency: "{{ borgmatic_consistency }}"
+  retention: "{{ borgmatic_retention }}"
+  hooks: "{{ borgmatic_hooks }}"

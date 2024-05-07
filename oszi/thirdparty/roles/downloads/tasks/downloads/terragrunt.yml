@@ -1,0 +1,16 @@
+---
+- name: Download the Terragrunt binary?
+  ansible.builtin.get_url:
+    url: "{{ downloads_terragrunt_url }}"
+    dest: "{{ downloads_bin_path }}/terragrunt"
+    checksum: "{{ downloads_terragrunt_checksum }}"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: downloads_terragrunt_url is not none
+
+- name: Uninstall Terragrunt?
+  ansible.builtin.file:
+    path: "{{ downloads_bin_path }}/terragrunt"
+    state: "absent"
+  when: downloads_terragrunt_url is none

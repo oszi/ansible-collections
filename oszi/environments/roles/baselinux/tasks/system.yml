@@ -1,0 +1,72 @@
+---
+- name: Ensure system packages are installed
+  ansible.builtin.package:
+    name: "{{ baselinux_extra_packages | flatten }}"
+    state: "present"
+  tags: [package]
+
+- name: "[Un]install QEMU guest agent"
+  ansible.builtin.package:
+    name: "qemu-guest-agent"
+    state: "{{ 'present' if ansible_virtualization_type in ['kvm', 'xen']
+      and ansible_virtualization_role == 'guest' else 'absent' }}"
+  tags: [package]
+
+- name: "[Un]install VMWare guest agent"
+  ansible.builtin.package:
+    name: "open-vm-tools"
+    state: "{{ 'present' if ansible_virtualization_type == 'VMware'
+      and ansible_virtualization_role == 'guest' else 'absent' }}"
+  tags: [package]
+
+- name: Copy shell config files
+  ansible.builtin.copy:
+    src: "etc/{{ item }}/"
+    dest: "/etc/{{ item }}/"
+    owner: "root"
+    mode: "0644"
+  with_items:
+    - bash_completion.d
+    - profile.d
+
+- name: Copy shell customizations
+  ansible.builtin.template:
+    src: "etc/profile.d/x-shell.bash.j2"
+    dest: "/etc/profile.d/x-shell.bash"
+    owner: "root"
+    mode: "0644"
+
+- name: Ensure baselinux_absent_paths are deleted
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ baselinux_absent_paths }}"
+
+- name: Create system symlinks
+  ansible.builtin.file:
+    src: "{{ item.value }}"
+    dest: "{{ item.key }}"
+    force: true
+    state: "link"
+  with_dict: "{{ baselinux_symlinks }}"
+
+- name: Emulate iptables with nft alternatives
+  when: baselinux_iptables_nft_alternatives
+  tags: [package]
+  block:
+    - name: Ensure iptables-nft and nftables are installed
+      ansible.builtin.package:
+        name:
+          - "{{ 'iptables-nft' if ansible_os_family == 'RedHat' else 'iptables' }}"
+          - "nftables"
+        state: "present"
+
+    # Subcommands (restore, save, etc) are automatic.
+    - name: Configure iptables alternatives
+      community.general.alternatives:
+        name: "{{ item }}"
+        link: "/usr/sbin/{{ item }}"
+        path: "/usr/sbin/{{ item }}-nft"
+      with_items:
+        - iptables
+        - ip6tables

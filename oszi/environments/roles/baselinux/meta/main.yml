@@ -1,0 +1,27 @@
+---
+galaxy_info:
+  description: "Basic system configuration for Linux."
+  min_ansible_version: "2.16"
+  galaxy_tags: []
+  author: David O.
+  license: Copyright
+  platforms:
+    - name: Fedora
+      versions: [all]
+    - name: EL
+      versions: [all]
+    - name: Debian
+      versions: [all]
+    - name: Ubuntu
+      versions: [all]
+
+dependencies:
+  - role: oszi.general.bootstrap
+  - role: oszi.general.certs
+  - role: oszi.general.cloudflare
+  - role: oszi.general.firewalld
+  - role: oszi.general.selinux
+  - role: oszi.general.ssh
+  - role: oszi.general.fail2ban
+  - role: oszi.general.wireguard
+  - role: oszi.general.python

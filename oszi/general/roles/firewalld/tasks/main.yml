@@ -1,0 +1,15 @@
+---
+- name: Firewalld setup tasks
+  tags: [firewalld]
+  block:
+    - name: Include Firewalld setup tasks
+      when: firewalld_enabled
+      ansible.builtin.include_tasks:
+        file: firewalld.yml
+
+    - name: Ensure Firewalld is not installed
+      when: not firewalld_enabled
+      ansible.builtin.package:
+        name: "firewalld"
+        state: "absent"
+      tags: [package]

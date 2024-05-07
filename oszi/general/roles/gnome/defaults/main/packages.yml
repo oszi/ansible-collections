@@ -1,0 +1,79 @@
+---
+# See also: roles/workstations/defaults/main/packages.yml
+
+# Nested list of Gnome packages:
+gnome_packages:
+  - "{{ [
+      'gnome-shell-extension-apps-menu',
+      'gnome-shell-extension-places-menu',
+      'gnome-shell-extension-user-theme',
+    ]
+    if (ansible_os_family == 'RedHat') else [] }}"
+  - "{{ [
+      'gnome-extensions-app',
+      'gnome-shell-extension-blur-my-shell',
+    ]
+    if (ansible_distribution == 'Fedora') else [] }}"
+  - "{{ [
+      'gnome-shell-extensions',
+    ]
+    if (ansible_os_family == 'Debian') else [] }}"
+  - dconf-editor
+  - gnome-control-center
+  - gnome-screenshot
+  - gnome-shell
+  - gnome-shell-extension-appindicator
+  - gnome-tweaks
+  - seahorse
+
+# Packages to remove from Gnome workstations (Fedora/Debian/Ubuntu):
+gnome_blacklisted_packages:
+  # Fedora 39+ / Gnome 45+
+  - "{{ [
+      'eog',
+      'fedora-chromium-config',
+      'fedora-chromium-config-gnome',
+      'fedora-chromium-config-gssapi',
+    ]
+    if (ansible_distribution == 'Fedora') else [] }}"
+  # Unwanted common Gnome apps
+  - chrome-gnome-shell
+  - gnome-boxes
+  - gnome-browser-connector
+  - gnome-connections
+  - gnome-contacts
+  - gnome-documents
+  - gnome-maps
+  - gnome-music
+  - gnome-photos
+  - gnome-todo
+  - gnome-tour
+  - rhythmbox
+  - seahorse-nautilus  # (deprecated)
+  - shotwell
+  - shotwell-common
+  - totem
+  - totem-common
+  - vinagre
+  # Pre-installed games (Debian)
+  - aisleriot
+  - atomix
+  - five-or-more
+  - four-in-a-row
+  - gnome-2048
+  - gnome-chess
+  - gnome-games
+  - gnome-klotski
+  - gnome-mahjongg
+  - gnome-mines
+  - gnome-nibbles
+  - gnome-robots
+  - gnome-sudoku
+  - gnome-taquin
+  - gnome-tetravex
+  - hitori
+  - iagno
+  - lightsoff
+  - quadrapassel
+  - swell-foop
+  - tali

@@ -1,0 +1,8 @@
+---
+- name: Package install tasks
+  ansible.builtin.import_tasks: packages.yml
+  tags: [toolbox, package]
+
+- name: Toolbox system tasks
+  ansible.builtin.import_tasks: system.yml
+  tags: [toolbox, system]

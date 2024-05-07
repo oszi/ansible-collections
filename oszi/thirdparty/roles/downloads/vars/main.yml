@@ -1,0 +1,8 @@
+---
+# Commands to extract binaries if the unarchive module is insufficient:
+# with tar: --file=? [--strip-components=N] [filenames]
+downloads_tar_extract: "tar -a -x --no-same-owner --no-acls --no-selinux --no-xattrs --wildcards"
+downloads_tar_extract_binary: "{{ downloads_tar_extract }} -C {{ downloads_bin_path }}"
+
+# with unzip: file[.zip] [filenames]
+downloads_unzip_extract_binary: "unzip -o -j -d {{ downloads_bin_path }}"

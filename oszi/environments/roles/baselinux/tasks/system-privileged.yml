@@ -1,0 +1,111 @@
+---
+- name: Set system hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Set system timezone
+  community.general.timezone:
+    name: "{{ baselinux_timezone }}"
+  when: baselinux_timezone is not none
+
+- name: Set system locale
+  ansible.builtin.command: "/usr/bin/localectl set-locale {{ baselinux_locale }}"
+  changed_when: false
+  when: baselinux_locale is not none
+
+- name: Set custom sysctl parameters
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_set: true
+    reload: true
+    state: "present"
+  with_dict: "{{ baselinux_sysctl_values_default | combine(baselinux_sysctl_values) }}"
+
+- name: Set custom hosts in /etc/hosts
+  ansible.builtin.lineinfile:
+    dest: "/etc/hosts"
+    line: "{{ item.value }}  {{ item.key }}"
+    regexp: '\s+{{ item.key | regex_escape }}\s*$'
+    state: "present"
+  with_dict: "{{ baselinux_etc_hosts }}"
+
+- name: Install custom udev rules
+  ansible.builtin.copy:
+    dest: "/etc/udev/rules.d/{{ item.key }}.rules"
+    content: "{{ item.value }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_dict: "{{ baselinux_udev_rules }}"
+
+- name: Install custom sudoers rules
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ item.key }}"
+    content: "{{ item.value }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_dict: "{{ baselinux_sudoers_rules }}"
+
+- name: Ensure system mount points exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "directory"
+  ignore_errors: true  # Could be fuse mount point.
+  with_items: "{{ baselinux_posix_mounts | map(attribute='path') }}"
+  tags: [skip_ansible_lint]
+
+- name: Create system mounts - fstab entries
+  ansible.posix.mount:
+  args: "{{ item }}"
+  with_items: "{{ baselinux_posix_mounts }}"
+
+- name: Copy common systemd unit files
+  ansible.builtin.copy:
+    src: "etc/systemd/system/"
+    dest: "/etc/systemd/system/"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: "Reload systemd"
+
+- name: Ensure directories for inventory systemd system units
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  with_items: "{{ baselinux_systemd_units.keys() | map('dirname') | reject('equalto', '') | unique }}"
+
+- name: Install inventory systemd system unit files
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/{{ item.key }}"
+    content: "{{ item.value }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: "Reload systemd"
+  with_dict: "{{ baselinux_systemd_units }}"
+
+- name: Enable swapfile if there is no swap partition
+  ansible.builtin.systemd:
+    name: "swapfile"
+    state: "started"
+    daemon_reload: true
+    enabled: true
+  when: ansible_swaptotal_mb < 1
+
+- name: Ignore DNS settings by DHCP client
+  ansible.builtin.copy:
+    dest: "/etc/dhcp/dhclient-enter-hooks.d/make_resolv_conf"
+    content: |
+      #!/bin/sh
+      make_resolv_conf(){
+          :
+      }
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: baselinux_dhclient_resolvconf_disabled

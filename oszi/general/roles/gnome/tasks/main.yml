@@ -1,0 +1,15 @@
+---
+- name: Gnome setup tasks
+  tags: [gnome]
+  block:
+    - name: Gnome package setup tasks
+      ansible.builtin.import_tasks: packages.yml
+      tags: [package]
+
+    - name: Include Gnome user setup tasks
+      when: gnome_user is not none
+      ansible.builtin.include_tasks:
+        file: gnome-user.yml
+        apply:
+          become: true
+          become_user: "{{ gnome_user }}"

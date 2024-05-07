@@ -1,0 +1,20 @@
+---
+- name: Flatten package list variables
+  ansible.builtin.set_fact:
+    python_devel_distro_packages: "{{ python_devel_distro_packages | flatten }}"
+    python_distro_packages: "{{ python_distro_packages | flatten }}"
+    python_pip3_packages: "{{ python_pip3_packages | flatten }}"
+  tags: [package]
+
+- name: Install python3 distro packages
+  ansible.builtin.package:
+    name: "{{ python_devel_distro_packages + python_distro_packages }}"
+    state: "present"
+  tags: [package]
+
+- name: Install pip3 packages on the host
+  ansible.builtin.pip:
+    name: "{{ python_pip3_packages }}"
+    executable: "pip3"
+    state: "present"
+  when: python_pip3_packages

@@ -1,0 +1,8 @@
+---
+- name: Macbook package setup tasks
+  ansible.builtin.import_tasks: packages.yml
+  tags: [macbook, package]
+
+- name: Macbook user config tasks
+  ansible.builtin.import_tasks: config.yml
+  tags: [macbook, config]

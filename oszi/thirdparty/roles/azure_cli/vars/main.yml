@@ -1,0 +1,8 @@
+---
+azure_cli_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-azure-cli"
+azure_cli_rpm_includepkgs: ["azure-cli"]
+
+azure_cli_deb_gpgkey: "/etc/apt/keyrings/azure-cli.gpg"
+azure_cli_deb_repo: >-
+  deb [arch=amd64 signed-by={{ azure_cli_deb_gpgkey }}]
+  {{ azure_cli_deb_baseurl }} {{ ansible_distribution_release }} main

@@ -1,0 +1,121 @@
+---
+# See also: roles/toolbox/defaults/main/packages.yml
+
+# Nested list of packages to install on workstations:
+workstation_packages:
+  - "{{ workstation_packages_pt_default }}"
+  - "{{ workstation_packages_pt_virtualization if ansible_virtualization_role != 'guest' else [] }}"
+
+# Fedora/Debian/Ubuntu defaults to include in workstation_packages:
+workstation_packages_pt_default:
+  - "{{ [
+      'hunspell-en',
+      'pcsc-lite',
+    ]
+    if (ansible_os_family == 'RedHat')
+    else [
+      'hunspell-en-gb',
+      'hunspell-en-us',
+      'pcscd',
+      'scdaemon',
+    ]
+    if (ansible_os_family == 'Debian')
+    else [] }}"
+  - mesa-vulkan-drivers
+  # Utilities
+  - ddccontrol
+  - efitools
+  - firewall-config
+  - gamemode
+  - gparted
+  - i2c-tools
+  - keepassxc
+  - ltunify
+  - pcsc-tools
+  - peek
+  - powertop
+  - remmina
+  - sshuttle
+  - tilix
+  - wireshark
+  - xclip
+  - yubikey-manager
+
+# Fedora/Debian/Ubuntu libvirt/QEMU packages (optional).
+workstation_packages_pt_virtualization:
+  - "{{ [
+      'libvirt-devel',
+      'libvirt',
+      'qemu-system-aarch64',
+      'virt-install',
+      'guestfs-tools',
+      'python3-libguestfs',
+    ]
+    if (ansible_os_family == 'RedHat')
+    else [
+      'libvirt-dev',
+      'libvirt-clients',
+      'libvirt-daemon-system',
+      'libguestfs-tools',
+      'python3-guestfs',
+    ]
+    if (ansible_os_family == 'Debian')
+    else [
+      'libvirt-devel',
+      'libvirt',
+    ] }}"
+  - libguestfs-rescue
+  - libguestfs-xfs
+  - qemu-kvm
+  - qemu-system-arm
+  - qemu-system-x86
+  - qemu-user-static
+  - virt-manager
+  - virt-viewer
+
+# Packages to remove from workstations (Fedora/Debian/Ubuntu):
+workstation_blacklisted_packages:
+  - "{{ workstation_blacklisted_packages_pt_to_sandbox }}"
+  - "{{ workstation_blacklisted_packages_pt_imagemagick if ansible_virtualization_role != 'guest' else [] }}"
+  - "{{ workstation_blacklisted_packages_pt_office }}"
+
+# Use the latest Chromium flatpak or snap with hardened configuration.
+# On Debian, the default firefox-esr cannot be removed without installing another browser.
+workstation_blacklisted_packages_pt_to_sandbox:
+  - ['lxc', 'lxc-libs', 'liblxc-common']  # lxcbr0
+  - barrier
+  - bottles
+  - chromium
+  - clementine
+  - firefox
+  - gimp
+  - hexchat
+  - inkscape
+  - steam
+  - transmission
+  - wine
+
+workstation_blacklisted_packages_pt_imagemagick:
+  - ImageMagick
+  - imagemagick
+  - imagemagick-6-common
+  - GraphicsMagick
+  - graphicsmagick
+  - libgraphicsmagick-q16-3
+
+workstation_blacklisted_packages_pt_office:
+  - evince
+  - evince-common
+  - evolution
+  - evolution-common
+  - evolution-langpacks
+  - libreoffice
+  - libreoffice-common
+  - libreoffice-core
+  - libreoffice-data
+  - libreoffice-opensymbol-fonts
+  - libreoffice-ure-common
+  - libreofficekit-data
+  # Use texlive/-scheme-basic and collections; requires inkscape.
+  - texlive-full
+  - texlive-scheme-full

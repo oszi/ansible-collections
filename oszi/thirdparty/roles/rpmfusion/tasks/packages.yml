@@ -1,0 +1,16 @@
+---
+- name: Flatten package list variables
+  ansible.builtin.set_fact:
+    rpmfusion_packages: "{{ rpmfusion_packages | flatten }}"
+    rpmfusion_blacklisted_packages: "{{ rpmfusion_blacklisted_packages | flatten }}"
+
+- name: Ensure blacklisted packages are not installed
+  ansible.builtin.dnf:
+    name: "{{ rpmfusion_blacklisted_packages }}"
+    state: "absent"
+
+- name: Ensure RPMFusion packages are un/installed
+  ansible.builtin.dnf:
+    name: "{{ rpmfusion_packages | difference(rpmfusion_blacklisted_packages) }}"
+    state: "{{ rpmfusion_enabled | ternary('present', 'absent') }}"
+    allowerasing: "{{ rpmfusion_dnf_allowerasing }}"

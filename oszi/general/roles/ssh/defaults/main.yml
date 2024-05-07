@@ -1,0 +1,38 @@
+---
+# Dict of groups with optional items: name*, system (bool), gid
+# Use combine to build the final ssh_unix_groups from parts in the invetory:
+# {{ ssh_unix_groups | combine(unix_groups_pt_..., ...) }}
+ssh_unix_groups: {}
+# Dict of users with optional items: name*, group, groups (list), password (hash), shell, home, system (bool), uid
+# Use combine to build the final ssh_unix_users from parts in the invetory (groups fields must be lists):
+# {{ ssh_unix_users | combine(unix_users_pt_..., ..., list_merge='append_rp', recursive=true) }}
+ssh_unix_users: {}
+# Allow passwordless sudo for these groups
+ssh_sudo_nopasswd_groups: []
+
+# Enable SSH setup tasks (local user tasks are always enabled)?
+ssh_enabled: "{{ not is_container|default(false) }}"
+
+# Dict of authorized keys by user
+# * Multiple keys can be separated by new lines
+ssh_authorized_keys: {}
+# Remove keys that were not configured here?
+ssh_authorized_keys_exclusive: true
+# Make authorized_keys files immutable to protect restrictions?
+# NOTE: Without making ~/.ssh append-only (+a) this can still be worked around!
+# But that breaks some legitimate use-cases - e.g. cleaning up control sockets.
+ssh_authorized_keys_immutable: false
+
+# Override the distro sshd_config?
+ssh_server_config_override: true
+# Extra lines for sshd_config
+ssh_server_config_extra:
+# List of SSH allowed users
+ssh_allow_users: []
+
+# Harden SSH crypto settings?
+ssh_harden_crypto: true
+# List of existing host keys:
+ssh_host_keys:
+  - /etc/ssh/ssh_host_ed25519_key
+  - /etc/ssh/ssh_host_rsa_key

@@ -1,0 +1,15 @@
+[Unit]
+# Depend on this service with Wants and After on demand.
+Description=Resolve cpuacct,cpu conflict
+ConditionPathExists=!/sys/fs/cgroup/cpuacct,cpu
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStart=/bin/mount -o remount,rw /sys/fs/cgroup
+ExecStart=/bin/ln -s cpu,cpuacct /sys/fs/cgroup/cpuacct,cpu
+ExecStart=/bin/mount -o remount,ro /sys/fs/cgroup
+
+[Install]
+WantedBy=basic.target

@@ -1,0 +1,12 @@
+---
+- name: Visual Studio Code tasks
+  tags: [third-party, vscode]
+  block:
+    - name: Visual Studio Code repository
+      ansible.builtin.include_tasks:
+        file: "{{ ansible_os_family | lower }}.yml"
+
+    - name: Ensure Code is un/installed
+      ansible.builtin.package:
+        name: "code"
+        state: "{{ vscode_enabled | ternary('present', 'absent') }}"

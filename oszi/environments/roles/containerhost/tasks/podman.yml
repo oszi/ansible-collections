@@ -1,0 +1,72 @@
+---
+- name: Ensure podman, buildah, skopeo are installed
+  ansible.builtin.package:
+    name:
+      - "podman"
+      - "buildah"
+      - "skopeo"
+    state: "present"
+  tags: [package]
+
+- name: Ensure podman-compose is installed
+  ansible.builtin.package:
+    name: "podman-compose"
+    state: "{{ containerhost_podman_compose_enabled | ternary('present', 'absent') }}"
+  tags: [package]
+
+- name: Ensure toolbox is installed - containertoolbx.org
+  ansible.builtin.package:
+    name: "toolbox"
+    state: "present"
+  when: containerhost_podman_toolbox_enabled  # (no removal)
+  tags: [package]
+
+- name: Change default podman graphroot?
+  when: containerhost_podman_graphroot is not none
+  block:
+    - name: Change podman graphroot
+      community.general.ini_file:
+        dest: "/etc/containers/storage.conf"
+        section: "storage"
+        option: "graphroot"
+        value: "{{ containerhost_podman_graphroot | string | to_json }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      register: _ini_file_result
+
+    - name: Set SELinux for new podman graphroot
+      ansible.builtin.shell: |
+        set -euo pipefail
+        mkdir -p -m 0711 {{ containerhost_podman_graphroot | quote }}
+        semanage fcontext -a -e /var/lib/containers/storage {{ containerhost_podman_graphroot | quote }}
+        restorecon -R -v {{ containerhost_podman_graphroot | quote }}
+      args:
+        executable: "/bin/bash"
+      ignore_errors: true
+      when: _ini_file_result.changed
+      tags: [skip_ansible_lint]
+
+- name: Configure podman networks
+  containers.podman.podman_network:
+  args: "{{ item.value | combine({'name': item.key}) }}"
+  with_dict: "{{ containerhost_podman_networks }}"
+  tags: [podman-network, skip_ansible_lint]
+
+- name: Manage podman images
+  containers.podman.podman_image:
+  args: "{{ item }}"
+  with_items: "{{ containerhost_podman_images }}"
+  tags: [podman-image, skip_ansible_lint]
+
+- name: Copy podman image garbage collector unit files
+  ansible.builtin.template:
+    src: "etc/systemd/system/{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: "Restart podman-image-gc timer"
+  with_items:
+    - podman-image-gc.service
+    - podman-image-gc.timer

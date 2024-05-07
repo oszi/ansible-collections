@@ -1,0 +1,33 @@
+---
+- name: Ensure wireguard packages are installed
+  ansible.builtin.package:
+    name: "{{ wireguard_packages }}"
+    state: "present"
+  tags: [package]
+
+- name: Ensure /etc/wireguard exists
+  ansible.builtin.file:
+    path: "/etc/wireguard"
+    state: "directory"
+    owner: "root"
+    mode: "0700"
+
+- name: Copy WireGuard config files
+  ansible.builtin.copy:
+    content: "{{ item.value }}"
+    dest: "/etc/wireguard/{{ item.key }}.conf"
+    owner: "root"
+    mode: "0600"
+  notify: "Restart wireguard services"
+  with_dict: "{{ wireguard_quick_configs }}"
+
+- name: Run handlers immediately
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure wireguard services are started
+  ansible.builtin.systemd:
+    name: "wg-quick@{{ item }}"
+    state: "started"
+    daemon_reload: true
+    enabled: true
+  with_items: "{{ wireguard_quick_services }}"

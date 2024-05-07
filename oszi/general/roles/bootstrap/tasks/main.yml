@@ -1,0 +1,28 @@
+---
+- name: Set bootstrap_ssh_connection constant
+  ansible.builtin.set_fact:
+    bootstrap_ssh_connection: "{{ ansible_connection in ['ssh', 'paramiko_ssh'] }}"
+  tags: [always]
+
+- name: Establish initial SSH connection
+  when: bootstrap_ssh_connection
+  become: false
+  connection: local
+  ansible.builtin.import_tasks: ssh-connection.yml
+  tags: [always]
+
+- name: Check connectivity
+  ansible.builtin.ping:
+  tags: [always]
+
+- name: Run deferred setup to gather facts
+  ansible.builtin.setup:
+    gather_subset: "{{ bootstrap_facts_gather_subset }}"
+  tags: [always]
+
+- name: Update stale apt cache on Debian - workaround
+  ansible.builtin.apt:
+    cache_valid_time: 86400
+    update_cache: true
+  when: "ansible_os_family == 'Debian'"
+  tags: [package]

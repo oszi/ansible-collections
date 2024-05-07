@@ -1,0 +1,11 @@
+---
+vscode_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-vscode"
+vscode_rpm_includepkgs:
+  - "code"
+  - "code-exploration"
+  - "code-insiders"
+
+vscode_deb_gpgkey: "/etc/apt/keyrings/vscode.gpg"
+vscode_deb_repo: >-
+  deb [arch=amd64 signed-by={{ vscode_deb_gpgkey }}]
+  {{ vscode_deb_baseurl }} stable main

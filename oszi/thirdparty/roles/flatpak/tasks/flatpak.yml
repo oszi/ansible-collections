@@ -1,0 +1,38 @@
+---
+- name: Ensure flatpak remotes are installed
+  community.general.flatpak_remote:
+    name: "{{ item.key }}"
+    flatpakrepo_url: "{{ item.value }}"
+    method: "system"
+    state: "present"
+  with_dict: "{{ flatpak_remotes }}"
+
+- name: Ensure flatpak apps are installed
+  community.general.flatpak:
+    name: "{{ item.key }}"
+    remote: "{{ item.value }}"
+    method: "system"
+    state: "present"
+  with_dict: "{{ flatpak_apps }}"
+
+- name: Ensure blacklisted flatpak apps are not installed
+  community.general.flatpak:
+    name: "{{ item }}"
+    method: "system"
+    state: "absent"
+  with_items: "{{ flatpak_blacklisted_apps }}"
+
+- name: Ensure app flatpak overrides are set
+  ansible.builtin.command: >-
+    flatpak override --system {% for option in item.value
+    %} {{ option | quote }} {% endfor %} {{ item.key | quote }}
+  with_dict: "{{ flatpak_app_overrides }}"
+  changed_when: "ansible_verbosity > 1"
+  tags: [skip_ansible_lint]
+
+- name: Ensure global flatpak overrides are set
+  ansible.builtin.command: >-
+    flatpak override --system {% for option in flatpak_global_overrides
+    %} {{ option | quote }} {% endfor %}
+  changed_when: "ansible_verbosity > 1"
+  tags: [skip_ansible_lint]

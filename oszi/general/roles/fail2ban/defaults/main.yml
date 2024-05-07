@@ -1,0 +1,17 @@
+---
+# Setup Fail2ban?
+fail2ban_enabled: false
+
+fail2ban_local: |
+  [DEFAULT]
+  logtarget = STDERR
+
+fail2ban_jail_local: |
+  [DEFAULT]
+  bantime  = 86400
+  findtime = 3600
+  maxretry = 5
+
+  [sshd]
+  enabled = true
+  port = {{ ssh_port }}

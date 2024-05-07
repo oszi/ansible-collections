@@ -1,0 +1,20 @@
+[Unit]
+Description=Emergency Swap File
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=FILE=/var/tmp/swapfile
+Environment=SIZE=2048m
+
+ExecStart=/bin/touch ${FILE}
+ExecStart=/bin/fallocate -l ${SIZE} ${FILE}
+ExecStart=/bin/chmod 0600 ${FILE}
+ExecStart=/sbin/mkswap ${FILE}
+ExecStart=/sbin/losetup -f ${FILE}
+ExecStart=/bin/sh -c '/sbin/swapon $(/sbin/losetup -j ${FILE} | /bin/cut -d: -f1)'
+ExecStop=/bin/sh -c '/sbin/swapoff $(/sbin/losetup -j ${FILE} | /bin/cut -d: -f1)'
+ExecStop=/bin/sh -c '/sbin/losetup -d $(/sbin/losetup -j ${FILE} | /bin/cut -d: -f1)'
+
+[Install]
+WantedBy=basic.target

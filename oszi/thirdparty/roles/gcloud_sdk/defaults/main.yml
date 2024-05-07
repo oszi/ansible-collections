@@ -1,0 +1,39 @@
+---
+# Install Google Cloud SDK?
+gcloud_sdk_enabled: false
+
+# Install Google Cloud SDK App Engine components?
+gcloud_sdk_app_engine_enabled: false
+
+# Install Google Cloud SDK emulator components?
+gcloud_sdk_emulators_enabled: false
+
+# Install minikube from Google Cloud?
+gcloud_sdk_minikube_enabled: false
+
+# Install kubectl from Google Cloud?
+# * Conflicts with distribution packages!
+gcloud_sdk_kubectl_enabled: false
+
+# List of (all) emulator packages:
+gcloud_sdk_emulators_packages:
+  - google-cloud-sdk-bigtable-emulator
+  - google-cloud-sdk-datastore-emulator
+  - google-cloud-sdk-firestore-emulator
+  - google-cloud-sdk-pubsub-emulator
+  - google-cloud-sdk-spanner-emulator
+
+# List of (all) App Engine packages:
+gcloud_sdk_app_engine_packages:
+  - google-cloud-sdk-app-engine-go
+  - google-cloud-sdk-app-engine-grpc
+  - google-cloud-sdk-app-engine-java
+  - google-cloud-sdk-app-engine-python
+  - google-cloud-sdk-app-engine-python-extras
+
+# Repo base URLs - change for custom mirrors
+gcloud_sdk_rpm_baseurl: "https://packages.cloud.google.com/yum/repos/cloud-sdk-el9-$basearch"
+gcloud_sdk_deb_baseurl: "https://packages.cloud.google.com/apt"
+
+# Target directory for ansible installed scripts - e.g. gcloud-entrypoint.sh
+gcloud_sdk_local_bin_path: "/usr/local/bin"

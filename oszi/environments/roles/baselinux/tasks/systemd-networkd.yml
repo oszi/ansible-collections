@@ -1,0 +1,72 @@
+---
+- name: Ensure systemd-networkd is installed
+  ansible.builtin.package:
+    name: "systemd-networkd"
+    state: "present"
+  notify: "Restart systemd-networkd"
+  when: "ansible_os_family == 'RedHat'"
+  tags: [package]
+
+- name: Ensure systemd-resolved is installed
+  ansible.builtin.package:
+    name: "systemd-resolved"
+    state: "present"
+  notify: "Restart systemd-resolved"
+  when: "baselinux_resolved_enabled
+    and (ansible_os_family == 'RedHat'
+      or (ansible_distribution == 'Debian'
+        and ansible_distribution_version | int >= 12))"
+  tags: [package]
+
+- name: Ensure the systemd-network group exists
+  ansible.builtin.group:
+    name: "systemd-network"
+    state: "present"
+    system: true
+
+- name: Ensure /etc/systemd/network exists
+  ansible.builtin.file:
+    path: "/etc/systemd/network"
+    state: "directory"
+    owner: "root"
+    mode: "0755"
+
+- name: Install systemd-networkd units
+  ansible.builtin.copy:
+    content: "{{ item.value }}"
+    dest: "/etc/systemd/network/{{ item.key }}"
+    owner: "root"
+    group: "systemd-network"
+    mode: "0640"
+  notify: "Restart systemd-networkd"
+  with_dict: "{{ baselinux_networkd_units }}"
+
+- name: Set systemd-resolved options
+  community.general.ini_file:
+    dest: "/etc/systemd/resolved.conf"
+    section: "Resolve"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    no_extra_spaces: true
+  notify: "Restart systemd-resolved"
+  when: baselinux_resolved_enabled
+  with_dict: "{{ baselinux_resolved_options }}"
+
+- name: Symlink /etc/resolv.conf
+  ansible.builtin.file:
+    src: "{{ baselinux_systemd_resolv_conf_path }}"
+    dest: "/etc/resolv.conf"
+    state: "link"
+    force: true
+  when: baselinux_resolved_enabled
+
+- name: Disable NetworkManager?
+  ansible.builtin.systemd:
+    name: "NetworkManager"
+    state: "stopped"
+    masked: true
+    enabled: false
+  when: baselinux_network_manager_disabled

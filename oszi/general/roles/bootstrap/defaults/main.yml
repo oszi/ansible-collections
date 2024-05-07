@@ -1,0 +1,9 @@
+---
+# Fallback SSH port if ansible_port is unreachable
+bootstrap_ssh_port_default: 22
+
+# SSH private key content to override ansible_ssh_private_key_file:
+bootstrap_ssh_private_key:
+
+# List of fact subsets for ansible.builtin.setup:
+bootstrap_facts_gather_subset: ["all"]

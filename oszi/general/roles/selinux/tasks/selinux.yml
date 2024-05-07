@@ -1,0 +1,54 @@
+---
+- name: Ensure SELinux distribution compatibility
+  when: "ansible_os_family != 'RedHat'"
+  ansible.builtin.fail:
+    msg: "SELinux is only supported on RedHat family distributions!"
+
+- name: Ensure SELinux policy targeted is installed
+  ansible.builtin.package:
+    name: "selinux-policy-targeted"
+    state: "present"
+  tags: [package]
+
+- name: Ensure python2 libraries for SELinux are installed
+  when: "ansible_python.version.major == 2"
+  ansible.builtin.package:
+    name:
+      - "libselinux-python"
+      - "policycoreutils-python"
+    state: "present"
+  tags: [package]
+
+- name: Ensure python3 libraries for SELinux are installed
+  when: "ansible_python.version.major == 3"
+  ansible.builtin.package:
+    name:
+      - "python3-libselinux"
+      - "python3-policycoreutils"
+    state: "present"
+  tags: [package]
+
+- name: Set SELinux to permissive if disabled (requires reboot)
+  when: "ansible_selinux.status == 'disabled'"
+  ansible.posix.selinux:
+    policy: "targeted"
+    state: "permissive"
+  register: _selinux_was_disabled
+
+- name: Reboot the machine if SELinux was disabled
+  when: _selinux_was_disabled is defined and _selinux_was_disabled.changed
+  ansible.builtin.reboot:
+
+- name: Set alternate ssh_port_t
+  when: "ansible_port | default(22) | int != 22"
+  community.general.seport:
+    setype: "ssh_port_t"
+    ports: "{{ ansible_port }}"
+    proto: "tcp"
+    state: "present"
+  tags: [ssh]
+
+- name: Set SELinux to targeted and enforcing
+  ansible.posix.selinux:
+    policy: "targeted"
+    state: "enforcing"

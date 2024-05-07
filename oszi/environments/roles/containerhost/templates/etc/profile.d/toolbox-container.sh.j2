@@ -1,0 +1,45 @@
+export TOOLBOX_CONTAINER_IMAGE={{ containerhost_toolbox_container_image | quote }}
+
+# TODO: Less braindead arg parsing
+_toolbox_container() {
+  IMAGE="${TOOLBOX_CONTAINER_IMAGE}"
+  args="-i -t --rm --name=toolbox-${RANDOM:-0}"
+  if [[ "$1" == [-:]* ]]; then
+    while [ $# -ge 1 ]; do
+      case "$1" in
+      --) shift && break;;
+      :*) IMAGE=$(echo ${IMAGE} | sed -r 's/:\w*$//')${1} && shift;;
+       *) args="${args} ${1}" && shift;;
+      esac
+    done
+  fi
+  {{ containerhost_toolbox_container_runtime }} run ${args} "${IMAGE}" "$@"
+}
+
+alias toolbox-container='_toolbox_container'
+
+_toolbox_container_attach() {
+  if [ $# -eq 0 ]; then
+    echo "Usage: toolbox-container-attach <container> [command]" >&2
+    false
+  else
+    target="$1" && shift
+    _toolbox_container --privileged --userns=host --pid=host \
+      --network="container:${target}" --ipc="container:${target}" \
+      --volumes-from="${target}" -- "$@"
+  fi
+}
+
+alias toolbox-container-attach='_toolbox_container_attach'
+
+# Consider using toolbox from containertoolbx.org
+_toolbox_container_host() {
+  _toolbox_container --privileged --network=host --ipc=host --pid=host --userns=host -w /host \
+    -v /:/host:rw -v /dev:/dev:rw -v /home:/home:rw -v /media:/media:rw -v /mnt:/mnt:rw -v /tmp:/tmp:rw -v /sys:/sys:rw \
+    -v /etc/machine-id:/etc/machine-id:ro -v /etc/hosts:/etc/hosts:ro -v /etc/resolv.conf:/etc/resolv.conf:ro \
+    -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v /etc/shadow:/etc/shadow:ro
+}
+
+alias toolbox-container-host='_toolbox_container_host'
+
+alias toolbox-kube='kubectl run "toolbox-${RANDOM:-0}" -i -t --rm --restart=Never --image="${TOOLBOX_CONTAINER_IMAGE}"'

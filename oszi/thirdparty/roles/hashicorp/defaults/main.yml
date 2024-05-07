@@ -1,0 +1,15 @@
+---
+# Install the Hashicorp repository and packages?
+hashicorp_enabled: false
+
+# List of packages to install from the hashicorp repository:
+# See hashicorp_includepkgs in vars/main.yml
+hashicorp_packages: []
+
+# List of hashicorp packages to remove:
+hashicorp_blacklisted_packages: []
+
+# Repo base URLs - change for custom mirrors
+hashicorp_rpm_baseurl: "https://rpm.releases.hashicorp.com/{{
+  (ansible_distribution == 'Fedora') | ternary('fedora', 'RHEL') }}/$releasever/$basearch"
+hashicorp_deb_baseurl: "https://apt.releases.hashicorp.com"

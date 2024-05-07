@@ -1,0 +1,9 @@
+---
+namespace: oszi
+name: environments
+version: 1.0.0
+description: "Ansible collection for high-level environment roles."
+repository: "https://github.com/oszi/infrastructure.git"
+readme: README.md
+authors:
+  - "David O. <david@oszi.dev>"

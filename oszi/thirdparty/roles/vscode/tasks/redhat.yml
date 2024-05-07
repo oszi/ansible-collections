@@ -1,0 +1,31 @@
+---
+- name: Install VS Code RPM repository
+  when: vscode_enabled
+  block:
+    - name: Copy VS Code RPM signing key
+      ansible.builtin.copy:
+        src: "{{ vscode_rpm_gpgkey.lstrip('/') }}"
+        dest: "{{ vscode_rpm_gpgkey }}"
+        owner: "root"
+        mode: "0644"
+
+    - name: Install VS Code RPM repository
+      ansible.builtin.yum_repository:
+        file: "vscode"
+        name: "vscode"
+        description: "Visual Studio Code"
+        includepkgs: "{{ vscode_rpm_includepkgs }}"
+        baseurl: "{{ vscode_rpm_baseurl }}"
+        gpgkey: "file://{{ vscode_rpm_gpgkey }}"
+        gpgcheck: true
+        repo_gpgcheck: false
+        enabled: true
+
+- name: Uninstall VS Code RPM repository
+  when: not vscode_enabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ vscode_rpm_gpgkey }}"
+    - "/etc/yum.repos.d/vscode.repo"

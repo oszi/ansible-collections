@@ -1,0 +1,28 @@
+---
+# Path prefixes for volumes (CONFDIR, DATADIR)
+# * Config volume mounts should be read-only!
+containerhost_etc_path: "/opt/containers/etc"
+containerhost_var_path: "/opt/containers/var"
+
+# Path to the container runtime for system service containers
+containerhost_runtime: "/usr/bin/podman"
+
+# Dicts of vars for templates/etc/systemd/system/container.service.j2:
+# * service_name: container_service_vars
+# Extra vars parsed by tasks, not the template above:
+# * copy_files: {copy module args}
+# * init_script: shell script that runs once before installing
+containerhost_services: {}
+
+# Common labels for all container services
+containerhost_services_labels:
+  io.containers.autoupdate: "image"  # podman 3.x - backwards compatible with "registry"
+
+# Install the toolbox-container aliases?
+containerhost_toolbox_container_enabled: "{{ containerhost_podman_enabled }}"
+# Pull the toolbox image as root?
+containerhost_toolbox_container_pull: "{{ containerhost_podman_enabled and containerhost_toolbox_container_enabled }}"
+# Path to the container runtime for toolbox
+containerhost_toolbox_container_runtime: "{{ containerhost_runtime }}"
+# My toolbox container image
+containerhost_toolbox_container_image: "quay.io/oszi/toolbox"

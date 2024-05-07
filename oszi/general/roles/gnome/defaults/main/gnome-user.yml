@@ -1,0 +1,32 @@
+---
+# Desktop user to use as become_user.
+# Required for all related tasks!
+gnome_user:
+
+# Keep in mind that the dconf CLI tool, which this module wraps around, utilises an unusual syntax
+# for the values (GVariant). For example, if you wanted to provide a string value, the correct syntax
+# would be value="'myvalue'" - with single quotes as part of the Ansible parameter value.
+
+# When using loops in combination with a value like [('xkb', 'us'), ('xkb', 'hu')],
+# you need to be aware of possible type conversions. Applying a filter "{{ item.value | string }}"
+# to the parameter variable can avoid potential conversion problems.
+
+# See vars/gnome.yml: gnome_dconf_vars_default
+gnome_dconf_vars:
+  /org/gnome/desktop/session/idle-delay: "uint32 900"
+
+# Friendly format for setting custom keyboard shortcuts:
+# Do NOT set custom keybindings in gnome_dconf_vars!
+gnome_dconf_custom_keybindings:
+  custom0:
+    binding: "'<Alt>Above_Tab'"
+    command: "'env GDK_BACKEND=x11 tilix --quake'"
+    name: "'Open Tilix'"
+  custom1:
+    binding: "'<Shift><Super>4'"
+    command: "'gnome-screenshot -c -a -f /tmp/screenshot.png'"
+    name: "'Screenshot Clip Area'"
+  custom2:
+    binding: "'<Control><Shift><Super>4'"
+    command: "'gnome-screenshot -c -w -f /tmp/screenshot.png'"
+    name: "'Screenshot Clip Window'"

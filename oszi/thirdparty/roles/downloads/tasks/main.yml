@@ -1,0 +1,24 @@
+---
+- name: Downloads tasks
+  tags: [third-party, downloads]
+  block:
+    - name: Ensure downloads_bin_path exists
+      ansible.builtin.file:
+        path: "{{ downloads_bin_path }}"
+        state: "directory"
+        owner: "root"
+        mode: "0755"
+
+    - name: Ensure downloads_cache_path exists
+      ansible.builtin.file:
+        path: "{{ downloads_cache_path }}"
+        state: "directory"
+        owner: "root"
+        mode: "0755"
+
+    - name: Include downloads tasks
+      ansible.builtin.include_tasks:
+        file: "{{ downloads_task }}"
+      with_fileglob: ["tasks/downloads/*"]
+      loop_control:
+        loop_var: downloads_task

@@ -1,0 +1,80 @@
+---
+- name: "[Un]install spice-vdagent for QEMU guests"
+  ansible.builtin.package:
+    name: "spice-vdagent"
+    state: "{{ 'present' if ansible_virtualization_type in ['kvm', 'xen']
+      and ansible_virtualization_role == 'guest' else 'absent' }}"
+  tags: [package]
+
+- name: "[Un]install VMWare desktop guest agent"
+  ansible.builtin.package:
+    name: "open-vm-tools-desktop"
+    state: "{{ 'present' if ansible_virtualization_type == 'VMware'
+      and ansible_virtualization_role == 'guest' else 'absent' }}"
+  tags: [package]
+
+- name: Install various executables
+  ansible.builtin.copy:
+    src: "bin/"
+    dest: "{{ workstation_local_bin_path }}/"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+    local_follow: false
+    follow: false
+
+- name: Install workstation aliases
+  ansible.builtin.template:
+    src: "etc/profile.d/workstation-aliases.sh.j2"
+    dest: "/etc/profile.d/workstation-aliases.sh"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Copy /etc/pipewire/media-session.d/bluez-monitor.conf
+  ansible.builtin.copy:
+    src: "etc/pipewire/media-session.d/bluez-monitor.conf"
+    dest: "/etc/pipewire/media-session.d/"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Copy /etc/gai.conf
+  ansible.builtin.copy:
+    src: "etc/gai.conf"
+    dest: "/etc/gai.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Customize kernel module for Apple keyboards
+  ansible.builtin.copy:
+    dest: "/etc/modprobe.d/hid_apple.conf"
+    content: "options hid_apple {{ workstation_hid_apple_options.items() | map('join', '=') | join(' ') }}\n"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: workstation_hid_apple_options
+
+- name: Replace Shift+Alt_R with Compose key (XKB lv3:ralt_alt)
+  ansible.builtin.replace:
+    path: "/usr/share/X11/xkb/symbols/level3"
+    after: 'xkb_symbols "ralt_alt"'
+    before: 'xkb_symbols "ralt_switch_multikey"'
+    regexp: '\[\s*Alt_R,\s*Meta_R\s*\]'
+    replace: "[ Alt_R, Multi_key ]"
+
+- name: Fix host audio for libvirt VMs
+  block:
+    - name: Check /etc/libvirt/qemu.conf
+      ansible.builtin.stat:
+        path: "/etc/libvirt/qemu.conf"
+      register: _libvirt_qemu_conf
+
+    - name: Fix host audio for libvirt VMs
+      ansible.builtin.lineinfile:
+        dest: "{{ _libvirt_qemu_conf.stat.path }}"
+        line: "nographics_allow_host_audio = 1"
+        regexp: '#?\s*nographics_allow_host_audio\s*='
+        state: "present"
+      when: _libvirt_qemu_conf.stat.exists

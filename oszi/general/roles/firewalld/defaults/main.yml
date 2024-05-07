@@ -1,0 +1,30 @@
+---
+# Enable firewalld tasks?
+firewalld_enabled: "{{ not is_container|default(false) }}"
+
+# Accepted services for firewalld besides SSH
+# * May contain dicts with zone/service
+firewalld_services: []
+
+# Accepted ports for firewalld besides SSH
+# * May contain dicts with zone/port
+firewalld_ports: []
+
+# List of firewalld rich rules
+# * May contain dicts with zone/rule
+firewalld_rich_rules: []
+
+# List of firewalld direct rules (uses shell)
+# * ipv4|ipv6|eb <table> <chain> <priority> <args>
+firewalld_direct_rules: []
+
+# List of dicts of firewalld zones
+# * Params: interface, source, masquerade, zone
+firewalld_zones: []
+
+# Set to false for runtime firewall changes:
+# --extra-vars=firewalld_permanent=false
+firewalld_permanent: true
+
+# Firewalld backend: nftables/iptables
+firewalld_backend: "nftables"

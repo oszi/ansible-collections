@@ -1,0 +1,58 @@
+---
+- name: Install Google Chrome deb repository
+  when: google_chrome_enabled
+  block:
+    - name: Ensure directory for Google Chrome deb signing key
+      ansible.builtin.file:
+        path: "{{ google_chrome_deb_gpgkey | dirname }}"
+        state: "directory"
+        owner: "root"
+        mode: "0755"
+
+    - name: Copy Google Chrome deb signing key
+      ansible.builtin.copy:
+        src: "{{ google_chrome_deb_gpgkey.lstrip('/') }}"
+        dest: "{{ google_chrome_deb_gpgkey }}"
+        owner: "root"
+        mode: "0644"
+
+    - name: Check Google Chrome deb repository
+      ansible.builtin.apt_repository:
+        filename: "google-chrome"
+        repo: "{{ google_chrome_deb_repo }}"
+      register: _google_chrome_apt_repo
+      check_mode: true
+
+    - name: Ensure google-chrome.list is NOT immutable
+      when: _google_chrome_apt_repo.changed
+      ansible.builtin.file:
+        path: "{{ google_chrome_deb_repo_file }}"
+        attr: "-i"
+      failed_when: false
+
+    - name: Install Google Chrome deb repository
+      when: _google_chrome_apt_repo.changed
+      ansible.builtin.apt_repository:
+        filename: "google-chrome"
+        repo: "{{ google_chrome_deb_repo }}"
+
+    - name: Ensure google-chrome.list is immutable to prevent vendor changes
+      ansible.builtin.file:
+        path: "{{ google_chrome_deb_repo_file }}"
+        attr: "+i"
+
+- name: Ensure google-chrome.list is NOT immutable
+  when: not google_chrome_enabled
+  ansible.builtin.file:
+    path: "{{ google_chrome_deb_repo_file }}"
+    attr: "-i"
+  failed_when: false
+
+- name: Uninstall Google Chrome deb repository
+  when: not google_chrome_enabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ google_chrome_deb_gpgkey }}"
+    - "{{ google_chrome_deb_repo_file }}"

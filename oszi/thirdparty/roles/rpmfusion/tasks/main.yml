@@ -1,0 +1,13 @@
+---
+- name: RPMFusion tasks on RedHat family
+  when: "ansible_os_family == 'RedHat'"
+  tags: [rpmfusion, package]
+  block:
+    - name: Include RPMFusion configuration tasks
+      ansible.builtin.include_tasks:
+        file: repositories.yml
+
+    - name: Include RPMFusion package setup tasks
+      when: rpmfusion_packages or rpmfusion_blacklisted_packages
+      ansible.builtin.include_tasks:
+        file: packages.yml

@@ -1,0 +1,63 @@
+---
+- name: Ensure openssh-server is installed
+  ansible.builtin.package:
+    name: "openssh-server"
+    state: "present"
+  notify: "Restart sshd service"
+  tags: [package]
+
+- name: Check SSH authorized keys
+  ansible.posix.authorized_key:
+    user: "{{ item.key }}"
+    key: "{{ item.value }}"
+    exclusive: "{{ ssh_authorized_keys_exclusive }}"
+  register: _ssh_authorized_keys_check
+  with_dict: "{{ ssh_authorized_keys }}"
+  check_mode: true
+
+- name: Update changed SSH authorized keys
+  when: _ssh_authorized_keys_check.changed
+  block:
+    - name: Reduce _ssh_authorized_keys_check to changed items
+      ansible.builtin.set_fact:
+        _ssh_authorized_keys_changed_items: "{{ _ssh_authorized_keys_check.results
+          | selectattr('changed', 'equalto', true) }}"
+
+    - name: Ensure changed authorized keys files are NOT immutable
+      ansible.builtin.file:
+        path: "{{ item }}"
+        attr: "-i"
+      with_items: "{{ _ssh_authorized_keys_changed_items | map(attribute='keyfile') }}"
+      when: ssh_authorized_keys_immutable
+      failed_when: false
+
+    - name: Install SSH authorized keys
+      ansible.posix.authorized_key:
+        user: "{{ item.user }}"
+        key: "{{ item.key }}"
+        exclusive: "{{ item.exclusive }}"
+      with_items: "{{ _ssh_authorized_keys_changed_items }}"
+
+- name: Ensure authorized keys files are immutable
+  ansible.builtin.file:
+    path: "{{ item }}"
+    attr: "+i"
+  with_items: "{{ _ssh_authorized_keys_check.results | map(attribute='keyfile') }}"
+  changed_when: _ssh_authorized_keys_check.changed
+  when: ssh_authorized_keys_immutable
+
+- name: Install the sshd config file
+  ansible.builtin.template:
+    src: "etc/ssh/sshd_config.j2"
+    dest: "/etc/ssh/sshd_config"
+    owner: "root"
+    mode: "0600"
+  when: ssh_server_config_override
+  notify: "Restart sshd service"
+
+- name: Run handlers immediately
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure the configured SSH port will be used from now on
+  ansible.builtin.set_fact:
+    ansible_port: "{{ ssh_port }}"

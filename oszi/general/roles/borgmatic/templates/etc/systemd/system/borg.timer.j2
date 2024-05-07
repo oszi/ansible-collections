@@ -1,0 +1,10 @@
+[Unit]
+After=default.target network-online.target remote-fs.target
+Wants=network-online.target
+{{ borgmatic_unit_options | join('\n') }}
+
+[Timer]
+{{ borgmatic_timer_options | join('\n') }}
+
+[Install]
+WantedBy=timers.target

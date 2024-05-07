@@ -1,0 +1,54 @@
+---
+# Setup Borg/Borgmatic? (see vars/borg.yml )
+borgmatic_enabled: false
+# Python3 package version of Borgmatic
+# Requires python_enabled=true!
+borgmatic_version: ">1.7.0,<2.0.0"
+
+# Target directory or remote repository!
+borgmatic_repository: "/var/lib/borg-{{ inventory_hostname }}"
+# Passphrase for symmetric encryption!
+borgmatic_passphrase:
+# List of directories to backup:
+borgmatic_sources: ["/etc", "/home", "/opt", "/root"]
+# Patterns to exclude from backups:
+borgmatic_excludes: ["*/.cache/*", "*/cache/*", "*/temp/*", "*/tmp/*"]
+
+# Stay on the same file system?
+borgmatic_one_file_system: false
+# Type of compression (would be no compression by default)
+# See https://borgbackup.readthedocs.org/en/stable/usage.html#borg-create
+borgmatic_compression: "lz4"
+
+# Alternate borg remote executable (e.g. borg1 for rsync.net)
+borgmatic_remote_path: "borg"
+# Command to use instead of ssh.
+borgmatic_ssh_command: "ssh"
+
+# Consistency checks (dict)
+# https://borgbackup.readthedocs.org/en/stable/usage.html#borg-check
+borgmatic_consistency:
+  checks: ["repository", "archives"]
+  check_last: 3
+
+# Retention policy (dict)
+# https://borgbackup.readthedocs.org/en/stable/usage.html#borg-prune
+borgmatic_retention:
+  keep_within: 3H
+  keep_hourly: 24
+  keep_daily: 7
+  keep_weekly: 4
+  keep_monthly: 6
+  keep_yearly: 1
+
+# Container service settings
+borgmatic_unit_options: []
+borgmatic_timer_options:
+  - "OnCalendar=daily"
+  - "RandomizedDelaySec=3600"
+  - "Persistent=true"
+
+# Shell commands or scripts to execute before and after a backup or if an error has occurred.
+# Warning: All provided commands and scripts are executed with user permissions of borgmatic!
+# Keys: before_backup, after_backup, on_error # Values: list of commands
+borgmatic_hooks: {}

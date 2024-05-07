@@ -1,0 +1,6 @@
+[Unit]
+Description=Podman Image Garbage Collector
+
+[Service]
+EnvironmentFile=-/etc/environment
+ExecStart=/bin/sh -c '{{ containerhost_runtime }} images -qf dangling=true | /usr/bin/xargs -r {{ containerhost_runtime }} rmi'

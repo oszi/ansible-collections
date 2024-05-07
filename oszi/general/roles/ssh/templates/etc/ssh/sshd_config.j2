@@ -1,0 +1,22 @@
+Port {{ ssh_port }}
+AuthenticationMethods {{ ssh_auth_methods | default('publickey') }}
+{% if ssh_allow_users %}
+AllowUsers {{ ssh_allow_users | join(' ') }}
+{% endif %}
+
+{% if ssh_harden_crypto %}
+KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
+{% endif %}
+{% for item in ssh_host_keys %}
+HostKey {{ item }}
+{% endfor %}
+
+Subsystem sftp internal-sftp
+UsePAM yes
+UseDNS no
+{% if ssh_server_config_extra is not none %}
+
+{{ ssh_server_config_extra }}
+{% endif %}

@@ -1,0 +1,11 @@
+---
+- name: Install chromium policies
+  ansible.builtin.include_tasks:
+    file: chromium-policies.yml
+    apply:
+      tags: [chromium-policies]
+  with_items: "{{ chromium_policies_paths }}"
+  loop_control:
+    loop_var: chromium_policies_path
+  when: chromium_policies_enabled
+  tags: [chromium-policies]

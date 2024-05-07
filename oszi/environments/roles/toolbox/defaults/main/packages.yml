@@ -1,0 +1,179 @@
+---
+# See also: roles/baselinux/default/python.yml, roles/workstation/default/main/packages.yml
+
+# Nested list of packages to install on toolboxes:
+toolbox_packages: "{{ toolbox_packages_pt_default }}"
+
+# Fedora/Debian/Ubuntu defaults to include in toolbox_packages:
+toolbox_packages_pt_default:
+  - "{{ [
+      'bind-utils',
+      'device-mapper',
+      'dnf-plugins-core',
+      'gcc-c++',
+      'glibc-devel.*',
+      'httpd-tools',
+      'iproute',
+      'iputils',
+      'libstdc++-devel.*',
+      'lm_sensors',
+      'nmap-ncat',
+      'procps-ng',
+      'redhat-rpm-config',
+      'sqlite',
+      'vim-minimal',
+      'which',
+      'xz',
+    ]
+    if (ansible_os_family == 'RedHat') else [] }}"
+  - "{{ [
+      'ansible-collection-ansible-*',
+      'ansible-collection-community-crypto',
+      'ansible-collection-community-general',
+      'ansible-collection-containers-podman',
+      'ansible-core-doc',
+      'ddrescue',
+      'dnf-utils',
+      'eza',
+      'fpaste',
+      'fuse-sshfs',
+      'hddtemp',
+      'helm' if downloads_helm_url is none else [],
+      'iptables-legacy',
+      'iptables-nft',
+      'opentofu' if not opentofu_upstream_enabled else [],
+      'perl-Image-ExifTool',
+      'python3-ansible-lint',
+      'python3-dnf-plugin-system-upgrade',
+      'shyaml',
+      'vim-enhanced',
+    ]
+    if (ansible_distribution == 'Fedora') else [] }}"
+  - "{{ [
+      'ansible-lint',
+      'apache2-utils',
+      'bind9-utils',
+      'build-essential',
+      'exa',
+      'g++',
+      'gddrescue',
+      'iproute2',
+      'iptables',
+      'iputils-*',
+      'libc6-dev',
+      'libimage-exiftool-perl',
+      'libstdc++-*-dev',
+      'lm-sensors',
+      'netcat-openbsd',
+      'procps',
+      'sqlite3',
+      'sshfs',
+      'vim',
+      'xz-utils',
+    ]
+    if (ansible_os_family == 'Debian') else [] }}"
+  # Essential Packages
+  - atop
+  - autoconf
+  - automake
+  - bash
+  - bash-completion
+  - bat
+  - bridge-utils
+  - btrfs-progs
+  - bzip2
+  - curl
+  - e2fsprogs
+  - ethtool
+  - exfatprogs
+  - file
+  - findutils
+  - fzf
+  - gcc
+  - git
+  - gnupg2
+  - hdparm
+  - hostname
+  - htop
+  - jq
+  - less
+  - libtool
+  - libxml2
+  - lshw
+  - lsof
+  - ltrace
+  - m4
+  - make
+  - nano
+  - net-tools
+  - nftables
+  - numactl
+  - passwd
+  - patch
+  - pinentry-tty
+  - psmisc
+  - ripgrep
+  - rsync
+  - screen
+  - socat
+  - strace
+  - sudo
+  - tar
+  - tmux
+  - traceroute
+  - tree
+  - util-linux
+  - wget
+  - xfsprogs
+  - zip
+  # Toolbox
+  - ansible
+  - awscli
+  - binwalk
+  - blktrace
+  - borgbackup
+  - brotli
+  - checksec
+  - dnsenum
+  - duperemove
+  - duplicity
+  - hexedit
+  - httpie
+  - hwloc
+  - iftop
+  - inotify-tools
+  - iotop
+  - iperf3
+  - irssi
+  - lftp
+  - mc
+  - mediainfo
+  - netsniff-ng
+  - nmap
+  - openssl
+  - p7zip
+  - perl
+  - postgresql
+  - pv
+  - rclone
+  - skopeo
+  - smartmontools
+  - speedtest-cli
+  - sslscan
+  - sslsplit
+  - stunnel
+  - subnetcalc
+  - sysstat
+  - tcpdump
+  - tcpreplay
+  - telnet
+  - testdisk
+  - unar
+  - unzip
+  - whois
+  - zsh
+
+# Packages to remove from toolboxes (Fedora/Debian/Ubuntu)
+toolbox_blacklisted_packages:
+  - "{{ 'helm' if downloads_helm_url is not none else [] }}"
+  - hstr  # fzf shell

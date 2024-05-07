@@ -1,0 +1,8 @@
+---
+- name: Restart wireguard services
+  ansible.builtin.systemd:
+    name: "wg-quick@{{ item }}"
+    state: "restarted"
+    daemon_reload: true
+    enabled: true
+  with_items: "{{ wireguard_quick_services }}"

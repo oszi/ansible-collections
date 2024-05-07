@@ -1,0 +1,37 @@
+---
+- name: Google Cloud SDK tasks
+  tags: [third-party, gcloud-sdk]
+  block:
+    - name: Google Cloud SDK repository
+      ansible.builtin.include_tasks:
+        file: "{{ ansible_os_family | lower }}.yml"
+
+    - name: Google Cloud SDK is un/installed
+      ansible.builtin.package:
+        name: "google-cloud-sdk"
+        state: "{{ gcloud_sdk_enabled | ternary('present', 'absent') }}"
+
+    - name: Google Cloud SDK Emulators are un/installed
+      ansible.builtin.package:
+        name: "{{ gcloud_sdk_emulators_packages }}"
+        state: "{{ (gcloud_sdk_enabled and gcloud_sdk_emulators_enabled)
+          | ternary('present', 'absent') }}"
+
+    - name: Google Cloud App Engine components are un/installed
+      ansible.builtin.package:
+        name: "{{ gcloud_sdk_app_engine_packages }}"
+        state: "{{ (gcloud_sdk_enabled and gcloud_sdk_app_engine_enabled)
+          | ternary('present', 'absent') }}"
+
+    - name: Google SDK MiniKube is un/installed
+      ansible.builtin.package:
+        name: "google-cloud-sdk-minikube"
+        state: "{{ (gcloud_sdk_enabled and gcloud_sdk_minikube_enabled)
+          | ternary('present', 'absent') }}"
+
+    - name: Kubectl package tasks
+      ansible.builtin.import_tasks: kubectl.yml
+      tags: [kubectl]
+
+    - name: Gcloud scripts tasks
+      ansible.builtin.import_tasks: scripts.yml

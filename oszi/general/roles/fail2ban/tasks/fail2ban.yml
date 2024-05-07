@@ -1,0 +1,56 @@
+---
+- name: Ensure fail2ban is installed
+  ansible.builtin.package:
+    name: "fail2ban"
+    state: "present"
+  tags: [package]
+
+- name: Ensure RedHat family packages are installed
+  when: "ansible_os_family == 'RedHat'"
+  tags: [package]
+  block:
+    - name: Ensure fail2ban-systemd is installed
+      ansible.builtin.package:
+        name: "fail2ban-systemd"
+        state: "present"
+
+    - name: Ensure fail2ban-selinux is installed
+      ansible.builtin.package:
+        name: "fail2ban-selinux"
+        state: "{{ selinux_enabled | ternary('present', 'absent') }}"
+
+    - name: Ensure fail2ban-firewalld is installed
+      ansible.builtin.package:
+        name: "fail2ban-firewalld"
+        state: "{{ firewalld_enabled | ternary('present', 'absent') }}"
+
+- name: Copy fail2ban/jail.d/00-systemd-firewalld.conf config file
+  when: "ansible_os_family != 'RedHat'"
+  ansible.builtin.copy:
+    content: |
+      [DEFAULT]
+      backend = systemd
+      {% if firewalld_enabled %}
+      banaction = firewallcmd-rich-rules
+      banaction_allports = firewallcmd-rich-rules
+      {% endif %}
+    dest: "/etc/fail2ban/jail.d/00-systemd-firewalld.conf"
+    owner: "root"
+    mode: "0644"
+  notify: "Restart fail2ban service"
+
+- name: Copy fail2ban/fail2ban.local config file
+  ansible.builtin.copy:
+    content: "{{ fail2ban_local }}"
+    dest: "/etc/fail2ban/fail2ban.local"
+    owner: "root"
+    mode: "0644"
+  notify: "Restart fail2ban service"
+
+- name: Copy fail2ban/jail.local config file
+  ansible.builtin.copy:
+    content: "{{ fail2ban_jail_local }}"
+    dest: "/etc/fail2ban/jail.local"
+    owner: "root"
+    mode: "0644"
+  notify: "Restart fail2ban service"

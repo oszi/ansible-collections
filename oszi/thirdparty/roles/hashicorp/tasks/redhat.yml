@@ -1,0 +1,43 @@
+---
+- name: Install HashiCorp RPM repository
+  when: hashicorp_enabled
+  block:
+    - name: Copy Hashicorp RPM signing key
+      ansible.builtin.copy:
+        src: "{{ hashicorp_rpm_gpgkey.lstrip('/') }}"
+        dest: "{{ hashicorp_rpm_gpgkey }}"
+        owner: "root"
+        mode: "0644"
+
+    - name: Install Hashicorp RPM repository
+      ansible.builtin.yum_repository:
+        file: "hashicorp"
+        name: "hashicorp"
+        description: "Hashicorp Stable - $basearch"
+        includepkgs: "{{ hashicorp_rpm_includepkgs }}"
+        baseurl: "{{ hashicorp_rpm_baseurl }}/stable"
+        gpgkey: "file://{{ hashicorp_rpm_gpgkey }}"
+        gpgcheck: true
+        repo_gpgcheck: false
+        enabled: true
+
+    - name: Install Hashicorp test RPM repository
+      ansible.builtin.yum_repository:
+        file: "hashicorp"
+        name: "hashicorp-test"
+        description: "Hashicorp Test - $basearch"
+        includepkgs: "{{ hashicorp_rpm_includepkgs }}"
+        baseurl: "{{ hashicorp_rpm_baseurl }}/test"
+        gpgkey: "file://{{ hashicorp_rpm_gpgkey }}"
+        gpgcheck: true
+        repo_gpgcheck: false
+        enabled: false
+
+- name: Uninstall HashiCorp RPM repository
+  when: not hashicorp_enabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ hashicorp_rpm_gpgkey }}"
+    - "/etc/yum.repos.d/hashicorp.repo"

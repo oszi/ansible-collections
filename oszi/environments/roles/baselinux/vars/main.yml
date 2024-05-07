@@ -1,0 +1,33 @@
+---
+# Sysctl defaults to merge with baselinux_sysctl_values:
+baselinux_sysctl_values_default:
+  # Disable eBPF until next reboot
+  kernel.unprivileged_bpf_disabled: 1
+  # Enable source address verification (RFC3704)
+  net.ipv4.conf.default.rp_filter: 1
+  net.ipv4.conf.all.rp_filter: 1
+  # Enable SYN-flood protections
+  net.ipv4.tcp_syncookies: 1
+  # Do not accept ICMP redirects
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv6.conf.all.accept_redirects: 0
+  # Enable Packet Forwarding
+  net.ipv4.ip_forward: 1
+  net.ipv6.conf.default.forwarding: 1
+  net.ipv6.conf.all.forwarding: 1
+  # Enable Local Routing
+  net.ipv4.conf.default.route_localnet: 1
+  net.ipv4.conf.all.route_localnet: 1
+  # Enable TCP Fast Open for both client and server
+  net.ipv4.tcp_fastopen: 3
+  # Kilobytes of memory to always keep free (good for overlayfs)
+  vm.min_free_kbytes: "{{ [ansible_memtotal_mb * 1024 * 0.05, 2048 * 1024] | min | int }}"
+  # Optimize memory compaction for guests
+  vm.compaction_proactiveness: "{{ (ansible_virtualization_role == 'guest') | ternary(0, 10) }}"
+  # Percentage of free memory before activating swap (1 = only on faults)
+  vm.swappiness: "{{ (ansible_virtualization_role == 'guest') | ternary(1, 5) }}"
+
+# Path to systemd's [stub-]resolv.conf file
+baselinux_systemd_resolv_conf_path: "/run/systemd/resolve/{{
+  (baselinux_resolved_options['DNSStubListener'] | default('no') | lower in ['yes', 'true'])
+  | ternary('stub-resolv', 'resolv') }}.conf"

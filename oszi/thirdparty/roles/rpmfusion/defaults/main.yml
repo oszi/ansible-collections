@@ -1,0 +1,10 @@
+---
+# Enable RPMFusion repositories on RedHat family? (Off by default!)
+rpmfusion_enabled: false
+# Run dnf with --allowerasing to override e.g. ffmpeg-free with ffmpeg?
+rpmfusion_dnf_allowerasing: false
+
+# Nested list of packages to install from RPMFusion:
+rpmfusion_packages: []
+# RPMFusion packages to always uninstall:
+rpmfusion_blacklisted_packages: []

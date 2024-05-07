@@ -1,0 +1,26 @@
+---
+# Enable flatpak setup tasks?
+flatpak_enabled: true
+
+# Flatpak remotes to install:
+flatpak_remotes:
+  flathub: "https://flathub.org/repo/flathub.flatpakrepo"
+
+# Flatpak apps to install (nothing by default!):
+# - org.chromium.Chromium: flathub
+# - org.gnome.Evince: flathub
+# - org.libreoffice.LibreOffice: flathub
+flatpak_apps: []
+
+# Flatpak apps to uninstall:
+# - com.example.App
+flatpak_blacklisted_apps: []
+
+# Global flatpak overrides!
+flatpak_global_overrides:
+  - "--nofilesystem=host"
+  - "--nofilesystem=home"
+
+# Flatpak overrides in a dict of lists per app:
+# { com.example.App: ["--nofilesystem=home", "--filesystem=/mnt/data:ro"] }
+flatpak_app_overrides: {}

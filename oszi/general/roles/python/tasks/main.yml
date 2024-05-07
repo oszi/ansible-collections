@@ -1,0 +1,8 @@
+---
+- name: Python setup tasks
+  tags: [python]
+  block:
+    - name: Include Python setup tasks
+      when: python_enabled
+      ansible.builtin.include_tasks:
+        file: python.yml

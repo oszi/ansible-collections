@@ -1,0 +1,52 @@
+---
+- name: Install Gnome user themes
+  ansible.builtin.copy:
+    src: "home/.themes/"
+    dest: "~/.themes/"
+    owner: "{{ gnome_user }}"
+    group: "{{ gnome_user }}"
+    mode: "0644"
+
+- name: Set dconf settings for the current user
+  community.general.dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value | string }}"
+    state: "present"
+  with_dict: "{{ gnome_dconf_vars_default | combine(gnome_dconf_vars) }}"
+
+- name: Set custom keyboard shortcuts
+  when: gnome_dconf_custom_keybindings
+  block:
+    - name: Set dconf custom keybindings - binding attr
+      community.general.dconf:
+        key: "{{ gnome_dconf_custom_keybindings_prefix }}/{{ item.key }}/binding"
+        value: "{{ item.value['binding'] }}"
+        state: "present"
+      with_dict: "{{ gnome_dconf_custom_keybindings }}"
+
+    - name: Set dconf custom keybindings - command attr
+      community.general.dconf:
+        key: "{{ gnome_dconf_custom_keybindings_prefix }}/{{ item.key }}/command"
+        value: "{{ item.value['command'] }}"
+        state: "present"
+      with_dict: "{{ gnome_dconf_custom_keybindings }}"
+
+    - name: Set dconf custom keybindings - name attr
+      community.general.dconf:
+        key: "{{ gnome_dconf_custom_keybindings_prefix }}/{{ item.key }}/name"
+        value: "{{ item.value['name'] }}"
+        state: "present"
+      with_dict: "{{ gnome_dconf_custom_keybindings }}"
+
+    - name: Generate dconf custom keybindings key-map helper yaml
+      ansible.builtin.set_fact:
+        _dconf_custom_keybindings_key_map_yaml: |-
+          {% for key in gnome_dconf_custom_keybindings.keys() %}
+          - '{{ gnome_dconf_custom_keybindings_prefix }}/{{ key }}/'
+          {% endfor %}
+
+    - name: Set dconf custom keybindings key-map helper
+      community.general.dconf:
+        key: "{{ gnome_dconf_custom_keybindings_prefix }}"
+        value: "{{ _dconf_custom_keybindings_key_map_yaml | from_yaml | string }}"
+        state: "present"

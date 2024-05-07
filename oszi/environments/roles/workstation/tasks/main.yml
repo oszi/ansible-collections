@@ -1,0 +1,8 @@
+---
+- name: Workstation package setup tasks
+  ansible.builtin.import_tasks: packages.yml
+  tags: [workstation, package]
+
+- name: System tasks for workstations
+  ansible.builtin.import_tasks: system.yml
+  tags: [workstation, system]

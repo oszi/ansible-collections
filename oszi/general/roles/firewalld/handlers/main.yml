@@ -1,0 +1,12 @@
+---
+- name: Reload firewalld
+  ansible.builtin.command: "/usr/bin/firewall-cmd --reload"
+
+- name: Restart firewalld
+  ansible.builtin.systemd:
+    name: "firewalld"
+    state: "restarted"
+    daemon_reload: true
+    enabled: true
+    # In case iptables-services was installed!
+    masked: false

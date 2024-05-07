@@ -1,0 +1,15 @@
+---
+- name: Flatten package list variables
+  ansible.builtin.set_fact:
+    toolbox_packages: "{{ toolbox_packages | flatten }}"
+    toolbox_blacklisted_packages: "{{ toolbox_blacklisted_packages | flatten }}"
+
+- name: Ensure blacklisted packages are not installed
+  ansible.builtin.package:
+    name: "{{ toolbox_blacklisted_packages }}"
+    state: "absent"
+
+- name: Ensure toolbox packages are installed
+  ansible.builtin.package:
+    name: "{{ toolbox_packages | difference(toolbox_blacklisted_packages) }}"
+    state: "present"

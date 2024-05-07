@@ -1,0 +1,44 @@
+---
+- name: Install the Borgmatic unit files
+  ansible.builtin.template:
+    src: "etc/systemd/system/{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_items:
+    - "borg.service"
+    - "borg.timer"
+  notify: "Restart borg timer"
+
+- name: Ensure the Borgmatic config directory exists
+  ansible.builtin.file:
+    dest: "{{ borgmatic_config_path | dirname }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0700"
+
+- name: Install the Borgmatic config file
+  ansible.builtin.copy:
+    content: "{{ borgmatic_config | to_nice_yaml }}"
+    dest: "{{ borgmatic_config_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+  tags: [skip_ansible_lint]
+
+- name: Initialize the local Borg repository
+  ansible.builtin.command: "borg init -e repokey {{ borgmatic_repository }}"
+  args:
+    creates: "{{ borgmatic_repository }}/*"
+  environment:
+    borgmatic_passphrase: "{{ borgmatic_passphrase }}"
+  when: "borgmatic_repository[0] == '/'"
+
+- name: Ensure borg timer is started
+  ansible.builtin.systemd:
+    name: "borg.timer"
+    state: "started"
+    daemon_reload: true
+    enabled: true

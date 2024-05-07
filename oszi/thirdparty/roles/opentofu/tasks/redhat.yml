@@ -1,0 +1,31 @@
+---
+- name: Install OpenTofu RPM repository
+  when: opentofu_upstream_enabled
+  block:
+    - name: Copy OpenTofu RPM signing keys
+      ansible.builtin.copy:
+        src: "{{ item.lstrip('/') }}"
+        dest: "{{ item }}"
+        owner: "root"
+        mode: "0644"
+      with_items: "{{ opentofu_rpm_gpgkeys }}"
+
+    - name: Install OpenTofu RPM repository
+      ansible.builtin.yum_repository:
+        file: "opentofu"
+        name: "opentofu"
+        description: "OpenTofu Upstream"
+        includepkgs: "{{ opentofu_rpm_includepkgs }}"
+        baseurl: "{{ opentofu_rpm_baseurl }}"
+        gpgkey: "{{ opentofu_rpm_gpgkeys | map('regex_replace', '^(.*)$', 'file://\\1') | list }}"
+        gpgcheck: true
+        repo_gpgcheck: false
+        enabled: true
+
+- name: Uninstall OpenTofu RPM repository
+  when: not opentofu_upstream_enabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ opentofu_rpm_gpgkeys
+    + ['/etc/yum.repos.d/opentofu.repo'] }}"

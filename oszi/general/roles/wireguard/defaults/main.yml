@@ -1,0 +1,18 @@
+---
+# Consider using systemd-networkd instead of wg-quick.
+
+# Install and configure WireGuard tools?
+wireguard_enabled: true
+
+# Dict of WireGuard config files:
+# https://git.zx2c4.com/WireGuard/about/src/tools/man/wg-quick.8
+# * {interface: config_file_content}
+wireguard_quick_configs: {}
+
+# List of interfaces for wg-quick@%i.service:
+wireguard_quick_services: "{{ wireguard_quick_configs.keys() | list
+  if not is_container|default(false) else [] }}"
+
+# List of wireguard tools and kmod packages (<5.6):
+wireguard_packages:
+  - "{{ (ansible_os_family == 'RedHat') | ternary('wireguard-tools', 'wireguard') }}"

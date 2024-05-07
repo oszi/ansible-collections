@@ -1,0 +1,9 @@
+---
+# Completely disable 3rd-party sources (role dependency)?
+workstation_thirdparty_disabled: false
+# Target directory for ansible installed executables
+workstation_local_bin_path: "/usr/local/bin"
+
+# Options for the hid_apple kernel module:
+workstation_hid_apple_options:
+  fnmode: 1

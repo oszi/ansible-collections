@@ -1,0 +1,31 @@
+---
+- name: Install GCloud SDK deb repository
+  when: gcloud_sdk_enabled
+  block:
+    - name: Ensure directory for GCloud SDK deb signing key
+      ansible.builtin.file:
+        path: "{{ gcloud_sdk_deb_gpgkey | dirname }}"
+        state: "directory"
+        owner: "root"
+        mode: "0755"
+
+    - name: Copy GCloud SDK deb signing key
+      ansible.builtin.copy:
+        src: "{{ gcloud_sdk_deb_gpgkey.lstrip('/') }}"
+        dest: "{{ gcloud_sdk_deb_gpgkey }}"
+        owner: "root"
+        mode: "0644"
+
+    - name: Install GCloud SDK deb repository
+      ansible.builtin.apt_repository:
+        filename: "google-cloud-sdk"
+        repo: "{{ gcloud_sdk_deb_repo }}"
+
+- name: Uninstall GCloud SDK deb repository
+  when: not gcloud_sdk_enabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ gcloud_sdk_deb_gpgkey }}"
+    - "/etc/apt/sources.list.d/google-cloud-sdk.list"

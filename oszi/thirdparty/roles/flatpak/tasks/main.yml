@@ -1,0 +1,14 @@
+---
+- name: Flatpak setup tasks
+  tags: [third-party, flatpak]
+  block:
+    - name: Ensure flatpak is un/installed
+      ansible.builtin.package:
+        name: "flatpak"
+        state: "{{ flatpak_enabled | ternary('present', 'absent') }}"
+      tags: [package]
+
+    - name: Include Flatpak configuration tasks
+      when: flatpak_enabled
+      ansible.builtin.include_tasks:
+        file: flatpak.yml

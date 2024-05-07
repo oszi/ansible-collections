@@ -1,0 +1,19 @@
+---
+hashicorp_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp"
+hashicorp_rpm_includepkgs:
+  - boundary
+  - consul
+  - consul-template
+  - consul-terraform-sync
+  - nomad
+  - packer
+  - terraform
+  - terraform-ls
+  - vagrant
+  - vault
+  - waypoint
+
+hashicorp_deb_gpgkey: "/etc/apt/keyrings/hashicorp.gpg"
+hashicorp_deb_repo: >-
+  deb [signed-by={{ hashicorp_deb_gpgkey }}]
+  {{ hashicorp_deb_baseurl }} {{ ansible_distribution_release }} main

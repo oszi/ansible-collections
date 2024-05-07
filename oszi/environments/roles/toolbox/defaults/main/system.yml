@@ -1,0 +1,10 @@
+---
+# Completely disable 3rd-party sources (role dependency)?
+toolbox_thirdparty_disabled: false
+# Target directory for ansible installed executables
+toolbox_local_bin_path: "/usr/local/bin"
+
+# Enable fzf bash key-bindings?
+toolbox_fzf_bash_enabled: true
+# Enable fzf zsh key-bindings?
+toolbox_fzf_zsh_enabled: true

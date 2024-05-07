@@ -1,0 +1,15 @@
+[Unit]
+After=default.target network-online.target remote-fs.target
+Wants=network-online.target
+{{ borgmatic_unit_options | join('\n') }}
+
+[Service]
+Type=oneshot
+ExecStart={{ borgmatic_virtualenv_path }}/bin/borgmatic --config={{ borgmatic_config_path }} --verbosity=1
+
+PrivateDevices=true
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=full

@@ -1,0 +1,31 @@
+---
+- name: Install Azure CLI RPM repository
+  when: azure_cli_enabled
+  block:
+    - name: Copy Azure CLI RPM signing key
+      ansible.builtin.copy:
+        src: "{{ azure_cli_rpm_gpgkey.lstrip('/') }}"
+        dest: "{{ azure_cli_rpm_gpgkey }}"
+        owner: "root"
+        mode: "0644"
+
+    - name: Install Azure CLI RPM repository
+      ansible.builtin.yum_repository:
+        file: "azure-cli"
+        name: "azure-cli"
+        description: "Azure CLI"
+        includepkgs: "{{ azure_cli_rpm_includepkgs }}"
+        baseurl: "{{ azure_cli_rpm_baseurl }}"
+        gpgkey: "file://{{ azure_cli_rpm_gpgkey }}"
+        gpgcheck: true
+        repo_gpgcheck: false
+        enabled: true
+
+- name: Uninstall Azure CLI RPM repository
+  when: not azure_cli_enabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ azure_cli_rpm_gpgkey }}"
+    - "/etc/yum.repos.d/azure-cli.repo"

@@ -1,0 +1,14 @@
+---
+opentofu_rpm_gpgkeys:
+  - "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu"
+  - "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo"
+
+opentofu_rpm_includepkgs: ["tofu"]
+
+opentofu_deb_gpgkeys:
+  - "/etc/apt/keyrings/opentofu.gpg"
+  - "/etc/apt/keyrings/opentofu-repo.gpg"
+
+opentofu_deb_repo: >-
+  deb [signed-by={{ ','.join(opentofu_deb_gpgkeys) }}]
+  {{ opentofu_deb_baseurl }} any main

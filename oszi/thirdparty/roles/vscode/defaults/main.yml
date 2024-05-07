@@ -1,0 +1,7 @@
+---
+# Install Visual Studio Code from Microsoft? (Off by default!)
+vscode_enabled: false
+
+# Repo base URLs - change for custom mirrors
+vscode_rpm_baseurl: "https://packages.microsoft.com/yumrepos/vscode"
+vscode_deb_baseurl: "https://packages.microsoft.com/repos/code"

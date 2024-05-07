@@ -1,0 +1,19 @@
+---
+- name: Google Chrome tasks
+  tags: [third-party, google-chrome]
+  block:
+    - name: Google Chrome repository
+      ansible.builtin.include_tasks:
+        file: "{{ ansible_os_family | lower }}.yml"
+
+    - name: Ensure Google Chrome Stable is installed
+      when: google_chrome_enabled
+      ansible.builtin.package:
+        name: "google-chrome-stable"
+        state: "present"
+
+    - name: Ensure Google Chrome is uninstalled
+      when: not google_chrome_enabled
+      ansible.builtin.package:
+        name: "{{ google_chrome_rpm_includepkgs }}"
+        state: "absent"

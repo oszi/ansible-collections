@@ -1,0 +1,7 @@
+---
+# Do not use the systemd module for sshd!
+- name: Restart sshd service
+  ansible.builtin.service:
+    name: "sshd"
+    state: "restarted"
+    enabled: true

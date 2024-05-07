@@ -1,0 +1,8 @@
+[Unit]
+Description=Podman Image Garbage Collector Timer
+
+[Timer]
+OnCalendar={{ podman_image_gc_on_calendar | default('daily') }}
+
+[Install]
+WantedBy=timers.target

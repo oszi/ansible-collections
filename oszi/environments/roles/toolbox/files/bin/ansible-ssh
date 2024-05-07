@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+# pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
+import io
+import shlex
+import sys
+
+from argparse import ArgumentParser
+from subprocess import Popen, PIPE
+from typing import List, Mapping, Tuple, Optional
+
+from ansible.parsing.utils.yaml import from_yaml
+
+
+args_parser = ArgumentParser()
+args_parser.add_argument(
+    "--inventory",
+    "-i",
+    help="ansible inventory path",
+)
+args_parser.add_argument(
+    "--key-file",
+    "-k",
+    dest="keyfile",
+    help="private key file to authenticate with",
+)
+args_parser.add_argument(
+    "--user",
+    "-u",
+    dest="user",
+    help="connect as this user",
+)
+args_parser.add_argument(
+    "--ssh-config",
+    "-F",
+    dest="ssh_config",
+    help="override the ssh config file",
+)
+args_parser.add_argument(
+    "--ssh",
+    "-c",
+    dest="ssh",
+    default="ssh",
+    help="override the ssh command",
+)
+args_parser.add_argument(
+    "--verbose",
+    "-v",
+    action="store_true",
+    dest="verbose",
+    default=False,
+    help="set the verbose flag",
+)
+args_parser.add_argument(
+    "host",
+    nargs="?",
+    help="the host to ssh into",
+)
+
+
+def ansible_command(args: List[str]) -> str:
+    with Popen(args, stdout=PIPE, stderr=PIPE) as proc, io.StringIO() as output:
+        stripped = False
+        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+            if stripped or not (line.startswith("[WARNING]") or line.endswith("ansible.cfg as config file\n")):
+                output.write(line)
+                stripped = True
+
+        proc.wait()
+        if proc.returncode != 0:
+            print(proc.stderr.read().decode("utf-8"), file=sys.stderr)
+            sys.exit(proc.returncode)
+
+        return output.getvalue()
+
+
+def get_config_ssh_settings() -> List[Mapping[str, Optional[str]]]:
+    cmd = ["ansible-config", "dump", "-t", "connection", "--format", "yaml"]
+    ansible_config = from_yaml(ansible_command(cmd))
+
+    for connection_plugin in ansible_config:
+        for plugin_key, plugin_values in connection_plugin.items():
+            if plugin_key == "ssh":
+                return plugin_values
+    return []
+
+
+def get_config_ssh_args() -> Tuple[List[str], str, str]:
+    ssh_args = []
+    ssh_user = ""
+    key_file = ""
+
+    for item in get_config_ssh_settings():
+        if item["name"] == "ssh_args":
+            ssh_args += shlex.split(item["value"])
+        elif item["name"] == "remote_user":
+            ssh_user = item["value"]
+        elif item["name"] == "private_key_file" and item["value"]:
+            key_file = item["value"]
+
+    return ssh_args, ssh_user, key_file
+
+
+def get_inventory_ssh_args(host: str, inventory: Optional[str] = None) -> Tuple[List[str], str, str]:
+    cmd = ["ansible-inventory", "--yaml", "--host", host]
+    if inventory:
+        cmd += ["-i", inventory]
+
+    hostvars = from_yaml(ansible_command(cmd))
+    ssh_args = []
+    ssh_user = ""
+    key_file = ""
+
+    if "ansible_ssh_common_args" in hostvars:
+        ssh_args += shlex.split(hostvars["ansible_ssh_common_args"])
+    if "ansible_ssh_extra_args" in hostvars:
+        ssh_args += shlex.split(hostvars["ansible_ssh_extra_args"])
+    if "ansible_port" in hostvars:
+        ssh_args += ["-p", str(hostvars["ansible_port"])]
+
+    if "ansible_user" in hostvars:
+        ssh_user = hostvars["ansible_user"]
+    if "ansible_ssh_private_key_file" in hostvars:
+        key_file = hostvars["ansible_ssh_private_key_file"]
+
+    ssh_args.append(hostvars.get("ansible_host", host))
+    return ssh_args, ssh_user, key_file
+
+
+def get_ssh_command_args(  # pylint: disable=too-many-arguments
+    host: str,
+    inventory: Optional[str] = None,
+    user: Optional[str] = None,
+    key_file: Optional[str] = None,
+    ssh_config: Optional[str] = None,
+    ssh_command: str = "ssh",
+    verbose: bool = False,
+) -> List[str]:
+    inventory_args, inventory_user, inventory_key_file = get_inventory_ssh_args(host, inventory)
+    config_args, config_user, config_key_file = get_config_ssh_args()
+    ssh_args = shlex.split(ssh_command)
+
+    if user:
+        ssh_args += ["-l", user]
+    elif inventory_user:
+        ssh_args += ["-l", inventory_user]
+    elif config_user:
+        ssh_args += ["-l", config_user]
+
+    if key_file:
+        ssh_args += ["-i", key_file]
+    elif inventory_key_file:
+        ssh_args += ["-i", inventory_key_file]
+    elif config_key_file:
+        ssh_args += ["-i", config_key_file]
+
+    if ssh_config is not None:
+        ssh_args += ["-F", ssh_config]
+
+    if verbose:
+        ssh_args += ["-v"]
+
+    ssh_args += config_args
+    ssh_args += inventory_args
+    return ssh_args
+
+
+if __name__ == "__main__":
+    app_args = args_parser.parse_args()
+    if app_args.host is None:
+        print("You must specify a single valid host", file=sys.stderr)
+        sys.exit(1)
+
+    ssh_cmd = get_ssh_command_args(
+        host=app_args.host,
+        inventory=app_args.inventory,
+        user=app_args.user,
+        key_file=app_args.keyfile,
+        ssh_config=app_args.ssh_config,
+        ssh_command=app_args.ssh,
+        verbose=app_args.verbose,
+    )
+
+    if app_args.verbose:
+        print(shlex.join(ssh_cmd), file=sys.stderr)
+
+    with Popen(ssh_cmd) as ssh_proc:
+        ssh_proc.wait()
+        sys.exit(ssh_proc.returncode)

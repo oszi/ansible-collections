@@ -1,0 +1,37 @@
+---
+- name: Install OpenTofu deb repository
+  when: opentofu_upstream_enabled
+  block:
+    - name: Ensure directories for OpenTofu deb signing keys
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+        owner: "root"
+        mode: "0755"
+      with_items: "{{ opentofu_deb_gpgkeys | map('dirname') | unique }}"
+
+    - name: Copy OpenTofu deb signing keys
+      ansible.builtin.copy:
+        src: "{{ item.lstrip('/') }}"
+        dest: "{{ item }}"
+        owner: "root"
+        mode: "0644"
+      with_items: "{{ opentofu_deb_gpgkeys }}"
+
+    - name: Install OpenTofu deb repository
+      ansible.builtin.apt_repository:
+        filename: "opentofu"
+        repo: "{{ opentofu_deb_repo }}"
+
+    - name: Install OpenTofu deb-src repository
+      ansible.builtin.apt_repository:
+        filename: "opentofu"
+        repo: "{{ opentofu_deb_repo | regex_replace('^deb (.*)$', 'deb-src \\1') }}"
+
+- name: Uninstall OpenTofu deb repository
+  when: not opentofu_upstream_enabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ opentofu_deb_gpgkeys
+    + ['/etc/apt/sources.list.d/opentofu.list'] }}"

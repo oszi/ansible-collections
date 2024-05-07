@@ -1,0 +1,32 @@
+---
+galaxy_info:
+  description: "Setup toolbox stuff on hosts and in container images."
+  min_ansible_version: "2.16"
+  galaxy_tags: []
+  author: David O.
+  license: Copyright
+  platforms:
+    - name: Fedora
+      versions: [all]
+    - name: Debian
+      versions: [all]
+    - name: Ubuntu
+      versions: [all]
+
+dependencies:
+  - role: oszi.environments.baselinux
+  - role: oszi.general.borgmatic
+
+  - role: oszi.thirdparty.downloads
+    when: not toolbox_thirdparty_disabled
+  - role: oszi.thirdparty.rpmfusion
+    when: not toolbox_thirdparty_disabled
+
+  - role: oszi.thirdparty.azure_cli
+    when: not toolbox_thirdparty_disabled
+  - role: oszi.thirdparty.gcloud_sdk
+    when: not toolbox_thirdparty_disabled
+  - role: oszi.thirdparty.hashicorp
+    when: not toolbox_thirdparty_disabled
+  - role: oszi.thirdparty.opentofu
+    when: not toolbox_thirdparty_disabled

@@ -1,0 +1,45 @@
+---
+- name: Ensure podman-docker is installed
+  ansible.builtin.package:
+    name: "podman-docker"
+    state: "{{ containerhost_podman_docker_enabled | ternary('present', 'absent') }}"
+  tags: [package]
+
+- name: Enable podman daemons and docker-compose
+  when: containerhost_podman_docker_enabled
+  block:
+    - name: Enable system podman.socket
+      ansible.builtin.systemd:
+        name: "podman.socket"
+        scope: "system"
+        enabled: true
+
+    - name: Enable user podman.socket
+      ansible.builtin.systemd:
+        name: "podman.socket"
+        scope: "global"
+        enabled: true
+
+    - name: Set DOCKER_HOST via /etc/profile.d/podman-docker-socket.sh
+      ansible.builtin.copy:
+        content: |
+          if [ -z "${DOCKER_HOST:-}" ]; then
+            export DOCKER_HOST="unix://${XDG_RUNTIME_DIR:-/run}/podman/podman.sock"
+          fi
+        dest: "/etc/profile.d/podman-docker-socket.sh"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
+    - name: Ensure docker-compose is installed
+      ansible.builtin.package:
+        name: "docker-compose"
+        state: "present"
+      when: containerhost_podman_docker_compose_enabled  # (no removal)
+      tags: [package]
+
+- name: Remove /etc/profile.d/podman-docker-socket.sh?
+  ansible.builtin.file:
+    path: "/etc/profile.d/podman-docker-socket.sh"
+    state: "absent"
+  when: not containerhost_podman_docker_enabled

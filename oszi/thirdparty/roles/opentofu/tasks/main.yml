@@ -1,0 +1,17 @@
+---
+- name: OpenTofu tasks
+  tags: [third-party, opentofu]
+  block:
+    - name: OpenTofu repository
+      ansible.builtin.include_tasks:
+        file: "{{ ansible_os_family | lower }}.yml"
+
+    - name: Conflicting OpenTofu package is not installed
+      ansible.builtin.package:
+        name: "{{ opentofu_upstream_enabled | ternary('opentofu', 'tofu') }}"
+        state: "absent"
+
+    - name: OpenTofu package is un/installed
+      ansible.builtin.package:
+        name: "{{ opentofu_upstream_enabled | ternary('tofu', 'opentofu') }}"
+        state: "{{ opentofu_enabled | ternary('present', 'absent') }}"

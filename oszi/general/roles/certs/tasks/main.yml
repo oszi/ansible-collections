@@ -1,0 +1,40 @@
+---
+- name: Certificates generation tasks
+  become: false
+  connection: local
+  tags: [certs]
+  block:
+    - name: Ensure certs_path directory exists
+      ansible.builtin.file:
+        path: "{{ certs_path }}"
+        state: "directory"
+        mode: "0700"
+      changed_when: false
+
+    - name: Include certificates generation tasks delegated to the ansible controller
+      when: certs_list or certs_reqs or certs_revok
+      ansible.builtin.include_tasks:
+        file: generation.yml
+
+- name: CA trust anchors tasks
+  tags: [certs]
+  block:
+    - name: Trust configured Certificate Authorities on RedHat family
+      when: "ansible_os_family == 'RedHat'"
+      ansible.builtin.copy:
+        src: "{{ certs_path }}/{{ item }}/{{ item }}.pem"
+        dest: "/etc/pki/ca-trust/source/anchors/{{ item }}.pem"
+        owner: "root"
+        mode: "0644"
+      with_items: "{{ certs_trust_anchors }}"
+      notify: "Update CA trust"
+
+    - name: Trust configured Certificate Authorities on Debian family
+      when: "ansible_os_family == 'Debian'"
+      ansible.builtin.copy:
+        src: "{{ certs_path }}/{{ item }}/{{ item }}.pem"
+        dest: "/usr/local/share/ca-certificates/{{ item }}.crt"
+        owner: "root"
+        mode: "0644"
+      with_items: "{{ certs_trust_anchors }}"
+      notify: "Update CA trust"

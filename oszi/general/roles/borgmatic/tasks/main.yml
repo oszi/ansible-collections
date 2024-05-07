@@ -1,0 +1,21 @@
+---
+- name: Borgmatic setup tasks
+  tags: [borgmatic]
+  block:
+    - name: Include Borgmatic setup tasks
+      when: borgmatic_enabled
+      ansible.builtin.include_tasks:
+        file: borgmatic.yml
+
+    - name: Uninstall Borgmatic virtualenv and config
+      when: not borgmatic_enabled
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "absent"
+      with_items:
+        - "{{ borgmatic_virtualenv_path }}"
+        - "{{ borgmatic_config_path }}"
+        - "/etc/profile.d/borgmatic.sh"
+        - "/etc/systemd/system/borg.service"
+        - "/etc/systemd/system/borg.timer"
+      notify: "Reload systemd"

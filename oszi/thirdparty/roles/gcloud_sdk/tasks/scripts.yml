@@ -1,0 +1,22 @@
+---
+- name: Ensure gcloud_sdk_local_bin_path exists
+  when: gcloud_sdk_enabled
+  ansible.builtin.file:
+    path: "{{ gcloud_sdk_local_bin_path }}"
+    state: "directory"
+    owner: "root"
+    mode: "0755"
+
+- name: Copy gcloud-entrypoint.sh script
+  when: gcloud_sdk_enabled
+  ansible.builtin.copy:
+    src: "bin/gcloud-entrypoint.sh"
+    dest: "{{ gcloud_sdk_local_bin_path }}/gcloud-entrypoint.sh"
+    owner: "root"
+    mode: "0755"
+
+- name: Remove the gcloud-entrypoint.sh script
+  when: not gcloud_sdk_enabled
+  ansible.builtin.file:
+    path: "{{ gcloud_sdk_local_bin_path }}/gcloud-entrypoint.sh"
+    state: "absent"

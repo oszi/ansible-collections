@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  description: "Workstation setup for Macbooks."
+  min_ansible_version: "2.16"
+  galaxy_tags: []
+  author: David O.
+  license: Copyright
+  platforms:
+    - name: macOS
+      versions: [all]
+
+dependencies:
+  - role: oszi.general.bootstrap
+  - role: oszi.general.certs
+  - role: oszi.general.cloudflare

@@ -1,0 +1,115 @@
+---
+# If you've ever wondered what it's like mixing cocaine, heroin and meth
+# [ansible, jinja, bash] then look no further...
+
+# The file lookup plugin handles ansible-vault encrypted files.
+# Use environment variables to avoid exposing secrets.
+
+- name: Ensure certs_path directories exist
+  ansible.builtin.file:
+    path: "{{ certs_path }}/{{ item }}"
+    state: "directory"
+    mode: "0700"
+  changed_when: false
+  with_items: "{{ certs_ca_list }}"
+
+# With the linear strategy we can be certain that every CA will be ready regardless of
+# where were they defined before we generate the certificates in the next task.
+- name: Generate Certificate Authorities
+  ansible.builtin.shell: >-
+    set -euo pipefail
+    && echo "${CSR_JSON}"
+    | cfssl gencert -config <(echo "${CFSSL_CONFIG_JSON}") -initca -
+    | cfssljson -bare {{ item_path | quote }}
+  args:
+    executable: "/bin/bash"
+    creates: "{{ item_path }}.pem"
+  environment:
+    CFSSL_CONFIG_JSON: "{{ certs_cfssl_config | to_json }}"
+    CSR_JSON: "{{ {'CN': item, 'key': certs_default_key} | to_json }}"
+  vars:
+    ca_path: "{{ certs_path }}/{{ item }}"
+    item_path: "{{ ca_path }}/{{ item }}"
+  with_items: "{{ certs_ca_list }}"
+
+- name: Generate Certificates
+  ansible.builtin.shell: >-
+    set -euo pipefail
+    && echo "${CSR_JSON}"
+    | cfssl gencert
+    -config <(echo "${CFSSL_CONFIG_JSON}")
+    -ca <(echo "${CA_CRT_PEM}")
+    -ca-key <(echo "${CA_KEY_PEM}")
+    -hostname {{ item.hostname | default(item.CN) | quote }}
+    -profile {{ item.profile | quote }} -
+    | cfssljson -bare {{ item_path | quote }}
+  args:
+    executable: "/bin/bash"
+    creates: "{{ item_path }}.pem"
+  environment:
+    CFSSL_CONFIG_JSON: "{{ certs_cfssl_config | to_json }}"
+    CA_CRT_PEM: "{{ lookup('file', ca_path + '/' + item.CA + '.pem') }}"
+    CA_KEY_PEM: "{{ lookup('file', ca_path + '/' + item.CA + '-key.pem') }}"
+    CSR_JSON: "{{ {'CN': item.CN, 'key': item.key | default(certs_default_key)} | to_json }}"
+  vars:
+    ca_path: "{{ certs_path }}/{{ item.CA }}"
+    item_path: "{{ ca_path }}/{{ item.CN }}"
+  with_items: "{{ certs_list }}"
+
+- name: Sign certificate requests
+  ansible.builtin.shell: >-
+    set -euo pipefail
+    && cfssl sign
+    -config <(echo "${CFSSL_CONFIG_JSON}")
+    -ca <(echo "${CA_CRT_PEM}")
+    -ca-key <(echo "${CA_KEY_PEM}")
+    -hostname {{ item.hostname | default(item.CN) | quote }}
+    -profile {{ item.profile | quote }}
+    <(echo "${CSR_PEM}")
+    | cfssljson -bare {{ item_path | quote }}
+  args:
+    executable: "/bin/bash"
+    creates: "{{ item_path }}.pem"
+  environment:
+    CFSSL_CONFIG_JSON: "{{ certs_cfssl_config | to_json }}"
+    CA_CRT_PEM: "{{ lookup('file', ca_path + '/' + item.CA + '.pem') }}"
+    CA_KEY_PEM: "{{ lookup('file', ca_path + '/' + item.CA + '-key.pem') }}"
+    CSR_PEM: "{{ lookup('file', item_path + '.csr') }}"
+  vars:
+    ca_path: "{{ certs_path }}/{{ item.CA }}"
+    item_path: "{{ ca_path }}/{{ item.CN }}"
+  with_items: "{{ certs_reqs }}"
+
+- name: Generate certificate revocation lists
+  ansible.builtin.shell: >-
+    set -euo pipefail
+    && diff -q <({{ parse_crl }}) <({{ print_serials }})
+    || (
+    echo '-----BEGIN X509 CRL-----'
+    && cfssl gencrl <({{ print_serials }})
+    <(echo "${CA_CRT_PEM}") <(echo "${CA_KEY_PEM}")
+    <(echo {{ item.expiry | default(certs_default_expiry) | int }})
+    && echo '-----END X509 CRL-----'
+    ) | tee {{ crl_path | quote }}
+  args:
+    executable: "/bin/bash"
+  environment:
+    CA_CRT_PEM: "{{ lookup('file', ca_path + '/' + item.CA + '.pem') }}"
+    CA_KEY_PEM: "{{ lookup('file', ca_path + '/' + item.CA + '-key.pem') }}"
+  vars:
+    ca_path: "{{ certs_path }}/{{ item.CA }}"
+    crl_path: "{{ ca_path }}/crl.pem"
+    print_serials: "echo -e {{ item.serials_int | map('int') | sort | join('\n') | quote }}"
+    parse_crl: >-
+      openssl crl -inform PEM -text -noout -in {{ crl_path | quote }}
+      | grep 'Serial Number:' | awk '{print $(NF)}' | sort
+      | xargs python -c 'import sys;print("\n".join(str(int(N, 16)) for N in sys.argv[1:]))'
+  register: _shell_result
+  changed_when: "'-BEGIN X509 CRL-' in _shell_result.stdout"
+  with_items: "{{ certs_revok }}"
+
+- name: Ensure correct file permissions
+  ansible.builtin.file:
+    path: "{{ certs_path }}"
+    mode: "u=rw,a+X,go=-"
+    recurse: true

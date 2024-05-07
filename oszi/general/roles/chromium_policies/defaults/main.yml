@@ -1,0 +1,50 @@
+---
+# Enable chromium policies?
+chromium_policies_enabled: true
+
+# Mandatory Chromium policies to install under {{ chromium_policies_paths }}/managed/{{ item.key }}.json
+# You may include chromium_policies_recommended_pt_privacy in managed policies too.
+chromium_policies_managed:
+  default: "{{ chromium_policies_managed_pt_default }}"
+
+chromium_policies_managed_pt_default:
+  HttpsOnlyMode: "force_enabled"
+  PromptForDownloadLocation: true
+  ExtensionSettings:
+    cjpalhdlnbpafiamejdnhcphjbkeiagm:   # uBlock Origin
+      installation_mode: "force_installed"
+      toolbar_pin: "force_pinned"
+      update_url: "https://clients2.google.com/service/update2/crx"
+
+# Recommended Chromium policies to install under {{ chromium_policies_paths }}/recommended/{{ item.key }}.json
+chromium_policies_recommended:
+  default: "{{ chromium_policies_recommended_pt_default }}"
+  privacy: "{{ chromium_policies_recommended_pt_privacy }}"
+
+chromium_policies_recommended_pt_default:
+  RestoreOnStartup: 1  # Restore last session.
+  PromptForDownloadLocation: true
+  BackgroundModeEnabled: false
+  PasswordManagerEnabled: false
+  PaymentMethodQueryEnabled: false
+  AutofillAddressEnabled: false
+
+chromium_policies_recommended_pt_privacy:
+  SafeBrowsingProtectionLevel: 0
+  BlockThirdPartyCookies: true
+  SyncDisabled: true
+  SpellCheckServiceEnabled: false
+  SearchSuggestEnabled: false
+  TranslateEnabled: false
+  MetricsReportingEnabled: false
+
+# List of base paths for managed & recommended Chromium policies:
+# * /etc/chromium/policies # Chromium Upstream
+# * /etc/chromium-browser/policies # Chromium Ubuntu / Snap
+# * /etc/opt/chrome/policies # Google Chrome
+# * /var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies
+# * /var/snap/chromium/current/policies  # Snap (vesion specific)
+chromium_policies_paths: "{{ ['/etc/chromium/policies']
+  + (['/etc/chromium-browser/policies'] if ansible_os_family == 'Debian' else [])
+  + (['/var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies'] if flatpak_enabled | default(true) else [])
+  + (['/etc/opt/chrome/policies'] if google_chrome_enabled | default(false) else []) }}"

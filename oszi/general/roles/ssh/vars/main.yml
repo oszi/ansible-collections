@@ -1,0 +1,3 @@
+---
+# SSH port is set via ansible_port
+ssh_port: "{{ ansible_port | default(22) | int }}"

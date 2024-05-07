@@ -1,0 +1,12 @@
+---
+# Install OpenTofu?
+# If upstream is enabled, "tofu" is installed.
+# If not, "opentofu" packaged by the distro (e.g. Fedora) is installed.
+opentofu_enabled: "{{ ansible_distribution == 'Fedora' or opentofu_upstream_enabled }}"
+
+# Install the upstream (external!) deb/rpm repository?
+opentofu_upstream_enabled: false
+
+# Repo base URLs - change for custom mirrors
+opentofu_rpm_baseurl: "https://packages.opentofu.org/opentofu/tofu/rpm_any/rpm_any/$basearch"
+opentofu_deb_baseurl: "https://packages.opentofu.org/opentofu/tofu/any/"

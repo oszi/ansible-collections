@@ -1,0 +1,48 @@
+---
+- name: Install the BorgBackup package
+  ansible.builtin.package:
+    name: "borgbackup"
+    state: "present"
+  tags: [package]
+
+- name: Test Borgmatic virtualenv python version
+  ansible.builtin.shell: >-
+    set -euo pipefail
+    && test "$({{ borgmatic_virtualenv_path }}/bin/python3 -c '{{ print_python_version }}')"
+    == "$(python3 -c '{{ print_python_version }}')"
+  args:
+    executable: "/bin/bash"
+  vars:
+    print_python_version: "import sys; print(sys.version_info.major, sys.version_info.minor)"
+  register: _borgmatic_venv_version
+  changed_when: "_borgmatic_venv_version.rc != 0"
+  failed_when: false
+  check_mode: false
+
+- name: Remove obsolete Borgmatic virtualenv?
+  ansible.builtin.file:
+    path: "{{ borgmatic_virtualenv_path }}"
+    state: "absent"
+  when: "_borgmatic_venv_version.rc != 0"
+
+- name: Install Borgmatic into a virtualenv
+  ansible.builtin.pip:
+    name: "borgmatic"
+    version: "{{ borgmatic_version }}"
+    virtualenv: "{{ borgmatic_virtualenv_path }}"
+    virtualenv_python: "python3"
+    virtualenv_site_packages: true
+    state: "present"
+
+- name: Copy shell aliases for Borgmatic
+  ansible.builtin.copy:
+    src: "etc/profile.d/borgmatic.sh"
+    dest: "/etc/profile.d/borgmatic.sh"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Include borgmatic configuration tasks
+  when: "not is_container|default(false) and borgmatic_passphrase"
+  ansible.builtin.include_tasks:
+    file: borgmatic-config.yml

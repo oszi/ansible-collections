@@ -1,0 +1,19 @@
+---
+- name: Hashicorp tasks
+  tags: [third-party, hashicorp]
+  block:
+    - name: Hashicorp repository
+      ansible.builtin.include_tasks:
+        file: "{{ ansible_os_family | lower }}.yml"
+
+    - name: Hashicorp packages are un/installed
+      ansible.builtin.package:
+        name: "{{ hashicorp_packages }}"
+        state: "{{ hashicorp_enabled | ternary('present', 'absent') }}"
+      when: hashicorp_packages
+
+    - name: Blacklisted Hashicorp packages are uninstalled
+      ansible.builtin.package:
+        name: "{{ hashicorp_blacklisted_packages }}"
+        state: "absent"
+      when: hashicorp_blacklisted_packages
