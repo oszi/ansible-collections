@@ -3,7 +3,6 @@
   ansible.builtin.package:
     name: "{{ wireguard_packages }}"
     state: "present"
-  tags: [package]
 
 - name: Ensure /etc/wireguard exists
   ansible.builtin.file:

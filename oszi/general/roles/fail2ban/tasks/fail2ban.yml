@@ -3,11 +3,9 @@
   ansible.builtin.package:
     name: "fail2ban"
     state: "present"
-  tags: [package]
 
 - name: Ensure RedHat family packages are installed
   when: "ansible_os_family == 'RedHat'"
-  tags: [package]
   block:
     - name: Ensure fail2ban-systemd is installed
       ansible.builtin.package:

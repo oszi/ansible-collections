@@ -4,14 +4,12 @@
     name: "spice-vdagent"
     state: "{{ 'present' if ansible_virtualization_type in ['kvm', 'xen']
       and ansible_virtualization_role == 'guest' else 'absent' }}"
-  tags: [package]
 
 - name: "[Un]install VMWare desktop guest agent"
   ansible.builtin.package:
     name: "open-vm-tools-desktop"
     state: "{{ 'present' if ansible_virtualization_type == 'VMware'
       and ansible_virtualization_role == 'guest' else 'absent' }}"
-  tags: [package]
 
 - name: Install various executables
   ansible.builtin.copy:
@@ -27,6 +25,25 @@
   ansible.builtin.template:
     src: "etc/profile.d/workstation-aliases.sh.j2"
     dest: "/etc/profile.d/workstation-aliases.sh"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Copy /etc/sudoers.d/libvirt-virsh and plugdev-pcscd
+  ansible.builtin.copy:
+    src: "etc/sudoers.d/{{ item }}"
+    dest: "/etc/sudoers.d/"
+    owner: "root"
+    group: "root"
+    mode: "0440"
+  with_items:
+    - libvirt-virsh
+    - plugdev-pcscd
+
+- name: Copy /etc/udev/rules.d/yubikey-fix.rules
+  ansible.builtin.copy:
+    src: "etc/udev/rules.d/yubikey-fix.rules"
+    dest: "/etc/udev/rules.d/"
     owner: "root"
     group: "root"
     mode: "0644"

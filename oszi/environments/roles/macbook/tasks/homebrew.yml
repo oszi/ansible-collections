@@ -4,47 +4,21 @@
     name: "{{ macbook_homebrew_formulae | difference(macbook_blacklisted_homebrew_formulae) }}"
     state: "present"
   when: macbook_homebrew_formulae
-  tags: [brew]
 
 - name: Uninstall homebrew formulae
   community.general.homebrew:
     name: "{{ macbook_blacklisted_homebrew_formulae }}"
     state: "absent"
   when: macbook_blacklisted_homebrew_formulae
-  tags: [brew]
 
 - name: Install homebrew casks
   community.general.homebrew_cask:
     name: "{{ macbook_homebrew_casks | difference(macbook_blacklisted_homebrew_casks) }}"
     state: "present"
   when: macbook_homebrew_casks
-  tags: [brew]
 
 - name: Uninstall homebrew casks
   community.general.homebrew_cask:
     name: "{{ macbook_blacklisted_homebrew_casks }}"
     state: "absent"
   when: macbook_blacklisted_homebrew_casks
-  tags: [brew]
-
-- name: Install mas cli
-  community.general.homebrew:
-    name: "mas"
-    state: "present"
-  when: macbook_appstore_ids or macbook_blacklisted_appstore_ids
-  tags: [mas]
-
-- name: Install apps from AppStore
-  community.general.mas:
-    id: "{{ macbook_appstore_ids | map('int') | difference(macbook_blacklisted_appstore_ids | map('int')) }}"
-    state: "present"
-  when: macbook_appstore_ids
-  tags: [mas]
-
-- name: Uninstall apps from AppStore
-  become: true
-  community.general.mas:
-    id: "{{ macbook_blacklisted_appstore_ids | map('int') }}"
-    state: "absent"
-  when: macbook_blacklisted_appstore_ids
-  tags: [mas]

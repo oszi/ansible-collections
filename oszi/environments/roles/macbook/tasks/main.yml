@@ -1,8 +1,12 @@
 ---
-- name: Macbook package setup tasks
-  ansible.builtin.import_tasks: packages.yml
-  tags: [macbook, package]
+- name: HomeBrew setup tasks
+  ansible.builtin.import_tasks: homebrew.yml
+  tags: [homebrew]
+
+- name: Mac App Store setup tasks
+  ansible.builtin.import_tasks: appstore.yml
+  tags: [appstore]
 
 - name: Macbook user config tasks
-  ansible.builtin.import_tasks: config.yml
-  tags: [macbook, config]
+  ansible.builtin.import_tasks: user-config.yml
+  tags: [user-config]

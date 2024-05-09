@@ -1,6 +1,6 @@
 ---
 - name: Google Cloud SDK tasks
-  tags: [third-party, gcloud-sdk]
+  tags: [gcloud-sdk]
   block:
     - name: Google Cloud SDK repository
       ansible.builtin.include_tasks:

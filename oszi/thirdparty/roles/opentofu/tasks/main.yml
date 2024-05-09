@@ -1,6 +1,6 @@
 ---
 - name: OpenTofu tasks
-  tags: [third-party, opentofu]
+  tags: [opentofu]
   block:
     - name: OpenTofu repository
       ansible.builtin.include_tasks:

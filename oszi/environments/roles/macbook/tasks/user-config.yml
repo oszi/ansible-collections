@@ -20,4 +20,4 @@
     line: "{{ item.value }}  {{ item.key }}"
     regexp: '\s+{{ item.key | regex_escape }}\s*$'
     state: "present"
-  with_dict: "{{ {inventory_hostname: '127.0.0.1'} | combine(macbook_baselinux_etc_hosts) }}"
+  with_dict: "{{ {inventory_hostname: '127.0.0.1'} | combine(macbook_etc_hosts) }}"

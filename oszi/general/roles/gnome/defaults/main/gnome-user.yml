@@ -11,9 +11,8 @@ gnome_user:
 # you need to be aware of possible type conversions. Applying a filter "{{ item.value | string }}"
 # to the parameter variable can avoid potential conversion problems.
 
-# See vars/gnome.yml: gnome_dconf_vars_default
-gnome_dconf_vars:
-  /org/gnome/desktop/session/idle-delay: "uint32 900"
+# Dict of dconf settings combined with gnome_dconf_vars_default from gnome/vars/main.yml
+gnome_dconf_vars: {}
 
 # Friendly format for setting custom keyboard shortcuts:
 # Do NOT set custom keybindings in gnome_dconf_vars!

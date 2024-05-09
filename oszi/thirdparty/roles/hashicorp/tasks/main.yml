@@ -1,6 +1,6 @@
 ---
 - name: Hashicorp tasks
-  tags: [third-party, hashicorp]
+  tags: [hashicorp]
   block:
     - name: Hashicorp repository
       ansible.builtin.include_tasks:

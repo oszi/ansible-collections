@@ -1,14 +1,14 @@
 ---
-- name: Common system setup tasks
-  ansible.builtin.import_tasks: system.yml
-  tags: [baselinux, system]
+- name: Baselinux role tasks
+  tags: [baselinux]
+  block:
+    - name: Common system setup tasks
+      ansible.builtin.import_tasks: system.yml
 
-- name: Privileged system setup tasks
-  ansible.builtin.import_tasks: system-privileged.yml
-  when: "not is_container|default(false)"
-  tags: [baselinux, system]
+    - name: Privileged system setup tasks
+      ansible.builtin.import_tasks: system-privileged.yml
+      when: "not is_container|default(false)"
 
-- name: Systemd-networkd setup tasks
-  ansible.builtin.import_tasks: systemd-networkd.yml
-  when: baselinux_networkd_enabled
-  tags: [baselinux, system]
+    - name: Systemd-networkd setup tasks
+      ansible.builtin.import_tasks: systemd-networkd.yml
+      when: baselinux_networkd_enabled

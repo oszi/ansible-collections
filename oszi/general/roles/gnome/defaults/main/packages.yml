@@ -1,5 +1,5 @@
 ---
-# See also: roles/workstations/defaults/main/packages.yml
+# See also: roles/workstation/defaults/main/packages.yml
 
 # Nested list of Gnome packages:
 gnome_packages:

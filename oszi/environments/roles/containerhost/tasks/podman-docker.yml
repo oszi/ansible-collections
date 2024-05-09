@@ -3,7 +3,6 @@
   ansible.builtin.package:
     name: "podman-docker"
     state: "{{ containerhost_podman_docker_enabled | ternary('present', 'absent') }}"
-  tags: [package]
 
 - name: Enable podman daemons and docker-compose
   when: containerhost_podman_docker_enabled
@@ -36,7 +35,6 @@
         name: "docker-compose"
         state: "present"
       when: containerhost_podman_docker_compose_enabled  # (no removal)
-      tags: [package]
 
 - name: Remove /etc/profile.d/podman-docker-socket.sh?
   ansible.builtin.file:

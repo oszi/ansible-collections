@@ -1,6 +1,6 @@
 ---
 - name: Visual Studio Code tasks
-  tags: [third-party, vscode]
+  tags: [vscode]
   block:
     - name: Visual Studio Code repository
       ansible.builtin.include_tasks:

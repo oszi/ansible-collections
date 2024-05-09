@@ -3,7 +3,6 @@
   ansible.builtin.package:
     name: "borgbackup"
     state: "present"
-  tags: [package]
 
 - name: Test Borgmatic virtualenv python version
   ansible.builtin.shell: >-

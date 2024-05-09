@@ -1,0 +1,26 @@
+---
+# Leave remotes and apps empty by default!
+
+# Enable Flatpak setup tasks?
+flatpak_enabled: true
+
+# Dict of remotes to install:
+# {flathub: "https://flathub.org/repo/flathub.flatpakrepo"}
+flatpak_remotes: {}
+
+# Dict of apps to remotes to install:
+# {org.chromium.Chromium: flathub}
+flatpak_apps: {}
+
+# List of apps to uninstall:
+# - com.example.App
+flatpak_blacklisted_apps: []
+
+# List of global flatpak overrides:
+# - "--nofilesystem=host"
+# - "--nofilesystem=home"
+flatpak_global_overrides: []
+
+# Flatpak overrides in a dict of lists per app:
+# {com.example.App: ["--nofilesystem=home", "--filesystem=/mnt/data:ro"]}
+flatpak_app_overrides: {}

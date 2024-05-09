@@ -1,54 +1,11 @@
 ---
-# See also: roles/baselinux/default/python.yml, roles/workstation/default/main/packages.yml
+# See also: roles/workstation/default/main/packages.yml
 
 # Nested list of packages to install on toolboxes:
 toolbox_packages: "{{ toolbox_packages_pt_default }}"
 
 # Fedora/Debian/Ubuntu defaults to include in toolbox_packages:
 toolbox_packages_pt_default:
-  - "{{ [
-      'bind-utils',
-      'device-mapper',
-      'dnf-plugins-core',
-      'gcc-c++',
-      'glibc-devel.*',
-      'httpd-tools',
-      'iproute',
-      'iputils',
-      'libstdc++-devel.*',
-      'lm_sensors',
-      'nmap-ncat',
-      'procps-ng',
-      'redhat-rpm-config',
-      'sqlite',
-      'vim-minimal',
-      'which',
-      'xz',
-    ]
-    if (ansible_os_family == 'RedHat') else [] }}"
-  - "{{ [
-      'ansible-collection-ansible-*',
-      'ansible-collection-community-crypto',
-      'ansible-collection-community-general',
-      'ansible-collection-containers-podman',
-      'ansible-core-doc',
-      'ddrescue',
-      'dnf-utils',
-      'eza',
-      'fpaste',
-      'fuse-sshfs',
-      'hddtemp',
-      'helm' if downloads_helm_url is none else [],
-      'iptables-legacy',
-      'iptables-nft',
-      'opentofu' if not opentofu_upstream_enabled else [],
-      'perl-Image-ExifTool',
-      'python3-ansible-lint',
-      'python3-dnf-plugin-system-upgrade',
-      'shyaml',
-      'vim-enhanced',
-    ]
-    if (ansible_distribution == 'Fedora') else [] }}"
   - "{{ [
       'ansible-lint',
       'apache2-utils',
@@ -71,7 +28,47 @@ toolbox_packages_pt_default:
       'vim',
       'xz-utils',
     ]
-    if (ansible_os_family == 'Debian') else [] }}"
+    if (ansible_os_family == 'Debian')
+    else [
+      'helm' if downloads_helm_url|default(none) is none else [],
+      'kubernetes-client' if not gcloud_sdk_enabled|default(false) and not gcloud_sdk_kubectl_enabled|default(false) else [],
+      'opentofu' if not opentofu_upstream_enabled|default(false) else [],
+      'ansible-collection-ansible-*',
+      'ansible-collection-community-crypto',
+      'ansible-collection-community-general',
+      'ansible-collection-containers-podman',
+      'ansible-core-doc',
+      'bind-utils',
+      'ddrescue',
+      'device-mapper',
+      'dnf-plugins-core',
+      'dnf-utils',
+      'eza',
+      'fpaste',
+      'fuse-sshfs',
+      'gcc-c++',
+      'glibc-devel.*',
+      'hddtemp',
+      'httpd-tools',
+      'iproute',
+      'iptables-legacy',
+      'iptables-nft',
+      'iputils',
+      'libstdc++-devel.*',
+      'lm_sensors',
+      'nmap-ncat',
+      'perl-Image-ExifTool',
+      'procps-ng',
+      'python3-ansible-lint',
+      'python3-dnf-plugin-system-upgrade',
+      'redhat-rpm-config',
+      'shyaml',
+      'sqlite',
+      'vim-enhanced',
+      'vim-minimal',
+      'which',
+      'xz',
+    ] }}"
   # Essential Packages
   - atop
   - autoconf
@@ -175,5 +172,5 @@ toolbox_packages_pt_default:
 
 # Packages to remove from toolboxes (Fedora/Debian/Ubuntu)
 toolbox_blacklisted_packages:
-  - "{{ 'helm' if downloads_helm_url is not none else [] }}"
+  - "{{ 'helm' if downloads_helm_url|default(none) is not none else [] }}"
   - hstr  # fzf shell

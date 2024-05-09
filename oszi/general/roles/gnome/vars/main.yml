@@ -43,6 +43,8 @@ gnome_dconf_vars_default:
 
   /org/gnome/settings-daemon/plugins/media-keys/screensaver: ['<Super>Delete']
 
+  /org/gnome/desktop/session/idle-delay: "uint32 {{ 1800 if ansible_virtualization_role != 'guest' else 0 }}"
+
   /org/gnome/desktop/wm/preferences/action-middle-click-titlebar: "'lower'"
   /org/gnome/desktop/wm/preferences/button-layout: "':minimize,close'"
   /org/gnome/desktop/wm/preferences/theme: "'Adwaita'"
@@ -68,6 +70,18 @@ gnome_dconf_vars_default:
   /org/gnome/desktop/interface/toolkit-accessibility: "false"
   /org/gnome/desktop/sound/allow-volume-above-100-percent: "true"
 
+  /org/gnome/mutter/attach-modal-dialogs: "false"
+  /org/gnome/mutter/dynamic-workspaces: "true"
+  /org/gnome/mutter/workspaces-only-on-primary: "true"
+
+  /org/gnome/nautilus/list-view/default-visible-columns: ['name', 'size', 'date_modified']
+  /org/gnome/nautilus/list-view/use-tree-view: "true"
+  /org/gnome/nautilus/preferences/default-folder-viewer: "'list-view'"
+  /org/gnome/nautilus/preferences/fts-enabled: "false"
+  /org/gnome/nautilus/preferences/show-create-link: "true"
+  /org/gnome/nautilus/preferences/show-delete-permanently: "true"
+  /org/gnome/nautilus/preferences/sort-directories-first: "true"
+
   /org/gnome/desktop/privacy/old-files-age: "uint32 30"
   /org/gnome/desktop/privacy/recent-files-max-age: "30"
   /org/gnome/desktop/privacy/remember-recent-files: "true"
@@ -77,14 +91,6 @@ gnome_dconf_vars_default:
   /org/gnome/desktop/privacy/send-software-usage-stats: "false"
   /org/gnome/desktop/privacy/usb-protection-level: "'lockscreen'"
   /org/gnome/desktop/privacy/usb-protection: "true"
-
-  /org/gnome/nautilus/list-view/default-visible-columns: ['name', 'size', 'date_modified']
-  /org/gnome/nautilus/list-view/use-tree-view: "true"
-  /org/gnome/nautilus/preferences/default-folder-viewer: "'list-view'"
-  /org/gnome/nautilus/preferences/fts-enabled: "false"
-  /org/gnome/nautilus/preferences/show-create-link: "true"
-  /org/gnome/nautilus/preferences/show-delete-permanently: "true"
-  /org/gnome/nautilus/preferences/sort-directories-first: "true"
 
   # Restrict dangerous Tracker Miner and thumbnails!
   /org/freedesktop/tracker/miner/files/enable-monitors: "{{ (ansible_virtualization_role == 'guest') | lower }}"
@@ -97,10 +103,6 @@ gnome_dconf_vars_default:
   /org/gnome/desktop/media-handling/autorun-x-content-ignore: "@as []"
   /org/gnome/desktop/media-handling/autorun-x-content-open-folder: "@as []"
   /org/gnome/desktop/media-handling/autorun-x-content-start-app: "@as []"
-
-  /org/gnome/mutter/attach-modal-dialogs: "false"
-  /org/gnome/mutter/dynamic-workspaces: "true"
-  /org/gnome/mutter/workspaces-only-on-primary: "true"
 
   /org/gnome/settings-daemon/plugins/power/idle-dim: "false"
   /org/gnome/settings-daemon/plugins/power/power-button-action: "'nothing'"

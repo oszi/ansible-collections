@@ -1,6 +1,6 @@
 ---
 - name: Azure CLI tasks
-  tags: [third-party, azure-cli]
+  tags: [azure-cli]
   block:
     - name: Azure CLI repository
       ansible.builtin.include_tasks:

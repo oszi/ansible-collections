@@ -6,20 +6,17 @@
       - "buildah"
       - "skopeo"
     state: "present"
-  tags: [package]
 
 - name: Ensure podman-compose is installed
   ansible.builtin.package:
     name: "podman-compose"
     state: "{{ containerhost_podman_compose_enabled | ternary('present', 'absent') }}"
-  tags: [package]
 
 - name: Ensure toolbox is installed - containertoolbx.org
   ansible.builtin.package:
     name: "toolbox"
     state: "present"
   when: containerhost_podman_toolbox_enabled  # (no removal)
-  tags: [package]
 
 - name: Change default podman graphroot?
   when: containerhost_podman_graphroot is not none

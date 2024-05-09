@@ -25,3 +25,4 @@ dependencies:
   - role: oszi.general.fail2ban
   - role: oszi.general.wireguard
   - role: oszi.general.python
+  - role: oszi.general.borgmatic

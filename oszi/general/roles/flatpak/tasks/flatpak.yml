@@ -27,12 +27,12 @@
     flatpak override --system {% for option in item.value
     %} {{ option | quote }} {% endfor %} {{ item.key | quote }}
   with_dict: "{{ flatpak_app_overrides }}"
-  changed_when: "ansible_verbosity > 1"
+  changed_when: false
   tags: [skip_ansible_lint]
 
 - name: Ensure global flatpak overrides are set
   ansible.builtin.command: >-
     flatpak override --system {% for option in flatpak_global_overrides
     %} {{ option | quote }} {% endfor %}
-  changed_when: "ansible_verbosity > 1"
+  changed_when: false
   tags: [skip_ansible_lint]

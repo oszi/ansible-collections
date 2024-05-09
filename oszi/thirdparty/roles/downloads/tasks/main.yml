@@ -1,6 +1,6 @@
 ---
 - name: Downloads tasks
-  tags: [third-party, downloads]
+  tags: [downloads]
   block:
     - name: Ensure downloads_bin_path exists
       ansible.builtin.file:

@@ -1,5 +1,6 @@
 ---
 # See also: roles/toolbox/defaults/main/packages.yml
+# and roles/gnome/defaults/main/packages.yml
 
 # Nested list of packages to install on workstations:
 workstation_packages:
@@ -9,18 +10,17 @@ workstation_packages:
 # Fedora/Debian/Ubuntu defaults to include in workstation_packages:
 workstation_packages_pt_default:
   - "{{ [
-      'hunspell-en',
-      'pcsc-lite',
-    ]
-    if (ansible_os_family == 'RedHat')
-    else [
       'hunspell-en-gb',
       'hunspell-en-us',
       'pcscd',
       'scdaemon',
     ]
     if (ansible_os_family == 'Debian')
-    else [] }}"
+    else [
+      'hunspell-en',
+      'pcsc-lite',
+    ] }}"
+  - hunspell-hu
   - mesa-vulkan-drivers
   # Utilities
   - ddccontrol
@@ -44,15 +44,6 @@ workstation_packages_pt_default:
 # Fedora/Debian/Ubuntu libvirt/QEMU packages (optional).
 workstation_packages_pt_virtualization:
   - "{{ [
-      'libvirt-devel',
-      'libvirt',
-      'qemu-system-aarch64',
-      'virt-install',
-      'guestfs-tools',
-      'python3-libguestfs',
-    ]
-    if (ansible_os_family == 'RedHat')
-    else [
       'libvirt-dev',
       'libvirt-clients',
       'libvirt-daemon-system',
@@ -63,6 +54,10 @@ workstation_packages_pt_virtualization:
     else [
       'libvirt-devel',
       'libvirt',
+      'qemu-system-aarch64',
+      'virt-install',
+      'guestfs-tools',
+      'python3-libguestfs',
     ] }}"
   - libguestfs-rescue
   - libguestfs-xfs

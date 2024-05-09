@@ -3,21 +3,18 @@
   ansible.builtin.package:
     name: "{{ baselinux_extra_packages | flatten }}"
     state: "present"
-  tags: [package]
 
 - name: "[Un]install QEMU guest agent"
   ansible.builtin.package:
     name: "qemu-guest-agent"
     state: "{{ 'present' if ansible_virtualization_type in ['kvm', 'xen']
       and ansible_virtualization_role == 'guest' else 'absent' }}"
-  tags: [package]
 
 - name: "[Un]install VMWare guest agent"
   ansible.builtin.package:
     name: "open-vm-tools"
     state: "{{ 'present' if ansible_virtualization_type == 'VMware'
       and ansible_virtualization_role == 'guest' else 'absent' }}"
-  tags: [package]
 
 - name: Copy shell config files
   ansible.builtin.copy:
@@ -52,7 +49,6 @@
 
 - name: Emulate iptables with nft alternatives
   when: baselinux_iptables_nft_alternatives
-  tags: [package]
   block:
     - name: Ensure iptables-nft and nftables are installed
       ansible.builtin.package:

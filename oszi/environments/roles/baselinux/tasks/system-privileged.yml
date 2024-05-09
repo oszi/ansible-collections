@@ -1,8 +1,4 @@
 ---
-- name: Set system hostname
-  ansible.builtin.hostname:
-    name: "{{ inventory_hostname }}"
-
 - name: Set system timezone
   community.general.timezone:
     name: "{{ baselinux_timezone }}"
@@ -30,6 +26,10 @@
     state: "present"
   with_dict: "{{ baselinux_etc_hosts }}"
 
+- name: Set system hostname  # after setting /etc/hosts
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
 - name: Install custom udev rules
   ansible.builtin.copy:
     dest: "/etc/udev/rules.d/{{ item.key }}.rules"
@@ -45,7 +45,7 @@
     content: "{{ item.value }}"
     owner: "root"
     group: "root"
-    mode: "0644"
+    mode: "0440"
   with_dict: "{{ baselinux_sudoers_rules }}"
 
 - name: Ensure system mount points exist

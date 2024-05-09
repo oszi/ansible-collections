@@ -13,14 +13,12 @@
       - "ufw"
     state: "absent"
   notify: "Restart firewalld"
-  tags: [package]
 
 - name: Install firewalld daemon
   ansible.builtin.package:
     name: "firewalld"
     state: "present"
   notify: "Restart firewalld"
-  tags: [package]
 
 - name: Set firewall backend to {{ firewalld_backend }}
   ansible.builtin.lineinfile:

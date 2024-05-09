@@ -12,4 +12,3 @@
       ansible.builtin.package:
         name: "firewalld"
         state: "absent"
-      tags: [package]

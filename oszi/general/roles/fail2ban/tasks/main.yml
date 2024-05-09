@@ -11,9 +11,8 @@
       when: not fail2ban_enabled
       ansible.builtin.package:
         name:
-          - fail2ban
-          - fail2ban-firewalld
-          - fail2ban-selinux
-          - fail2ban-systemd
+          - "fail2ban"
+          - "fail2ban-firewalld"
+          - "fail2ban-selinux"
+          - "fail2ban-systemd"
         state: "absent"
-      tags: [package]

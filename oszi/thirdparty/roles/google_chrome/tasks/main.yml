@@ -1,6 +1,6 @@
 ---
 - name: Google Chrome tasks
-  tags: [third-party, google-chrome]
+  tags: [google-chrome]
   block:
     - name: Google Chrome repository
       ansible.builtin.include_tasks:

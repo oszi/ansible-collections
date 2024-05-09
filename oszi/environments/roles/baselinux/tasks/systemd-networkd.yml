@@ -5,7 +5,6 @@
     state: "present"
   notify: "Restart systemd-networkd"
   when: "ansible_os_family == 'RedHat'"
-  tags: [package]
 
 - name: Ensure systemd-resolved is installed
   ansible.builtin.package:
@@ -16,7 +15,6 @@
     and (ansible_os_family == 'RedHat'
       or (ansible_distribution == 'Debian'
         and ansible_distribution_version | int >= 12))"
-  tags: [package]
 
 - name: Ensure the systemd-network group exists
   ansible.builtin.group:

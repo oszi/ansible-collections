@@ -4,7 +4,6 @@
   block:
     - name: Gnome package setup tasks
       ansible.builtin.import_tasks: packages.yml
-      tags: [package]
 
     - name: Include Gnome user setup tasks
       when: gnome_user is not none

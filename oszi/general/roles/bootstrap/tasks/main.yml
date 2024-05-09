@@ -25,4 +25,3 @@
     cache_valid_time: 86400
     update_cache: true
   when: "ansible_os_family == 'Debian'"
-  tags: [package]

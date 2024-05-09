@@ -1,5 +1,5 @@
 ---
-- name: Install chromium policies
+- name: Include chromium policies setup tasks
   ansible.builtin.include_tasks:
     file: chromium-policies.yml
     apply:

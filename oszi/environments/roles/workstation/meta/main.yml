@@ -17,13 +17,6 @@ dependencies:
   - role: oszi.environments.baselinux
   - role: oszi.environments.containerhost
   - role: oszi.environments.toolbox
-
-  - role: oszi.thirdparty.flatpak
-    when: not workstation_thirdparty_disabled
-  - role: oszi.thirdparty.google_chrome
-    when: not workstation_thirdparty_disabled
-  - role: oszi.thirdparty.vscode
-    when: not workstation_thirdparty_disabled
-
+  - role: oszi.general.flatpak
   - role: oszi.general.chromium_policies
   - role: oszi.general.gnome

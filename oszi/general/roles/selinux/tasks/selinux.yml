@@ -8,7 +8,6 @@
   ansible.builtin.package:
     name: "selinux-policy-targeted"
     state: "present"
-  tags: [package]
 
 - name: Ensure python2 libraries for SELinux are installed
   when: "ansible_python.version.major == 2"
@@ -17,7 +16,6 @@
       - "libselinux-python"
       - "policycoreutils-python"
     state: "present"
-  tags: [package]
 
 - name: Ensure python3 libraries for SELinux are installed
   when: "ansible_python.version.major == 3"
@@ -26,7 +24,6 @@
       - "python3-libselinux"
       - "python3-policycoreutils"
     state: "present"
-  tags: [package]
 
 - name: Set SELinux to permissive if disabled (requires reboot)
   when: "ansible_selinux.status == 'disabled'"

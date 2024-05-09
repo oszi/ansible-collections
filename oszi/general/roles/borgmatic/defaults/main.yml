@@ -1,5 +1,7 @@
 ---
-# Setup Borg/Borgmatic? (see vars/borg.yml )
+# See also: borgmatic/vars/main.yml
+
+# Setup Borg/Borgmatic?
 borgmatic_enabled: false
 # Python3 package version of Borgmatic
 # Requires python_enabled=true!

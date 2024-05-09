@@ -25,8 +25,9 @@ baselinux_dhclient_resolvconf_disabled: false
 baselinux_iptables_nft_alternatives: true
 
 # Dict of hosts for /etc/hosts:
-# * {host: ip}
-baselinux_etc_hosts: {}
+# Set inventory_hostname to avoid DNS hanging during hostname lookup.
+# * {hostname.exaple.com hostname: IP_ADDRESS}
+baselinux_etc_hosts: "{{ {inventory_hostname: '127.0.0.1'} }}"
 # Dict of custom sysctl values:
 baselinux_sysctl_values: {}
 # Dict of udev rules to install under /etc/udev/rules.d/{{ item.key }}.json

@@ -12,4 +12,3 @@
       ansible.builtin.package:
         name: "{{ wireguard_packages }}"
         state: "absent"
-      tags: [package]

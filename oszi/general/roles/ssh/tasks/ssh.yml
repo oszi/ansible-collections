@@ -4,7 +4,6 @@
     name: "openssh-server"
     state: "present"
   notify: "Restart sshd service"
-  tags: [package]
 
 - name: Check SSH authorized keys
   ansible.posix.authorized_key:
