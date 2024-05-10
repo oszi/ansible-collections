@@ -10,3 +10,9 @@
       when: ssh_enabled
       ansible.builtin.include_tasks:
         file: ssh.yml
+
+    - name: Ensure openssh-server is NOT installed
+      when: not ssh_enabled and ssh_server_disabled
+      ansible.builtin.package:
+        name: "openssh-server"
+        state: "absent"

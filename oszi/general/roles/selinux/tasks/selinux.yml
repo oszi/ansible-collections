@@ -37,15 +37,14 @@
   ansible.builtin.reboot:
 
 - name: Set alternate ssh_port_t
-  when: "ansible_port | default(22) | int != 22"
+  when: "ssh_port | default(22) | int != 22"
   community.general.seport:
     setype: "ssh_port_t"
-    ports: "{{ ansible_port }}"
+    ports: "{{ ssh_port }}"
     proto: "tcp"
     state: "present"
-  tags: [ssh]
 
-- name: Set SELinux to targeted and enforcing
+- name: "Ensure SELinux is enforcing vs permissive"
   ansible.posix.selinux:
     policy: "targeted"
-    state: "enforcing"
+    state: "{{ selinux_is_enforcing | ternary('enforcing', 'permissive') }}"

@@ -11,4 +11,4 @@
       ansible.builtin.debug:
         msg: >-
           SELinux status is {{ ansible_selinux.status | default('unknown') }}
-          in {{ ansible_selinux.mode | default('unknown') }} mode.
+          in {{ ansible_selinux.mode | default('undefined') }} mode.

@@ -1,9 +1,8 @@
 ---
-# Fallback SSH port if ansible_port is unreachable
-bootstrap_ssh_port_default: 22
+# bootstrap_ssh_port is set as a cacheable fact from tasks!
 
-# SSH private key content to override ansible_ssh_private_key_file:
-bootstrap_ssh_private_key:
+# Fallback SSH port if ansible_port is unreachable:
+bootstrap_ssh_port_fallback: 22
 
 # List of fact subsets for ansible.builtin.setup:
 bootstrap_facts_gather_subset: ["all"]

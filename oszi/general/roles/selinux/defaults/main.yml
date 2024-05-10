@@ -1,3 +1,6 @@
 ---
 # Enable SELinux tasks?
 selinux_enabled: "{{ not is_container|default(false) and ansible_os_family == 'RedHat' }}"
+
+# Set SELinux to enforcing vs permissive?
+selinux_is_enforcing: true
