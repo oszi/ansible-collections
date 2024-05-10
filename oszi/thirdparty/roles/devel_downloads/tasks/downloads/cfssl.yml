@@ -1,0 +1,32 @@
+---
+- name: Download the cfssl binary?
+  ansible.builtin.get_url:
+    url: "{{ devel_downloads_cfssl_url }}"
+    dest: "{{ devel_downloads_bin_path }}/cfssl"
+    checksum: "{{ devel_downloads_cfssl_checksum }}"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: devel_downloads_cfssl_url is not none
+
+- name: Uninstall cfssl?
+  ansible.builtin.file:
+    path: "{{ devel_downloads_bin_path }}/cfssl"
+    state: "absent"
+  when: devel_downloads_cfssl_url is none
+
+- name: Download the cfssljson binary?
+  ansible.builtin.get_url:
+    url: "{{ devel_downloads_cfssljson_url }}"
+    dest: "{{ devel_downloads_bin_path }}/cfssljson"
+    checksum: "{{ devel_downloads_cfssljson_checksum }}"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: devel_downloads_cfssljson_url is not none
+
+- name: Uninstall cfssljson?
+  ansible.builtin.file:
+    path: "{{ devel_downloads_bin_path }}/cfssljson"
+    state: "absent"
+  when: devel_downloads_cfssljson_url is none

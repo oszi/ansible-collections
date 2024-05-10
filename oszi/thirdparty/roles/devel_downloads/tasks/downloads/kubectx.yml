@@ -1,12 +1,12 @@
 ---
 - name: Install kubectx?
-  when: downloads_kubectx_url is not none
+  when: devel_downloads_kubectx_url is not none
   block:
     - name: Download the kubectx archive
       ansible.builtin.get_url:
-        url: "{{ downloads_kubectx_url }}"
-        dest: "{{ downloads_cache_path }}/kubectx.tar.gz"
-        checksum: "{{ downloads_kubectx_checksum }}"
+        url: "{{ devel_downloads_kubectx_url }}"
+        dest: "{{ devel_downloads_cache_path }}/kubectx.tar.gz"
+        checksum: "{{ devel_downloads_kubectx_checksum }}"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -14,13 +14,13 @@
 
     - name: Extract kubectx scripts
       ansible.builtin.command: >-
-        {{ downloads_tar_extract_binary }} -f {{ downloads_cache_path }}/kubectx.tar.gz
+        {{ devel_downloads_tar_extract_binary }} -f {{ devel_downloads_cache_path }}/kubectx.tar.gz
         --strip-components=1 *-*/kubectx *-*/kubens
       when: _get_url_result.changed
 
     - name: Extract kubectx completions
       ansible.builtin.command: >-
-        {{ downloads_tar_extract }} -C /etc/bash_completion.d -f {{ downloads_cache_path }}/kubectx.tar.gz
+        {{ devel_downloads_tar_extract }} -C /etc/bash_completion.d -f {{ devel_downloads_cache_path }}/kubectx.tar.gz
         --strip-components=2 *-*/completion/*.bash
       when: _get_url_result.changed
 
@@ -28,10 +28,10 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  when: downloads_kubectx_url is none
+  when: devel_downloads_kubectx_url is none
   with_items:
-    - "{{ downloads_cache_path }}/kubectx.tar.gz"
-    - "{{ downloads_bin_path }}/kubectx"
-    - "{{ downloads_bin_path }}/kubens"
+    - "{{ devel_downloads_cache_path }}/kubectx.tar.gz"
+    - "{{ devel_downloads_bin_path }}/kubectx"
+    - "{{ devel_downloads_bin_path }}/kubens"
     - "/etc/bash_completion.d/kubectx.bash"
     - "/etc/bash_completion.d/kubens.bash"

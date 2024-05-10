@@ -1,12 +1,12 @@
 ---
 - name: Install Helm?
-  when: downloads_helm_url is not none
+  when: devel_downloads_helm_url is not none
   block:
     - name: Download the Helm archive
       ansible.builtin.get_url:
-        url: "{{ downloads_helm_url }}"
-        dest: "{{ downloads_cache_path }}/helm.tar.gz"
-        checksum: "{{ downloads_helm_checksum }}"
+        url: "{{ devel_downloads_helm_url }}"
+        dest: "{{ devel_downloads_cache_path }}/helm.tar.gz"
+        checksum: "{{ devel_downloads_helm_checksum }}"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -14,21 +14,21 @@
 
     - name: Extract Helm
       ansible.builtin.command: >-
-        {{ downloads_tar_extract_binary }} -f {{ downloads_cache_path }}/helm.tar.gz
+        {{ devel_downloads_tar_extract_binary }} -f {{ devel_downloads_cache_path }}/helm.tar.gz
         --strip-components=1 *-*/helm
       when: _get_url_result.changed
 
     - name: Generate Helm completions
       ansible.builtin.shell: |
         set -euo pipefail
-        {{ downloads_bin_path }}/helm completion bash > /etc/bash_completion.d/helm
+        {{ devel_downloads_bin_path }}/helm completion bash > /etc/bash_completion.d/helm
       args:
         executable: "/bin/bash"
       when: _get_url_result.changed
 
     - name: Symlink helm3 binary
       ansible.builtin.file:
-        dest: "{{ downloads_bin_path }}/helm3"
+        dest: "{{ devel_downloads_bin_path }}/helm3"
         src: "helm"
         state: "link"
       when: _get_url_result.changed
@@ -37,9 +37,9 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  when: downloads_helm_url is none
+  when: devel_downloads_helm_url is none
   with_items:
-    - "{{ downloads_cache_path }}/helm.tar.gz"
-    - "{{ downloads_bin_path }}/helm"
-    - "{{ downloads_bin_path }}/helm3"
+    - "{{ devel_downloads_cache_path }}/helm.tar.gz"
+    - "{{ devel_downloads_bin_path }}/helm"
+    - "{{ devel_downloads_bin_path }}/helm3"
     - "/etc/bash_completion.d/helm"

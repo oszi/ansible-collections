@@ -1,12 +1,12 @@
 ---
 - name: Install Berglas?
-  when: downloads_berglas_url is not none
+  when: devel_downloads_berglas_url is not none
   block:
     - name: Download the Berglas binary?
       ansible.builtin.get_url:
-        url: "{{ downloads_berglas_url }}"
-        dest: "{{ downloads_bin_path }}/berglas"
-        checksum: "{{ downloads_berglas_checksum }}"
+        url: "{{ devel_downloads_berglas_url }}"
+        dest: "{{ devel_downloads_bin_path }}/berglas"
+        checksum: "{{ devel_downloads_berglas_checksum }}"
         owner: "root"
         group: "root"
         mode: "0755"
@@ -15,7 +15,7 @@
     - name: Generate Berglas completions
       ansible.builtin.shell: |
         set -euo pipefail
-        {{ downloads_bin_path }}/berglas completion bash > /etc/bash_completion.d/berglas
+        {{ devel_downloads_bin_path }}/berglas completion bash > /etc/bash_completion.d/berglas
       args:
         executable: "/bin/bash"
       when: _get_url_result.changed
@@ -24,7 +24,7 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  when: downloads_berglas_url is none
+  when: devel_downloads_berglas_url is none
   with_items:
-    - "{{ downloads_bin_path }}/berglas"
+    - "{{ devel_downloads_bin_path }}/berglas"
     - "/etc/bash_completion.d/berglas"

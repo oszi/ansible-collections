@@ -2,32 +2,32 @@
 # Leave all URLs and checksums unset by default!
 
 # Target directory for ansible installed executables
-downloads_bin_path: "/usr/local/bin"
+devel_downloads_bin_path: "/usr/local/bin"
 # Target directory for artifacts and installers
-downloads_cache_path: "/var/cache/ansible"
+devel_downloads_cache_path: "/var/cache/ansible"
 
 # CFSSL binaries: https://pkg.cfssl.org
-downloads_cfssl_url:
-downloads_cfssljson_url:
-downloads_cfssl_checksum:
-downloads_cfssljson_checksum:
+devel_downloads_cfssl_url:
+devel_downloads_cfssljson_url:
+devel_downloads_cfssl_checksum:
+devel_downloads_cfssljson_checksum:
 
 # berglas binary: https://github.com/GoogleCloudPlatform/berglas#prerequisites
-downloads_berglas_url:
-downloads_berglas_checksum:
+devel_downloads_berglas_url:
+devel_downloads_berglas_checksum:
 
 # kubectx.tar.gz: https://github.com/ahmetb/kubectx/releases - v0.8.0 is the last bash version!
-downloads_kubectx_url:
-downloads_kubectx_checksum:
+devel_downloads_kubectx_url:
+devel_downloads_kubectx_checksum:
 
 # helm.tar.gz: https://github.com/helm/helm/releases - in repo since Fedora 35.
-downloads_helm_url:
-downloads_helm_checksum:
+devel_downloads_helm_url:
+devel_downloads_helm_checksum:
 
 # istio.tar.gz: https://github.com/istio/istio/releases - not just istioctl!
-downloads_istio_url:
-downloads_istio_checksum:
+devel_downloads_istio_url:
+devel_downloads_istio_checksum:
 
 # terragrunt binary: https://github.com/gruntwork-io/terragrunt/releases
-downloads_terragrunt_url:
-downloads_terragrunt_checksum:
+devel_downloads_terragrunt_url:
+devel_downloads_terragrunt_checksum:
