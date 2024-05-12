@@ -7,12 +7,17 @@
       tags: [users]
 
     - name: Include SSH configuration tasks
-      when: ssh_enabled
+      when: not ssh_server_disabled
       ansible.builtin.include_tasks:
         file: ssh.yml
 
     - name: Ensure openssh-server is NOT installed
-      when: not ssh_enabled and ssh_server_disabled
+      when: ssh_server_disabled
       ansible.builtin.package:
         name: "openssh-server"
         state: "absent"
+
+    - name: SSH role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true

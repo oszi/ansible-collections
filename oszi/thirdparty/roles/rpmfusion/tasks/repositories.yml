@@ -17,10 +17,10 @@
   with_items: ["free", "nonfree"]
   tags: [skip_ansible_lint]
 
-- name: Ensure RPMFusion is not installed
+- name: Ensure RPMFusion is NOT installed
   when: not rpmfusion_enabled
   block:
-    - name: Ensure RPMFusion is not installed
+    - name: Ensure RPMFusion is NOT installed
       ansible.builtin.package:
         name:
           - "rpmfusion-free-release-{{ ansible_distribution_major_version }}"

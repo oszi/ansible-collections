@@ -4,7 +4,7 @@
 # Setup Borg/Borgmatic?
 borgmatic_enabled: false
 # Python3 package version of Borgmatic
-# Requires python_enabled=true!
+# Requires python_disabled=false!
 borgmatic_version: ">1.7.0,<2.0.0"
 
 # Target directory or remote repository!

@@ -7,7 +7,7 @@
 
     - name: Privileged system setup tasks
       ansible.builtin.import_tasks: system-privileged.yml
-      when: "not is_container|default(false)"
+      when: "not is_container | default(false)"
 
     - name: Systemd-networkd setup tasks
       ansible.builtin.import_tasks: systemd-networkd.yml

@@ -3,6 +3,11 @@
   tags: [python]
   block:
     - name: Include Python setup tasks
-      when: python_enabled
+      when: not python_disabled
       ansible.builtin.include_tasks:
         file: python.yml
+
+    - name: Python role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true

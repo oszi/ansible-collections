@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Configure podman containers on Linux."
+  description: "Configure podman and container services on Linux."
   min_ansible_version: "2.16"
   galaxy_tags: []
   author: David O.
@@ -17,3 +17,4 @@ galaxy_info:
 
 dependencies:
   - role: oszi.environments.baselinux
+  - role: oszi.general.podman

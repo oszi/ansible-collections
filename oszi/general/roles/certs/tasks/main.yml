@@ -4,17 +4,15 @@
   connection: local
   tags: [certs]
   block:
-    - name: Ensure certs_path directory exists
-      ansible.builtin.file:
-        path: "{{ certs_path }}"
-        state: "directory"
-        mode: "0700"
-      changed_when: false
-
     - name: Include certificates generation tasks delegated to the ansible controller
       when: certs_list or certs_reqs or certs_revok
       ansible.builtin.include_tasks:
         file: generation.yml
+
+    - name: Certificates generation completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true
 
 - name: CA trust anchors tasks
   tags: [certs]

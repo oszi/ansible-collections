@@ -1,0 +1,32 @@
+---
+# include_role: name=oszi.general.podman tasks_from=update
+
+- name: Update podman images and containers
+  tags: [podman]
+  block:
+    - name: Dump podman info
+      when: "ansible_verbosity > 1"
+      ansible.builtin.command: "{{ podman_runtime }} info"
+      changed_when: false
+      check_mode: false
+
+    - name: Update podman images
+      ansible.builtin.shell: |
+        set -euo pipefail
+        {{ podman_runtime }} images --format={{ '{{.Repository}}:{{.Tag}}' }} \
+          | grep -v '<none>' \
+          | xargs -L1 -P3 -r {{ podman_runtime }} pull -q
+      args:
+        executable: "/bin/bash"
+      register: _podman_pull_result
+      failed_when: "_podman_pull_result.rc != 0 and _podman_pull_result.stderr != ''
+        and 'Error: initializing source' not in _podman_pull_result.stderr"
+
+    - name: Update podman containers and clean up
+      ansible.builtin.shell: |
+        set -euo pipefail
+        {{ podman_runtime }} auto-update
+        {{ podman_runtime }} images -qf dangling=true \
+          | xargs -r {{ podman_runtime }} rmi
+      args:
+        executable: "/bin/bash"

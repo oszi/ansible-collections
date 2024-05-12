@@ -6,3 +6,8 @@ bootstrap_ssh_port_fallback: 22
 
 # List of fact subsets for ansible.builtin.setup:
 bootstrap_facts_gather_subset: ["all"]
+
+# Update the default package manager cache?
+# Not necessary for yum/dnf but it helps with apt.
+bootstrap_package_update_cache: "{{ ansible_pkg_mgr in ['apt'] }}"
+bootstrap_apt_cache_valid_time: 21600

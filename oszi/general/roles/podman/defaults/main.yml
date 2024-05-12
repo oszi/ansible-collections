@@ -1,24 +1,27 @@
 ---
-# Enable podman setup tasks?
-containerhost_podman_enabled: true
+# Skip podman setup tasks and uninstall podman?
+podman_disabled: false
+
 # Emulate docker using podman?
-containerhost_podman_docker_enabled: "{{ containerhost_podman_enabled and ansible_distribution in ['Fedora', 'Ubuntu'] }}"
+podman_docker_enabled: "{{ not podman_disabled and ansible_distribution in ['Fedora', 'Ubuntu'] }}"
 # Install docker-compose to be used with podman-docker?
 # * For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
-containerhost_podman_docker_compose_enabled: "{{ containerhost_podman_docker_enabled }}"
+podman_docker_compose_enabled: "{{ podman_docker_enabled }}"
+
 # Install podman-compose (rootless, daemonless)?
-containerhost_podman_compose_enabled: "{{ containerhost_podman_enabled and ansible_distribution == 'Fedora' }}"
+podman_compose_enabled: "{{ not podman_disabled and ansible_distribution == 'Fedora' }}"
 # Install toolbox from containertoolbx.org?
-containerhost_podman_toolbox_enabled: "{{ containerhost_podman_enabled and ansible_distribution == 'Fedora' }}"
+podman_toolbox_enabled: "{{ not podman_disabled and ansible_distribution == 'Fedora' }}"
 
 # Dict of podman networks:
 # * Items are args for containers.podman.podman_network
 # * Set recreate: true to force apply changes
-containerhost_podman_networks: {}
+podman_networks: {}
 
 # Override default location of container storage
 # from /var/lib/containers/storage
-containerhost_podman_graphroot:
+podman_graphroot:
+
 # Lists of dicts of args for the podman_image module:
 # https://docs.ansible.com/ansible/latest/modules/podman_image_module.html
-containerhost_podman_images: []
+podman_images: []

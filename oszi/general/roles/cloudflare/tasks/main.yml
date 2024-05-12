@@ -1,16 +1,15 @@
 ---
-- name: CloudFlare setup tasks
+- name: CloudFlare tasks
+  become: false
+  connection: local
   tags: [cloudflare]
   block:
     - name: Include CloudFlare tasks delegated to the ansible controller
       when: cloudflare_zone is not none
       ansible.builtin.include_tasks:
         file: cloudflare.yml
-        apply:
-          become: false
-          connection: local
 
-    - name: CloudFlare tasks skipped (role completed)
-      when: cloudflare_zone is none
+    - name: CloudFlare role completed
       ansible.builtin.debug:
         msg: prevent-multiple-inclusions
+      no_log: true

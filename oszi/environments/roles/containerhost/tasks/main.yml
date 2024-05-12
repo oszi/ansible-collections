@@ -1,36 +1,16 @@
 ---
-- name: Podman setup tasks
-  tags: [podman]
+- name: Containerhost role tasks
+  tags: [containerhost]
   block:
-    - name: Podman setup tasks
-      ansible.builtin.import_tasks: podman.yml
-      when: containerhost_podman_enabled
-
-    - name: Podman-docker setup tasks
-      ansible.builtin.import_tasks: podman-docker.yml
-      when: containerhost_podman_enabled
-
-    - name: Toolbox container setup tasks
-      ansible.builtin.import_tasks: toolbox-container.yml
-      tags: [toolbox-container]
-
-- name: Configure container services
-  tags: [container-service]
-  block:
-    - name: Ensure directory prefixes for container services
-      when: containerhost_services
-      ansible.builtin.file:
-        dest: "{{ item }}"
-        state: "directory"
-        owner: "root"
-        mode: "0755"
-      with_items:
-        - "{{ containerhost_etc_path }}"
-        - "{{ containerhost_var_path }}"
+    - name: Import containerhost tasks
+      ansible.builtin.import_tasks: containerhost.yml
 
     - name: Configure container services
       ansible.builtin.include_tasks:
         file: container-service.yml
+        apply:
+          tags: [container-service]
       with_dict: "{{ containerhost_services }}"
       loop_control:
         loop_var: container_service_item
+      tags: [container-service]

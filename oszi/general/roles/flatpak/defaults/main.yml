@@ -1,8 +1,8 @@
 ---
 # Leave remotes and apps empty by default!
 
-# Enable Flatpak setup tasks?
-flatpak_enabled: true
+# Disable flatpak?
+flatpak_disabled: false
 
 # Dict of remotes to install:
 # {flathub: "https://flathub.org/repo/flathub.flatpakrepo"}

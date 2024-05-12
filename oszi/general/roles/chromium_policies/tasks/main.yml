@@ -1,11 +1,16 @@
 ---
-- name: Include chromium policies setup tasks
-  ansible.builtin.include_tasks:
-    file: chromium-policies.yml
-    apply:
-      tags: [chromium-policies]
-  with_items: "{{ chromium_policies_paths }}"
-  loop_control:
-    loop_var: chromium_policies_path
-  when: chromium_policies_enabled
+- name: Chromium policies setup tasks
   tags: [chromium-policies]
+  block:
+    - name: Include chromium policies setup tasks
+      when: not chromium_policies_disabled
+      ansible.builtin.include_tasks:
+        file: chromium-policies.yml
+      with_items: "{{ chromium_policies_paths }}"
+      loop_control:
+        loop_var: chromium_policies_path
+
+    - name: Chromium policies role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true

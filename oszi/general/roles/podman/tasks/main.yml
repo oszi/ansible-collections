@@ -1,0 +1,15 @@
+---
+- name: Podman setup tasks
+  tags: [podman]
+  block:
+    - name: Include podman setup tasks
+      ansible.builtin.include_tasks: podman.yml
+      when: not podman_disabled
+
+    - name: Include podman-docker setup tasks
+      ansible.builtin.include_tasks: podman-docker.yml
+      when: not podman_disabled
+
+    - name: Include podman disabled tasks
+      ansible.builtin.include_tasks: podman-disabled.yml
+      when: podman_disabled

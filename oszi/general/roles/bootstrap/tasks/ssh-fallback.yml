@@ -1,0 +1,21 @@
+---
+- name: Check the configured SSH port
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host | default(inventory_hostname) }}"
+    port: "{{ bootstrap_ssh_port }}"
+    connect_timeout: 3
+    timeout: 9
+    state: "started"
+  become: false
+  connection: local
+  check_mode: false
+  ignore_errors: true
+  register: _wait_for_ssh
+
+- name: Fallback to the default SSH port otherwise
+  ansible.builtin.set_fact:
+    ansible_port: "{{ bootstrap_ssh_port_fallback }}"
+  when: _wait_for_ssh is undefined or _wait_for_ssh.state is undefined
+
+- name: Check connectivity
+  ansible.builtin.ping:

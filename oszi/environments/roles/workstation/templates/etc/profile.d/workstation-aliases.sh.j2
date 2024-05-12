@@ -1,4 +1,4 @@
-{% if flatpak_enabled %}
+{% if not flatpak_disabled %}
 {% set _flatpak_chromium = 'org.chromium.Chromium' %}
 {% if _flatpak_chromium in flatpak_apps %}
 if ! command -v chromium >/dev/null 2>&1; then

@@ -1,6 +1,6 @@
 ---
-# Enable firewalld tasks?
-firewalld_enabled: "{{ not is_container|default(false) }}"
+# Disable firewalld?
+firewalld_disabled: "{{ is_container | default(false) }}"
 
 # Accepted services for firewalld besides SSH
 # * May contain dicts with zone/service

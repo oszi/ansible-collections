@@ -3,12 +3,12 @@
   tags: [fail2ban]
   block:
     - name: Include Fail2ban setup tasks
-      when: fail2ban_enabled
+      when: not fail2ban_disabled
       ansible.builtin.include_tasks:
         file: fail2ban.yml
 
-    - name: Ensure fail2ban packages are not installed
-      when: not fail2ban_enabled
+    - name: Ensure fail2ban packages are NOT installed
+      when: fail2ban_disabled
       ansible.builtin.package:
         name:
           - "fail2ban"

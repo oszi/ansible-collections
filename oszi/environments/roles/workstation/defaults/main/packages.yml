@@ -73,6 +73,7 @@ workstation_blacklisted_packages:
   - "{{ workstation_blacklisted_packages_pt_to_sandbox }}"
   - "{{ workstation_blacklisted_packages_pt_imagemagick if ansible_virtualization_role != 'guest' else [] }}"
   - "{{ workstation_blacklisted_packages_pt_office }}"
+  - apport  # Protect kernel.core_pattern on Debian/Ubuntu!
 
 # Use the latest Chromium flatpak or snap with hardened configuration.
 # On Debian, the default firefox-esr cannot be removed without installing another browser.

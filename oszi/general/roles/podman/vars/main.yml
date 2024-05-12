@@ -1,0 +1,3 @@
+---
+# Absolute path to the podman executable
+podman_runtime: "/usr/bin/podman"

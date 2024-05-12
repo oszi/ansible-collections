@@ -3,12 +3,11 @@
   tags: [selinux]
   block:
     - name: Include SELinux setup tasks
-      when: selinux_enabled
+      when: not selinux_disabled
       ansible.builtin.include_tasks:
         file: selinux.yml
 
-    - name: Print SELinux status (role completed)
+    - name: SELinux role completed
       ansible.builtin.debug:
-        msg: >-
-          SELinux status is {{ ansible_selinux.status | default('unknown') }}
-          in {{ ansible_selinux.mode | default('undefined') }} mode.
+        msg: prevent-multiple-inclusions
+      no_log: true

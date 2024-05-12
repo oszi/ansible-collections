@@ -1,8 +1,8 @@
 ---
-# Install python3-devel, setuptools, pip and virtualenv?
-python_enabled: "{{ python_pip3_packages | length > 0 or python_distro_packages | length > 0 }}"
+# Skip setup of python3-devel, setuptools, pip and virtualenv?
+python_disabled: false
 
-# Lists of packages to install via pip:
+# Lists of packages to install via pip on the host:
 # * Always pin package versions!
 python_pip3_packages: []
 

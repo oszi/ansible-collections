@@ -5,9 +5,9 @@
     - name: Ensure flatpak is un/installed
       ansible.builtin.package:
         name: "flatpak"
-        state: "{{ flatpak_enabled | ternary('present', 'absent') }}"
+        state: "{{ flatpak_disabled | ternary('absent', 'present') }}"
 
     - name: Include Flatpak configuration tasks
-      when: flatpak_enabled
+      when: not flatpak_disabled
       ansible.builtin.include_tasks:
         file: flatpak.yml

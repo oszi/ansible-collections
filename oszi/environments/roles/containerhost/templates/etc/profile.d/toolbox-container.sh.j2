@@ -13,7 +13,7 @@ _toolbox_container() {
       esac
     done
   fi
-  {{ containerhost_toolbox_container_runtime }} run ${args} "${IMAGE}" "$@"
+  {{ containerhost_runtime }} run ${args} "${IMAGE}" "$@"
 }
 
 alias toolbox-container='_toolbox_container'

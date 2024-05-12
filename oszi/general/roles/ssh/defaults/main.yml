@@ -10,11 +10,10 @@ ssh_unix_users: {}
 # Allow passwordless sudo for these groups
 ssh_sudo_nopasswd_groups: []
 
-# Enable SSH setup tasks (local user tasks are always enabled)?
-ssh_enabled: "{{ not is_container|default(false) }}"
-# Forcefully uninstall openssh-server if ssh_enabled is false?
-ssh_server_disabled: false
-# SSH port is persisted from ansible_port in oszi.general.bootstrap
+# Disable and uninstall(!) OpenSSH server? (User tasks are always enabled.)
+ssh_server_disabled: "{{ is_container | default(false) }}"
+
+# SSH port is persisted in oszi.general.bootstrap surviving ansible_port changes.
 # Fallback to the default port is also handled there.
 ssh_port: "{{ bootstrap_ssh_port | default(ansible_port) }}"
 

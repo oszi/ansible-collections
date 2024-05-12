@@ -14,9 +14,8 @@ galaxy_info:
       versions: [all]
 
 dependencies:
-  - role: oszi.environments.baselinux
-  - role: oszi.environments.containerhost
   - role: oszi.environments.toolbox
+  - role: oszi.environments.containerhost
   - role: oszi.general.flatpak
   - role: oszi.general.chromium_policies
   - role: oszi.general.gnome

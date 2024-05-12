@@ -2,47 +2,30 @@
 # Automatic fact gathering must be disabled when running these tasks because it will fail
 # if a custom SSH port is not yet configured. Run "setup" after the connection is established.
 
-- name: Set bootstrap_is_ssh/ssh_port facts
-  ansible.builtin.set_fact:
-    bootstrap_is_ssh: "{{ ansible_connection in ['ssh', 'paramiko_ssh'] }}"
-    bootstrap_ssh_port: "{{ ansible_port | default(22) }}"
-    cacheable: true  # Export to later roles via fact caching.
-  tags: [always]
-
-- name: Dynamic SSH port fallback for first-time setup
-  become: false
-  connection: local
-  when: "bootstrap_is_ssh and bootstrap_ssh_port|int != bootstrap_ssh_port_fallback|int"
+- name: Bootstrap connection and facts
   tags: [always]
   block:
-    - name: Check the configured SSH port
-      ansible.builtin.wait_for:
-        host: "{{ ansible_host | default(inventory_hostname) }}"
-        port: "{{ bootstrap_ssh_port }}"
-        connect_timeout: 3
-        timeout: 9
-        state: "started"
-      check_mode: false
-      ignore_errors: true
-      register: _wait_for_ssh
-
-    - name: Fallback to the default SSH port otherwise
+    - name: Set bootstrap_is_ssh/ssh_port facts
       ansible.builtin.set_fact:
-        ansible_port: "{{ bootstrap_ssh_port_fallback }}"
-      when: _wait_for_ssh is undefined or _wait_for_ssh.state is undefined
+        bootstrap_is_ssh: "{{ ansible_connection in ['ssh', 'paramiko_ssh'] }}"
+        bootstrap_ssh_port: "{{ ansible_port | default(22) }}"
+        cacheable: true  # Export to later roles via fact caching.
 
-- name: Check connectivity
-  ansible.builtin.ping:
-  tags: [always]
+    - name: Include SSH port fallback for first-time setup
+      when: "bootstrap_is_ssh and bootstrap_ssh_port|int != bootstrap_ssh_port_fallback|int"
+      ansible.builtin.include_tasks:
+        file: ssh-fallback.yml
 
-- name: Run deferred setup to gather facts
-  ansible.builtin.setup:
-    gather_subset: "{{ bootstrap_facts_gather_subset }}"
-  tags: [always]
+    - name: Deferred setup to gather facts
+      ansible.builtin.setup:
+        gather_subset: "{{ bootstrap_facts_gather_subset }}"
 
-- name: Update stale apt cache on Debian - workaround
-  ansible.builtin.apt:
-    cache_valid_time: 86400
-    update_cache: true
-  when: "ansible_os_family == 'Debian'"
-  changed_when: false
+    - name: Update package cache
+      when: bootstrap_package_update_cache
+      ansible.builtin.package:
+        update_cache: true
+        cache_valid_time: "{{ bootstrap_apt_cache_valid_time
+          if ansible_pkg_mgr in ['apt'] else omit }}"
+      changed_when: false
+      ignore_errors: true  # Could be offline.
+      tags: [skip_ansible_lint]

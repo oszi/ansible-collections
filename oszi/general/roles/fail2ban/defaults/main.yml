@@ -1,6 +1,6 @@
 ---
-# Setup Fail2ban?
-fail2ban_enabled: false
+# Disable fail2ban?
+fail2ban_disabled: "{{ ssh_server_disabled }}"
 
 fail2ban_local: |
   [DEFAULT]

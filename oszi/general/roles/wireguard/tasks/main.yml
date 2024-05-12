@@ -3,12 +3,12 @@
   tags: [wireguard]
   block:
     - name: Include WireGuard setup tasks
-      when: wireguard_enabled
+      when: not wireguard_disabled
       ansible.builtin.include_tasks:
         file: wireguard.yml
 
-    - name: Ensure wireguard packages are not installed
-      when: not wireguard_enabled
+    - name: Ensure wireguard packages are NOT installed
+      when: wireguard_disabled
       ansible.builtin.package:
         name: "{{ wireguard_packages }}"
         state: "absent"

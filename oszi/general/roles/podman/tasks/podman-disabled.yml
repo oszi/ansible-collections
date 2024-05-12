@@ -1,0 +1,25 @@
+---
+- name: Ensure podman is NOT installed
+  ansible.builtin.package:
+    name:
+      - "podman"
+      - "podman-compose"
+      - "podman-docker"
+      - "buildah"
+    state: "absent"
+
+- name: Find leftover podman system files
+  ansible.builtin.find:
+    paths:
+      - "/etc/profile.d"
+      - "/etc/systemd/system"
+    pattern: "*podman*"
+    file_type: "any"
+  register: _find_podman_files
+
+- name: Remove leftover podman system files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ _find_podman_files | json_query('files[*].path') }}"
+  notify: "Reload systemd"
