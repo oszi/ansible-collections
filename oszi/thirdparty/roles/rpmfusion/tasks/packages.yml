@@ -9,7 +9,7 @@
     name: "{{ rpmfusion_blacklisted_packages }}"
     state: "absent"
 
-- name: Ensure RPMFusion packages are un/installed
+- name: Ensure RPMFusion packages are present or absent
   ansible.builtin.dnf:
     name: "{{ rpmfusion_packages | difference(rpmfusion_blacklisted_packages) }}"
     state: "{{ rpmfusion_enabled | ternary('present', 'absent') }}"

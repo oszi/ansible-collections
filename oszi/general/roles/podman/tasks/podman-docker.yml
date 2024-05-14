@@ -1,5 +1,5 @@
 ---
-- name: Ensure podman-docker is installed
+- name: Ensure podman-docker is present or absent
   ansible.builtin.package:
     name: "podman-docker"
     state: "{{ podman_docker_enabled | ternary('present', 'absent') }}"
@@ -30,11 +30,10 @@
         group: "root"
         mode: "0644"
 
-    - name: Ensure docker-compose is installed
-      when: podman_docker_compose_enabled  # (no removal)
+    - name: Ensure docker-compose is present or absent
       ansible.builtin.package:
         name: "docker-compose"
-        state: "present"
+        state: "{{ podman_docker_compose_enabled | ternary('present', 'absent') }}"
 
 - name: Remove /etc/profile.d/podman-docker-socket.sh?
   when: not podman_docker_enabled

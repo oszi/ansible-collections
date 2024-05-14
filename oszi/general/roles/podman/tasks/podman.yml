@@ -7,7 +7,7 @@
       - "skopeo"
     state: "present"
 
-- name: Ensure podman-compose is installed
+- name: Ensure podman-compose is present or absent
   ansible.builtin.package:
     name: "podman-compose"
     state: "{{ podman_compose_enabled | ternary('present', 'absent') }}"

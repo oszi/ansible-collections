@@ -12,7 +12,7 @@
         name: "google-chrome-stable"
         state: "present"
 
-    - name: Ensure Google Chrome is uninstalled
+    - name: Ensure Google Chrome is NOT installed
       when: not google_chrome_enabled
       ansible.builtin.package:
         name: "{{ google_chrome_rpm_includepkgs }}"

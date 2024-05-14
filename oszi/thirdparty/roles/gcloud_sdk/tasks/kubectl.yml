@@ -27,7 +27,7 @@
         group: "root"
         mode: "0644"
 
-- name: GKE gcloud-auth-plugin for kubectl 1.25+ is un/installed
+- name: GKE gcloud-auth-plugin for kubectl 1.25+ is present or absent
   ansible.builtin.package:
     name: "google-cloud-sdk-gke-gcloud-auth-plugin"
     state: "{{ (gcloud_sdk_enabled and gcloud_sdk_kubectl_enabled)

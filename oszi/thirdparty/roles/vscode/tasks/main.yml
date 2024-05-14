@@ -6,7 +6,7 @@
       ansible.builtin.include_tasks:
         file: "{{ ansible_os_family | lower }}.yml"
 
-    - name: Ensure Code is un/installed
+    - name: Ensure Code is present or absent
       ansible.builtin.package:
         name: "code"
         state: "{{ vscode_enabled | ternary('present', 'absent') }}"

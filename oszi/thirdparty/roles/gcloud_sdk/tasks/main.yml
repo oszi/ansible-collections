@@ -6,24 +6,24 @@
       ansible.builtin.include_tasks:
         file: "{{ ansible_os_family | lower }}.yml"
 
-    - name: Google Cloud SDK is un/installed
+    - name: Google Cloud SDK is present or absent
       ansible.builtin.package:
         name: "google-cloud-sdk"
         state: "{{ gcloud_sdk_enabled | ternary('present', 'absent') }}"
 
-    - name: Google Cloud SDK Emulators are un/installed
+    - name: Google Cloud SDK Emulators are present or absent
       ansible.builtin.package:
         name: "{{ gcloud_sdk_emulators_packages }}"
         state: "{{ (gcloud_sdk_enabled and gcloud_sdk_emulators_enabled)
           | ternary('present', 'absent') }}"
 
-    - name: Google Cloud App Engine components are un/installed
+    - name: Google Cloud App Engine components are present or absent
       ansible.builtin.package:
         name: "{{ gcloud_sdk_app_engine_packages }}"
         state: "{{ (gcloud_sdk_enabled and gcloud_sdk_app_engine_enabled)
           | ternary('present', 'absent') }}"
 
-    - name: Google SDK MiniKube is un/installed
+    - name: Google SDK MiniKube is present or absent
       ansible.builtin.package:
         name: "google-cloud-sdk-minikube"
         state: "{{ (gcloud_sdk_enabled and gcloud_sdk_minikube_enabled)

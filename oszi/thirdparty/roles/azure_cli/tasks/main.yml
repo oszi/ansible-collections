@@ -6,7 +6,7 @@
       ansible.builtin.include_tasks:
         file: "{{ ansible_os_family | lower }}.yml"
 
-    - name: Ensure azure-cli is un/installed
+    - name: Ensure azure-cli is present or absent
       ansible.builtin.package:
         name: "azure-cli"
         state: "{{ azure_cli_enabled | ternary('present', 'absent') }}"

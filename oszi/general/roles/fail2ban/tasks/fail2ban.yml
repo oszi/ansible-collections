@@ -4,7 +4,7 @@
     name: "fail2ban"
     state: "present"
 
-- name: Ensure RedHat family packages are installed
+- name: Ensure RedHat family packages are present or absent
   when: "ansible_os_family == 'RedHat'"
   block:
     - name: Ensure fail2ban-systemd is installed
@@ -12,12 +12,12 @@
         name: "fail2ban-systemd"
         state: "present"
 
-    - name: Ensure fail2ban-selinux is installed
+    - name: Ensure fail2ban-selinux is present or absent
       ansible.builtin.package:
         name: "fail2ban-selinux"
         state: "{{ selinux_disabled | ternary('absent', 'present') }}"
 
-    - name: Ensure fail2ban-firewalld is installed
+    - name: Ensure fail2ban-firewalld is present or absent
       ansible.builtin.package:
         name: "fail2ban-firewalld"
         state: "{{ firewalld_disabled | ternary('absent', 'present') }}"
