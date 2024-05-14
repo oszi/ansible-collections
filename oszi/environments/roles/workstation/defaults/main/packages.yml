@@ -82,6 +82,8 @@ workstation_blacklisted_packages_pt_to_sandbox:
   - barrier
   - bottles
   - chromium
+  - chromium-codecs-ffmpeg  # Ubuntu
+  - chromium-codecs-ffmpeg-extra
   - clementine
   - firefox
   - gimp

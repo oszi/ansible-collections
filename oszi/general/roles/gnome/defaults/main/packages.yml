@@ -15,6 +15,7 @@ gnome_packages:
     ]
     if (ansible_distribution == 'Fedora') else [] }}"
   - "{{ [
+      'gnome-shell-extension-prefs',
       'gnome-shell-extensions',
     ]
     if (ansible_os_family == 'Debian') else [] }}"
@@ -25,6 +26,7 @@ gnome_packages:
   - gnome-shell-extension-appindicator
   - gnome-tweaks
   - seahorse
+  - xdg-desktop-portal-gnome
 
 # Packages to remove from Gnome workstations (Fedora/Debian/Ubuntu):
 gnome_blacklisted_packages:
@@ -36,7 +38,7 @@ gnome_blacklisted_packages:
       'fedora-chromium-config-gssapi',
     ]
     if (ansible_distribution == 'Fedora') else [] }}"
-  # Unwanted common Gnome apps
+  # Unwanted common Gnome packages
   - chrome-gnome-shell
   - gnome-boxes
   - gnome-browser-connector
@@ -46,6 +48,7 @@ gnome_blacklisted_packages:
   - gnome-maps
   - gnome-music
   - gnome-photos
+  - gnome-shell-extension-desktop-icons-ng
   - gnome-todo
   - gnome-tour
   - rhythmbox
