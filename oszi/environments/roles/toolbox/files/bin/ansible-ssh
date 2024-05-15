@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
+# pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring,redefined-outer-name
 import io
 import shlex
 import sys
@@ -18,22 +18,30 @@ args_parser.add_argument(
     help="ansible inventory path",
 )
 args_parser.add_argument(
-    "--key-file",
-    "-k",
-    dest="keyfile",
-    help="private key file to authenticate with",
-)
-args_parser.add_argument(
     "--user",
     "-u",
     dest="user",
     help="connect as this user",
 )
 args_parser.add_argument(
-    "--ssh-config",
-    "-F",
-    dest="ssh_config",
-    help="override the ssh config file",
+    "--key-file",
+    "-k",
+    dest="key_file",
+    help="private key file to authenticate with",
+)
+args_parser.add_argument(
+    "--forward-agent",
+    "-A",
+    action="store_true",
+    dest="forward_agent",
+    default=False,
+    help="enable agent forwarding",
+)
+args_parser.add_argument(
+    "--jump-host",
+    "-J",
+    dest="jump_host",
+    help="jump host destination",
 )
 args_parser.add_argument(
     "--ssh",
@@ -41,6 +49,12 @@ args_parser.add_argument(
     dest="ssh",
     default="ssh",
     help="override the ssh command",
+)
+args_parser.add_argument(
+    "--ssh-config",
+    "-F",
+    dest="ssh_config",
+    help="override the ssh config file",
 )
 args_parser.add_argument(
     "--verbose",
@@ -90,12 +104,13 @@ def get_config_ssh_args() -> Tuple[List[str], str, str]:
     key_file = ""
 
     for item in get_config_ssh_settings():
-        if item["name"] == "ssh_args":
-            ssh_args += shlex.split(item["value"])
-        elif item["name"] == "remote_user":
-            ssh_user = item["value"]
-        elif item["name"] == "private_key_file" and item["value"]:
-            key_file = item["value"]
+        if item["value"]:
+            if item["name"] in ("ssh_args", "ssh_common_args", "ssh_extra_args"):
+                ssh_args += shlex.split(item["value"])
+            elif item["name"] == "remote_user":
+                ssh_user = item["value"]
+            elif item["name"] == "private_key_file":
+                key_file = item["value"]
 
     return ssh_args, ssh_user, key_file
 
@@ -126,38 +141,46 @@ def get_inventory_ssh_args(host: str, inventory: Optional[str] = None) -> Tuple[
     return ssh_args, ssh_user, key_file
 
 
-def get_ssh_command_args(  # pylint: disable=too-many-arguments
-    host: str,
-    inventory: Optional[str] = None,
-    user: Optional[str] = None,
-    key_file: Optional[str] = None,
-    ssh_config: Optional[str] = None,
-    ssh_command: str = "ssh",
-    verbose: bool = False,
-) -> List[str]:
-    inventory_args, inventory_user, inventory_key_file = get_inventory_ssh_args(host, inventory)
-    config_args, config_user, config_key_file = get_config_ssh_args()
-    ssh_args = shlex.split(ssh_command)
+def collect_jump_hosts(app_args, config_args: List[str], inventory_args: List[str]) -> str:
+    jump_hosts = [app_args.jump_host] if app_args.jump_host else []
+    for i_args in (config_args, inventory_args):
+        try:
+            j = i_args.index("-J")
+            jump_hosts.append(i_args.pop(j + 1))
+            i_args.pop(j)
+        except (ValueError, IndexError):
+            pass
+    return ",".join(jump_hosts)
 
-    if user:
-        ssh_args += ["-l", user]
+
+def get_ssh_command_args(app_args) -> List[str]:
+    inventory_args, inventory_user, inventory_key_file = get_inventory_ssh_args(app_args.host, app_args.inventory)
+    config_args, config_user, config_key_file = get_config_ssh_args()
+    jump_hosts = collect_jump_hosts(app_args, config_args, inventory_args)
+    ssh_args = shlex.split(app_args.ssh)
+
+    if app_args.verbose:
+        ssh_args += ["-v"]
+    if app_args.ssh_config:
+        ssh_args += ["-F", app_args.ssh_config]
+    if app_args.forward_agent:
+        ssh_args += ["-A"]
+    if jump_hosts:
+        ssh_args += ["-J", jump_hosts]
+
+    if app_args.user:
+        ssh_args += ["-l", app_args.user]
     elif inventory_user:
         ssh_args += ["-l", inventory_user]
     elif config_user:
         ssh_args += ["-l", config_user]
 
-    if key_file:
-        ssh_args += ["-i", key_file]
+    if app_args.key_file:
+        ssh_args += ["-i", app_args.key_file]
     elif inventory_key_file:
         ssh_args += ["-i", inventory_key_file]
     elif config_key_file:
         ssh_args += ["-i", config_key_file]
-
-    if ssh_config is not None:
-        ssh_args += ["-F", ssh_config]
-
-    if verbose:
-        ssh_args += ["-v"]
 
     ssh_args += config_args
     ssh_args += inventory_args
@@ -170,15 +193,7 @@ if __name__ == "__main__":
         print("You must specify a single valid host", file=sys.stderr)
         sys.exit(1)
 
-    ssh_cmd = get_ssh_command_args(
-        host=app_args.host,
-        inventory=app_args.inventory,
-        user=app_args.user,
-        key_file=app_args.keyfile,
-        ssh_config=app_args.ssh_config,
-        ssh_command=app_args.ssh,
-        verbose=app_args.verbose,
-    )
+    ssh_cmd = get_ssh_command_args(app_args)
 
     if app_args.verbose:
         print(shlex.join(ssh_cmd), file=sys.stderr)
