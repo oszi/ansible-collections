@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring,redefined-outer-name
+# pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
 import io
 import shlex
 import sys
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, REMAINDER
 from subprocess import Popen, PIPE
 from typing import List, Mapping, Tuple, Optional
 
@@ -24,10 +24,27 @@ args_parser.add_argument(
     help="connect as this user",
 )
 args_parser.add_argument(
+    "--private-key",
     "--key-file",
-    "-k",
     dest="key_file",
     help="private key file to authenticate with",
+)
+args_parser.add_argument(
+    "--ask-vault-password",
+    action="store_true",
+    dest="ask_vault_password",
+    default=False,
+    help="ask for vault password",
+)
+args_parser.add_argument(
+    "--vault-id",
+    dest="vault_id",
+    help="the vault identity to use",
+)
+args_parser.add_argument(
+    "--vault-password-file",
+    dest="vault_password_file",
+    help="vault password file or script",
 )
 args_parser.add_argument(
     "--forward-agent",
@@ -41,7 +58,7 @@ args_parser.add_argument(
     "--jump-host",
     "-J",
     dest="jump_host",
-    help="jump host destination",
+    help="comma-separated jump hosts",
 )
 args_parser.add_argument(
     "--ssh",
@@ -54,7 +71,7 @@ args_parser.add_argument(
     "--ssh-config",
     "-F",
     dest="ssh_config",
-    help="override the ssh config file",
+    help="set the ssh config file",
 )
 args_parser.add_argument(
     "--verbose",
@@ -68,6 +85,11 @@ args_parser.add_argument(
     "host",
     nargs="?",
     help="the host to ssh into",
+)
+args_parser.add_argument(
+    "command",
+    help="command [argument ...]",
+    nargs=REMAINDER,
 )
 
 
@@ -115,10 +137,16 @@ def get_config_ssh_args() -> Tuple[List[str], str, str]:
     return ssh_args, ssh_user, key_file
 
 
-def get_inventory_ssh_args(host: str, inventory: Optional[str] = None) -> Tuple[List[str], str, str]:
-    cmd = ["ansible-inventory", "--yaml", "--host", host]
-    if inventory:
-        cmd += ["-i", inventory]
+def get_inventory_ssh_args(app_args) -> Tuple[List[str], str, str]:
+    cmd = ["ansible-inventory", "--yaml", "--host", app_args.host]
+    if app_args.inventory:
+        cmd += ["-i", app_args.inventory]
+    if app_args.ask_vault_password:
+        cmd += ["--ask-vault-password"]
+    if app_args.vault_id:
+        cmd += ["--vault-id", app_args.vault_id]
+    if app_args.vault_password_file:
+        cmd += ["--vault-password-file", app_args.vault_password_file]
 
     hostvars = from_yaml(ansible_command(cmd))
     ssh_args = []
@@ -137,26 +165,37 @@ def get_inventory_ssh_args(host: str, inventory: Optional[str] = None) -> Tuple[
     if "ansible_ssh_private_key_file" in hostvars:
         key_file = hostvars["ansible_ssh_private_key_file"]
 
-    ssh_args.append(hostvars.get("ansible_host", host))
+    ssh_args.append(hostvars.get("ansible_host", app_args.host))
     return ssh_args, ssh_user, key_file
 
 
-def collect_jump_hosts(app_args, config_args: List[str], inventory_args: List[str]) -> str:
+def collect_jump_hosts(app_args, inventory_args: List[str], config_args: List[str]) -> str:
     jump_hosts = [app_args.jump_host] if app_args.jump_host else []
-    for i_args in (config_args, inventory_args):
-        try:
-            j = i_args.index("-J")
-            jump_hosts.append(i_args.pop(j + 1))
-            i_args.pop(j)
-        except (ValueError, IndexError):
-            pass
+    try:
+        ij = inventory_args.index("-J")
+    except ValueError:
+        ij = -1
+    else:
+        jump_hosts.append(inventory_args.pop(ij + 1))
+        inventory_args.pop(ij)
+
+    try:
+        cj = config_args.index("-J")
+    except ValueError:
+        pass
+    else:
+        config_jump_host = config_args.pop(cj + 1)
+        config_args.pop(cj)
+        if ij < 0:
+            jump_hosts.append(config_jump_host)
+
     return ",".join(jump_hosts)
 
 
 def get_ssh_command_args(app_args) -> List[str]:
-    inventory_args, inventory_user, inventory_key_file = get_inventory_ssh_args(app_args.host, app_args.inventory)
+    inventory_args, inventory_user, inventory_key_file = get_inventory_ssh_args(app_args)
     config_args, config_user, config_key_file = get_config_ssh_args()
-    jump_hosts = collect_jump_hosts(app_args, config_args, inventory_args)
+    jump_hosts = collect_jump_hosts(app_args, inventory_args, config_args)
     ssh_args = shlex.split(app_args.ssh)
 
     if app_args.verbose:
@@ -184,18 +223,22 @@ def get_ssh_command_args(app_args) -> List[str]:
 
     ssh_args += config_args
     ssh_args += inventory_args
+    if app_args.command:
+        ssh_args.append("--")
+        ssh_args += app_args.command
+
     return ssh_args
 
 
 if __name__ == "__main__":
-    app_args = args_parser.parse_args()
-    if app_args.host is None:
-        print("You must specify a single valid host", file=sys.stderr)
+    _app_args = args_parser.parse_args()
+    if _app_args.host is None:
+        args_parser.print_help(sys.stderr)
         sys.exit(1)
 
-    ssh_cmd = get_ssh_command_args(app_args)
+    ssh_cmd = get_ssh_command_args(_app_args)
 
-    if app_args.verbose:
+    if _app_args.verbose:
         print(shlex.join(ssh_cmd), file=sys.stderr)
 
     with Popen(ssh_cmd) as ssh_proc:
