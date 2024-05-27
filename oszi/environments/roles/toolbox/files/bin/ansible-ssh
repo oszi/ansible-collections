@@ -14,7 +14,14 @@ from typing import List, Mapping, Optional
 from ansible.parsing.utils.yaml import from_yaml
 
 
-args_parser = ArgumentParser()
+args_parser = ArgumentParser(
+    description="SSH into a host from the given ansible inventory with all configured arguments.",
+    epilog=(
+        "The first half corresponds to ansible-inventory, the second half to ssh. "
+        "With the right environment variables and ansible.cfg, you don't need any options. "
+        "Automagical fzf support is also available."
+    ),
+)
 args_parser.add_argument(
     "--inventory",
     "-i",
@@ -98,10 +105,14 @@ args_parser.add_argument(
 
 @dcls.dataclass
 class AnsibleSSHArgs:
+    # From ansible config and this app, prepended.
     ssh_args: List[str] = dcls.field(default_factory=list)
+
+    # From ansible config and inventory, superseded.
     ssh_common_args: List[str] = dcls.field(default_factory=list)
     ssh_extra_args: List[str] = dcls.field(default_factory=list)
 
+    # From ansible config, inventory and this app, superseded.
     user: Optional[str] = dcls.field(default=None)
     key_file: Optional[str] = dcls.field(default=None)
     host: Optional[str] = dcls.field(default=None)
@@ -141,12 +152,12 @@ class AnsibleSSHArgs:
         return ssh_args
 
 
-def ansible_skip_line(line: str) -> bool:
+def ansible_skip_first_lines(line: str) -> bool:
     line = line.strip()
     return (
         line.startswith("[WARNING]")
-        or line.endswith("ansible.cfg as config file")
-        or (line.startswith("hosts (") and line.endswith("):"))
+        or line.endswith("ansible.cfg as config file")  # the first line everywhere
+        or (line.startswith("hosts (") and line.endswith("):"))  # ansible all --list-hosts
     )
 
 
@@ -154,7 +165,7 @@ def ansible_command(args: List[str], env: Mapping[str, str] = None) -> str:
     with sp.Popen(args, env=env, stdout=sp.PIPE, stderr=sp.PIPE) as proc, io.StringIO() as output:
         skipped = False
         for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-            if skipped or not ansible_skip_line(line):
+            if skipped or not ansible_skip_first_lines(line):
                 output.write(line)
                 skipped = True
 
@@ -258,7 +269,6 @@ def set_host_with_fzf_or_exit(app_args):
 
         shell_cmd = f"echo {shlex.quote(hosts)} | fzf --no-multi --no-sort --tac"
         app_args.host = sp.check_output(shell_cmd, env=env, shell=True).decode("utf-8").strip()
-
     except:  # pylint: disable=bare-except
         pass
 
