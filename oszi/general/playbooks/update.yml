@@ -1,0 +1,91 @@
+---
+- name: Update packages and containers on Linux
+  hosts: all
+  become: true
+  gather_facts: false
+  pre_tasks:
+    - name: Import bootstrap role tasks
+      ansible.builtin.import_role:
+        name: oszi.general.bootstrap
+      vars:
+        bootstrap_package_update_cache: false
+
+  tasks:
+    - name: Update APT packages
+      when: "ansible_os_family == 'Debian'"
+      ansible.builtin.apt:
+        cache_valid_time: 3600
+        update_cache: true
+        upgrade: "dist"
+      tags: [apt]
+
+    - name: Update DNF packages
+      when: "ansible_os_family == 'RedHat'"
+      ansible.builtin.dnf:
+        name: "*"
+        state: "latest"
+        update_cache: true
+      tags: [dnf, skip_ansible_lint]
+
+    - name: Update pip3 packages from inventory
+      when: "python_pip3_packages is defined and python_pip3_packages"
+      ansible.builtin.pip:
+        name: "{{ python_pip3_packages }}"
+        executable: "pip3"
+        state: "latest"
+      tags: [python, skip_ansible_lint]
+
+    - name: Update flatpak packages
+      ansible.builtin.shell: |
+        set -euo pipefail
+        if flatpak --version >/dev/null 2>&1; then
+          flatpak update --assumeyes --noninteractive
+        else
+          echo "Nothing to do - flatpak missing"
+        fi
+      args:
+        executable: "/bin/bash"
+      register: _flatpak_update_result
+      changed_when: "'Nothing to do' not in _flatpak_update_result.stdout"
+      tags: [flatpak]
+
+    - name: Update snap packages
+      ansible.builtin.shell: |
+        set -euo pipefail
+        if snap --version >/dev/null 2>&1; then
+          snap refresh
+        fi
+      args:
+        executable: "/bin/bash"
+      register: _snap_refresh_result
+      changed_when: "'refreshed' in _snap_refresh_result.stdout"
+      tags: [snap]
+
+    - name: Podman update tasks
+      when: "not podman_disabled | default(false)"
+      tags: [podman]
+      block:
+        - name: Update podman images as root
+          ansible.builtin.include_role:
+            name: oszi.general.podman
+            tasks_from: update
+
+        - name: Check if user namespaces are enabled
+          ansible.builtin.shell: |
+            set -euo pipefail
+            sysctl -n kernel.unprivileged_userns_clone 2>/dev/null \
+              || sysctl -n user.max_user_namespaces
+          args:
+            executable: "/bin/bash"
+          register: _sysctl_userns_result
+          check_mode: false
+          changed_when: false
+          failed_when: false
+
+        - name: Update podman images as ansible_user
+          when: "_sysctl_userns_result.stdout | default(0) | int > 0"
+          ansible.builtin.include_role:
+            name: oszi.general.podman
+            tasks_from: update
+            apply:
+              become: false

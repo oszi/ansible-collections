@@ -1,7 +1,6 @@
 ---
 # Path to store certs in subdirectories by CA
-# * Should be suffixed for different inventories!
-certs_path: "./certs"
+certs_path: "{{ inventory_dir }}/.certs"
 
 # List of CAs (referenced from certs_list) to trust system-wide:
 certs_trust_anchors: []

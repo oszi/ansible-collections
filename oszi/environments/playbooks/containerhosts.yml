@@ -1,0 +1,9 @@
+---
+- name: Deploy containerhosts
+  become: true
+  gather_facts: false
+  hosts:
+    - cloud
+    - containerhosts
+  roles:
+    - oszi.environments.containerhost

@@ -1,0 +1,8 @@
+---
+- name: Deploy Macbooks
+  become: false
+  gather_facts: false
+  hosts:
+    - macbooks
+  roles:
+    - oszi.environments.macbook
