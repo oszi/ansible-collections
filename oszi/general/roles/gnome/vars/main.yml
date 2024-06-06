@@ -49,7 +49,7 @@ gnome_dconf_vars_default:
   /org/gnome/desktop/wm/preferences/button-layout: "':minimize,close'"
   /org/gnome/desktop/wm/preferences/theme: "'Adwaita'"
 
-  /org/gnome/desktop/interface/gtk-theme: "'{{ 'Yaru-dark' if ansible_distribution == 'Ubuntu' else 'Adwaita-dark' }}'"
+  /org/gnome/desktop/interface/gtk-theme: "'{{ 'Yaru-dark' if ansible_distribution == 'Ubuntu' else 'Adwaita' }}'"
   /org/gnome/desktop/interface/icon-theme: "'{{ 'Yaru' if ansible_distribution == 'Ubuntu' else 'Adwaita' }}'"
   /org/gnome/shell/extensions/user-theme/name: "'transparent'"
 
