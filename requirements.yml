@@ -1,0 +1,14 @@
+---
+collections:
+  - name: ansible.netcommon
+    version: ">=4.1"
+  - name: ansible.posix
+    version: ">=1.5"
+  - name: ansible.utils
+    version: ">=2.9"
+  - name: community.crypto
+    version: ">=2.14"
+  - name: community.general
+    version: ">=6.6"
+  - name: containers.podman
+    version: ">=1.10"
