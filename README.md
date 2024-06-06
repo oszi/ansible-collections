@@ -13,3 +13,11 @@ Manually enable login shells in desktop terminals. (Profiles / Command)
 
 Most roles support the latest RedHat family distributions with some tweaking.  
 See the [EPEL](https://docs.fedoraproject.org/en-US/epel/) documentation as it is not enabled by default.  
+
+### Working Examples
+
+```bash
+cd examples
+ansible-playbook -K --check oszi.environments.workstation
+ansible-playbook -K oszi.general.update
+```

@@ -1,0 +1,8 @@
+---
+gcloud_sdk_enabled: true
+gcloud_sdk_kubectl_enabled: true
+
+hashicorp_enabled: true
+hashicorp_packages: ["terraform"]
+
+vscode_enabled: true

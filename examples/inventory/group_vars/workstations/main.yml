@@ -1,0 +1,4 @@
+---
+baselinux_resolved_options:
+  DNSStubListener: "yes"
+  ReadEtcHosts: "yes"

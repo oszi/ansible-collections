@@ -1,0 +1,15 @@
+---
+flatpak_remotes:
+  flathub: "https://flathub.org/repo/flathub.flatpakrepo"
+
+flatpak_apps:
+  org.chromium.Chromium: flathub
+
+# Tighten sandbox security!
+flatpak_global_overrides:
+  - "--nofilesystem=host"
+  - "--nofilesystem=home"
+
+flatpak_app_overrides:
+  org.chromium.Chromium:
+    - "--filesystem=xdg-download"

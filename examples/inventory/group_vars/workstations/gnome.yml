@@ -1,0 +1,6 @@
+---
+gnome_user: "david"
+
+gnome_dconf_vars:
+  /org/gnome/desktop/input-sources/xkb-options: ['lv3:ralt_alt']  # lv3:ralt_alt is patched for Compose Key.
+  /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"
