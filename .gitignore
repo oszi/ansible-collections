@@ -1,0 +1,21 @@
+*.retry
+*~
+.~*
+
+### Python ###
+__pycache__/
+*.py[cod]
+*.venv/
+
+### Vim ###
+.*.s[a-w][a-z]
+.s[a-w][a-z]
+.netrwhist
+
+### VS Code ###
+.vscode
+
+### IntelliJ ###
+*.iml
+.idea
+.ipr
