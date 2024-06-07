@@ -1,0 +1,295 @@
+#!/usr/bin/env python3
+# Copyright 2024 David O. under the BSD-3-Clause license.
+# pylint: disable=invalid-name,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
+import dataclasses as dcls
+import io
+import os
+import shlex
+import subprocess as sp
+import sys
+import textwrap
+
+from argparse import ArgumentParser, REMAINDER
+from typing import List, Mapping, Optional
+
+from ansible.parsing.utils.yaml import from_yaml
+
+
+args_parser = ArgumentParser(
+    description="SSH into a host from the given ansible inventory with all configured arguments.",
+    epilog=(
+        "The first half corresponds to ansible-inventory, the second half to ssh. "
+        "With the right environment variables and ansible.cfg, you don't need any options. "
+        "Automagical fzf support is also available."
+    ),
+)
+args_parser.add_argument(
+    "--inventory",
+    "-i",
+    help="ansible inventory path",
+)
+args_parser.add_argument(
+    "--user",
+    "-u",
+    dest="user",
+    help="connect as this user",
+)
+args_parser.add_argument(
+    "--private-key",
+    "--key-file",
+    dest="key_file",
+    help="private key file to authenticate with",
+)
+args_parser.add_argument(
+    "--ask-vault-password",
+    action="store_true",
+    dest="ask_vault_password",
+    default=False,
+    help="ask for vault password",
+)
+args_parser.add_argument(
+    "--vault-id",
+    dest="vault_id",
+    help="the vault identity to use",
+)
+args_parser.add_argument(
+    "--vault-password-file",
+    dest="vault_password_file",
+    help="vault password file or script",
+)
+args_parser.add_argument(
+    "--forward-agent",
+    "-A",
+    action="store_true",
+    dest="forward_agent",
+    default=False,
+    help="enable agent forwarding",
+)
+args_parser.add_argument(
+    "--jump-host",
+    "-J",
+    dest="jump_host",
+    help="comma-separated jump hosts",
+)
+args_parser.add_argument(
+    "--ssh",
+    "-c",
+    dest="ssh",
+    default="ssh",
+    help="override the ssh command",
+)
+args_parser.add_argument(
+    "--ssh-config",
+    "-F",
+    dest="ssh_config",
+    help="set the ssh config file",
+)
+args_parser.add_argument(
+    "--verbose",
+    "-v",
+    action="store_true",
+    dest="verbose",
+    default=False,
+    help="set the verbose flag",
+)
+args_parser.add_argument(
+    "host",
+    nargs="?",
+    help="the host to ssh into",
+)
+args_parser.add_argument(
+    "command",
+    help="command [argument ...]",
+    nargs=REMAINDER,
+)
+
+
+@dcls.dataclass
+class AnsibleSSHArgs:
+    # From ansible config and this app, prepended.
+    ssh_args: List[str] = dcls.field(default_factory=list)
+
+    # From ansible config and inventory, superseded.
+    ssh_common_args: List[str] = dcls.field(default_factory=list)
+    ssh_extra_args: List[str] = dcls.field(default_factory=list)
+
+    # From ansible config, inventory and this app, superseded.
+    user: Optional[str] = dcls.field(default=None)
+    key_file: Optional[str] = dcls.field(default=None)
+    host: Optional[str] = dcls.field(default=None)
+
+    def __add__(self, other):
+        assert isinstance(other, AnsibleSSHArgs)
+        return AnsibleSSHArgs(
+            ssh_args=other.ssh_args + self.ssh_args,
+            ssh_common_args=other.ssh_common_args or self.ssh_common_args,
+            ssh_extra_args=other.ssh_extra_args or self.ssh_extra_args,
+            user=other.user or self.user,
+            key_file=other.key_file or self.key_file,
+            host=self.host or other.host,  # reverse priority
+        )
+
+    def get_args(self, command: Optional[List[str]] = None) -> List[str]:
+        ssh_args = self.ssh_args + self.ssh_common_args + self.ssh_extra_args
+
+        jump_hosts = []
+        while "-J" in ssh_args:
+            j = ssh_args.index("-J")
+            jump_hosts.append(ssh_args.pop(j + 1))
+            ssh_args.pop(j)
+
+        if jump_hosts:
+            ssh_args += ["-J", ",".join(jump_hosts)]
+        if self.user:
+            ssh_args += ["-l", self.user]
+        if self.key_file:
+            ssh_args += ["-i", self.key_file]
+
+        ssh_args.append(self.host)
+        if command:
+            ssh_args.append("--")
+            ssh_args += command
+
+        return ssh_args
+
+
+def ansible_skip_first_lines(line: str) -> bool:
+    line = line.strip()
+    return (
+        line.startswith("[WARNING]")
+        or line.endswith("ansible.cfg as config file")  # the first line everywhere
+        or (line.startswith("hosts (") and line.endswith("):"))  # ansible all --list-hosts
+    )
+
+
+def ansible_command(args: List[str], env: Mapping[str, str] = None) -> str:
+    with sp.Popen(args, env=env, stdout=sp.PIPE, stderr=sp.PIPE) as proc, io.StringIO() as output:
+        skipped = False
+        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+            if skipped or not ansible_skip_first_lines(line):
+                output.write(line)
+                skipped = True
+
+        proc.wait()
+        if proc.returncode != 0:
+            print(proc.stderr.read().decode("utf-8"), file=sys.stderr)
+            sys.exit(proc.returncode)
+
+        return output.getvalue()
+
+
+def get_config_ssh_settings() -> List[Mapping[str, Optional[str]]]:
+    cmd = ["ansible-config", "dump", "-t", "connection", "--format", "yaml"]
+    ansible_config = from_yaml(ansible_command(cmd))
+
+    for connection_plugin in ansible_config:
+        for plugin_key, plugin_values in connection_plugin.items():
+            if plugin_key == "ssh":
+                return plugin_values
+    return []
+
+
+def get_config_ssh_args() -> AnsibleSSHArgs:
+    ssh_args = AnsibleSSHArgs()
+    for item in get_config_ssh_settings():
+        if item["value"]:
+            if item["name"] in ("ssh_args", "ssh_common_args", "ssh_extra_args"):
+                setattr(ssh_args, item["name"], shlex.split(item["value"]))
+            elif item["name"] == "remote_user":
+                ssh_args.user = item["value"]
+            elif item["name"] == "private_key_file":
+                ssh_args.key_file = item["value"]
+
+    return ssh_args
+
+
+def get_inventory_ssh_args(app_args) -> AnsibleSSHArgs:
+    cmd = ["ansible-inventory", "--yaml", "--host", app_args.host]
+    if app_args.inventory:
+        cmd += ["-i", app_args.inventory]
+    if app_args.ask_vault_password:
+        cmd += ["--ask-vault-password"]
+    if app_args.vault_id:
+        cmd += ["--vault-id", app_args.vault_id]
+    if app_args.vault_password_file:
+        cmd += ["--vault-password-file", app_args.vault_password_file]
+
+    hostvars = from_yaml(ansible_command(cmd))
+    ssh_args = AnsibleSSHArgs()
+
+    if "ansible_ssh_common_args" in hostvars:
+        ssh_args.ssh_common_args = shlex.split(hostvars["ansible_ssh_common_args"])
+    if "ansible_ssh_extra_args" in hostvars:
+        ssh_args.ssh_extra_args = shlex.split(hostvars["ansible_ssh_extra_args"])
+    if "ansible_port" in hostvars:
+        ssh_args.ssh_args += ["-p", str(hostvars["ansible_port"])]
+
+    if "ansible_user" in hostvars:
+        ssh_args.user = hostvars["ansible_user"]
+    if "ansible_ssh_private_key_file" in hostvars:
+        ssh_args.key_file = hostvars["ansible_ssh_private_key_file"]
+    if "ansible_host" in hostvars:
+        ssh_args.host = hostvars["ansible_host"]
+
+    return ssh_args
+
+
+def get_app_ssh_args(app_args) -> AnsibleSSHArgs:
+    ssh_args = AnsibleSSHArgs(
+        ssh_args=shlex.split(app_args.ssh), user=app_args.user, key_file=app_args.key_file, host=app_args.host
+    )
+
+    if app_args.verbose:
+        ssh_args.ssh_args += ["-v"]
+    if app_args.ssh_config:
+        ssh_args.ssh_args += ["-F", app_args.ssh_config]
+    if app_args.forward_agent:
+        ssh_args.ssh_args += ["-A"]
+    if app_args.jump_host:
+        ssh_args.ssh_args += ["-J", app_args.jump_host]
+
+    return ssh_args
+
+
+def set_host_with_fzf_or_exit(app_args):
+    try:
+        sp.check_call(["fzf", "--version"], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+
+        cmd = ["ansible", "all", "--list-hosts"]
+        if app_args.inventory:
+            cmd += ["-i", app_args.inventory]
+
+        env = os.environ.copy()
+        for key in os.environ:
+            if key.startswith("ANSIBLE_VAULT_"):
+                env.pop(key)
+
+        hosts = textwrap.dedent(ansible_command(cmd, env)).rstrip()
+        if not hosts:
+            raise ValueError
+
+        shell_cmd = f"echo {shlex.quote(hosts)} | fzf --no-multi --no-sort --tac"
+        app_args.host = sp.check_output(shell_cmd, env=env, shell=True).decode("utf-8").strip()
+    except:  # pylint: disable=bare-except
+        pass
+
+    if not app_args.host:
+        args_parser.print_help(sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    _app_args = args_parser.parse_args()
+    if _app_args.host is None:
+        set_host_with_fzf_or_exit(_app_args)
+
+    ssh_cmd = (  # increasing priority
+        get_config_ssh_args() + get_inventory_ssh_args(_app_args) + get_app_ssh_args(_app_args)
+    ).get_args(_app_args.command)
+
+    if _app_args.verbose:
+        print(shlex.join(ssh_cmd), file=sys.stderr)
+
+    with sp.Popen(ssh_cmd) as ssh_proc:
+        ssh_proc.wait()
+        sys.exit(ssh_proc.returncode)

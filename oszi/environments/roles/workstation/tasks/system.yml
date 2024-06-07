@@ -18,8 +18,6 @@
     owner: "root"
     group: "root"
     mode: "0755"
-    local_follow: false
-    follow: false
 
 - name: Install workstation aliases
   ansible.builtin.template:

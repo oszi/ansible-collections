@@ -1,0 +1,57 @@
+#!/bin/bash
+# Copyright 2024 David O. under the BSD-3-Clause license.
+# Script to use as vault_password_file for convenience.
+# Usage: ansible-playbook --vault-id=default@_scripts/ansible-vault-id-client
+set -euo pipefail
+
+GPG="gpg --batch --use-agent --default-recipient-self --yes"
+: "${ANSIBLE_VAULT_ID_CLIENT_PATH:=.vault-id}"
+
+check=0
+vault_id="${ANSIBLE_VAULT_IDENTITY:-default}"
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --check)
+      check=1
+      ;;
+    --vault-id)
+      vault_id="$2"
+      shift
+      ;;
+    --vault-id=*)
+      vault_id="${1#*=}"
+      ;;
+    *)
+      echo "# $0 [--check] [--vault-id=VAULT_ID]" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+vault_file="${ANSIBLE_VAULT_ID_CLIENT_PATH}/${vault_id}.asc"
+
+if [ -f "${vault_file}" ]; then
+  if [ "${check}" -ne 0 ]; then
+    echo "${vault_id}@$(realpath "$0")"
+    exit 0
+  fi
+  ${GPG} --decrypt --output - "${vault_file}"
+  exit $?
+
+elif [ "${check}" -ne 0 ]; then
+  echo -e "# $0 --vault-id=${vault_id}" >&2
+  exit 1
+fi
+
+echo "# Override with --vault-id or ANSIBLE_VAULT_PASSWORD_FILE" >&2
+echo "Password for vault-id=${vault_id}: " >&2
+read -s password
+
+echo -n "Save gpg encrypted password file? [y/N]" >&2
+read answer
+if echo "${answer}" | grep -iq '^Y'; then
+  echo "${password}" | ${GPG} --encrypt --armor --output "${vault_file}"
+fi
+
+echo "${password}"
