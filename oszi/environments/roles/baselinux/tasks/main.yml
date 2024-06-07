@@ -7,8 +7,8 @@
 
     - name: Privileged system setup tasks
       ansible.builtin.import_tasks: system-privileged.yml
-      when: "not is_container | default(false)"
+      when: "ansible_virtualization_type != 'container'"
 
     - name: Systemd-networkd setup tasks
       ansible.builtin.import_tasks: systemd-networkd.yml
-      when: baselinux_networkd_enabled
+      when: "baselinux_networkd_enabled and ansible_virtualization_type != 'container'"

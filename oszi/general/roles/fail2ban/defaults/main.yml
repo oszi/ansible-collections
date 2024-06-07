@@ -1,6 +1,7 @@
 ---
 # Disable fail2ban?
-fail2ban_disabled: "{{ ssh_server_disabled }}"
+fail2ban_disabled: "{{ ssh_server_disabled
+  or (ansible_os_family == 'RedHat' and ansible_distribution != 'Fedora') }}"
 
 fail2ban_local: |
   [DEFAULT]

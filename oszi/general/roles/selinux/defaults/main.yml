@@ -1,6 +1,6 @@
 ---
 # Skip SELinux setup tasks?
-selinux_disabled: "{{ is_container | default(false) or ansible_os_family != 'RedHat' }}"
+selinux_disabled: "{{ ansible_virtualization_type == 'container' or ansible_os_family != 'RedHat' }}"
 
 # Set SELinux mode to enforcing vs permissive?
 selinux_is_enforcing: true

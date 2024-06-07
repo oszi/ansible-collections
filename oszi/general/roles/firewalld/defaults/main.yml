@@ -1,6 +1,6 @@
 ---
 # Disable firewalld?
-firewalld_disabled: "{{ is_container | default(false) }}"
+firewalld_disabled: "{{ ansible_virtualization_type == 'container' }}"
 
 # Accepted services for firewalld besides SSH
 # * May contain dicts with zone/service

@@ -11,7 +11,7 @@ wireguard_quick_configs: {}
 
 # List of interfaces for wg-quick@%i.service:
 wireguard_quick_services: "{{ wireguard_quick_configs.keys() | list
-  if not is_container | default(false) else [] }}"
+  if ansible_virtualization_type != 'container' else [] }}"
 
 # List of wireguard tools and kmod packages (<5.6):
 wireguard_packages:

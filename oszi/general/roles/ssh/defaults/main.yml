@@ -11,7 +11,7 @@ ssh_unix_users: {}
 ssh_sudo_nopasswd_groups: []
 
 # Disable and uninstall(!) OpenSSH server? (User tasks are always enabled.)
-ssh_server_disabled: "{{ is_container | default(false) }}"
+ssh_server_disabled: "{{ ansible_virtualization_type == 'container' }}"
 
 # SSH port is persisted in oszi.general.bootstrap surviving ansible_port changes.
 # Fallback to the default port is also handled there.
