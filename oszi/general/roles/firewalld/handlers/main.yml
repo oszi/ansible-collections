@@ -1,6 +1,7 @@
 ---
 - name: Reload firewalld
   ansible.builtin.command: "/usr/bin/firewall-cmd --reload"
+  tags: [skip_ansible_lint]
 
 - name: Restart firewalld
   ansible.builtin.systemd:

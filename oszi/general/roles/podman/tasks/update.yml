@@ -21,6 +21,7 @@
       register: _podman_pull_result
       failed_when: "_podman_pull_result.rc != 0 and _podman_pull_result.stderr != ''
         and 'Error: initializing source' not in _podman_pull_result.stderr"
+      tags: [skip_ansible_lint]
 
     - name: Update podman containers and clean up
       ansible.builtin.shell: |
@@ -30,3 +31,4 @@
           | xargs -r {{ podman_runtime }} rmi
       args:
         executable: "/bin/bash"
+      tags: [skip_ansible_lint]

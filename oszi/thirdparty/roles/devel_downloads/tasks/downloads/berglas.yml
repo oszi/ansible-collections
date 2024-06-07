@@ -18,6 +18,7 @@
         {{ devel_downloads_bin_path }}/berglas completion bash > /etc/bash_completion.d/berglas
       args:
         executable: "/bin/bash"
+      changed_when: _get_url_result.changed
       when: _get_url_result.changed
 
 - name: Uninstall Berglas?

@@ -16,12 +16,14 @@
       ansible.builtin.command: >-
         {{ devel_downloads_tar_extract_binary }} -f {{ devel_downloads_cache_path }}/kubectx.tar.gz
         --strip-components=1 *-*/kubectx *-*/kubens
+      changed_when: _get_url_result.changed
       when: _get_url_result.changed
 
     - name: Extract kubectx completions
       ansible.builtin.command: >-
         {{ devel_downloads_tar_extract }} -C /etc/bash_completion.d -f {{ devel_downloads_cache_path }}/kubectx.tar.gz
         --strip-components=2 *-*/completion/*.bash
+      changed_when: _get_url_result.changed
       when: _get_url_result.changed
 
 - name: Uninstall kubectx?

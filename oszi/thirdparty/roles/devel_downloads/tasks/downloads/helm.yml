@@ -16,6 +16,7 @@
       ansible.builtin.command: >-
         {{ devel_downloads_tar_extract_binary }} -f {{ devel_downloads_cache_path }}/helm.tar.gz
         --strip-components=1 *-*/helm
+      changed_when: _get_url_result.changed
       when: _get_url_result.changed
 
     - name: Generate Helm completions
@@ -24,6 +25,7 @@
         {{ devel_downloads_bin_path }}/helm completion bash > /etc/bash_completion.d/helm
       args:
         executable: "/bin/bash"
+      changed_when: _get_url_result.changed
       when: _get_url_result.changed
 
     - name: Symlink helm3 binary

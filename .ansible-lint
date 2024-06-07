@@ -4,5 +4,4 @@ skip_list:
   - "galaxy[no-changelog]"
   - "galaxy[tags]"
   - "jinja[spacing]"
-  - "no-changed-when"
   - "no-handler"
