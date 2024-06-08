@@ -7,12 +7,22 @@ set -euo pipefail
 GPG="gpg --batch --use-agent --default-recipient-self --yes"
 : "${ANSIBLE_VAULT_ID_CLIENT_PATH:=.vault-id}"
 
+exit_help() {
+  echo "# export ANSIBLE_VAULT_ID_CLIENT_PATH=path/to/.vault-id/" >&2
+  echo "# $0 [--check | --create] [--vault-id=VAULT_ID]" >&2
+  exit 1
+}
+
 check=0
+create=0
 vault_id="${ANSIBLE_VAULT_IDENTITY:-default}"
 while [[ $# -gt 0 ]]; do
   case $1 in
     --check)
       check=1
+      ;;
+    --create)
+      create=1
       ;;
     --vault-id)
       vault_id="$2"
@@ -22,8 +32,7 @@ while [[ $# -gt 0 ]]; do
       vault_id="${1#*=}"
       ;;
     *)
-      echo "# $0 [--check] [--vault-id=VAULT_ID]" >&2
-      exit 1
+      exit_help
       ;;
   esac
   shift
@@ -31,27 +40,26 @@ done
 
 vault_file="${ANSIBLE_VAULT_ID_CLIENT_PATH}/${vault_id}.asc"
 
-if [ -f "${vault_file}" ]; then
+if [ "${create}" -ne 0 ]; then
+  if [ "${check}" -ne 0 ]; then
+    exit_help
+  fi
+  echo "Password for vault-id=${vault_id} (${vault_file}): " >&2
+  read -s password
+  mkdir -p "$(dirname "${vault_file}")"
+  echo "${password}" | ${GPG} --encrypt --armor --output "${vault_file}"
+  exit $?
+
+elif [ -f "${vault_file}" ]; then
   if [ "${check}" -ne 0 ]; then
     echo "${vault_id}@$(realpath "$0")"
     exit 0
   fi
-  ${GPG} --decrypt --output - "${vault_file}"
+  ${GPG} --decrypt --quiet --output - "${vault_file}"
   exit $?
 
-elif [ "${check}" -ne 0 ]; then
-  echo -e "# $0 --vault-id=${vault_id}" >&2
+else
+  echo -e "# ${vault_file} not found..." >&2
+  echo -e "# $0 --create --vault-id=${vault_id}" >&2
   exit 1
 fi
-
-echo "# Override with --vault-id or ANSIBLE_VAULT_PASSWORD_FILE" >&2
-echo "Password for vault-id=${vault_id}: " >&2
-read -s password
-
-echo -n "Save gpg encrypted password file? [y/N]" >&2
-read answer
-if echo "${answer}" | grep -iq '^Y'; then
-  echo "${password}" | ${GPG} --encrypt --armor --output "${vault_file}"
-fi
-
-echo "${password}"
