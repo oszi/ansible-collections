@@ -1,0 +1,6 @@
+#!/bin/bash
+set -euo pipefail
+echo "# Leave BECOME password empty if ansible_sudo_pass is set, or with passwordless sudo." >&2
+localhost="$(hostname -f)"
+set -x
+ansible-playbook -K -c local -l "$localhost" "$@"
