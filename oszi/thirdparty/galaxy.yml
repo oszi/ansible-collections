@@ -6,4 +6,4 @@ description: "Ansible collection for software from third-party sources."
 repository: "https://github.com/oszi/ansible_collections.git"
 readme: README.md
 authors:
-  - "David O. <david@oszi.dev>"
+  - "David O. @oszi.dev"
