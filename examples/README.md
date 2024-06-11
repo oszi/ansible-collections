@@ -1,13 +1,5 @@
 # Working Examples
 
-### Setup with ansible-galaxy
-
-```bash
-ansible-galaxy collection install "git+https://github.com/oszi/ansible_collections.git#/oszi/"
-```
-
-\* I prefer to checkout the repository and configure the collections path.
-
 ### Running the playbooks
 
 ```bash

@@ -1,1 +1,1 @@
-../oszi/environments/roles/toolbox/files/bin/ansible-ssh
+../ansible_collections/oszi/environments/roles/toolbox/files/bin/ansible-ssh
