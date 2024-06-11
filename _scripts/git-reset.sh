@@ -4,8 +4,18 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-DEFAULT_BRANCH="master"
-UPSTREAM="origin/${DEFAULT_BRANCH}"
+if [[ "${1:-}" =~ ^-.*$ ]]; then
+  echo "Usage: $0 [[REMOTE] BRANCH]" >&2
+  exit 1
+elif [[ $# -gt 1 ]]; then
+  REMOTE="${1}"
+  BRANCH="${2}"
+else
+  REMOTE="origin"
+  BRANCH="${1:-master}"
+fi
+
+UPSTREAM="${REMOTE}/${BRANCH}"
 
 COLOR_CLEAR="\033[0m"
 COLOR_RED="\033[31m"
@@ -18,8 +28,8 @@ answer_yes_or_exit() {
   fi
 }
 
-if ! git fetch origin; then
-  answer_yes_or_exit "git: origin fetch failed! Continue anyway?"
+if ! git fetch "${REMOTE}"; then
+  answer_yes_or_exit "git: remote fetch failed! Continue anyway?"
 fi
 
 if ! git verify-commit "${UPSTREAM}"; then
@@ -30,10 +40,10 @@ if [[ "$(git status -s | tee /dev/stderr)" != "" ]]; then
   answer_yes_or_exit "git: working tree changes! Discard everything?"
 fi
 
-if [[ "$(git log "${UPSTREAM}..${DEFAULT_BRANCH}" | tee /dev/stderr)" != "" ]]; then
+if [[ "$(git log "${UPSTREAM}..${BRANCH}" | tee /dev/stderr)" != "" ]]; then
   answer_yes_or_exit "git: local commits! Discard everything?"
 fi
 
-git switch -fC "${DEFAULT_BRANCH}" "${UPSTREAM}"
+git switch -fC "${BRANCH}" "${UPSTREAM}"
 git clean -fdxxx
 git submodule update --force --init --checkout --recursive
