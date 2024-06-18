@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2024 David O. @oszi.dev under the BSD-3-Clause license.
+# Copyright 2024 David O. (oszi.dev) under the BSD-3-Clause license.
 # Script to use as "vault password file" or "vault id" for convenient GPG encrypted vault passwords.
 # Usage: ansible-playbook --vault-id=default@ansible-vault-id-client
 set -euo pipefail

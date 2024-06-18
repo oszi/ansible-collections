@@ -1,10 +1,10 @@
 ---
 galaxy_info:
-  description: "Setup toolbox stuff on hosts and in container images."
+  description: "Setup a toolbox environment on hosts and in container images."
+  author: "David O. (oszi.dev)"
+  license: "BSD-3-Clause"
   min_ansible_version: "2.16"
-  galaxy_tags: []
-  author: "David O. @oszi.dev"
-  license: Copyright
+
   platforms:
     - name: Fedora
       versions: [all]
@@ -12,6 +12,11 @@ galaxy_info:
       versions: [all]
     - name: Ubuntu
       versions: [all]
+
+  galaxy_tags:
+    - environments
+    - linux
+    - toolbox
 
 dependencies:
   - role: oszi.environments.baselinux

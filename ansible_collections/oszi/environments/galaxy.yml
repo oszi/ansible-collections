@@ -1,13 +1,20 @@
 ---
 namespace: oszi
 name: environments
-version: 1.2.0
-description: "Ansible collection for high-level environment roles."
+version: "1.2.1"
+description: "Ansible collection for opinionated, high-level environment roles."
 repository: "https://github.com/oszi/ansible-collections.git"
 readme: README.md
+
 authors:
-  - "David O. @oszi.dev"
+  - "David O. (oszi.dev)"
+license:
+  - "BSD-3-Clause"
 
 dependencies:
-  "oszi.general": ">=1.2.0"
-  "oszi.thirdparty": ">=1.2.0"
+  "oszi.general": ">=1.2.1"
+  "oszi.thirdparty": ">=1.2.1"
+
+tags:
+  - environments
+  - linux

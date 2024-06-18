@@ -1,12 +1,15 @@
 ---
 namespace: oszi
 name: general
-version: 1.2.0
-description: "Ansible collection for general single-purpose roles."
+version: "1.2.1"
+description: "Ansible collection for general, bite-sized, single-purpose roles."
 repository: "https://github.com/oszi/ansible-collections.git"
 readme: README.md
+
 authors:
-  - "David O. @oszi.dev"
+  - "David O. (oszi.dev)"
+license:
+  - "BSD-3-Clause"
 
 dependencies:
   "ansible.netcommon": ">=4.1"
@@ -14,3 +17,7 @@ dependencies:
   "ansible.utils": ">=2.9"
   "community.general": ">=6.6"
   "containers.podman": ">=1.10"
+
+tags:
+  - general
+  - linux

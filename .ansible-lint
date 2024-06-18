@@ -4,6 +4,5 @@ verbosity: 1
 skip_list:
   - "experimental"
   - "galaxy[no-changelog]"
-  - "galaxy[tags]"
   - "jinja[spacing]"
   - "no-handler"
