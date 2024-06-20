@@ -2,16 +2,14 @@
 - name: Deploy toolbox environments
   become: true
   gather_facts: false
-  hosts:
-    - toolbox*
+  hosts: "{{ toolbox_hosts | default('toolbox*') }}"
   roles:
     - oszi.environments.toolbox
 
 - name: Deploy third-party roles for toolbox - disabled by default
   become: true
   gather_facts: false
-  hosts:
-    - toolbox*
+  hosts: "{{ toolbox_hosts | default('toolbox*') }}"
   roles:
     - oszi.thirdparty.rpmfusion
     - oszi.thirdparty.devel_downloads

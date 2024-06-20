@@ -2,8 +2,6 @@
 - name: Deploy containerhosts
   become: true
   gather_facts: false
-  hosts:
-    - cloud
-    - containerhosts
+  hosts: "{{ containerhost_hosts | default(['cloud', 'containerhosts']) }}"
   roles:
     - oszi.environments.containerhost

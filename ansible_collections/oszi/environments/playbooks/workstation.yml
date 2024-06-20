@@ -2,16 +2,14 @@
 - name: Deploy workstation environments
   become: true
   gather_facts: false
-  hosts:
-    - workstations*
+  hosts: "{{ workstation_hosts | default('workstations') }}"
   roles:
     - oszi.environments.workstation
 
 - name: Deploy third-party roles for workstations - disabled by default
   become: true
   gather_facts: false
-  hosts:
-    - workstations*
+  hosts: "{{ workstation_hosts | default('workstations') }}"
   roles:
     # Toolbox
     - oszi.thirdparty.rpmfusion
