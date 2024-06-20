@@ -1,6 +1,25 @@
 ---
 gnome_user: "david"
 
-gnome_dconf_vars:
-  /org/gnome/desktop/input-sources/xkb-options: ['lv3:ralt_alt']  # lv3:ralt_alt is patched for Compose Key.
+# Friendly format for setting custom keyboard shortcuts:
+gnome_dconf_custom_keybindings:
+  custom0:
+    binding: "'<Alt>Above_Tab'"
+    command: "'env GDK_BACKEND=x11 tilix --quake'"
+    name: "'Open Tilix'"
+  custom1:
+    binding: "'<Shift><Super>4'"
+    command: "'gnome-screenshot -c -a -f /tmp/screenshot.png'"
+    name: "'Screenshot Clip Area'"
+  custom2:
+    binding: "'<Control><Shift><Super>4'"
+    command: "'gnome-screenshot -c -w -f /tmp/screenshot.png'"
+    name: "'Screenshot Clip Window'"
+
+# See the defaults in oszi/general/roles/gnome/defaults/main/gnome-user.yml
+gnome_dconf_vars: "{{ gnome_dconf_vars_default | combine(gnome_dconf_vars_extra) }}"
+
+gnome_dconf_vars_extra:
+  # Apple Magick KB: Emulate PrintScrn, Numpad with dot, lv3:ralt_alt (Shift+R_Alt) is patched as Compose Key.
+  /org/gnome/desktop/input-sources/xkb-options: ['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']
   /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"

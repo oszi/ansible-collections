@@ -7,12 +7,12 @@
     group: "{{ gnome_user }}"
     mode: "0644"
 
-- name: Set dconf settings for the current user
+- name: Set dconf settings for the Gnome user
   community.general.dconf:
     key: "{{ item.key }}"
     value: "{{ item.value | string }}"
     state: "present"
-  with_dict: "{{ gnome_dconf_vars_default | combine(gnome_dconf_vars) }}"
+  with_dict: "{{ gnome_dconf_vars }}"
 
 - name: Set custom keyboard shortcuts
   when: gnome_dconf_custom_keybindings
