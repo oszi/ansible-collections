@@ -2,7 +2,7 @@
 namespace: oszi
 name: environments
 version: "1.2.1"
-description: "Ansible collection for opinionated, high-level environment roles."
+description: "Ansible collection for personal, high-level environment roles."
 repository: "https://github.com/oszi/ansible-collections.git"
 readme: README.md
 

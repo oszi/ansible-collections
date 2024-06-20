@@ -1,6 +1,6 @@
 # Oszi's Ansible Collections
 
-Opinionated collections of ansible roles and playbooks for workstations and containers.  
+Personal collections of ansible roles and playbooks for Linux workstations and containers.  
 Supported distributions include the latest stable Fedora, Debian, Ubuntu.  
 See the examples and role defaults for basic documentation...
 
@@ -15,8 +15,8 @@ Software from third-party sources.
 
 ### Debian / Ubuntu Login Shells
 
-By default, desktop terminals on Debian are not using login shells. Thus, /etc/profile.d is not sourced.  
-Manually enable login shells in desktop terminals. (Profiles / Command)
+By default, desktop terminals on Debian are not login shells, /etc/profile.d is not sourced.  
+Manually enable login shells in desktop terminals. [Profiles / Command]
 
 ### RedHat / CentOS Support
 

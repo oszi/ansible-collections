@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Copyright 2024 David O. (oszi.dev) under the BSD-3-Clause license.
 # pylint: disable=invalid-name,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
 import dataclasses as dcls
 import io
