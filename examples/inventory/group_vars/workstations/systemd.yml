@@ -1,0 +1,53 @@
+---
+systemd_resolved_options:
+  DNSStubListener: "yes"
+  ReadEtcHosts: "yes"
+
+# _wireguard_peer_ipv4: "203.0.113.1/24"
+# _wireguard_wg0_ipv4: "203.0.113.2/24"
+# _host_lan_ipv4: "192.0.2.0/24"
+#
+# systemd_network_units:
+#   wg0.netdev: |
+#     [NetDev]
+#     Name=wg0
+#     Kind=wireguard
+#
+#     [WireGuard]
+#     ListenPort=51820
+#     FirewallMark=0x42069
+#     PrivateKey={{ vault_wireguard_key }}
+#
+#     [WireGuardPeer]
+#     Endpoint=peer.example.com:51820
+#     PublicKey={{ vault_wireguard_peer_pubkey }}
+#     AllowedIPs={{ _wireguard_peer_ipv4 }}
+#     AllowedIPs=0.0.0.0/0
+#
+#   wg0.network: |
+#     [Match]
+#     Name=wg0
+#
+#     [Link]
+#     MTUBytes=1380
+#
+#     [Network]
+#     Address={{ _wireguard_wg0_ipv4 }}
+#     DNS={{ _wireguard_peer_ipv4 | ipaddr('address') }}
+#     DNSDefaultRoute=true
+#     Domains=~.
+#
+#     [Route]
+#     Gateway={{ _wireguard_peer_ipv4 | ipaddr('address') }}
+#     GatewayOnLink=true
+#     Table=1000
+#
+#     [RoutingPolicyRule]
+#     FirewallMark=0x42069
+#     InvertRule=true
+#     Table=1000
+#     Priority=10
+#
+#     [RoutingPolicyRule]
+#     To={{ _host_lan_ipv4 }}
+#     Priority=9
