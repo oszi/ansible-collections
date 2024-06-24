@@ -1,0 +1,5 @@
+---
+# Path to systemd's [stub-]resolv.conf file
+systemd_resolv_conf_path: "/run/systemd/resolve/{{
+  (systemd_resolved_options['DNSStubListener'] | default('no') | lower in ['yes', 'true'])
+  | ternary('stub-resolv', 'resolv') }}.conf"

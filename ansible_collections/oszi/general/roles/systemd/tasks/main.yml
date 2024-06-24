@@ -1,0 +1,16 @@
+---
+- name: Systemd and networkd setup tasks
+  tags: [systemd]
+  block:
+    - name: Systemd setup tasks
+      ansible.builtin.include_tasks: systemd.yml
+      when: not systemd_disabled
+
+    - name: Systemd-networkd setup tasks
+      ansible.builtin.include_tasks: systemd-networkd.yml
+      when: not systemd_disabled and systemd_networkd_enabled
+
+    - name: Systemd role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true

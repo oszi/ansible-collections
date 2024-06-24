@@ -61,42 +61,6 @@
   args: "{{ item }}"
   with_items: "{{ baselinux_posix_mounts }}"
 
-- name: Copy common systemd unit files
-  ansible.builtin.copy:
-    src: "etc/systemd/system/"
-    dest: "/etc/systemd/system/"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  notify: "Reload systemd"
-
-- name: Ensure directories for inventory systemd system units
-  ansible.builtin.file:
-    path: "/etc/systemd/system/{{ item }}"
-    state: "directory"
-    owner: "root"
-    group: "root"
-    mode: "0755"
-  with_items: "{{ baselinux_systemd_units.keys() | map('dirname') | reject('equalto', '') | unique }}"
-
-- name: Install inventory systemd system unit files
-  ansible.builtin.copy:
-    dest: "/etc/systemd/system/{{ item.key }}"
-    content: "{{ item.value }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  notify: "Reload systemd"
-  with_dict: "{{ baselinux_systemd_units }}"
-
-- name: Enable swapfile if there is no swap partition
-  ansible.builtin.systemd:
-    name: "swapfile"
-    state: "started"
-    daemon_reload: true
-    enabled: true
-  when: ansible_swaptotal_mb < 1
-
 - name: Ignore DNS settings by DHCP client
   ansible.builtin.copy:
     dest: "/etc/dhcp/dhclient-enter-hooks.d/make_resolv_conf"

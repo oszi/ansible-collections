@@ -24,6 +24,7 @@ dependencies:
   - role: oszi.general.bootstrap
   - role: oszi.general.certs
   - role: oszi.general.cloudflare
+  - role: oszi.general.systemd
   - role: oszi.general.firewalld
   - role: oszi.general.selinux
   - role: oszi.general.ssh

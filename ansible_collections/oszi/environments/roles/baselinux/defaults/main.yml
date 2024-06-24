@@ -22,25 +22,11 @@ baselinux_set_locale: >-
 # System timezone
 baselinux_timezone: "UTC"
 
-# Dict of systemd service, timer and drop-in files:
-# * {name.service: content, name.timer: content, name.service.d/drop-in.conf: content}
-baselinux_systemd_units: {}
-# Enable systemd-networkd setup (off by default)
-baselinux_networkd_enabled: "{{ baselinux_networkd_units | length > 0 or baselinux_resolved_enabled }}"
-# Dict of systemd-networkd unit files:
-# * {filename: content}
-baselinux_networkd_units: {}
-# Enable systemd-resolved setup (off by default)
-baselinux_resolved_enabled: "{{ baselinux_resolved_options | length > 0 }}"
-# Dict of options for systemd-resolved if enabled:
-baselinux_resolved_options: {}
-# Setting this will disable NetworkManager!
-baselinux_network_manager_disabled: false
+# Install iptables-nft and configure alternatives?
+baselinux_iptables_nft_alternatives: true
 # Ignore DNS settings by DHCP client?
 # Useful to override GCP's aggressive DNS.
 baselinux_dhclient_resolvconf_disabled: false
-# Install iptables-nft and configure alternatives?
-baselinux_iptables_nft_alternatives: true
 
 # Dict of hosts for /etc/hosts:
 # Set inventory_hostname to avoid DNS hanging during hostname lookup.

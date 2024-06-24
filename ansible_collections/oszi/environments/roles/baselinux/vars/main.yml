@@ -26,8 +26,3 @@ baselinux_sysctl_values_default:
   vm.compaction_proactiveness: "{{ (ansible_virtualization_role == 'guest') | ternary(0, 10) }}"
   # Percentage of free memory before activating swap (1 = only on faults)
   vm.swappiness: "{{ (ansible_virtualization_role == 'guest') | ternary(1, 5) }}"
-
-# Path to systemd's [stub-]resolv.conf file
-baselinux_systemd_resolv_conf_path: "/run/systemd/resolve/{{
-  (baselinux_resolved_options['DNSStubListener'] | default('no') | lower in ['yes', 'true'])
-  | ternary('stub-resolv', 'resolv') }}.conf"
