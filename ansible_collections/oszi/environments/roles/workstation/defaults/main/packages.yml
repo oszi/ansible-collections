@@ -49,6 +49,7 @@ workstation_packages_pt_virtualization:
       'libvirt-daemon-system',
       'libguestfs-tools',
       'python3-guestfs',
+      ['virtiofsd'] if ansible_distribution_release in ['noble', 'sid', 'trixie'] else [],
     ]
     if (ansible_os_family == 'Debian')
     else [

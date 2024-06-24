@@ -6,12 +6,16 @@ toolbox_packages: "{{ toolbox_packages_pt_default }}"
 
 # Fedora/Debian/Ubuntu defaults to include in toolbox_packages:
 toolbox_packages_pt_default:
+  - "{{ ['awscli'] if not (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 24)
+    else [] }}"  # (aws-cli v1/v2 snap or Fedora)
+  - "{{ ['exa'] if ansible_os_family == 'Debian'
+    and not (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 24)
+    else ['eza'] }}"  # (Fedora or Ubuntu 24+)
   - "{{ [
       'ansible-lint',
       'apache2-utils',
       'bind9-utils',
       'build-essential',
-      'exa',
       'g++',
       'gddrescue',
       'iproute2',
@@ -43,7 +47,6 @@ toolbox_packages_pt_default:
       'device-mapper',
       'dnf-plugins-core',
       'dnf-utils',
-      'eza',
       'fpaste',
       'fuse-sshfs',
       'gcc-c++',
@@ -126,7 +129,6 @@ toolbox_packages_pt_default:
   - zip
   # Toolbox
   - ansible
-  - awscli
   - binwalk
   - blktrace
   - borgbackup
