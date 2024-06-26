@@ -1,0 +1,13 @@
+---
+- name: Snap setup tasks
+  tags: [snap]
+  block:
+    - name: Ensure snapd is present or absent
+      ansible.builtin.package:
+        name: "snapd"
+        state: "{{ snap_disabled | ternary('absent', 'present') }}"
+
+    - name: Include Snap setup tasks
+      when: not snap_disabled
+      ansible.builtin.include_tasks:
+        file: snap.yml
