@@ -136,7 +136,6 @@ toolbox_packages_pt_default:
   - checksec
   - dnsenum
   - duperemove
-  - duplicity
   - hexedit
   - httpie
   - hwloc
@@ -153,7 +152,6 @@ toolbox_packages_pt_default:
   - openssl
   - p7zip
   - perl
-  - postgresql
   - pv
   - rclone
   - skopeo
