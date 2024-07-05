@@ -13,10 +13,9 @@
     state: "{{ podman_compose_enabled | ternary('present', 'absent') }}"
 
 - name: Ensure toolbox is installed - containertoolbx.org
-  when: podman_toolbox_enabled  # (no removal)
   ansible.builtin.package:
-    name: "toolbox"
-    state: "present"
+    name: "{{ (ansible_os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
+    state: "{{ podman_toolbox_enabled | ternary('present', 'absent') }}"
 
 - name: Change default podman graphroot?
   when: podman_graphroot is not none

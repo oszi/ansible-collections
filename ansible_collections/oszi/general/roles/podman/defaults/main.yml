@@ -2,16 +2,17 @@
 # Skip podman setup tasks and uninstall podman?
 podman_disabled: false
 
-# Emulate docker using podman?
-podman_docker_enabled: "{{ not podman_disabled and ansible_distribution in ['Fedora', 'Ubuntu'] }}"
-# Install docker-compose to be used with podman-docker?
-# * For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
-podman_docker_compose_enabled: "{{ podman_docker_enabled }}"
+# [Un]Install podman-compose (rootless, daemonless)?
+podman_compose_enabled: "{{ not podman_disabled }}"
+# [Un]Install toolbox - containertoolbx.org?
+podman_toolbox_enabled: "{{ not podman_disabled and not flatpak_disabled | default(false) }}"
 
-# Install podman-compose (rootless, daemonless)?
-podman_compose_enabled: "{{ not podman_disabled and ansible_distribution == 'Fedora' }}"
-# Install toolbox from containertoolbx.org?
-podman_toolbox_enabled: "{{ not podman_disabled and ansible_distribution == 'Fedora' }}"
+# Emulate docker using podman-docker?
+podman_docker_enabled: "{{ not podman_disabled }}"
+# Install docker-compose to be used with podman-docker? HERE BE DRAGONS!
+# * For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
+# * Prefer to use a virtual env instead of the distro package.
+podman_docker_compose_enabled: false
 
 # Dict of podman networks:
 # * Items are args for containers.podman.podman_network
