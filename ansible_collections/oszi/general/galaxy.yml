@@ -13,11 +13,11 @@ license:
   - "BSD-3-Clause"
 
 dependencies:
-  "ansible.netcommon": ">=4.1"
+  "ansible.netcommon": ">=5.0"
   "ansible.posix": ">=1.5"
-  "ansible.utils": ">=2.9"
-  "community.general": ">=6.6"
-  "containers.podman": ">=1.10"
+  "ansible.utils": ">=2.12"
+  "community.general": ">=8.0"
+  "containers.podman": ">=1.11"
 
 tags:
   - general
