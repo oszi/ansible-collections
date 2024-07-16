@@ -1,14 +1,12 @@
 #!/bin/bash
 # Script to use as "vault password file" or "vault id" for convenient GPG encrypted vault passwords.
-# Usage: ansible-playbook --vault-id=default@ansible-vault-id-client
 set -euo pipefail
 
 GPG="gpg --batch --use-agent --default-recipient-self --yes"
-: "${ANSIBLE_VAULT_ID_CLIENT_PATH:=.vault-id}"
 
 exit_help() {
-  echo "# export ANSIBLE_VAULT_ID_CLIENT_PATH=path/to/.vault-id/" >&2
-  echo "# $0 [--check | --create] [--vault-id=VAULT_ID]" >&2
+  echo "# ${0} [--check | --create] [--vault-id=VAULT_ID]" >&2
+  echo "# ansible --vault-id=VAULT_ID@${0}" >&2
   exit 1
 }
 
@@ -37,7 +35,7 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-vault_file="${ANSIBLE_VAULT_ID_CLIENT_PATH}/${vault_id}.asc"
+vault_file="$(dirname "${vault_id}")/.vault-id/$(basename "${vault_id}").asc"
 
 if [ "${create}" -ne 0 ]; then
   if [ "${check}" -ne 0 ]; then
@@ -51,7 +49,7 @@ if [ "${create}" -ne 0 ]; then
 
 elif [ -f "${vault_file}" ]; then
   if [ "${check}" -ne 0 ]; then
-    echo "${vault_id}@$(realpath "$0")"
+    echo "${vault_id}@${0}"
     exit 0
   fi
   ${GPG} --decrypt --quiet --output - "${vault_file}"
