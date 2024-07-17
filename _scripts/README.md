@@ -17,7 +17,7 @@ Script to use as "vault id" for GPG encrypted vault passwords.
 Initialize git hooks and git submodules after cloning.
 
 * [git-pre-commit.sh](git-pre-commit.sh)  
-Pre-commit hook to protect sensitive files and run ansible-lint.
+Pre-commit hook to protect sensitive files and to run ansible-lint.
 
 * [git-reset.sh](git-reset.sh)  
-Verify and reset the repository to a remote branch (master by default).
+Verify and reset the repository to a remote branch - master by default.

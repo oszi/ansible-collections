@@ -17,13 +17,13 @@ ansible-playbook -K oszi.general.update
 
 ```bash
 # Interactively store a GPG encrypted password
-../_scripts/ansible-vault-id-client --create --vault-id=example
+../_scripts/ansible-vault-id-client --create --vault-id=inventory/example
 
 # Use it with environment variables...
-export ANSIBLE_VAULT_IDENTITY_LIST="$(../_scripts/ansible-vault-id-client --check --vault-id=example)"
+export ANSIBLE_VAULT_IDENTITY_LIST="$(../_scripts/ansible-vault-id-client --check --vault-id=inventory/example)"
 ansible-vault create inventory/group_vars/workstations/vault.yml
 
 # Or with the CLI arguments
-ansible-vault view --vault-id=example@../_scripts/ansible-vault-id-client \
+ansible-vault view --vault-id=inventory/example@../_scripts/ansible-vault-id-client \
   inventory/group_vars/workstations/vault.yml
 ```
