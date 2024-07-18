@@ -6,3 +6,6 @@ skip_list:
   - "galaxy[no-changelog]"
   - "jinja[spacing]"
   - "no-handler"
+
+# exclude_paths:
+#   - "collections"
