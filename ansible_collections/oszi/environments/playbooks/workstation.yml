@@ -4,6 +4,8 @@
   gather_facts: false
   hosts: "{{ workstation_hosts | default('workstations') }}"
   roles:
+    - oszi.environments.containerhost
+    - oszi.environments.toolbox
     - oszi.environments.workstation
 
 - name: Import oszi.thirdparty.workstation playbook
