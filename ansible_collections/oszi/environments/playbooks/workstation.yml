@@ -6,20 +6,5 @@
   roles:
     - oszi.environments.workstation
 
-- name: Deploy third-party roles for workstations - disabled by default
-  become: true
-  gather_facts: false
-  hosts: "{{ workstation_hosts | default('workstations') }}"
-  roles:
-    # Toolbox
-    - oszi.thirdparty.rpmfusion
-    - oszi.thirdparty.devel_downloads
-    - oszi.thirdparty.azure_cli
-    - oszi.thirdparty.gcloud_sdk
-    - oszi.thirdparty.hashicorp
-    - oszi.thirdparty.opentofu
-    # Workstations
-    - oszi.thirdparty.google_chrome
-    - oszi.thirdparty.vscode
-  tags:
-    - third-party
+- name: Import oszi.thirdparty.workstation playbook
+  import_playbook: oszi.thirdparty.workstation

@@ -1,0 +1,16 @@
+---
+
+- name: Import oszi.thirdparty.toolbox playbook
+  import_playbook: oszi.thirdparty.toolbox
+  vars:
+    toolbox_hosts: "{{ workstation_hosts | default('workstations') }}"
+
+- name: Deploy third-party roles for workstations - all disabled by default
+  become: true
+  gather_facts: false
+  hosts: "{{ workstation_hosts | default('workstations') }}"
+  roles:
+    - oszi.thirdparty.google_chrome
+    - oszi.thirdparty.vscode
+  tags:
+    - third-party
