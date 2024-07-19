@@ -2,7 +2,7 @@
 # Script to run before git commits.
 # You may symlink this file into a parent repository - e.g. inventory.
 set -euo pipefail
-cd "$(git rev-parse --show-toplevel)"
+cd -- "$(git rev-parse --show-toplevel)"
 exec < /dev/tty
 
 if [[ ! -e ansible.cfg && -d ansible ]]; then
@@ -16,7 +16,7 @@ files="$(find -type f \( -iname '*-key.pem' -or -iname '*.key' -or -iname '*.csr
 
 if [ "$files" != "" ]; then
   echo "# Clear-text private keys found!" >&2
-  echo "${files}" >&2
+  echo "$files" >&2
   exit 1
 fi
 
@@ -25,12 +25,12 @@ files="$(find -type f -wholename '*/*_vars/*' \( -iname '*vault*.yml' -or -iname
 
 if [ "$files" != "" ]; then
   echo "# Clear-text vault files found!" >&2
-  echo "${files}" >&2
+  echo "$files" >&2
   exit 1
 fi
 
 echo -n "Run ansible-lint? [y/N]" >&2
 read answer
-if echo "${answer}" | grep -iq '^Y'; then
+if echo "$answer" | grep -iq '^Y'; then
   ansible-lint
 fi

@@ -35,28 +35,28 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-vault_file="$(dirname "${vault_id}")/.vault-id/$(basename "${vault_id}").asc"
+vault_file="$(dirname -- "$vault_id")"/.vault-id/"$(basename -- "$vault_id")".asc
 
-if [ "${create}" -ne 0 ]; then
-  if [ "${check}" -ne 0 ]; then
+if [ "$create" -ne 0 ]; then
+  if [ "$check" -ne 0 ]; then
     exit_help
   fi
-  echo "Password for vault-id=${vault_id} (${vault_file}): " >&2
+  echo "Vault password for '${vault_file}':" >&2
   read -s password
-  mkdir -p "$(dirname "${vault_file}")"
-  echo "${password}" | ${GPG} --encrypt --armor --output "${vault_file}"
+  mkdir -p -- "$(dirname -- "$vault_file")"
+  echo "$password" | ${GPG} --encrypt --armor --output "$vault_file"
   exit $?
 
-elif [ -f "${vault_file}" ]; then
-  if [ "${check}" -ne 0 ]; then
+elif [ -f "$vault_file" ]; then
+  if [ "$check" -ne 0 ]; then
     echo "${vault_id}@${0}"
     exit 0
   fi
-  ${GPG} --decrypt --quiet --output - "${vault_file}"
+  ${GPG} --decrypt --quiet --output - -- "$vault_file"
   exit $?
 
 else
-  echo -e "# ${vault_file} not found..." >&2
-  echo -e "# $0 --create --vault-id=${vault_id}" >&2
+  echo -e "# '${vault_file}' not found..." >&2
+  echo -e "# ${0} --create --vault-id='${vault_id}'" >&2
   exit 1
 fi

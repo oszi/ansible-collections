@@ -9,7 +9,7 @@ alias xn='xargs -rd"\n"'
 alias x1='xn -n1'
 
 alias clip='xclip -i -selection clipboard'
-alias gcd='cd "$(git rev-parse --show-toplevel)"'
+alias gcd='cd -- "$(git rev-parse --show-toplevel)"'
 alias py='$(command -v ipython3 || command -v ipython || command -v python3 || echo python)'
 alias ssh-forget='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
 alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'

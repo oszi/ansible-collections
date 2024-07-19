@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-cd "$(dirname "$(realpath "$0")")"
+cd -- "$(dirname -- "$(realpath -- "$0")")"
 
 base_image="registry.fedoraproject.org/fedora:latest"
 image="toolbox:latest"
