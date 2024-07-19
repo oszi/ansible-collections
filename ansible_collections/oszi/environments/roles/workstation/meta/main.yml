@@ -19,8 +19,7 @@ galaxy_info:
     - workstation
 
 dependencies:
-  - role: oszi.environments.toolbox
-  - role: oszi.environments.containerhost
+  - role: oszi.environments.baselinux
   - role: oszi.general.flatpak
   - role: oszi.general.snap
   - role: oszi.general.chromium_policies
