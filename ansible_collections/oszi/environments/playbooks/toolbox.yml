@@ -6,16 +6,5 @@
   roles:
     - oszi.environments.toolbox
 
-- name: Deploy third-party roles for toolbox - disabled by default
-  become: true
-  gather_facts: false
-  hosts: "{{ toolbox_hosts | default('toolbox*') }}"
-  roles:
-    - oszi.thirdparty.rpmfusion
-    - oszi.thirdparty.devel_downloads
-    - oszi.thirdparty.azure_cli
-    - oszi.thirdparty.gcloud_sdk
-    - oszi.thirdparty.hashicorp
-    - oszi.thirdparty.opentofu
-  tags:
-    - third-party
+- name: Import oszi.thirdparty.toolbox playbook
+  import_playbook: oszi.thirdparty.toolbox
