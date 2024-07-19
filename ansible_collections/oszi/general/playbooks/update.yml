@@ -4,9 +4,10 @@
   become: true
   gather_facts: false
   pre_tasks:
-    - name: Import bootstrap role tasks
+    - name: Import bootstrap tasks
       ansible.builtin.import_role:
         name: oszi.general.bootstrap
+        tasks_from: bootstrap
       vars:
         bootstrap_package_update_cache: false
 
