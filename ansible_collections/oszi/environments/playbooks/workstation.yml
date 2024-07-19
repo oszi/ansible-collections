@@ -8,5 +8,5 @@
     - oszi.environments.toolbox
     - oszi.environments.workstation
 
-- name: Import oszi.thirdparty.workstation playbook
+- name: Import playbook oszi.thirdparty.workstation
   import_playbook: oszi.thirdparty.workstation

@@ -6,5 +6,5 @@
   roles:
     - oszi.environments.toolbox
 
-- name: Import oszi.thirdparty.toolbox playbook
+- name: Import playbook oszi.thirdparty.toolbox
   import_playbook: oszi.thirdparty.toolbox

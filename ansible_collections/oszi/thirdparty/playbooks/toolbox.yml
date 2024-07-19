@@ -3,6 +3,13 @@
   become: true
   gather_facts: false
   hosts: "{{ toolbox_hosts | default('toolbox*') }}"
+  pre_tasks:
+    - name: Include bootstrap tasks if necessary
+      ansible.builtin.include_role:
+        name: oszi.general.bootstrap
+      when: bootstrap_is_ssh is undefined
+      tags: [always]
+
   roles:
     - oszi.thirdparty.rpmfusion
     - oszi.thirdparty.devel_downloads
