@@ -40,3 +40,5 @@ git submodule add "https://github.com/oszi/ansible-collections.git" ansible/coll
 ```
 
 See the examples for configuring ansible. Symlink what you need from _scripts.
+
+Commits are signed by [AFDE0AB3943D1FB3](https://oszi.dev/oszi.dev.asc)
