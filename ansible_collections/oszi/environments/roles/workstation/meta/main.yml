@@ -20,6 +20,7 @@ galaxy_info:
 
 dependencies:
   - role: oszi.environments.baselinux
+  - role: oszi.general.libvirt
   - role: oszi.general.flatpak
   - role: oszi.general.snap
   - role: oszi.general.chromium_policies

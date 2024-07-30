@@ -1,0 +1,13 @@
+---
+- name: Libvirt setup tasks
+  tags: [libvirt]
+  block:
+    - name: Include libvirt setup tasks
+      when: not libvirt_disabled
+      ansible.builtin.include_tasks:
+        file: libvirt.yml
+
+    - name: Libvirt role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true
