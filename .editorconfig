@@ -8,7 +8,7 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{bash,sh,tf,hcl,yaml,yml}{,_,.j2}]
+[*.{bash,sh,tf,hcl,yaml,yml,xml}{,_,.j2}]
 indent_style = space
 indent_size = 2
 
