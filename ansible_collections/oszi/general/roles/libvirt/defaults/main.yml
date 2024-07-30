@@ -1,0 +1,44 @@
+---
+# Skip libvirt setup and configuration?
+libvirt_disabled: "{{ ansible_virtualization_role == 'guest' }}"
+
+# List of dicts of args for community.libvirt.virt:
+# - command: ..., xml: ..., flags: ..., state: ..., uri: ..., autostart: true
+# # virsh dumpxml --migratable domain # set "xml" with lookup file or template
+libvirt_domains: []
+
+# List of dicts of args for community.libvirt.virt_net:
+# - command: ..., xml: ..., state: ..., uri: ..., autostart: true
+libvirt_networks: []
+
+# List of dicts of args for community.libvirt.virt_pool:
+# - command: ..., xml: ..., mode: ..., state: ..., uri: ..., autostart: true
+libvirt_pools: []
+
+# Fedora/Debian/Ubuntu libvirt/QEMU packages (optional).
+libvirt_packages:
+  - "{{ [
+      'libvirt-dev',
+      'libvirt-clients',
+      'libvirt-daemon-system',
+      'libguestfs-tools',
+      'python3-guestfs',
+      ['virtiofsd'] if ansible_distribution_release in ['noble', 'sid', 'trixie'] else [],
+    ]
+    if (ansible_os_family == 'Debian')
+    else [
+      'libvirt-devel',
+      'libvirt',
+      'qemu-system-aarch64',
+      'virt-install',
+      'guestfs-tools',
+      'python3-libguestfs',
+    ] }}"
+  - libguestfs-rescue
+  - libguestfs-xfs
+  - qemu-kvm
+  - qemu-system-arm
+  - qemu-system-x86
+  - qemu-user-static
+  - virt-manager
+  - virt-viewer

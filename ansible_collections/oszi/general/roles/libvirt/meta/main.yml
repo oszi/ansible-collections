@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Linux workstation setup with Gnome Shell."
+  description: "Setup libvirt daemon and configure guests."
   author: "David Osztertag (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.16"
@@ -8,20 +8,14 @@ galaxy_info:
   platforms:
     - name: Fedora
       versions: [all]
+    - name: EL
+      versions: [all]
     - name: Debian
       versions: [all]
     - name: Ubuntu
       versions: [all]
 
   galaxy_tags:
-    - environments
+    - general
     - linux
     - workstation
-
-dependencies:
-  - role: oszi.environments.baselinux
-  - role: oszi.general.libvirt
-  - role: oszi.general.flatpak
-  - role: oszi.general.snap
-  - role: oszi.general.chromium_policies
-  - role: oszi.general.gnome
