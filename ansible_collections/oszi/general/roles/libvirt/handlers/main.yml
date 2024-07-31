@@ -1,1 +1,5 @@
 ---
+- name: Ensure libvirtd is reloaded
+  ansible.builtin.systemd:
+    name: "libvirtd"
+    state: "reloaded"

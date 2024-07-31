@@ -8,6 +8,30 @@
     name: "{{ libvirt_packages }}"
     state: "present"
 
+- name: Allow host audio without graphics in qemu.conf
+  ansible.builtin.lineinfile:
+    dest: "/etc/libvirt/qemu.conf"
+    line: "nographics_allow_host_audio = 1"
+    regexp: '#?\s*nographics_allow_host_audio\s*='
+    state: "present"
+  notify: "Ensure libvirtd is reloaded"
+
+- name: Copy scripts for libvirt
+  ansible.builtin.copy:
+    src: "bin/"
+    dest: "{{ libvirt_local_bin_path }}/"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Copy /etc/sudoers.d/libvirt-virsh
+  ansible.builtin.copy:
+    src: "etc/sudoers.d/libvirt-virsh"
+    dest: "/etc/sudoers.d/libvirt-virsh"
+    owner: "root"
+    group: "root"
+    mode: "0440"
+
 - name: Define libvirt networks
   community.libvirt.virt_net:
   args: "{{ item }}"
