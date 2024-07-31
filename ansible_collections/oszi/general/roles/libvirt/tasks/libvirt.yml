@@ -32,19 +32,19 @@
     group: "root"
     mode: "0440"
 
-- name: Define libvirt networks
+- name: Apply libvirt networks
   community.libvirt.virt_net:
   args: "{{ item }}"
   with_items: "{{ libvirt_networks }}"
   tags: [skip_ansible_lint]
 
-- name: Define libvirt storage pools
+- name: Apply libvirt storage pools
   community.libvirt.virt_pool:
   args: "{{ item }}"
   with_items: "{{ libvirt_pools }}"
   tags: [skip_ansible_lint]
 
-- name: Define libvirt domains
+- name: Apply libvirt domains
   community.libvirt.virt:
   args: "{{ item }}"
   with_items: "{{ libvirt_domains }}"
