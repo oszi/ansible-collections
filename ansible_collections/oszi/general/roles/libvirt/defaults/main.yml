@@ -15,7 +15,8 @@ libvirt_networks: []
 # - command: ..., xml: ..., mode: ..., state: ..., uri: ..., autostart: true
 libvirt_pools: []
 
-# Fedora/Debian/Ubuntu libvirt/QEMU packages (optional).
+# Libvirt/QEMU + GUI packages on Fedora/Debian/Ubuntu:
+# * Override in a non-graphical environment.
 libvirt_packages:
   - "{{ [
       'libvirt-dev',
@@ -42,3 +43,6 @@ libvirt_packages:
   - qemu-user-static
   - virt-manager
   - virt-viewer
+
+# Target directory for ansible installed executables
+libvirt_local_bin_path: "/usr/local/bin"

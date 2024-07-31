@@ -11,7 +11,7 @@
     state: "{{ 'present' if ansible_virtualization_type == 'VMware'
       and ansible_virtualization_role == 'guest' else 'absent' }}"
 
-- name: Install various executables
+- name: Install scripts for workstations
   ansible.builtin.copy:
     src: "bin/"
     dest: "{{ workstation_local_bin_path }}/"
@@ -27,16 +27,13 @@
     group: "root"
     mode: "0644"
 
-- name: Copy /etc/sudoers.d/libvirt-virsh and plugdev-pcscd
+- name: Copy /etc/sudoers.d/plugdev-pcscd
   ansible.builtin.copy:
-    src: "etc/sudoers.d/{{ item }}"
-    dest: "/etc/sudoers.d/"
+    src: "etc/sudoers.d/plugdev-pcscd"
+    dest: "/etc/sudoers.d/plugdev-pcscd"
     owner: "root"
     group: "root"
     mode: "0440"
-  with_items:
-    - libvirt-virsh
-    - plugdev-pcscd
 
 - name: Copy /etc/udev/rules.d/yubikey-fix.rules
   ansible.builtin.copy:
@@ -78,18 +75,3 @@
     before: 'xkb_symbols "ralt_switch_multikey"'
     regexp: '\[\s*Alt_R,\s*Meta_R\s*\]'
     replace: "[ Alt_R, Multi_key ]"
-
-- name: Fix host audio for libvirt VMs
-  block:
-    - name: Check /etc/libvirt/qemu.conf
-      ansible.builtin.stat:
-        path: "/etc/libvirt/qemu.conf"
-      register: _libvirt_qemu_conf
-
-    - name: Fix host audio for libvirt VMs
-      ansible.builtin.lineinfile:
-        dest: "{{ _libvirt_qemu_conf.stat.path }}"
-        line: "nographics_allow_host_audio = 1"
-        regexp: '#?\s*nographics_allow_host_audio\s*='
-        state: "present"
-      when: _libvirt_qemu_conf.stat.exists
