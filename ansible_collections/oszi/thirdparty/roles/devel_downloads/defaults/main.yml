@@ -1,10 +1,10 @@
 ---
 # Leave all URLs and checksums unset by default!
 
-# Target directory for ansible installed executables
-devel_downloads_bin_path: "/usr/local/bin"
-# Target directory for artifacts and installers
-devel_downloads_cache_path: "/var/cache/ansible"
+# Path for local executables
+devel_downloads_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+# Path for download artifacts
+devel_downloads_cache_path: "/var/cache/ansible/downloads"
 
 # CFSSL binaries: https://pkg.cfssl.org
 devel_downloads_cfssl_url:

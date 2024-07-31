@@ -35,5 +35,5 @@ gcloud_sdk_app_engine_packages:
 gcloud_sdk_rpm_baseurl: "https://packages.cloud.google.com/yum/repos/cloud-sdk-el9-$basearch"
 gcloud_sdk_deb_baseurl: "https://packages.cloud.google.com/apt"
 
-# Target directory for ansible installed scripts - e.g. gcloud-entrypoint.sh
-gcloud_sdk_local_bin_path: "/usr/local/bin"
+# Path for local executables
+gcloud_sdk_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
