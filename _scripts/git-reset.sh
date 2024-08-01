@@ -40,7 +40,7 @@ if [[ "$(git status -s | tee /dev/stderr)" != "" ]]; then
   answer_yes_or_exit "git: working tree changes! Discard everything?"
 fi
 
-if [[ "$(git log "${UPSTREAM}..${BRANCH}" | tee /dev/stderr)" != "" ]]; then
+if [[ "$(git log --ignore-missing "${UPSTREAM}..${BRANCH}" -- | tee /dev/stderr)" != "" ]]; then
   answer_yes_or_exit "git: local commits! Discard everything?"
 fi
 

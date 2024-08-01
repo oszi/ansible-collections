@@ -9,27 +9,23 @@ if [[ ! -e ansible.cfg && -d ansible ]]; then
   cd ansible  # (e.g. in a submodule)
 fi
 
-GREP_ANSIBLE_VAULT='grep --files-without-match ^$ANSIBLE_VAULT'
+COLOR_CLEAR="\033[0m"
+COLOR_RED="\033[31m"
+COLOR_YELLOW="\033[33m"
 
-files="$(find -type f \( -iname '*-key.pem' -or -iname '*.key' -or -iname '*.csr' -or -iname '*.p12' \) -print0 2>/dev/null \
-  | xargs -0 -r -n4 ${GREP_ANSIBLE_VAULT})" ||:
+VAULT_FILES_REGEX='^.*/\(group\|host\)_vars/.*vault[^/]*\.\(ya?ml\|json\)$'
+KEY_FILES_REGEX='^.*\(-key\.pem\|\.key\|\.csr\|\.p12\)$'
+
+files="$(find -type f \( -regex "$VAULT_FILES_REGEX" -or -regex "$KEY_FILES_REGEX" \) -print0 2>/dev/null \
+  | xargs -0 -r grep --files-without-match '^$ANSIBLE_VAULT' --)" ||:
 
 if [ "$files" != "" ]; then
-  echo "# Clear-text private keys found!" >&2
-  echo "$files" >&2
+  echo -e "${COLOR_RED}Clear-text private keys or vault files!${COLOR_CLEAR}" >&2
+  echo "$files"
   exit 1
 fi
 
-files="$(find -type f -wholename '*/*_vars/*' \( -iname '*vault*.yml' -or -iname '*vault*.yaml' \) -print0 2>/dev/null \
-  | xargs -0 -r -n4 ${GREP_ANSIBLE_VAULT})" ||:
-
-if [ "$files" != "" ]; then
-  echo "# Clear-text vault files found!" >&2
-  echo "$files" >&2
-  exit 1
-fi
-
-echo -n "Run ansible-lint? [y/N]" >&2
+echo -en "${COLOR_YELLOW}Run ansible-lint?${COLOR_CLEAR} [y/N]" >&2
 read answer
 if echo "$answer" | grep -iq '^Y'; then
   ansible-lint
