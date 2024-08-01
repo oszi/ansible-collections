@@ -8,8 +8,6 @@
       ansible.builtin.import_role:
         name: oszi.general.bootstrap
         tasks_from: bootstrap
-      vars:
-        bootstrap_package_update_cache: false
 
   tasks:
     - name: Update APT packages

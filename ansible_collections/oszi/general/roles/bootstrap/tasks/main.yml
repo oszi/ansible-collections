@@ -3,11 +3,20 @@
   tags: [always]
   block:
     - name: Include bootstrap tasks if necessary
-      when: boostrap_completed is undefined or not boostrap_completed
+      when: bootstrap_included is undefined or not bootstrap_included
       ansible.builtin.include_tasks:
         file: bootstrap.yml
 
-    - name: Set boostrap_completed fact  # This task itself also prevents multiple inclusions.
-      ansible.builtin.set_fact:
-        boostrap_completed: true
-        cacheable: true  # Export to later roles and plays via fact caching.
+    - name: Update package cache
+      when: bootstrap_package_update_cache
+      ansible.builtin.package:
+        update_cache: true
+        cache_valid_time: "{{ bootstrap_apt_cache_valid_time if ansible_pkg_mgr == 'apt' else omit }}"
+      changed_when: false
+      ignore_errors: true  # Could be offline.
+      tags: [skip_ansible_lint]
+
+    - name: Bootstrap role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true
