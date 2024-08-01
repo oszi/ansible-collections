@@ -1,4 +1,4 @@
-# dnf install ansible python3-netaddr python3-psutil python3-pyyaml
+# apt/dnf install ansible python3-netaddr python3-psutil python3-yaml
 ansible
 ansible-lint
 netaddr
