@@ -6,6 +6,7 @@
 __pycache__/
 *.py[cod]
 *.venv/
+/venv/
 
 ### Vim ###
 .*.s[a-w][a-z]
