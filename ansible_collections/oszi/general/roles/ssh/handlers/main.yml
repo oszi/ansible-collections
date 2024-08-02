@@ -5,3 +5,12 @@
     name: "sshd"
     state: "restarted"
     enabled: true
+
+- name: Ensure the configured SSH port is used
+  ansible.builtin.set_fact:
+    ansible_port: "{{ ssh_port }}"
+  listen: "Set ansible_port to ssh_port"
+
+- name: Check connectivity
+  ansible.builtin.ping:
+  listen: "Set ansible_port to ssh_port"

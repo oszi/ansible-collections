@@ -23,11 +23,11 @@
           | selectattr('changed', 'equalto', true) }}"
 
     - name: Ensure changed authorized keys files are NOT immutable
+      when: ssh_authorized_keys_immutable
       ansible.builtin.file:
         path: "{{ item }}"
         attr: "-i"
       with_items: "{{ _ssh_authorized_keys_changed_items | map(attribute='keyfile') }}"
-      when: ssh_authorized_keys_immutable
       failed_when: false
 
     - name: Install SSH authorized keys
@@ -38,25 +38,23 @@
       with_items: "{{ _ssh_authorized_keys_changed_items }}"
 
 - name: Ensure authorized keys files are immutable
+  when: ssh_authorized_keys_immutable
   ansible.builtin.file:
     path: "{{ item }}"
     attr: "+i"
   with_items: "{{ _ssh_authorized_keys_check.results | map(attribute='keyfile') }}"
   changed_when: _ssh_authorized_keys_check.changed
-  when: ssh_authorized_keys_immutable
 
-- name: Install the sshd config file
+- name: Install the sshd server config file
+  when: ssh_server_config_overridable
   ansible.builtin.template:
     src: "etc/ssh/sshd_config.j2"
     dest: "/etc/ssh/sshd_config"
     owner: "root"
     mode: "0600"
-  when: ssh_server_config_override
-  notify: "Restart sshd service"
+  notify:
+    - "Restart sshd service"
+    - "Set ansible_port to ssh_port"
 
 - name: Run handlers immediately
   ansible.builtin.meta: flush_handlers
-
-- name: Ensure the configured SSH port will be used from now on
-  ansible.builtin.set_fact:
-    ansible_port: "{{ ssh_port }}"
