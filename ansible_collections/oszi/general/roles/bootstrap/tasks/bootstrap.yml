@@ -10,10 +10,13 @@
         bootstrap_is_ssh: "{{ ansible_connection in ['ssh', 'paramiko_ssh'] }}"
         bootstrap_ssh_port: "{{ ansible_port | default(22) | int }}"
         bootstrap_included: true
-        cacheable: true  # Export to later roles and plays via fact caching.
+        # Export to later roles and plays via fact caching.
+        cacheable: true
 
     - name: Include SSH port fallback for first-time setup
-      when: "bootstrap_is_ssh and bootstrap_ssh_port|int != bootstrap_ssh_port_fallback|int"
+      when: "bootstrap_is_ssh
+        and bootstrap_ssh_port_fallback|int > 0
+        and bootstrap_ssh_port_fallback|int != bootstrap_ssh_port|int"
       ansible.builtin.include_tasks:
         file: ssh-fallback.yml
 
