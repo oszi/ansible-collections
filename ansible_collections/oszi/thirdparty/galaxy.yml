@@ -1,7 +1,7 @@
 ---
 namespace: oszi
 name: thirdparty
-version: 1.8.3
+version: 1.9.0
 
 description: "Ansible collection for software from third-party sources."
 repository: "https://github.com/oszi/ansible-collections.git"
@@ -13,7 +13,7 @@ license:
   - "BSD-3-Clause"
 
 dependencies:
-  "oszi.general": ">=1.8.3"
+  "oszi.general": ">=1.9.0"
 
 tags:
   - thirdparty
