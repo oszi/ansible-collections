@@ -10,6 +10,9 @@ chromium_policies_managed:
 chromium_policies_managed_pt_default:
   HttpsOnlyMode: "force_enabled"
   PromptForDownloadLocation: true
+  # https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline
+  # https://github.com/uBlockOrigin/uBOL-home/wiki/Frequently-asked-questions-(FAQ)#filtering-capabilities-which-cant-be-ported-to-mv3
+  ExtensionManifestV2Availability: 2
   ExtensionSettings:
     cjpalhdlnbpafiamejdnhcphjbkeiagm:   # uBlock Origin
       installation_mode: "force_installed"
