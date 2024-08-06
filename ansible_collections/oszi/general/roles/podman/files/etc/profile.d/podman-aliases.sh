@@ -1,3 +1,5 @@
+# shellcheck shell=sh
+
 alias p='podman'
 alias pexec-priv='podman exec -itu root --privileged'
 alias pexec='podman exec -it'
@@ -14,29 +16,29 @@ alias pxargs='xargs -n1 -r podman'
 alias chcon-container='chcon -Rt container_file_t'
 
 pcleanup() {
-  pgc -fv && pgcimg
+    pgc -fv && pgcimg
 }
 
 pimggrep() {
-  podman images --format='{{.Repository}} {{.Tag}}' | grep "$@" | awk '{if ($2!="<none>") print $1":"$2}'
+    podman images --format='{{.Repository}} {{.Tag}}' | grep "$@" | awk '{if ($2!="<none>") print $1":"$2}'
 }
 
 ppsgrep() {
-  podman ps -a --format='{{.Names}} {{.Image}} {{.Status}}' | grep "$@" | awk '{print $1}'
+    podman ps -a --format='{{.Names}} {{.Image}} {{.Status}}' | grep "$@" | awk '{print $1}'
 }
 
 prmgrep() {
-  ppsgrep "$@" | xargs -r podman rm --force --volumes
+    ppsgrep "$@" | xargs -r podman rm --force --volumes
 }
 
 pstatsgrep() {
-  ppsgrep "$@" | xargs -r podman stats --no-stream
+    ppsgrep "$@" | xargs -r podman stats --no-stream
 }
 
 ppullgrep() {
-  pimggrep "$@" | xargs -L1 -P3 -r podman pull
+    pimggrep "$@" | xargs -L1 -P3 -r podman pull
 }
 
 ppushgrep() {
-  pimggrep "$@" | xargs -n1 -r podman push
+    pimggrep "$@" | xargs -n1 -r podman push
 }

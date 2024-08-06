@@ -1,3 +1,5 @@
+# shellcheck shell=sh
+
 alias e='${EDITOR:-vi}'
 alias o='xdg-open'
 alias g='git'
@@ -15,14 +17,15 @@ alias ssh-forget='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyCheckin
 alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
 
 if (command -v exa || command -v eza) >/dev/null 2>&1; then
-  alias l="$(command -v exa || command -v eza) -F --group-directories-first"
-  alias la='l -a'
-  alias ll='l -alg'
-  if ! command -v tree >/dev/null 2>&1; then
-    alias tree='l -T'
-  fi
+    # shellcheck disable=SC2139 # expand when defined
+    alias l="$(command -v exa || command -v eza) -F --group-directories-first"
+    alias la='l -a'
+    alias ll='l -alg'
+    if ! command -v tree >/dev/null 2>&1; then
+        alias tree='l -T'
+    fi
 else
-  alias l='ls -CF --group-directories-first'
-  alias la='l -A'
-  alias ll='l -Alh'
+    alias l='ls -CF --group-directories-first'
+    alias la='l -A'
+    alias ll='l -Alh'
 fi
