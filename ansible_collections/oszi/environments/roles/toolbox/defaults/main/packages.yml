@@ -154,6 +154,7 @@ toolbox_packages_pt_default:
   - perl
   - pv
   - rclone
+  - shellcheck
   - skopeo
   - smartmontools
   - speedtest-cli
