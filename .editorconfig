@@ -8,11 +8,11 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{bash,sh,tf,hcl,yaml,yml,xml}{,_,.j2}]
+[*.{tf,hcl,yaml,yml,xml}{,.j2,_,~}]
 indent_style = space
 indent_size = 2
 
-[{Makefile,*.mk,.git*,*.repo}{,.j2}]
+[{Makefile,*.mk,*.go,.git*}{,.j2,_,~}]
 indent_style = tab
 
 [*.md]
