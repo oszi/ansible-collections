@@ -5,8 +5,7 @@
 ### Python ###
 __pycache__/
 *.py[cod]
-*.venv/
-/venv/
+*venv/
 
 ### Vim ###
 .*.s[a-w][a-z]
