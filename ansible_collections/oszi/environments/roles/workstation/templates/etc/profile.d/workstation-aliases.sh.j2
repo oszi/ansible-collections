@@ -1,17 +1,19 @@
+# shellcheck shell=sh
+
 {% if not flatpak_disabled %}
 {% set _flatpak_chromium = 'org.chromium.Chromium' %}
 {% if _flatpak_chromium in flatpak_apps %}
 if ! command -v chromium >/dev/null 2>&1; then
-  alias chromium='/usr/bin/flatpak run --command=/app/bin/chromium {{ _flatpak_chromium }}'
+    alias chromium='/usr/bin/flatpak run --command=/app/bin/chromium {{ _flatpak_chromium }}'
 fi
 
 {% endif %}
 {% endif %}
 if command -v chromium >/dev/null 2>&1; then
-  alias chromium-jitless='chromium --js-flags="--jitless"'
+    alias chromium-jitless='chromium --js-flags="--jitless"'
 fi
 
 if command -v ykman >/dev/null 2>&1; then
-  alias oath-list='ykman oath accounts list'
-  alias oath-code='ykman oath accounts code'
+    alias oath-list='ykman oath accounts list'
+    alias oath-code='ykman oath accounts code'
 fi

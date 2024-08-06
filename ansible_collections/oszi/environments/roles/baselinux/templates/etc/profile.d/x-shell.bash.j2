@@ -1,45 +1,48 @@
+# shellcheck shell=bash
+
 _x_shell_init() {
-  export HISTSIZE={{ baselinux_shell_histsize | int }}
-  export HISTFILESIZE={{ baselinux_shell_histfilesize | int }}
-  export HISTCONTROL={{ baselinux_shell_histcontrol | quote }}
+    export HISTSIZE={{ baselinux_shell_histsize | int }}
+    export HISTFILESIZE={{ baselinux_shell_histfilesize | int }}
+    export HISTCONTROL={{ baselinux_shell_histcontrol | quote }}
 
-  PS1="\[\033[{{ (ansible_virtualization_role == 'guest') | ternary(32, 31) }}m\]"
-  if [[ "$UID" -eq 0 ]]; then
-    PS1="${PS1}\[\033[7m\]"
-  fi
+    PS1="\[\033[{{ (ansible_virtualization_role == 'guest') | ternary(32, 31) }}m\]"
+    if [[ "$UID" -eq 0 ]]; then
+        PS1="${PS1}\[\033[7m\]"
+    fi
 
-  PS1="${PS1}\u@\h\[\033[0m\]:\[\033[34m\]\W\[\033[0m\]\${PS1_PROMPT@P} "
+    PS1="${PS1}\u@\h\[\033[0m\]:\[\033[34m\]\W\[\033[0m\]\${PS1_PROMPT@P} "
 }
 
 _x_shell_prompt () {
-  PS1_RC=$?
+    PS1_RC=$?
 
-  if [[ "$UID" -eq 0 ]]; then
-    PS1_PROMPT='#'
-  else
-    PS1_PROMPT='$'
-  fi
+    if [[ "$UID" -eq 0 ]]; then
+        PS1_PROMPT='#'
+    else
+        PS1_PROMPT='$'
+    fi
 
-  if [[ "$PS1_RC" -ne 0 ]]; then
-    PS1_PROMPT="\[\033[31m\]${PS1_PROMPT}\[\033[0m\]"
-  fi
+    if [[ "$PS1_RC" -ne 0 ]]; then
+        PS1_PROMPT="\[\033[31m\]${PS1_PROMPT}\[\033[0m\]"
+    fi
 
-  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    PS1_PROMPT="@\[\033[33m\]$(git symbolic-ref --short HEAD 2>/dev/null \
-      || git rev-parse --short HEAD)\[\033[0m\]${PS1_PROMPT}"
-  fi
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        PS1_PROMPT="@\[\033[33m\]$(git symbolic-ref --short HEAD 2>/dev/null \
+            || git rev-parse --short HEAD)\[\033[0m\]${PS1_PROMPT}"
+    fi
 
-  if [[ "$PS1" != *PS1_PROMPT* ]]; then
-    _x_shell_init
-  fi
+    if [[ "$PS1" != *PS1_PROMPT* ]]; then
+        _x_shell_init
+    fi
 }
 
 if [[ "$(declare -p PROMPT_COMMAND 2>&1)" = "declare -a"* ]]; then
-  PROMPT_COMMAND+=("_x_shell_prompt")
+    PROMPT_COMMAND+=("_x_shell_prompt")
 elif [[ -n "${PROMPT_COMMAND:-}" ]]; then
-  PROMPT_COMMAND=("$PROMPT_COMMAND" "_x_shell_prompt")
+    PROMPT_COMMAND=("$PROMPT_COMMAND" "_x_shell_prompt")
 else
-  PROMPT_COMMAND="_x_shell_prompt"
+    # shellcheck disable=SC2178 # array vs string
+    PROMPT_COMMAND="_x_shell_prompt"
 fi
 
 _x_shell_init
