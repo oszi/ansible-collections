@@ -2,7 +2,7 @@
 # Script to use as "vault password file" or "vault id" for convenient GPG encrypted vault passwords.
 set -euo pipefail
 
-GPG="gpg --batch --use-agent --default-recipient-self --yes"
+GPG="gpg --batch --use-agent --yes"
 
 exit_help() {
     echo "# ${0} [--check | --create] [--vault-id=VAULT_ID]" >&2
@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-vault_file="$(dirname -- "$vault_id")"/.vault-id/"$(basename -- "$vault_id")".asc
+vault_file="$(dirname -- "$vault_id")/.vault-id/$(basename -- "$vault_id").asc"
 
 if [ "$create" -ne 0 ]; then
     if [ "$check" -ne 0 ]; then
@@ -33,8 +33,17 @@ if [ "$create" -ne 0 ]; then
     fi
     echo "Vault password for '${vault_file}':" >&2
     read -rs password
+
+    echo "Enter recipients (one per line):" >&2
+    declare -a recipients
+    while read -r line && [ -n "$line" ]; do
+        if ${GPG} -k -- "$line" >/dev/null; then
+            recipients+=("-r" "$line")
+        fi
+    done
+
     mkdir -p -- "$(dirname -- "$vault_file")"
-    echo "$password" | ${GPG} --encrypt --armor --output "$vault_file"
+    echo "$password" | ${GPG} -v -e -a -o "$vault_file" "${recipients[@]}"
     exit $?
 
 elif [ -f "$vault_file" ]; then
@@ -42,7 +51,7 @@ elif [ -f "$vault_file" ]; then
         echo "${vault_id}@${0}"
         exit 0
     fi
-    ${GPG} --decrypt --quiet --output - -- "$vault_file"
+    ${GPG} -q -d -o - -- "$vault_file"
     exit $?
 
 else
