@@ -18,7 +18,7 @@ KEY_FILES_REGEX='^.*\(-key\.pem\|\.key\|\.csr\|\.p12\)$'
 
 # shellcheck disable=SC2016 # quoting '^$ANSIBLE_VAULT'
 files="$(find . -type f \( -regex "$VAULT_FILES_REGEX" -or -regex "$KEY_FILES_REGEX" \) -print0 2>/dev/null \
-    | xargs -0 -r grep --files-without-match '^$ANSIBLE_VAULT' --)" ||:
+    | xargs -0 -r grep --files-without-match -- '^$ANSIBLE_VAULT')" ||:
 
 if [ "$files" != "" ]; then
     echo -e "${COLOR_RED}Clear-text private keys or vault files!${COLOR_CLEAR}" >&2
