@@ -12,11 +12,11 @@ fi
 if command -v terraform >/dev/null 2>&1; then
     if command -v tofu >/dev/null 2>&1; then
         tf() {
-        if grep -Esq '\b(open)?tofu\b' .terraform.lock.hcl; then
-            tofu "$@"
-        else
-            terraform "$@"
-        fi
+            if grep -Esq '\b(open)?tofu\b' .terraform.lock.hcl; then
+                tofu "$@"
+            else
+                terraform "$@"
+            fi
         }
     else
         alias tf='terraform'

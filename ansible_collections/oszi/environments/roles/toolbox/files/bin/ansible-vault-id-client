@@ -13,6 +13,7 @@ exit_help() {
 check=0
 create=0
 vault_id="${ANSIBLE_VAULT_IDENTITY:-default}"
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --check) check=1;;
@@ -24,7 +25,7 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-vault_file="${vault_id%/*}/.vault-id/${vault_id##*/}.asc"
+vault_file="$(dirname -- "$vault_id")"/.vault-id/"$(basename -- "$vault_id")".asc
 
 if [ "$create" -ne 0 ]; then
     if [ "$check" -ne 0 ]; then
@@ -32,7 +33,7 @@ if [ "$create" -ne 0 ]; then
     fi
     echo "Vault password for '${vault_file}':" >&2
     read -rs password
-    mkdir -p -- "${vault_file%/*}"
+    mkdir -p -- "$(dirname -- "$vault_file")"
     echo "$password" | ${GPG} --encrypt --armor --output "$vault_file"
     exit $?
 
