@@ -1,21 +1,28 @@
-*.retry
+### General ###
+*.bak
+*.orig
+*.tmp
 *~
 .~*
+
+### Ansible ###
+*.retry
+.ansible/
+.vagrant/
+
+### Terraform ###
+*.tfstate*
+.terraform/
 
 ### Python ###
 __pycache__/
 *.py[cod]
-*venv/
+*.venv/
 
-### Vim ###
-.*.s[a-w][a-z]
-.s[a-w][a-z]
-.netrwhist
-
-### VS Code ###
-.vscode
-
-### IntelliJ ###
+### Editors ###
+*.sw[op]
 *.iml
-.idea
-.ipr
+*.ipr
+*.iws
+.idea/
+.vscode/
