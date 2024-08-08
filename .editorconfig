@@ -1,19 +1,25 @@
 root = true
 
+# Be consistent for shell and python scripts
+# with or without file extensions.
 [*]
 charset = utf-8
 indent_style = space
 indent_size = 4
 end_of_line = lf
-insert_final_newline = true
 trim_trailing_whitespace = true
+insert_final_newline = true
 
-[*.{tf,hcl,yaml,yml,xml}{,.j2,_,~}]
+[{Makefile*,*.mk,*.go}]
+indent_style = tab
+
+[*.{json,yaml,yml,toml,xml,html,css}{,[-_~],.j2}]
 indent_style = space
 indent_size = 2
 
-[{Makefile,*.mk,*.go,.git*}{,.j2,_,~}]
-indent_style = tab
+[*.{hcl,tf,tfvars*,tfstate*}]
+indent_style = space
+indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
