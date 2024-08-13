@@ -1,0 +1,118 @@
+---
+# This is a showcase of what the old-school containerhost role can do.
+# It's due for a rewrite to support the modern pod manifests and systemd quadlets .
+
+_container_uid: 65000
+_certbot_uid0: 130000
+
+_container_runtime_options_common:
+  - "--uidmap=${HOST_UIDMAP}"
+  - "--gidmap=${HOST_UIDMAP}"
+  - "--dns={{ podman_networks['vmbridge-containers']['gateway'] }}"
+  - "--dns-search=."
+  - "--security-opt=no-new-privileges"
+  - "--cap-drop=ALL"
+  - "--cap-add=CHOWN"
+  - "--cap-add=KILL"
+  - "--cap-add=NET_BIND_SERVICE"
+  - "--tmpfs=/run:exec"
+  - "--tmpfs=/tmp"
+  - "--read-only"
+
+_container_certbot_exec_command: |-
+  {{ containerhost_runtime }} run \
+      --name=%N-certbot \
+      --replace \
+      --rm \
+      --uidmap=0:{{ _certbot_uid0 }}:65536 \
+      --gidmap=0:{{ _certbot_uid0 }}:65536 \
+      --cap-drop=ALL \
+      --volume={{ containerhost_etc_path }}/%N/letsencrypt:/etc/letsencrypt:rw,U,Z \
+      docker.io/certbot/dns-cloudflare \
+      certonly --config /etc/letsencrypt/cli.ini
+
+_container_certbot_cli_ini: |
+  agree-tos
+  non-interactive
+  email admin@example.com
+  dns-cloudflare
+  dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
+
+_container_certbot_cloudflare_ini: |
+  dns_cloudflare_api_token = "{{ vault_cloudflare_api_token }}"
+
+cloudflare_zone: "example.com"
+
+podman_graphroot: "/opt/containers/graphroot"
+
+podman_networks:
+  vmbridge-containers:
+    driver: "macvlan"
+    gateway: "172.17.0.1"
+    subnet: "172.17.0.0/24"
+    ip_range: "172.17.0.240/28"
+    ipv6: false
+    opt:
+      parent: "enp1s0"
+      mode: "bridge"
+
+containerhost_services_labels:
+  io.containers.autoupdate: "local"
+
+containerhost_services:
+  jellyfin:
+    image: "docker.io/jellyfin/jellyfin"
+    environment:
+      # User inside = container user on the host.
+      CONTAINER_USER: "1000:1000"
+      HOST_UIDMAP: "0:{{ _container_uid | int - 1000 }}:65536"
+      HOST_DATADIR: "{{ containerhost_var_path }}/jellyfin/config"
+      HOST_TMPDIR: "{{ containerhost_var_path }}/jellyfin/cache"
+      HOST_CERTBOT_ROOT: "{{ containerhost_etc_path }}/jellyfin/letsencrypt"
+      # chcon -Rt container_file_t ... # (auto relabeling with :z is slow and potentially dangerous)
+      HOST_MEDIA_MNTDIR: "/mnt/Media"
+    init_script: |
+      HOST_USER={{ _container_uid }}:{{ _container_uid }}
+      /usr/bin/mkdir -p -m 0750 ${HOST_DATADIR} ${HOST_TMPDIR}/transcodes
+      /usr/bin/chown -R ${HOST_USER} ${HOST_DATADIR} ${HOST_TMPDIR}
+    unit_options: []
+    runtime_options:
+      - "{{ _container_runtime_options_common }}"
+      - "--init"
+      - "--memory=8G"
+      - "--network=vmbridge-containers"
+      - "--ip={{ podman_networks['vmbridge-containers']['ip_range'] | ipaddr('1') }}"
+      - "--hostname=jellyfin.{{ cloudflare_zone }}"
+      - "--cap-add=NET_RAW"
+      - "--user=${CONTAINER_USER}"
+      - "--volume=${HOST_DATADIR}:/config:rw,Z"
+      - "--volume=${HOST_TMPDIR}:/cache:rw,Z"
+      - "--volume=${HOST_CERTBOT_ROOT}/archive:/etc/letsencrypt/archive:ro,U,Z"
+      - "--volume=${HOST_CERTBOT_ROOT}/live:/etc/letsencrypt/live:ro,U,Z"
+      - "--volume=${HOST_MEDIA_MNTDIR}:/media:rw"
+    exec_start_pre:
+      - "{{ _container_certbot_exec_command }}"
+    # exec_start_post:
+    #   - "{{ _container_firewall_lockdown_exec_command }}"
+    copy_files:
+      - dest: "{{ containerhost_etc_path }}/jellyfin/letsencrypt/cli.ini"
+        content: |
+          {{ _container_certbot_cli_ini }}
+          cert-name jellyfin
+          domains jellyfin.{{ cloudflare_zone }},tv.{{ cloudflare_zone }}
+          post-hook "sh /etc/letsencrypt/post-hook.sh"
+        owner: "{{ _certbot_uid0 }}"
+        mode: "0600"
+      - dest: "{{ containerhost_etc_path }}/jellyfin/letsencrypt/cloudflare.ini"
+        content: "{{ _container_certbot_cloudflare_ini }}"
+        owner: "{{ _certbot_uid0 }}"
+        mode: "0600"
+      - dest: "{{ containerhost_etc_path }}/jellyfin/letsencrypt/post-hook.sh"
+        content: |
+          #!/bin/sh
+          set -eu
+          CERT_PATH="/etc/letsencrypt/live/jellyfin"
+          openssl pkcs12 -export -clcerts -inkey "${CERT_PATH}/privkey.pem" \
+            -in "${CERT_PATH}/cert.pem" -out "${CERT_PATH}/cert.p12" -passout pass:
+        owner: "{{ _certbot_uid0 }}"
+        mode: "0755"
