@@ -1,9 +1,10 @@
 ---
 verbosity: 1
 
+offline: true
+
 skip_list:
   - "experimental"
-  - "galaxy[no-changelog]"
   - "jinja[spacing]"
   - "no-handler"
 
