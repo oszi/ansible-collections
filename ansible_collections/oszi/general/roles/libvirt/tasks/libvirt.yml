@@ -24,6 +24,12 @@
     group: "root"
     mode: "0755"
 
+- name: Clean up scripts with obsolete .sh extensions
+  ansible.builtin.file:
+    path: "{{ libvirt_local_bin_path }}/{{ item | basename }}.sh"
+    state: "absent"
+  with_fileglob: ["bin/*"]
+
 - name: Copy /etc/sudoers.d/libvirt-virsh
   ansible.builtin.copy:
     src: "etc/sudoers.d/libvirt-virsh"
