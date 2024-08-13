@@ -1,0 +1,28 @@
+#!/bin/sh
+# Automagical inventory selector for multiple isolated inventory files.
+# Source this file in your terminal at the same level as the inventory directory.
+# ANSIBLE_INVENTORY will take precedence over ansible.cfg - overridable with CLI arguments.
+
+if [ -d ansible/inventory ]; then
+    cd ansible || false
+fi
+
+# Customize based on the actual inventory structure.
+if [ -d inventory ]; then
+    _ansible_inventories_found=$(
+        find inventory -maxdepth 1 -type f -print0 \
+            | xargs -0 -r grep --files-with-matches -- "$(hostname -f)" \
+            | tr '\n' ',' | sed 's/,$//'
+    )
+
+    if [ "$_ansible_inventories_found" != "" ]; then
+        export ANSIBLE_INVENTORY="$_ansible_inventories_found"
+        echo "ANSIBLE_INVENTORY=${ANSIBLE_INVENTORY}" >&2
+    else
+        echo "Host not found in the inventory!" >&2
+        false
+    fi
+else
+    echo "inventory directory not found!" >&2
+    false
+fi
