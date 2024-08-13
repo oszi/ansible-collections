@@ -2,12 +2,25 @@
 # Connect to or disconnect from the selected bluetooth device.
 set -euo pipefail
 
-paired_devices="$(bluetoothctl devices Paired || bluetoothctl paired-devices)" 2>/dev/null
+if ! (command -v bluetoothctl && command -v fzf) >/dev/null 2>&1; then
+    echo "bluetoothctl or fzf not found!" >&2
+    exit 1
+fi
 
-choice="$(echo "$paired_devices" \
-    | awk '{"bluetoothctl info "$2" | grep -iqE \"^\\s*connected:\\s*yes\" && echo [+] || echo [-]" | getline $1; print $0}' \
-    | sort -k 3 | fzf --no-multi --no-sort --tac)"
+paired_devices=$(
+    while read -r device; do
+        bluetoothctl info "${device:0:17}" | grep -Eiq '^\s*connected:\s*yes' \
+            && echo -n '[+] ' || echo -n '[-] '
+        echo "$device"
+    done < <(bluetoothctl devices Paired | grep -Eio '\b([0-9A-F]{2}:){5}[0-9A-F]{2}\b.*$')
+)
 
+if [ "$paired_devices" == "" ]; then
+    echo "No paired devices found! Is bluetooth disabled?" >&2
+    exit 1
+fi
+
+choice="$(echo "$paired_devices" | sort -k 3 | fzf --no-multi --no-sort --tac)"
 cmd="$(echo "$choice" | grep -q '^\[+\]' && echo disconnect || echo connect)"
 device="$(echo "$choice" | awk '{print $2}')"
 
