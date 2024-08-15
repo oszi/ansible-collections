@@ -8,19 +8,15 @@ import subprocess as sp
 import sys
 import textwrap
 
-from argparse import ArgumentParser, REMAINDER
+from argparse import ArgumentParser
 from typing import List, Mapping, Optional
 
 from ansible.parsing.utils.yaml import from_yaml
 
 
 args_parser = ArgumentParser(
-    description="SSH into a host from the given ansible inventory with all configured arguments.",
-    epilog=(
-        "The first half corresponds to ansible-inventory, the second half to ssh. "
-        "With the right environment variables and ansible.cfg, you don't need any options. "
-        "Automagical fzf support is also available."
-    ),
+    description="SSH into a host in an ansible inventory with all configured arguments.",
+    epilog="Transfer files: tar -czf- * | ansible-ssh HOST dd of=tar.gz",
 )
 args_parser.add_argument(
     "--inventory",
@@ -94,12 +90,12 @@ args_parser.add_argument(
 args_parser.add_argument(
     "host",
     nargs="?",
-    help="the host to ssh into",
+    help="host to ssh into / leave empty for fzf",
 )
 args_parser.add_argument(
     "command",
     help="command [argument ...]",
-    nargs=REMAINDER,
+    nargs="...",
 )
 
 
