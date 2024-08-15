@@ -1,0 +1,16 @@
+---
+cloudflare_zone: "example.com"
+cloudflare_api_token: "{{ vault_cloudflare_api_token }}"
+cloudflare_host_record: "{{ inventory_hostname.split('.')[0] }}"
+
+cloudflare_extra_a_records:
+  - record: jellyfin
+    value: "{{ podman_networks['vmbridge-containers']['ip_range'] | ipaddr('1') }}"
+    solo: true
+    ttl: 3600
+
+cloudflare_cname_records:
+  - record: tv
+    value: "jellyfin.{{ cloudflare_zone }}"
+    solo: true
+    ttl: 3600
