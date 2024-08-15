@@ -1,6 +1,6 @@
 ---
 # This is a showcase of what the old-school containerhost role can do.
-# It's due for a rewrite to support the modern pod manifests and systemd quadlets .
+# It's due for a rewrite to support the modern pod manifests and systemd quadlets.
 
 _container_uid: 65000
 _certbot_uid0: 130000
@@ -39,9 +39,7 @@ _container_certbot_cli_ini: |
   dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
 
 _container_certbot_cloudflare_ini: |
-  dns_cloudflare_api_token = "{{ vault_cloudflare_api_token }}"
-
-cloudflare_zone: "example.com"
+  dns_cloudflare_api_token = "{{ cloudflare_api_token }}"
 
 podman_graphroot: "/opt/containers/graphroot"
 
