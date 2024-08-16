@@ -30,13 +30,10 @@
     state: "absent"
   with_fileglob: ["bin/*"]
 
-- name: Copy /etc/sudoers.d/libvirt-virsh
-  ansible.builtin.copy:
-    src: "etc/sudoers.d/libvirt-virsh"
-    dest: "/etc/sudoers.d/libvirt-virsh"
-    owner: "root"
-    group: "root"
-    mode: "0440"
+- name: Remove obsolete /etc/sudoers.d/libvirt-virsh
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/libvirt-virsh"
+    state: "absent"
 
 - name: Apply libvirt networks
   community.libvirt.virt_net:

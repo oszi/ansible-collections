@@ -6,6 +6,7 @@ if [[ $# -ne 2 ]] || ! [[ "$1" =~ ^(at|de)tach$ ]]; then
     exit 1
 fi
 
+virsh="virsh -c qemu:///system"
 command="$1"
 pattern="$2"
 
@@ -14,9 +15,9 @@ if ! (command -v virsh && command -v fzf && command -v xmllint) >/dev/null 2>&1;
     exit 1
 fi
 
-domains="$(sudo virsh list --all --name | sort)"  # (sudo before fzf)
+domains="$(${virsh} list --all --name | sort)"
 if [ -z "$domains" ]; then
-    echo "virsh list --all returned empty" >&2
+    echo "${virsh} list --all returned empty" >&2
     exit 1
 fi
 
@@ -36,7 +37,7 @@ function virsh_command() {
     local command="$1"
     local domain="$2"
 
-    cat <<EOF | sudo virsh "${command}-device" "$domain" /dev/stdin --current
+    cat <<EOF | ${virsh} "${command}-device" "$domain" /dev/stdin --current
 <hostdev mode="subsystem" type="usb" managed="yes">
   <source>
     <vendor id="0x${vendor_id}"/>
@@ -47,7 +48,7 @@ EOF
 }
 
 for domain in ${domains}; do
-    if sudo virsh dumpxml "$domain" | xmllint --xpath "$device_xpath" - >/dev/null 2>&1; then
+    if ${virsh} dumpxml "$domain" | xmllint --xpath "$device_xpath" - >/dev/null 2>&1; then
         echo -n "Detach ${vendor_id}:${product_id} from ${domain}? [Y/n]" >&2
         read -r answer
         if echo "$answer" | grep -iqv '^N'; then
