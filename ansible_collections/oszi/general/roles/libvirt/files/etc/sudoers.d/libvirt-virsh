@@ -1,4 +1,0 @@
-%libvirt ALL=(ALL:ALL) NOPASSWD: /usr/bin/virsh attach-device*
-%libvirt ALL=(ALL:ALL) NOPASSWD: /usr/bin/virsh detach-device*
-%libvirt ALL=(ALL:ALL) NOPASSWD: /usr/bin/virsh dumpxml*
-%libvirt ALL=(ALL:ALL) NOPASSWD: /usr/bin/virsh list*
