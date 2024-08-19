@@ -3,30 +3,41 @@ set -euo pipefail
 
 virsh="virsh -c qemu:///system"
 virt_viewer="virt-viewer -c qemu:///system"
-virt_viewer_default="-a -H release-cursor=ctrl+alt --auto-resize=always"
+virt_viewer_defaults="-a -w -H release-cursor=ctrl+alt --auto-resize=always"
 
 if ! (command -v virsh && command -v virt-viewer && command -v fzf) >/dev/null 2>&1; then
     echo "virsh|virt-viewer|fzf not found" >&2
     exit 1
 fi
 
-if [[ $# -eq 0 ]]; then
-    virt_viewer="${virt_viewer} ${virt_viewer_default}"
-
-elif [[ "$1" =~ ^-*(h|help)$ ]]; then
+if [[ "${1-}" =~ ^-*(h|help)$ ]]; then
     echo "Execute virt-viewer for each fzf selected domain. See virt-viewer --help" >&2
-    echo "virt-viewer-fzf default: ${virt_viewer} ${virt_viewer_default}" >&2
+    echo "virt-viewer-fzf defaults: ${virt_viewer_defaults}" >&2
     exit 0
 fi
 
-domains="$(${virsh} list --state-running --name | sort)"
+domains="$(${virsh} list --all --name | sort)"
 if [ -z "$domains" ]; then
-    echo "${virsh} list --state-running returned empty" >&2
+    echo "${virsh} list --all returned empty" >&2
     exit 1
+fi
+
+if [ $# -eq 0 ]; then
+    # shellcheck disable=SC2086 # word splitting
+    set -- "$@" ${virt_viewer_defaults}
 fi
 
 domains_selected="$(echo "$domains" | fzf --multi --no-sort --tac)"
 for domain in ${domains_selected}; do
+    state="$(${virsh} dominfo --domain "$domain" | grep -i '^state:' | awk '{print $2}')"
+    if [[ "$state" == paused ]]; then
+        echo "# resuming ${domain} ..." >&2
+        ${virsh} resume --domain "$domain" >/dev/null
+    elif [[ ! "$state" == running ]]; then
+        echo "# starting ${domain} ..." >&2
+        ${virsh} start --domain "$domain" >/dev/null
+    fi
+
     echo "+ ${virt_viewer} $* --domain-name -- ${domain}" >&2
     ${virt_viewer} "$@" --domain-name -- "$domain" &
     disown
