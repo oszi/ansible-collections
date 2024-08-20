@@ -4,6 +4,7 @@
 import dataclasses as dcls
 import io
 import shlex
+import signal
 import subprocess as sp
 import sys
 import textwrap
@@ -226,7 +227,7 @@ def set_host_with_fzf_or_exit(app_args):
         sp.check_call(["fzf", "--version"], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
     except (sp.CalledProcessError, FileNotFoundError):
         args_parser.print_usage(sys.stderr)
-        sys.exit(1)
+        sys.exit(255)
 
     try:
         ansible_cmd = ["ansible", "all", "--list-hosts"]
@@ -245,25 +246,36 @@ def set_host_with_fzf_or_exit(app_args):
 
     except sp.CalledProcessError as error:
         print(f"ansible-ssh: error: {error.stderr or 'fzf exited'}", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(255)
 
     except ValueError as error:
         args_parser.print_usage(sys.stderr)
         print(f"ansible-ssh: error: {error}", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(255)
 
 
-if __name__ == "__main__":
-    _app_args = args_parser.parse_args()
-    if _app_args.host is None:
-        set_host_with_fzf_or_exit(_app_args)
+def signal_handler(signum, frame):  # pylint: disable=unused-argument
+    print(f"ansible-ssh: caught signal: {signum}", file=sys.stderr)
+    sys.exit(signum)
+
+
+def main():
+    app_args = args_parser.parse_args()
+    if app_args.host is None:
+        set_host_with_fzf_or_exit(app_args)
 
     ssh_cmd = (  # increasing priority
-        get_config_ssh_args() + get_inventory_ssh_args(_app_args) + get_app_ssh_args(_app_args)
-    ).get_args(_app_args.command)
+        get_config_ssh_args() + get_inventory_ssh_args(app_args) + get_app_ssh_args(app_args)
+    ).get_args(app_args.command)
 
-    print(shlex.join(ssh_cmd), file=sys.stderr)
+    print("+", shlex.join(ssh_cmd), file=sys.stderr)
 
     with sp.Popen(ssh_cmd) as ssh_proc:
         ssh_proc.wait()
         sys.exit(ssh_proc.returncode)
+
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    main()
