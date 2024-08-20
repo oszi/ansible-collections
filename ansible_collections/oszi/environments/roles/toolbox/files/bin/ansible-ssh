@@ -15,7 +15,7 @@ from ansible.parsing.utils.yaml import from_yaml
 
 
 args_parser = ArgumentParser(
-    usage="ansible-ssh [-i INVENTORY] [-u USER] [...] [host [command ...]]",
+    usage="ansible-ssh [--help] [-i INVENTORY] [...] [host [command ...]]",
     description="SSH into a host in an ansible inventory with all configured arguments.",
     epilog=(
         "ANSIBLE environment variables and ansible.cfg are interpreted too.\n"
@@ -224,8 +224,8 @@ def get_app_ssh_args(app_args) -> AnsibleSSHArgs:  # pylint: disable=too-many-br
 def set_host_with_fzf_or_exit(app_args):
     try:
         sp.check_call(["fzf", "--version"], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-    except sp.CalledProcessError:
-        args_parser.print_help(sys.stderr)
+    except (sp.CalledProcessError, FileNotFoundError):
+        args_parser.print_usage(sys.stderr)
         sys.exit(1)
 
     try:
@@ -235,21 +235,21 @@ def set_host_with_fzf_or_exit(app_args):
 
         hosts = textwrap.dedent(ansible_command(ansible_cmd)).rstrip()
         if not hosts:
-            raise ValueError("No ansible hosts found!")
+            raise ValueError("no inventory found at this location.")
 
-        # fzf uses /dev/tty directly which breaks with sp.PIPE on some systems without a pty slave...
+        # fzf uses /dev/tty directly which breaks with sp.PIPE on some systems, use a shell here.
         shell_cmd = f"echo {shlex.quote(hosts)} | fzf --no-multi --no-sort --tac"
         app_args.host = sp.check_output(shell_cmd, shell=True).decode("utf-8").strip()
         if not app_args.host:
-            raise ValueError("No host selected!")
+            raise ValueError("no host was selected.")
 
     except sp.CalledProcessError as error:
-        print(f"ansible-ssh#fzf: {error.stderr or 'exited'}", file=sys.stderr)
+        print(f"ansible-ssh: error: {error.stderr or 'fzf exited'}", file=sys.stderr)
         sys.exit(1)
 
-    except ValueError as eror:
-        print(eror, file=sys.stderr)
-        print("See ansible-ssh --help", file=sys.stderr)
+    except ValueError as error:
+        args_parser.print_usage(sys.stderr)
+        print(f"ansible-ssh: error: {error}", file=sys.stderr)
         sys.exit(1)
 
 
