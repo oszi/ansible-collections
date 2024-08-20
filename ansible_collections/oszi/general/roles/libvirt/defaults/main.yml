@@ -9,6 +9,7 @@ libvirt_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 # Libvirt/QEMU + GUI packages on Fedora/Debian/Ubuntu:
 # * Override in a non-graphical environment.
 libvirt_packages:
+  - ['fzf', 'libxml2']  # for the scripts
   - "{{ [
       'libvirt-dev',
       'libvirt-clients',
