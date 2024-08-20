@@ -5,15 +5,15 @@ virsh="virsh -c qemu:///system"
 virt_viewer="virt-viewer -c qemu:///system"
 virt_viewer_defaults="-a -w -H release-cursor=ctrl+alt --auto-resize=always"
 
-if ! (command -v virsh && command -v virt-viewer && command -v fzf) >/dev/null 2>&1; then
-    echo "virsh|virt-viewer|fzf not found" >&2
-    exit 1
-fi
-
 if [[ "${1-}" =~ ^-*(h|help)$ ]]; then
     echo "Execute virt-viewer for each fzf selected domain. See virt-viewer --help" >&2
     echo "virt-viewer-fzf defaults: ${virt_viewer_defaults}" >&2
     exit 0
+fi
+
+if ! (command -v virsh && command -v virt-viewer && command -v fzf) >/dev/null 2>&1; then
+    echo "virsh|virt-viewer|fzf not found" >&2
+    exit 1
 fi
 
 domains="$(${virsh} list --all --name | sort)"
@@ -24,7 +24,7 @@ fi
 
 if [ $# -eq 0 ]; then
     # shellcheck disable=SC2086 # word splitting
-    set -- "$@" ${virt_viewer_defaults}
+    set -- ${virt_viewer_defaults}
 fi
 
 domains_selected="$(echo "$domains" | fzf --multi --no-sort --tac)"
