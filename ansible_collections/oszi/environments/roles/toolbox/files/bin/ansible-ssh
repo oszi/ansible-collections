@@ -3,6 +3,7 @@
 # black -l 120 --target-version=py311 ansible-ssh
 import dataclasses as dcls
 import io
+import os
 import shlex
 import signal
 import subprocess as sp
@@ -57,7 +58,7 @@ args_parser.add_argument("command", help="command [argument ...]", nargs="...")
 
 @dcls.dataclass
 class AnsibleSSHArgs:
-    ssh = ["ssh"]
+    SSH = ["ssh"]
 
     # From ansible config and this app, prepended.
     ssh_args: List[str] = dcls.field(default_factory=list)
@@ -83,7 +84,7 @@ class AnsibleSSHArgs:
         )
 
     def get_args(self, command: Optional[List[str]] = None) -> List[str]:
-        ssh_args = self.ssh + self.ssh_args + self.ssh_common_args + self.ssh_extra_args
+        ssh_args = self.SSH + self.ssh_args + self.ssh_common_args + self.ssh_extra_args
 
         jump_hosts = []
         while "-J" in ssh_args:
@@ -117,17 +118,39 @@ def ansible_skip_first_lines(line: str) -> bool:
 
 def ansible_command(args: List[str], env: Mapping[str, str] = None) -> str:
     with sp.Popen(args, env=env, stdout=sp.PIPE, stderr=sp.PIPE) as proc, io.StringIO() as output:
-        skipped = False
-        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-            if skipped or not ansible_skip_first_lines(line):
-                output.write(line)
-                skipped = True
+        try:
+            skipped = False
+            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+                if skipped or not ansible_skip_first_lines(line):
+                    output.write(line)
+                    skipped = True
 
-        if proc.wait() != 0:
-            print(proc.stderr.read().decode("utf-8"), file=sys.stderr)
+            proc.wait()
+        except KeyboardInterrupt:
+            proc.terminate()
+
+        if proc.returncode != 0:
+            if proc.stderr:
+                print(proc.stderr.read().decode("utf-8"), file=sys.stderr)
             sys.exit(proc.returncode)
 
         return output.getvalue()
+
+
+def ansible_list_hosts(inventory: Optional[str]) -> str:
+    cmd = ["ansible", "all", "--list-hosts"]
+    if inventory:
+        cmd += ["-i", inventory]
+
+    env = os.environ.copy()
+    env.update(dict.fromkeys(("ANSIBLE_ASK_VAULT_PASS", "ANSIBLE_ASK_PASS", "ANSIBLE_BECOME_ASK_PASS"), "False"))
+
+    # Skip vault scripts as nothing is actually decrypted by --list-hosts.
+    if os.path.isfile("/etc/hostname"):
+        env["ANSIBLE_VAULT_PASSWORD_FILE"] = "/etc/hostname"
+        env["ANSIBLE_VAULT_IDENTITY_LIST"] = ""
+
+    return textwrap.dedent(ansible_command(cmd, env)).rstrip()
 
 
 def get_config_ssh_settings() -> List[Mapping[str, Optional[str]]]:
@@ -188,12 +211,8 @@ def get_inventory_ssh_args(app_args) -> AnsibleSSHArgs:
 
 def get_app_ssh_args(app_args) -> AnsibleSSHArgs:  # pylint: disable=too-many-branches
     ssh_args = AnsibleSSHArgs(user=app_args.user, key_file=app_args.key_file, host=app_args.host)
-
-    if app_args.verbose:
-        ssh_args.ssh_args += ["-vvv"]
     if app_args.ssh_config:
         ssh_args.ssh_args += ["-F", app_args.ssh_config]
-
     if app_args.ssh_options:
         for option in app_args.ssh_options:
             ssh_args.ssh_args += ["-o", option]
@@ -202,7 +221,6 @@ def get_app_ssh_args(app_args) -> AnsibleSSHArgs:  # pylint: disable=too-many-br
         ssh_args.ssh_args += ["-A"]
     if app_args.jump_host:
         ssh_args.ssh_args += ["-J", app_args.jump_host]
-
     if app_args.local_forward:
         ssh_args.ssh_args += ["-L", app_args.local_forward]
     if app_args.remote_forward:
@@ -218,40 +236,39 @@ def get_app_ssh_args(app_args) -> AnsibleSSHArgs:  # pylint: disable=too-many-br
         ssh_args.ssh_args += ["-T"]
     if app_args.pty:
         ssh_args.ssh_args += ["-t"]
+    if app_args.verbose:
+        ssh_args.ssh_args += ["-vvv"]
 
     return ssh_args
+
+
+def exit_with_usage(error):
+    args_parser.print_usage(sys.stderr)
+    print(f"ansible-ssh: error: {error}", file=sys.stderr)
+    sys.exit(255)
 
 
 def set_host_with_fzf_or_exit(app_args):
     try:
         sp.check_call(["fzf", "--version"], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-    except (sp.CalledProcessError, FileNotFoundError):
-        args_parser.print_usage(sys.stderr)
-        sys.exit(255)
+    except Exception:  # pylint: disable=broad-exception-caught
+        exit_with_usage("fzf is not installed")
+
+    hosts = ansible_list_hosts(app_args.inventory)
+    if not hosts:
+        exit_with_usage("no inventory or hosts found")
 
     try:
-        ansible_cmd = ["ansible", "all", "--list-hosts"]
-        if app_args.inventory:
-            ansible_cmd += ["-i", app_args.inventory]
-
-        hosts = textwrap.dedent(ansible_command(ansible_cmd)).rstrip()
-        if not hosts:
-            raise ValueError("no inventory found at this location.")
-
-        # fzf uses /dev/tty directly which breaks with sp.PIPE on some systems, use a shell here.
-        shell_cmd = f"echo {shlex.quote(hosts)} | fzf --no-multi --no-sort --tac"
-        app_args.host = sp.check_output(shell_cmd, shell=True).decode("utf-8").strip()
+        cmd = ["fzf", "--no-multi", "--no-sort", "--tac"]
+        app_args.host = sp.check_output(cmd, input=hosts, text=True).rstrip()
         if not app_args.host:
-            raise ValueError("no host was selected.")
+            raise ValueError("no host selected")
 
     except sp.CalledProcessError as error:
-        print(f"ansible-ssh: error: {error.stderr or 'fzf exited'}", file=sys.stderr)
-        sys.exit(255)
+        exit_with_usage(error.stderr or "fzf exited")
 
-    except ValueError as error:
-        args_parser.print_usage(sys.stderr)
-        print(f"ansible-ssh: error: {error}", file=sys.stderr)
-        sys.exit(255)
+    except Exception as error:  # pylint: disable=broad-exception-caught
+        exit_with_usage(error)
 
 
 def main():
