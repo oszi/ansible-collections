@@ -254,11 +254,6 @@ def set_host_with_fzf_or_exit(app_args):
         sys.exit(255)
 
 
-def signal_handler(signum, frame):  # pylint: disable=unused-argument
-    print(f"ansible-ssh: caught signal: {signum}", file=sys.stderr)
-    sys.exit(signum)
-
-
 def main():
     app_args = args_parser.parse_args()
     if app_args.host is None:
@@ -269,13 +264,16 @@ def main():
     ).get_args(app_args.command)
 
     print("+", shlex.join(ssh_cmd), file=sys.stderr)
-
     with sp.Popen(ssh_cmd) as ssh_proc:
-        ssh_proc.wait()
-        sys.exit(ssh_proc.returncode)
+
+        def signal_handler(signum, frame):  # pylint: disable=unused-argument
+            print(f"ansible-ssh: caught signal: {signum}", file=sys.stderr)
+            ssh_proc.send_signal(signum)
+
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        sys.exit(ssh_proc.wait())
 
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
     main()
