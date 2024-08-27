@@ -1,8 +1,16 @@
 ---
 # include_role: name=oszi.general.podman tasks_from=update
+# See oszi/general/playbooks/update.yml
 
 - name: Update podman images and containers
   tags: [podman]
+  vars:
+    # WARNING: Podman's sort is non-deterministic!
+    podman_image_list: >-
+      {{ podman_runtime }} image list
+      --format="{{ '{{.Repository}}:{{.Tag}}:{{.Id}}' }}"
+      --filter=dangling=false
+
   block:
     - name: Dump podman info
       when: "ansible_verbosity > 1"
@@ -10,25 +18,49 @@
       changed_when: false
       check_mode: false
 
-    - name: Update podman images
+    - name: List podman images
       ansible.builtin.shell: |
         set -euo pipefail
-        {{ podman_runtime }} images --format={{ '{{.Repository}}:{{.Tag}}' }} \
-          | grep -v '<none>' \
-          | xargs -L1 -P3 -r {{ podman_runtime }} pull -q
+        {{ podman_image_list }} | sort
       args:
+        executable: "/bin/bash"
+      register: _podman_images_result
+      changed_when: false
+      check_mode: false
+
+    - name: Pull podman images
+      when: _podman_images_result.stdout
+      ansible.builtin.shell: |
+        set -uo pipefail
+        awk -F':' '{print $1":"$2}' \
+          | xargs {{ podman_runtime }} pull --quiet >/dev/null
+        rc=$?
+        {{ podman_image_list }} | sort
+        exit $rc
+      args:
+        stdin: "{{ _podman_images_result.stdout }}"
         executable: "/bin/bash"
       register: _podman_pull_result
-      failed_when: "_podman_pull_result.rc != 0 and _podman_pull_result.stderr != ''
-        and 'Error: initializing source' not in _podman_pull_result.stderr"
-      tags: [skip_ansible_lint]
+      changed_when: "_podman_images_result.stdout != _podman_pull_result.stdout"
+      failed_when: >-
+          _podman_pull_result.rc != 0
+          and _podman_pull_result.stderr != ''
+          and 'Error: initializing source' not in _podman_pull_result.stderr
 
-    - name: Update podman containers and clean up
-      ansible.builtin.shell: |
-        set -euo pipefail
+    - name: List updated podman images
+      when: _podman_images_result.stdout and _podman_pull_result.changed
+      ansible.builtin.debug:
+        msg: "{{ _podman_images_result.stdout_lines
+          | difference(_podman_pull_result.stdout_lines) }}"
+
+    - name: Auto update containers
+      ansible.builtin.command: >-
         {{ podman_runtime }} auto-update
-        {{ podman_runtime }} images -qf dangling=true \
-          | xargs -r {{ podman_runtime }} rmi
-      args:
-        executable: "/bin/bash"
-      tags: [skip_ansible_lint]
+        --format="{{ '{{.Container}}:{{.Image}}:updated={{.Updated}}' }}"
+      register: _podman_auto_update_result
+      changed_when: "'updated=true' in _podman_auto_update_result.stdout"
+
+    - name: Prune dangling images
+      ansible.builtin.command: "{{ podman_runtime }} image prune --force"
+      register: _podman_prune_result
+      changed_when: _podman_prune_result.stdout
