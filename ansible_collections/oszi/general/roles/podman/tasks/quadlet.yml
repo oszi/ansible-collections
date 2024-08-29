@@ -1,0 +1,70 @@
+---
+- name: Set quadlet loop vars
+  ansible.builtin.set_fact:
+    _podman_quadlet_name: "{{ (podman_quadlets_item.key | basename).split('.')[0] }}"
+    _podman_quadlet_path: "{{ podman_quadlet_systemd_path }}/{{ podman_quadlets_item.key }}"
+    _podman_quadlet_copy_results: null  # Reset previous iteration.
+
+- name: Copy static files for the quadlet
+  when: podman_quadlets_item.key in podman_quadlets_copy_files
+  block:
+    - name: "Ensure directories exist for quadlet {{ podman_quadlets_item.key }}"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+      with_items: "{{ podman_quadlets_copy_files[podman_quadlets_item.key]
+        | map(attribute='dest') | map('dirname') | unique }}"
+      # Do not set permissions as they could be changed by the service.
+      tags: [skip_ansible_lint]
+
+    - name: "Copy static files for quadlet {{ podman_quadlets_item.key }}"
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        content: "{{ item.content | default(omit) }}"
+        src: "{{ item.src | default(omit) }}"
+        owner: "{{ item.owner | default(omit) }}"
+        group: "{{ item.group | default(item.owner | default(omit)) }}"
+        mode: "{{ item.mode | default(omit) }}"
+      with_items: "{{ podman_quadlets_copy_files[podman_quadlets_item.key] }}"
+      register: _podman_quadlet_copy_results
+
+- name: "Run init script for quadlet {{ podman_quadlets_item.key }}"
+  when: podman_quadlets_item.key in podman_quadlets_init_scripts
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    {{ podman_quadlets_init_scripts[podman_quadlets_item.key] }}
+  args:
+    # White lie to only execute once before installing.
+    creates: "{{ _podman_quadlet_path }}"
+    executable: "/bin/bash"
+  tags: [skip_ansible_lint]
+
+- name: "Install quadlet {{ podman_quadlets_item.key }}"
+  ansible.builtin.copy:
+    content: "{{ podman_quadlets_item.value }}"
+    dest: "{{ _podman_quadlet_path }}"
+    owner: "root"
+    mode: "0644"
+  register: _podman_quadlet_unit_result
+
+- name: Enable quadlet with error handling
+  vars:
+    _podman_quadlet_changed: "{{ _podman_quadlet_unit_result.changed
+      or _podman_quadlet_copy_results is not none and _podman_quadlet_copy_results.changed }}"
+  block:
+    - name: "Restart quadlet {{ podman_quadlets_item.key }}"
+      ansible.builtin.systemd:
+        name: "{{ _podman_quadlet_name }}.service"
+        state: "{{ _podman_quadlet_changed | ternary('restarted', 'started') }}"
+        daemon_reload: "{{ _podman_quadlet_changed }}"
+        enabled: true
+      tags: [skip_ansible_lint]
+
+  rescue:
+    - name: Find potential quadlet errors
+      ansible.builtin.command: "{{ podman_quadlet_libexec_path }} --dryrun"
+      changed_when: false
+
+    - name: "Failed to deploy quadlet {{ podman_quadlets_item.key }}"
+      ansible.builtin.fail:
+        msg: "journalctl -eu {{ _podman_quadlet_name }}.service"
