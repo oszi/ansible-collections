@@ -27,4 +27,12 @@ __pycache__/
 *.ipr
 *.iws
 .idea/
+.*project
+.settings/
 .vscode/
+.\#*
+\#*\#
+
+### OSX ###
+.DS_Store
+._*
