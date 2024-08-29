@@ -14,6 +14,18 @@ podman_docker_enabled: "{{ not podman_disabled }}"
 # * Prefer to use a virtual env instead of the distro package.
 podman_docker_compose_enabled: false
 
+# Dicts of podman quadlets. Map keys to unit contents.
+# Keys: NAME.container / NAME.kube / NAME.pod / NAME.image / NAME.network / ...
+# https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
+podman_quadlets: {}
+
+# Map keys of quadlets to dicts of args for the builtin copy module.
+# Use this to copy configuration files before installing.
+podman_quadlets_copy_files: {}
+# Map keys of quadlets to inline shell scripts that run once before installing.
+# Use this for first-time setup - run with the builtin shell module.
+podman_quadlets_init_scripts: {}
+
 # Dict of podman networks:
 # * Items are args for containers.podman.podman_network
 # * Set recreate: true to force apply changes

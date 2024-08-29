@@ -10,6 +10,17 @@
       ansible.builtin.include_tasks: podman-docker.yml
       when: not podman_disabled
 
+    - name: Install podman quadlets
+      when: not podman_disabled
+      ansible.builtin.include_tasks:
+        file: quadlet.yml
+        apply:
+          tags: [quadlet]
+      with_dict: "{{ podman_quadlets }}"
+      loop_control:
+        loop_var: podman_quadlets_item
+      tags: [quadlet]
+
     - name: Include podman disabled tasks
       ansible.builtin.include_tasks: podman-disabled.yml
       when: podman_disabled

@@ -1,3 +1,9 @@
 ---
 # Absolute path to the podman executable
 podman_runtime: "/usr/bin/podman"
+
+# Path to install podman quadlet units
+podman_quadlet_systemd_path: "/etc/containers/systemd"
+
+# Path to the quadlet library executable
+podman_quadlet_libexec_path: "/usr/libexec/podman/quadlet"
