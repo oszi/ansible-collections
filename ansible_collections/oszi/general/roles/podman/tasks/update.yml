@@ -5,7 +5,8 @@
 - name: Update podman images and containers
   tags: [podman]
   vars:
-    # WARNING: Podman's sort is non-deterministic!
+    # WARNING: Sort is not always deterministic.
+    # See https://github.com/containers/podman/issues/23803
     podman_image_list: >-
       {{ podman_runtime }} image list
       --format="{{ '{{.Repository}}:{{.Tag}}:{{.Id}}' }}"
