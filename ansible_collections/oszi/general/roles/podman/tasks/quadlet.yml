@@ -37,7 +37,6 @@
     # White lie to only execute once before installing.
     creates: "{{ _podman_quadlet_path }}"
     executable: "/bin/bash"
-  tags: [skip_ansible_lint]
 
 - name: "Install quadlet {{ podman_quadlets_item.key }}"
   ansible.builtin.copy:
@@ -47,24 +46,20 @@
     mode: "0644"
   register: _podman_quadlet_unit_result
 
-- name: Enable quadlet with error handling
+- name: Find potential quadlet errors
+  when: _podman_quadlet_unit_result.changed
+  ansible.builtin.command: "{{ podman_system_generator_path }} --dryrun"
+  changed_when: false
+  check_mode: false
+
+- name: "Restart quadlet {{ podman_quadlets_item.key }}"
+  ansible.builtin.systemd:
+    name: "{{ _podman_quadlet_name }}.service"
+    daemon_reload: "{{ _podman_quadlet_changed }}"
+    enabled: "{{ true if not _podman_quadlet_is_template else omit }}"
+    state: "{{ omit if _podman_quadlet_is_template
+      else 'restarted' if _podman_quadlet_changed else 'started' }}"
   vars:
     _podman_quadlet_changed: "{{ _podman_quadlet_unit_result.changed
       or _podman_quadlet_copy_results is not none and _podman_quadlet_copy_results.changed }}"
-  block:
-    - name: "Restart quadlet {{ podman_quadlets_item.key }}"
-      ansible.builtin.systemd:
-        name: "{{ _podman_quadlet_name }}.service"
-        state: "{{ _podman_quadlet_changed | ternary('restarted', 'started') }}"
-        daemon_reload: "{{ _podman_quadlet_changed }}"
-        enabled: true
-      tags: [skip_ansible_lint]
-
-  rescue:
-    - name: Find potential quadlet errors
-      ansible.builtin.command: "{{ podman_quadlet_libexec_path }} --dryrun"
-      changed_when: false
-
-    - name: "Failed to deploy quadlet {{ podman_quadlets_item.key }}"
-      ansible.builtin.fail:
-        msg: "journalctl -eu {{ _podman_quadlet_name }}.service"
+    _podman_quadlet_is_template: "{{ '@' in _podman_quadlet_name }}"
