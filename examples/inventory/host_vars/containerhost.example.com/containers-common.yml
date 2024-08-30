@@ -1,10 +1,15 @@
 ---
-podman_graphroot: "/opt/containers/graphroot"
+# Container-related glue, intended for group_vars...
+
+_certbot_uid0: 130000
+_containers_subnet: "172.17.0.0/24"
+_containers_ip_range: "172.17.0.240/28"
+_containers_gateway: "{{ _containers_subnet | ipaddr('1') }}"
 
 podman_networks:
   vmbridge-containers:
     driver: "macvlan"
-    gateway: "{{ _containers_subnet | ipaddr('1') }}"
+    gateway: "{{ _containers_gateway }}"
     subnet: "{{ _containers_subnet }}"
     ip_range: "{{ _containers_ip_range }}"
     ipv6: false
@@ -12,51 +17,72 @@ podman_networks:
       parent: "enp1s0"
       mode: "bridge"
 
-_containers_subnet: "172.17.0.0/24"
-_containers_ip_range: "172.17.0.240/28"
+_quadlet_container_service_common: |-
+  DNS={{ _containers_gateway }}
+  DNSSearch=.
+  Sysctl=net.ipv6.conf.all.disable_ipv6=1
+  Sysctl=net.ipv6.conf.default.disable_ipv6=1
+  DropCapability=ALL
+  AddCapability=CHOWN KILL NET_BIND_SERVICE
+  NoNewPrivileges=true
+  ReadOnly=true
+  ReadOnlyTmpfs=true
+  Tmpfs=/run:exec
+  AutoUpdate=local
 
-_quadlet_container_common: |
-    ContainerName=%N
-    DNS={{ _containers_subnet | ipaddr('1') }}
-    DNSSearch=.
-    Sysctl=net.ipv6.conf.all.disable_ipv6=1
-    Sysctl=net.ipv6.conf.default.disable_ipv6=1
-    DropCapability=ALL
-    AddCapability=CHOWN KILL NET_BIND_SERVICE
-    NoNewPrivileges=true
-    ReadOnly=true
-    ReadOnlyTmpfs=true
-    Tmpfs=/run:exec
-    AutoUpdate=local
+  [Service]
+  Restart=on-failure
+  RestartSec=10
 
-_container_runtime_options_common:  # XXX
-  - "--uidmap=${HOST_UIDMAP}"
-  - "--gidmap=${HOST_UIDMAP}"
-  - "--dns={{ _containers_subnet | ipaddr('1') }}"
-  - "--dns-search=."
-  - "--security-opt=no-new-privileges"
-  - "--cap-drop=ALL"
-  - "--cap-add=CHOWN"
-  - "--cap-add=KILL"
-  - "--cap-add=NET_BIND_SERVICE"
-  - "--tmpfs=/run:exec"
-  - "--tmpfs=/tmp"
-  - "--read-only"
+_quadlet_container_certbot: |
+  [Unit]
+  Description=LetsEncrypt with CloudFlare DNS
 
-_certbot_uid0: 130000
+  [Container]
+  Image=docker.io/certbot/dns-cloudflare
+  Exec=certonly --config /etc/letsencrypt/cli.ini
+  Volume={{ containerhost_etc_path }}/%i/letsencrypt:/etc/letsencrypt:rw,U,Z
 
-_container_certbot_exec_command: |-
-  {{ containerhost_runtime }} run \
-      --name=%N-certbot \
-      --sdnotify=ignore \
-      --replace \
-      --rm \
-      --uidmap=0:{{ _certbot_uid0 }}:65536 \
-      --gidmap=0:{{ _certbot_uid0 }}:65536 \
-      --cap-drop=ALL \
-      --volume={{ containerhost_etc_path }}/%N/letsencrypt:/etc/letsencrypt:rw,U,Z \
-      docker.io/certbot/dns-cloudflare \
-      certonly --config /etc/letsencrypt/cli.ini
+  UIDMap=0:{{ _certbot_uid0 }}:65536
+  GIDMap=0:{{ _certbot_uid0 }}:65536
+  DropCapability=ALL
+  NoNewPrivileges=true
+  PodmanArgs=--memory=256M
+
+  [Service]
+  Type=oneshot
+  RemainAfterExit=false
+  Restart=on-failure
+  RestartSec=10
+
+  [Install]
+  WantedBy=multi-user.target
+
+_quadlet_container_toolbox_firewall: |
+  [Unit]
+  Description=Ad-hoc firewall rules for containers
+
+  [Container]
+  Image={{ containerhost_toolbox_container_image }}
+  Exec=/mnt/firewall_lockdown.sh
+  Volume={{ containerhost_etc_path }}/%i/firewall_lockdown.sh:/mnt/firewall_lockdown.sh:ro,Z
+
+  Network=container:systemd-%i
+  {% if ansible_virtualization_role == 'guest' %}
+  PodmanArgs=--privileged
+  {% else %}
+  DropCapability=ALL
+  AddCapability=NET_ADMIN
+  {% endif %}
+
+  [Service]
+  Type=oneshot
+  RemainAfterExit=false
+  Restart=on-failure
+  RestartSec=1
+
+  [Install]
+  WantedBy=multi-user.target
 
 _container_certbot_cli_ini: |
   agree-tos
@@ -67,3 +93,31 @@ _container_certbot_cli_ini: |
 
 _container_certbot_cloudflare_ini: |
   dns_cloudflare_api_token = "{{ cloudflare_api_token }}"
+
+_container_firewall_lockdown_script_template: |
+  #!/bin/bash
+  ## Run with {{ containerhost_toolbox_container_image }}
+  set -euo pipefail
+  echo "iptables-nft-restore..." >&2
+  cat << IP4EOF | iptables-nft-restore
+  *filter
+  :INPUT ACCEPT [0:0]
+  -A INPUT -m conntrack --ctstate INVALID -j DROP
+  :FORWARD DROP [0:0]
+  -A FORWARD -m conntrack --ctstate INVALID -j DROP
+  -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+  :OUTPUT ACCEPT [0:0]
+  -A OUTPUT -m conntrack --ctstate INVALID -j DROP
+  -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+  -A OUTPUT -o lo -j ACCEPT
+  -A OUTPUT -p udp -m udp -d {{ _containers_gateway }}/32 --dport 53 -j ACCEPT
+  -A OUTPUT -p tcp -m tcp -d {{ _containers_gateway }}/32 --dport 53 -j ACCEPT
+  -A OUTPUT -d {{ _containers_ip_range }} -j ACCEPT
+  -A OUTPUT -d 10.0.0.0/8 -j REJECT --reject-with icmp-port-unreachable
+  -A OUTPUT -d 172.16.0.0/12 -j REJECT --reject-with icmp-port-unreachable
+  -A OUTPUT -d 192.168.0.0/16 -j REJECT --reject-with icmp-port-unreachable
+  -A OUTPUT -d 100.64.0.0/10 -j REJECT --reject-with icmp-port-unreachable
+  -A OUTPUT -d 224.0.0.0/4 -j DROP
+  -A OUTPUT -d 255.255.255.255/32 -j DROP
+  COMMIT
+  IP4EOF

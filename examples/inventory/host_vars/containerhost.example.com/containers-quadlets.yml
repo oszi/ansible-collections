@@ -1,10 +1,20 @@
 ---
+# See also: containers-common.yml
+
 _jupyter_uid: 280000
+_jupyter_ipv4: "{{ _containers_ip_range | ipaddr('2') }}"
 
 podman_quadlets:
+  certbot@.container: "{{ _quadlet_container_certbot }}"
+  toolbox-firewall@.container: "{{ _quadlet_container_toolbox_firewall }}"
+
   jupyter.container: |
     [Unit]
     Description=Jupyter Notebook
+    Requires=certbot@%N.service
+    After=certbot@%N.service
+    Requires=toolbox-firewall@%N.service
+    Before=toolbox-firewall@%N.service
 
     [Container]
     Image=docker.io/jupyter/datascience-notebook
@@ -17,25 +27,19 @@ podman_quadlets:
     GIDMap=0:{{ _jupyter_uid }}:65536
     HostName=jupyter.{{ cloudflare_zone }}
     Network=vmbridge-containers
-    IP={{ _containers_ip_range | ipaddr('2') }}
+    IP={{ _jupyter_ipv4 }}
     PodmanArgs=--memory=8G
 
     Volume={{ containerhost_var_path }}/%N:/home/jovyan:rw,Z
     Volume={{ containerhost_etc_path }}/%N/letsencrypt/archive:/etc/letsencrypt/archive:ro,U,Z
     Volume={{ containerhost_etc_path }}/%N/letsencrypt/live:/etc/letsencrypt/live:ro,U,Z
 
-    {{ _quadlet_container_common }}
-
     Exec=start-notebook.py \
-      --ServerApp.certfile=/etc/letsencrypt/live/jupyter/fullchain.pem \
-      --ServerApp.keyfile=/etc/letsencrypt/live/jupyter/privkey.pem \
-      --PasswordIdentityProvider.hashed_password={{ vault_jupyter_password_hash | quote }}
+    --ServerApp.certfile=/etc/letsencrypt/live/jupyter/fullchain.pem \
+    --ServerApp.keyfile=/etc/letsencrypt/live/jupyter/privkey.pem \
+    --PasswordIdentityProvider.hashed_password={{ vault_jupyter_password_hash | quote }}
 
-    [Service]
-    ExecStartPre={{ _container_certbot_exec_command }}
-    # ExecStartPost={{ _container_firewall_lockdown_exec_command }}
-    Restart=on-failure
-    RestartSec=10
+    {{ _quadlet_container_service_common }}
 
     [Install]
     WantedBy=multi-user.target
@@ -62,3 +66,8 @@ podman_quadlets_copy_files:
       content: "{{ _container_certbot_cloudflare_ini }}"
       owner: "{{ _certbot_uid0 }}"
       mode: "0600"
+
+    - dest: "{{ containerhost_etc_path }}/jupyter/firewall_lockdown.sh"
+      content: "{{ _container_firewall_lockdown_script_template }}"
+      owner: "root"
+      mode: "0700"
