@@ -1,12 +1,13 @@
 ---
 # Skip podman setup tasks and uninstall podman?
 podman_disabled: false
+# Override the graphroot from /var/lib/containers/storage:
+podman_graphroot:
 
 # [Un]Install podman-compose (rootless, daemonless)?
 podman_compose_enabled: "{{ not podman_disabled }}"
 # [Un]Install toolbox - containertoolbx.org?
 podman_toolbox_enabled: "{{ not podman_disabled and not flatpak_disabled | default(false) }}"
-
 # Emulate docker using podman-docker?
 podman_docker_enabled: "{{ not podman_disabled }}"
 # Install docker-compose to be used with podman-docker? HERE BE DRAGONS!
@@ -18,7 +19,6 @@ podman_docker_compose_enabled: false
 # Keys: NAME.container / NAME.kube / NAME.pod / NAME.image / NAME.network / ...
 # https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
 podman_quadlets: {}
-
 # Map keys of quadlets to dicts of args for the builtin copy module.
 # Use this to copy configuration files before installing.
 podman_quadlets_copy_files: {}
@@ -26,15 +26,10 @@ podman_quadlets_copy_files: {}
 # Use this for first-time setup - run with the builtin shell module.
 podman_quadlets_init_scripts: {}
 
-# Dict of podman networks:
+# Dict of podman networks: (Consider .network quadlets...)
 # * Items are args for containers.podman.podman_network
 # * Set recreate: true to force apply changes
 podman_networks: {}
-
-# Override default location of container storage
-# from /var/lib/containers/storage
-podman_graphroot:
-
-# Lists of dicts of args for the podman_image module:
+# Lists of dicts of args for the podman_image module: (Consider .image quadlets...)
 # https://docs.ansible.com/ansible/latest/modules/podman_image_module.html
 podman_images: []
