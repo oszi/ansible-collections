@@ -5,6 +5,9 @@ systemd_disabled: "{{ ansible_virtualization_type == 'container' }}"
 # Dict of systemd service, timer and drop-in files:
 # * {name.service: content, name.timer: content, name.service.d/drop-in.conf: content}
 systemd_system_units: {}
+# Dict of systemd system-preset files
+# * {00-name.preset: content}
+systemd_system_presets: {}
 
 # Enable systemd-networkd setup (off by default)
 systemd_networkd_enabled: "{{ systemd_network_units | length > 0 or systemd_resolved_enabled }}"
