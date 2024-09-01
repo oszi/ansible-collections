@@ -21,4 +21,5 @@ galaxy_info:
     - baselinux
 
 dependencies:
+  - role: oszi.general.systemd
   - role: oszi.general.python
