@@ -27,10 +27,21 @@
   notify: "Reload systemd"
   with_dict: "{{ systemd_system_units }}"
 
-- name: Enable swapfile if there is no swap partition
-  ansible.builtin.systemd:
-    name: "swapfile"
-    state: "started"
-    daemon_reload: true
-    enabled: true
-  when: ansible_swaptotal_mb < 1
+- name: Ensure directory /etc/systemd/system-preset exists
+  ansible.builtin.file:
+    path: "/etc/systemd/system-preset"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: systemd_system_presets
+
+- name: Install inventory systemd system-preset files
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system-preset/{{ item.key }}"
+    content: "{{ item.value }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: "Reload systemd"
+  with_dict: "{{ systemd_system_presets }}"
