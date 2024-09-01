@@ -1,7 +1,0 @@
-[Unit]
-Description=Podman Image Garbage Collector
-
-[Service]
-EnvironmentFile=-/etc/environment
-Environment=PODMAN_RUNTIME={{ podman_runtime }}
-ExecStart=/bin/sh -c "${PODMAN_RUNTIME} images -qf dangling=true | /usr/bin/xargs -r ${PODMAN_RUNTIME} rmi"

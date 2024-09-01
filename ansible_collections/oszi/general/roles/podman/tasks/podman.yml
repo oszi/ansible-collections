@@ -55,17 +55,15 @@
   with_items: "{{ podman_images }}"
   tags: [skip_ansible_lint]
 
-- name: Copy podman image garbage collector unit files
-  ansible.builtin.template:
-    src: "etc/systemd/system/{{ item }}.j2"
-    dest: "/etc/systemd/system/{{ item }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  notify: "Restart podman-image-gc timer"
+- name: Remove obsolete podman-image-gc unit files
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item }}"
+    state: "absent"
+  notify: "Reload systemd"
   with_items:
     - podman-image-gc.service
     - podman-image-gc.timer
+    - timers.target.wants/podman-image-gc.timer
 
 - name: Copy short aliases for podman
   ansible.builtin.copy:
