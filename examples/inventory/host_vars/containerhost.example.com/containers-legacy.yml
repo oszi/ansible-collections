@@ -74,8 +74,6 @@ containerhost_services:
 _container_runtime_options_common:
   - "--uidmap=${HOST_UIDMAP}"
   - "--gidmap=${HOST_UIDMAP}"
-  - "--dns={{ _containers_gateway }}"
-  - "--dns-search=."
   - "--security-opt=no-new-privileges"
   - "--cap-drop=ALL"
   - "--cap-add=CHOWN"
