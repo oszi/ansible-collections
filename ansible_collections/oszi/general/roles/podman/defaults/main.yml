@@ -1,8 +1,6 @@
 ---
 # Skip podman setup tasks and uninstall podman?
 podman_disabled: false
-# Override the graphroot from /var/lib/containers/storage:
-podman_graphroot:
 
 # [Un]Install podman-compose (rootless, daemonless)?
 podman_compose_enabled: "{{ not podman_disabled }}"
@@ -14,6 +12,15 @@ podman_docker_enabled: "{{ not podman_disabled }}"
 # * For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
 # * Prefer to use a virtual env instead of the distro package.
 podman_docker_compose_enabled: false
+
+# Override the graphroot from /var/lib/containers/storage:
+podman_graphroot:
+# Contents of policy.json in YAML/JSON format.
+podman_config_policy: {}
+# Contents of containers.conf
+podman_config_containers:
+# Contents of toolbox.conf
+podman_config_toolbox:
 
 # Dicts of podman quadlets. Map keys to unit contents.
 # Keys: NAME.container / NAME.kube / NAME.pod / NAME.image / NAME.network / ...
