@@ -22,5 +22,11 @@ containerhost_toolbox_container_image: "quay.io/oszi/toolbox"
 # Pre-pull the toolbox container image as root?
 containerhost_toolbox_container_pull: false
 
+# Containerhost role override of podman_config_toolbox
+# Requires podman_toolbox_enabled: true
+containerhost_podman_config_toolbox: |
+  [general]
+  image = "{{ containerhost_toolbox_container_image }}"
+
 # Path to the container runtime for service containers
 containerhost_runtime: "{{ podman_runtime }}"
