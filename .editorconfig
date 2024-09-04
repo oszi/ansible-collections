@@ -10,14 +10,14 @@ end_of_line = lf
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[{{BSD,GNU,}makefile,Makefile*,*.mk}]
+[{{BSD,GNU,}makefile,Makefile*,*.mk,*.gmk,*.make}]
 indent_style = tab
 
 [*.{hcl,tf,tfvars*,tfstate*}]
 indent_style = space
 indent_size = 2
 
-[*.{json,yaml,yml,xml,html,css}{,[-_~],.j2}]
+[*.{json,yaml,yml,ini,cfg,conf,toml,xml,html,css}{,[-_~],.j2}]
 indent_style = space
 indent_size = 2
 
