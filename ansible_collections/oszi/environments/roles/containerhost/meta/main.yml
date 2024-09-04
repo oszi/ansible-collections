@@ -23,3 +23,5 @@ galaxy_info:
 dependencies:
   - role: oszi.environments.baselinux
   - role: oszi.general.podman
+    vars:
+      podman_config_toolbox: "{{ containerhost_podman_config_toolbox }}"
