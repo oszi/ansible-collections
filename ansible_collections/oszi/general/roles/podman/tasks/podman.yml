@@ -43,6 +43,41 @@
       when: _ini_file_result.changed
       tags: [skip_ansible_lint]
 
+- name: Configure podman policy.json
+  when: podman_config_policy
+  ansible.builtin.copy:
+    content: "{{ podman_config_policy | to_nice_json }}"
+    dest: "{{ podman_config_policy_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Configure podman containers.conf
+  when: podman_config_containers
+  ansible.builtin.copy:
+    content: "{{ podman_config_containers }}"
+    dest: "{{ podman_config_containers_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Configure podman toolbox.conf
+  when: podman_toolbox_enabled and podman_config_toolbox
+  ansible.builtin.copy:
+    content: "{{ podman_config_toolbox }}"
+    dest: "{{ podman_config_toolbox_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Copy short aliases for podman
+  ansible.builtin.copy:
+    src: "etc/profile.d/podman-aliases.sh"
+    dest: "/etc/profile.d/"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
 - name: Configure podman networks
   containers.podman.podman_network:
   args: "{{ item.value | combine({'name': item.key}) }}"
@@ -64,11 +99,3 @@
     - podman-image-gc.service
     - podman-image-gc.timer
     - timers.target.wants/podman-image-gc.timer
-
-- name: Copy short aliases for podman
-  ansible.builtin.copy:
-    src: "etc/profile.d/podman-aliases.sh"
-    dest: "/etc/profile.d/"
-    owner: "root"
-    group: "root"
-    mode: "0644"
