@@ -1,7 +1,6 @@
 ---
 # Use this reload handler from other roles.
 - name: Reload systemd
-  when: not systemd_disabled
   ansible.builtin.systemd:
     daemon_reload: true
 
