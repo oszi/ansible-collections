@@ -4,6 +4,12 @@
     name: "podman-docker"
     state: "{{ podman_docker_enabled | ternary('present', 'absent') }}"
 
+# XXX: Introduced in podman 5.0
+- name: Check upstream /etc/profile.d/podman-docker.sh
+  ansible.builtin.stat:
+    path: "/etc/profile.d/podman-docker.sh"
+  register: _etc_profile_podman_docker
+
 - name: Enable podman daemons and docker-compose
   when: podman_docker_enabled
   block:
@@ -19,7 +25,8 @@
         scope: "global"
         enabled: true
 
-    - name: Set DOCKER_HOST via /etc/profile.d/podman-docker-socket.sh
+    - name: Set DOCKER_HOST if upstream had not done so already
+      when: not _etc_profile_podman_docker.stat.exists
       ansible.builtin.copy:
         content: |
           if [ -z "${DOCKER_HOST:-}" ]; then
@@ -35,8 +42,8 @@
         name: "docker-compose"
         state: "{{ podman_docker_compose_enabled | ternary('present', 'absent') }}"
 
-- name: Remove /etc/profile.d/podman-docker-socket.sh?
-  when: not podman_docker_enabled
+- name: Remove obsolete /etc/profile.d/podman-docker-socket.sh?
+  when: not podman_docker_enabled or _etc_profile_podman_docker.stat.exists
   ansible.builtin.file:
     path: "/etc/profile.d/podman-docker-socket.sh"
     state: "absent"
