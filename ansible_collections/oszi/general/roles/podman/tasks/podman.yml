@@ -73,7 +73,7 @@
 - name: Copy short aliases for podman
   ansible.builtin.copy:
     src: "etc/profile.d/podman-aliases.sh"
-    dest: "/etc/profile.d/"
+    dest: "/etc/profile.d/podman-aliases.sh"
     owner: "root"
     group: "root"
     mode: "0644"
