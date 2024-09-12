@@ -19,6 +19,3 @@ galaxy_info:
     - general
     - linux
     - containers
-
-dependencies:
-  - role: oszi.general.systemd
