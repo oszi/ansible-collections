@@ -7,13 +7,14 @@
       ansible.builtin.include_tasks:
         file: bootstrap.yml
 
+    # Run even with persistent fact caching that would bypass the above.
     - name: Update package cache
       when: bootstrap_package_update_cache
       ansible.builtin.package:
         update_cache: true
         cache_valid_time: "{{ bootstrap_apt_cache_valid_time if ansible_pkg_mgr == 'apt' else omit }}"
       changed_when: false
-      ignore_errors: true  # Could be offline.
+      ignore_errors: true  # We could be offline.
       tags: [skip_ansible_lint]
 
     - name: Bootstrap role completed
