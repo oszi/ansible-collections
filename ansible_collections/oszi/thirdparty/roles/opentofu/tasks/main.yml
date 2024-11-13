@@ -6,12 +6,7 @@
       ansible.builtin.include_tasks:
         file: "{{ ansible_os_family | lower }}.yml"
 
-    - name: Conflicting OpenTofu package is not installed
-      ansible.builtin.package:
-        name: "{{ opentofu_upstream_enabled | ternary('opentofu', 'tofu') }}"
-        state: "absent"
-
     - name: OpenTofu package is present or absent
       ansible.builtin.package:
-        name: "{{ opentofu_upstream_enabled | ternary('tofu', 'opentofu') }}"
+        name: "opentofu"
         state: "{{ opentofu_enabled | ternary('present', 'absent') }}"
