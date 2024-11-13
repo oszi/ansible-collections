@@ -1,12 +1,9 @@
 ---
+# Do not remove "kubectl" dynamically as it now matches "kubernetes-client" [RedHat/Fedora]
+
 - name: Google kubectl setup tasks
   when: gcloud_sdk_enabled and gcloud_sdk_kubectl_enabled
   block:
-    - name: Remove kubernetes-client from distro
-      ansible.builtin.package:
-        name: "kubernetes-client"
-        state: "absent"
-
     - name: Install kubectl from Google
       ansible.builtin.package:
         name: "kubectl"
@@ -32,17 +29,3 @@
     name: "google-cloud-sdk-gke-gcloud-auth-plugin"
     state: "{{ (gcloud_sdk_enabled and gcloud_sdk_kubectl_enabled)
       | ternary('present', 'absent') }}"
-
-- name: Distro kubectl setup tasks
-  when: "not gcloud_sdk_enabled or not gcloud_sdk_kubectl_enabled"
-  block:
-    - name: Remove kubectl from Google
-      ansible.builtin.package:
-        name: "kubectl"
-        state: "absent"
-
-    - name: Install kubernetes-client on RedHat family
-      when: "ansible_os_family == 'RedHat'"
-      ansible.builtin.package:
-        name: "kubernetes-client"
-        state: "present"
