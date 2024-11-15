@@ -1,8 +1,17 @@
 ---
-azure_cli_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-azure-cli"
+# Azure CLI and VS Code use the same Microsoft GPG key!
+# They might also prefer it at different paths...
+
+azure_cli_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft"
 azure_cli_rpm_includepkgs: ["azure-cli"]
 
-azure_cli_deb_gpgkey: "/etc/apt/keyrings/azure-cli.gpg"
+azure_cli_deb_gpgkey: "/etc/apt/keyrings/microsoft.gpg"
 azure_cli_deb_repo: >-
   deb [arch=amd64 signed-by={{ azure_cli_deb_gpgkey }}]
   {{ azure_cli_deb_baseurl }} {{ ansible_distribution_release }} main
+
+azure_cli_rpm_gpgkey_used_elsewhere: "{{ vscode_enabled | default(false)
+  and azure_cli_rpm_gpgkey == vscode_rpm_gpgkey | default('') }}"
+
+azure_cli_deb_gpgkey_used_elsewhere: "{{ vscode_enabled | default(false)
+  and azure_cli_deb_gpgkey == vscode_deb_gpgkey | default('') }}"
