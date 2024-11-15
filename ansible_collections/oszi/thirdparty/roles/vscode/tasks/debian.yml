@@ -23,9 +23,17 @@
 
 - name: Uninstall VS Code deb repository
   when: not vscode_enabled
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: "absent"
-  with_items:
-    - "{{ vscode_deb_gpgkey }}"
-    - "/etc/apt/sources.list.d/vscode.list"
+  block:
+    - name: Uninstall VS Code deb repository
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "absent"
+      with_items:
+        - "/etc/apt/sources.list.d/vscode.list"
+        - "/etc/apt/sources.list.d/vscode.sources"
+
+    - name: Uninstall Microsoft deb signing key
+      when: not vscode_deb_gpgkey_used_elsewhere
+      ansible.builtin.file:
+        path: "{{ vscode_deb_gpgkey }}"
+        state: "absent"

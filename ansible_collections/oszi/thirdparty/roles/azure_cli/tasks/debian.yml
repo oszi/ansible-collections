@@ -23,9 +23,17 @@
 
 - name: Uninstall Azure CLI deb repository
   when: not azure_cli_enabled
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: "absent"
-  with_items:
-    - "{{ azure_cli_deb_gpgkey }}"
-    - "/etc/apt/sources.list.d/azure-cli.list"
+  block:
+    - name: Uninstall Azure CLI deb repository
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "absent"
+      with_items:
+        - "/etc/apt/sources.list.d/azure-cli.list"
+        - "/etc/apt/sources.list.d/azure-cli.sources"
+
+    - name: Uninstall Microsoft deb signing key
+      when: not azure_cli_deb_gpgkey_used_elsewhere
+      ansible.builtin.file:
+        path: "{{ azure_cli_deb_gpgkey }}"
+        state: "absent"
