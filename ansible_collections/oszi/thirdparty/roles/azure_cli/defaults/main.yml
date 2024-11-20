@@ -1,7 +1,0 @@
----
-# Install the Azure CLI repository and package?
-azure_cli_enabled: false
-
-# Repo base URLs - change for custom mirrors
-azure_cli_rpm_baseurl: "https://packages.microsoft.com/yumrepos/azure-cli"
-azure_cli_deb_baseurl: "https://packages.microsoft.com/repos/azure-cli"
