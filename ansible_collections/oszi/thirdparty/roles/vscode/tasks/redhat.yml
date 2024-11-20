@@ -1,6 +1,17 @@
 ---
 - name: Install VS Code RPM repository
   when: vscode_enabled
+  vars:
+    vscode_yum_repo_args:
+      file: "vscode"
+      name: "vscode"
+      description: "Visual Studio Code"
+      includepkgs: "{{ vscode_rpm_includepkgs }}"
+      baseurl: "{{ vscode_rpm_baseurl }}"
+      gpgkey: "file://{{ vscode_rpm_gpgkey }}"
+      gpgcheck: true
+      repo_gpgcheck: false
+      enabled: true
   block:
     - name: Copy VS Code RPM signing key
       ansible.builtin.copy:
@@ -9,28 +20,46 @@
         owner: "root"
         mode: "0644"
 
-    - name: Install VS Code RPM repository
+    - name: Check VS Code RPM repository
       ansible.builtin.yum_repository:
-        file: "vscode"
-        name: "vscode"
-        description: "Visual Studio Code"
-        includepkgs: "{{ vscode_rpm_includepkgs }}"
-        baseurl: "{{ vscode_rpm_baseurl }}"
-        gpgkey: "file://{{ vscode_rpm_gpgkey }}"
-        gpgcheck: true
-        repo_gpgcheck: false
-        enabled: true
+      args: "{{ vscode_yum_repo_args }}"
+      register: _vscode_yum_repo
+      check_mode: true
+
+    - name: Ensure vscode.repo is NOT immutable
+      when: _vscode_yum_repo.changed
+      ansible.builtin.file:
+        path: "{{ vscode_rpm_repo_file }}"
+        attr: "-i"
+      failed_when: false
+
+    - name: Install VS Code RPM repository
+      when: _vscode_yum_repo.changed
+      ansible.builtin.yum_repository:
+      args: "{{ vscode_yum_repo_args }}"
+
+    - name: Ensure vscode.repo is immutable to prevent vendor changes
+      when: _vscode_yum_repo.changed
+      ansible.builtin.file:
+        path: "{{ vscode_rpm_repo_file }}"
+        attr: "+i"
 
 - name: Uninstall VS Code RPM repository
   when: not vscode_enabled
   block:
+    - name: Ensure vscode.repo is NOT immutable
+      ansible.builtin.file:
+        path: "{{ vscode_rpm_repo_file }}"
+        attr: "-i"
+      failed_when: false
+
     - name: Uninstall VS Code RPM repository
       ansible.builtin.file:
-        path: "/etc/yum.repos.d/vscode.repo"
+        path: "{{ vscode_rpm_repo_file }}"
         state: "absent"
 
     - name: Uninstall Microsoft RPM signing key
-      when: not vscode_rpm_gpgkey_used_elsewhere
+      when: not vscode_microsoft_gpgkey_used_elsewhere
       ansible.builtin.file:
         path: "{{ vscode_rpm_gpgkey }}"
         state: "absent"
