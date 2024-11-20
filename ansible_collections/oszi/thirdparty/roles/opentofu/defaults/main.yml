@@ -1,7 +1,7 @@
 ---
 # Install OpenTofu?
-# If upstream is enabled, opentofu is installed from the upstream repository.
-# If not, the downstream distro (e.g. Fedora) package is installed.
+# If upstream is enabled, "tofu" is installed.
+# If not, "opentofu" packaged by the distro (e.g. Fedora) is installed.
 opentofu_enabled: "{{ ansible_distribution == 'Fedora' or opentofu_upstream_enabled }}"
 
 # Install the upstream (external!) deb/rpm repository?
