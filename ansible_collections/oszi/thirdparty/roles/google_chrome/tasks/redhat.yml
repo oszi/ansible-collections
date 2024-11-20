@@ -39,22 +39,24 @@
       args: "{{ google_chrome_yum_repo_args }}"
 
     - name: Ensure google-chrome.repo is immutable to prevent vendor changes
+      when: _google_chrome_yum_repo.changed
       ansible.builtin.file:
         path: "{{ google_chrome_rpm_repo_file }}"
         attr: "+i"
 
-- name: Ensure google-chrome.repo is NOT immutable
-  when: not google_chrome_enabled
-  ansible.builtin.file:
-    path: "{{ google_chrome_rpm_repo_file }}"
-    attr: "-i"
-  failed_when: false
-
 - name: Uninstall Google Chrome RPM repository
   when: not google_chrome_enabled
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: "absent"
-  with_items:
-    - "{{ google_chrome_rpm_gpgkey }}"
-    - "{{ google_chrome_rpm_repo_file }}"
+  block:
+    - name: Ensure google-chrome.repo is NOT immutable
+      ansible.builtin.file:
+        path: "{{ google_chrome_rpm_repo_file }}"
+        attr: "-i"
+      failed_when: false
+
+    - name: Uninstall Google Chrome RPM repository
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "absent"
+      with_items:
+        - "{{ google_chrome_rpm_gpgkey }}"
+        - "{{ google_chrome_rpm_repo_file }}"
