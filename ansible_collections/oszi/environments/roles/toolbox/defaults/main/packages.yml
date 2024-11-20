@@ -6,8 +6,6 @@ toolbox_packages: "{{ toolbox_packages_pt_default }}"
 
 # Fedora/Debian/Ubuntu defaults to include in toolbox_packages:
 toolbox_packages_pt_default:
-  - "{{ ['awscli'] if not (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 24)
-    else [] }}"  # (aws-cli v1/v2 snap or Fedora)
   - "{{ ['exa'] if ansible_os_family == 'Debian'
     and not (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 24)
     else ['eza'] }}"  # (Fedora or Ubuntu 24+)
@@ -34,14 +32,12 @@ toolbox_packages_pt_default:
     ]
     if (ansible_os_family == 'Debian')
     else [
-      'helm' if downloads_helm_url|default(none) is none else [],
-      'kubernetes-client' if not gcloud_sdk_enabled|default(false) and not gcloud_sdk_kubectl_enabled|default(false) else [],
-      'opentofu' if not opentofu_upstream_enabled|default(false) else [],
       'ansible-collection-ansible-netcommon',
       'ansible-collection-ansible-posix',
       'ansible-collection-ansible-utils',
       'ansible-collection-community-crypto',
       'ansible-collection-community-general',
+      'ansible-collection-community-libvirt',
       'ansible-collection-containers-podman',
       'ansible-core-doc',
       'bind-utils',
@@ -157,7 +153,6 @@ toolbox_packages_pt_default:
   - pv
   - rclone
   - shellcheck
-  - skopeo
   - smartmontools
   - speedtest-cli
   - sslscan
@@ -176,5 +171,4 @@ toolbox_packages_pt_default:
 
 # Packages to remove from toolboxes (Fedora/Debian/Ubuntu)
 toolbox_blacklisted_packages:
-  - "{{ 'helm' if downloads_helm_url|default(none) is not none else [] }}"
   - hstr  # fzf shell
