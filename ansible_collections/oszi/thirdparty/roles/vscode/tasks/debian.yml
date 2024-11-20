@@ -16,24 +16,53 @@
         owner: "root"
         mode: "0644"
 
+    - name: Check VS Code deb repository
+      ansible.builtin.apt_repository:
+        filename: "vscode"
+        repo: "{{ vscode_deb_repo }}"
+      register: _vscode_apt_repo
+      check_mode: true
+
+- name: Install VS Code deb repository if it needs to be changed
+  when: vscode_enabled and _vscode_apt_repo.changed
+  block:
+    - name: Ensure vscode.list is NOT immutable
+      ansible.builtin.file:
+        path: "{{ vscode_deb_repo_file }}"
+        attr: "-i"
+      failed_when: false
+
+    - name: Uninstall previous VS Code deb repository
+      ansible.builtin.file:
+        path: "{{ vscode_deb_repo_file }}"
+        state: "absent"
+
     - name: Install VS Code deb repository
       ansible.builtin.apt_repository:
         filename: "vscode"
         repo: "{{ vscode_deb_repo }}"
 
+    - name: Ensure vscode.list is immutable to prevent vendor changes
+      ansible.builtin.file:
+        path: "{{ vscode_deb_repo_file }}"
+        attr: "+i"
+
 - name: Uninstall VS Code deb repository
   when: not vscode_enabled
   block:
+    - name: Ensure vscode.list is NOT immutable
+      ansible.builtin.file:
+        path: "{{ vscode_deb_repo_file }}"
+        attr: "-i"
+      failed_when: false
+
     - name: Uninstall VS Code deb repository
       ansible.builtin.file:
-        path: "{{ item }}"
+        path: "{{ vscode_deb_repo_file }}"
         state: "absent"
-      with_items:
-        - "/etc/apt/sources.list.d/vscode.list"
-        - "/etc/apt/sources.list.d/vscode.sources"
 
     - name: Uninstall Microsoft deb signing key
-      when: not vscode_deb_gpgkey_used_elsewhere
+      when: not vscode_microsoft_gpgkey_used_elsewhere
       ansible.builtin.file:
         path: "{{ vscode_deb_gpgkey }}"
         state: "absent"
