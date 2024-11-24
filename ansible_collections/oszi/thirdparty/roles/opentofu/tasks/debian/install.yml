@@ -1,0 +1,31 @@
+---
+- name: Ensure directories for OpenTofu deb signing keys
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "directory"
+    owner: "root"
+    mode: "0755"
+  with_items: "{{ opentofu_deb_gpgkeys | map('dirname') | unique }}"
+
+- name: Copy OpenTofu deb signing keys
+  ansible.builtin.copy:
+    src: "{{ item.lstrip('/') }}"
+    dest: "{{ item }}"
+    owner: "root"
+    mode: "0644"
+  with_items: "{{ opentofu_deb_gpgkeys }}"
+
+- name: Install OpenTofu deb repository
+  ansible.builtin.copy:
+    dest: "{{ opentofu_deb_repo_path }}"
+    content: |
+      {{ opentofu_deb_repo }}
+      {{ opentofu_deb_repo | regex_replace('^deb (.*)$', 'deb-src \1') }}
+    owner: "root"
+    mode: "0644"
+  register: _opentofu_deb_repo_result
+
+- name: Update apt cache
+  when: _opentofu_deb_repo_result.changed
+  ansible.builtin.apt:
+    update_cache: true

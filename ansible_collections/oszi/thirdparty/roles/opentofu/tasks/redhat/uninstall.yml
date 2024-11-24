@@ -1,0 +1,6 @@
+---
+- name: Uninstall OpenTofu RPM repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ opentofu_rpm_gpgkeys + [opentofu_rpm_repo_path] }}"

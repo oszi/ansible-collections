@@ -1,0 +1,8 @@
+---
+- name: Uninstall HashiCorp RPM repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ hashicorp_rpm_gpgkey }}"
+    - "{{ hashicorp_rpm_repo_path }}"

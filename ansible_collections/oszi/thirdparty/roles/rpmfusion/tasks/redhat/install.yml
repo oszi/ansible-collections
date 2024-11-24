@@ -1,0 +1,19 @@
+---
+- name: Ensure EPEL is installed on RedHat except Fedora
+  when: "ansible_distribution != 'Fedora'"
+  ansible.builtin.dnf:
+    name: "epel-release"
+    state: "present"
+
+- name: Install RPMFusion repositories
+  ansible.builtin.command:
+    argv: ["dnf", "--assumeyes", "install", "{{ rpmfusion_url }}"]
+  args:
+    creates: "/etc/yum.repos.d/rpmfusion-{{ item }}.repo"
+  vars:
+    rpmfusion_url: "https://mirrors.rpmfusion.org/{{ item }}/{{
+      (ansible_distribution == 'Fedora') | ternary('fedora', 'el')
+      }}/rpmfusion-{{ item }}-release-{{
+      ansible_distribution_major_version }}.noarch.rpm"
+  with_items: ["free", "nonfree"]
+  tags: [skip_ansible_lint]

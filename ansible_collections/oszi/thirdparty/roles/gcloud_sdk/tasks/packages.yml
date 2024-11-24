@@ -1,0 +1,36 @@
+---
+- name: Google Cloud SDK is present or absent
+  ansible.builtin.package:
+    name: "google-cloud-sdk"
+    state: "{{ gcloud_sdk_enabled | ternary('present', 'absent') }}"
+
+- name: Google Cloud SDK Emulators are present or absent
+  ansible.builtin.package:
+    name: "{{ gcloud_sdk_emulators_packages }}"
+    state: "{{ (gcloud_sdk_enabled and gcloud_sdk_emulators_enabled)
+      | ternary('present', 'absent') }}"
+
+- name: Google Cloud App Engine components are present or absent
+  ansible.builtin.package:
+    name: "{{ gcloud_sdk_app_engine_packages }}"
+    state: "{{ (gcloud_sdk_enabled and gcloud_sdk_app_engine_enabled)
+      | ternary('present', 'absent') }}"
+
+- name: Google SDK MiniKube is present or absent
+  ansible.builtin.package:
+    name: "google-cloud-sdk-minikube"
+    state: "{{ (gcloud_sdk_enabled and gcloud_sdk_minikube_enabled)
+      | ternary('present', 'absent') }}"
+
+# Do not remove "kubectl" dynamically as it now matches "kubernetes-client" [RedHat/Fedora]
+- name: Install kubectl from Google
+  when: gcloud_sdk_enabled and gcloud_sdk_kubectl_enabled
+  ansible.builtin.package:
+    name: "kubectl"
+    state: "present"
+
+- name: GKE gcloud-auth-plugin for kubectl 1.25+ is present or absent
+  ansible.builtin.package:
+    name: "google-cloud-sdk-gke-gcloud-auth-plugin"
+    state: "{{ (gcloud_sdk_enabled and gcloud_sdk_kubectl_enabled)
+      | ternary('present', 'absent') }}"

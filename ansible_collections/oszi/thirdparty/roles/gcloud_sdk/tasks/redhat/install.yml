@@ -1,0 +1,31 @@
+---
+- name: Copy GCloud SDK RPM signing key
+  ansible.builtin.copy:
+    src: "{{ gcloud_sdk_rpm_gpgkey.lstrip('/') }}"
+    dest: "{{ gcloud_sdk_rpm_gpgkey }}"
+    owner: "root"
+    mode: "0644"
+
+- name: Install GCloud SDK RPM repository
+  ansible.builtin.yum_repository:
+    file: "google-cloud-sdk"
+    name: "google-cloud-sdk"
+    description: "GCloud SDK"
+    includepkgs: "{{ gcloud_sdk_rpm_includepkgs }}"
+    baseurl: "{{ gcloud_sdk_rpm_baseurl }}"
+    gpgkey: "file://{{ gcloud_sdk_rpm_gpgkey }}"
+    gpgcheck: true
+    repo_gpgcheck: false
+    enabled: true
+
+- name: Install GCloud SDK unstable RPM repository
+  ansible.builtin.yum_repository:
+    file: "google-cloud-sdk"
+    name: "google-cloud-sdk-unstable"
+    description: "GCloud SDK - Unstable"
+    includepkgs: "{{ gcloud_sdk_rpm_includepkgs }}"
+    baseurl: "{{ gcloud_sdk_rpm_baseurl }}-unstable"
+    gpgkey: "file://{{ gcloud_sdk_rpm_gpgkey }}"
+    gpgcheck: true
+    repo_gpgcheck: false
+    enabled: false

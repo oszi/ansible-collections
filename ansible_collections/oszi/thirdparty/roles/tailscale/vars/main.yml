@@ -1,5 +1,6 @@
 ---
 tailscale_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale"
+tailscale_rpm_repo_path: "/etc/yum.repos.d/tailscale.repo"
 tailscale_rpm_includepkgs: ["tailscale"]
 
 tailscale_deb_gpgkey: "/etc/apt/keyrings/tailscale.gpg"

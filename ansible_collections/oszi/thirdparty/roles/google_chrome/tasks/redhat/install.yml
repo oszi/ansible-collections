@@ -1,0 +1,31 @@
+---
+- name: Copy Google Chrome RPM signing key
+  ansible.builtin.copy:
+    src: "{{ google_chrome_rpm_gpgkey.lstrip('/') }}"
+    dest: "{{ google_chrome_rpm_gpgkey }}"
+    owner: "root"
+    mode: "0644"
+
+- name: Check Google Chrome RPM repository
+  ansible.builtin.yum_repository:
+  args: "{{ google_chrome_rpm_repo_args }}"
+  register: _google_chrome_rpm_repo_result
+  check_mode: true
+
+- name: Install Google Chrome RPM repository
+  when: _google_chrome_rpm_repo_result.changed
+  block:
+    - name: Ensure google-chrome.repo is NOT immutable
+      ansible.builtin.file:
+        path: "{{ google_chrome_rpm_repo_file }}"
+        attr: "-i"
+      failed_when: false
+
+    - name: Install Google Chrome RPM repository
+      ansible.builtin.yum_repository:
+      args: "{{ google_chrome_rpm_repo_args }}"
+
+    - name: Ensure google-chrome.repo is immutable to prevent vendor changes
+      ansible.builtin.file:
+        path: "{{ google_chrome_rpm_repo_file }}"
+        attr: "+i"

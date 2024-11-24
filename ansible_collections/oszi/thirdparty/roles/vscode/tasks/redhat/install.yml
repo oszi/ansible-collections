@@ -1,0 +1,31 @@
+---
+- name: Copy VS Code RPM signing key
+  ansible.builtin.copy:
+    src: "{{ vscode_rpm_gpgkey.lstrip('/') }}"
+    dest: "{{ vscode_rpm_gpgkey }}"
+    owner: "root"
+    mode: "0644"
+
+- name: Check VS Code RPM repository
+  ansible.builtin.yum_repository:
+  args: "{{ vscode_rpm_repo_args }}"
+  register: _vscode_rpm_repo_result
+  check_mode: true
+
+- name: Install VS Code RPM repository when changed
+  when: _vscode_rpm_repo_result.changed
+  block:
+    - name: Ensure vscode.repo is NOT immutable
+      ansible.builtin.file:
+        path: "{{ vscode_rpm_repo_path }}"
+        attr: "-i"
+      failed_when: false
+
+    - name: Install VS Code RPM repository
+      ansible.builtin.yum_repository:
+      args: "{{ vscode_rpm_repo_args }}"
+
+    - name: Ensure vscode.repo is immutable to prevent vendor changes
+      ansible.builtin.file:
+        path: "{{ vscode_rpm_repo_path }}"
+        attr: "+i"

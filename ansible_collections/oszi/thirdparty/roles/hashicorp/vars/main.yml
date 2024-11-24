@@ -1,5 +1,6 @@
 ---
 hashicorp_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp"
+hashicorp_rpm_repo_path: "/etc/yum.repos.d/hashicorp.repo"
 hashicorp_rpm_includepkgs:
   - boundary
   - consul

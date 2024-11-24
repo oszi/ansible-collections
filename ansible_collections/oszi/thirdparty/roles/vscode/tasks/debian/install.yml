@@ -1,0 +1,48 @@
+---
+- name: Ensure directory for VS Code deb signing key
+  ansible.builtin.file:
+    path: "{{ vscode_deb_gpgkey | dirname }}"
+    state: "directory"
+    owner: "root"
+    mode: "0755"
+
+- name: Copy VS Code deb signing key
+  ansible.builtin.copy:
+    src: "{{ vscode_deb_gpgkey.lstrip('/') }}"
+    dest: "{{ vscode_deb_gpgkey }}"
+    owner: "root"
+    mode: "0644"
+
+- name: Check VS Code deb repository
+  ansible.builtin.copy:
+    dest: "{{ vscode_deb_repo_path }}"
+    content: "{{ vscode_deb_repo }}"
+    owner: "root"
+    mode: "0644"
+  register: _vscode_deb_repo_result
+  check_mode: true
+
+- name: Install VS Code deb repository when changed
+  when: _vscode_deb_repo_result.changed
+  block:
+    - name: Ensure vscode.list is NOT immutable
+      ansible.builtin.file:
+        path: "{{ vscode_deb_repo_path }}"
+        attr: "-i"
+      failed_when: false
+
+    - name: Install VS Code deb repository
+      ansible.builtin.copy:
+        dest: "{{ vscode_deb_repo_path }}"
+        content: "{{ vscode_deb_repo }}"
+        owner: "root"
+        mode: "0644"
+
+    - name: Ensure vscode.list is immutable to prevent vendor changes
+      ansible.builtin.file:
+        path: "{{ vscode_deb_repo_path }}"
+        attr: "+i"
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true

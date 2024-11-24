@@ -1,0 +1,8 @@
+---
+- name: Uninstall TailScale RPM repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ tailscale_rpm_gpgkey }}"
+    - "{{ tailscale_rpm_repo_path }}"
