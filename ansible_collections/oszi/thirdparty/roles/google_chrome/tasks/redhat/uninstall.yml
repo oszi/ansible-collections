@@ -1,0 +1,14 @@
+---
+- name: Ensure google-chrome.repo is NOT immutable
+  ansible.builtin.file:
+    path: "{{ google_chrome_rpm_repo_path }}"
+    attr: "-i"
+  failed_when: false
+
+- name: Uninstall Google Chrome RPM repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ google_chrome_rpm_gpgkey }}"
+    - "{{ google_chrome_rpm_repo_path }}"

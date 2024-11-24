@@ -1,0 +1,8 @@
+---
+- name: Uninstall HashiCorp deb repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ hashicorp_deb_gpgkey }}"
+    - "{{ hashicorp_deb_repo_path }}"

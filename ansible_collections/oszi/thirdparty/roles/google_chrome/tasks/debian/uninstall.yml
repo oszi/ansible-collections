@@ -1,0 +1,14 @@
+---
+- name: Ensure google-chrome.list is NOT immutable
+  ansible.builtin.file:
+    path: "{{ google_chrome_deb_repo_path }}"
+    attr: "-i"
+  failed_when: false
+
+- name: Uninstall Google Chrome deb repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ google_chrome_deb_gpgkey }}"
+    - "{{ google_chrome_deb_repo_path }}"

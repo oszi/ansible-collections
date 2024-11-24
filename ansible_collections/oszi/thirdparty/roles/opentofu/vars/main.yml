@@ -2,6 +2,7 @@
 opentofu_rpm_gpgkeys:
   - "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu"
   - "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo"
+opentofu_rpm_repo_path: "/etc/yum.repos.d/opentofu.repo"
 opentofu_rpm_includepkgs:
   - "tofu"
 

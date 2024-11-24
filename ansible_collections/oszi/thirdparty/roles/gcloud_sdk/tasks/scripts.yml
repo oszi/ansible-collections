@@ -1,6 +1,5 @@
 ---
 - name: Ensure gcloud_sdk_local_bin_path exists
-  when: gcloud_sdk_enabled
   ansible.builtin.file:
     path: "{{ gcloud_sdk_local_bin_path }}"
     state: "directory"
@@ -8,15 +7,26 @@
     mode: "0755"
 
 - name: Copy gcloud-entrypoint.sh script
-  when: gcloud_sdk_enabled
   ansible.builtin.copy:
     src: "bin/gcloud-entrypoint.sh"
     dest: "{{ gcloud_sdk_local_bin_path }}/gcloud-entrypoint.sh"
     owner: "root"
     mode: "0755"
 
-- name: Remove the gcloud-entrypoint.sh script
-  when: not gcloud_sdk_enabled
-  ansible.builtin.file:
-    path: "{{ gcloud_sdk_local_bin_path }}/gcloud-entrypoint.sh"
-    state: "absent"
+- name: Install kubectl shell completions
+  when: gcloud_sdk_kubectl_enabled
+  block:
+    - name: Generate kubectl completion for bash
+      ansible.builtin.command: "kubectl completion bash"
+      register: _kubectl_completion_bash_result
+      changed_when: false
+      check_mode: false
+      no_log: true
+
+    - name: Copy kubectl completion for bash
+      ansible.builtin.copy:
+        content: "{{ _kubectl_completion_bash_result.stdout }}"
+        dest: "/etc/bash_completion.d/kubectl"
+        owner: "root"
+        group: "root"
+        mode: "0644"

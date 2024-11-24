@@ -1,0 +1,27 @@
+---
+- name: Ensure directory for Hashicorp deb signing key
+  ansible.builtin.file:
+    path: "{{ hashicorp_deb_gpgkey | dirname }}"
+    state: "directory"
+    owner: "root"
+    mode: "0755"
+
+- name: Copy Hashicorp deb signing key
+  ansible.builtin.copy:
+    src: "{{ hashicorp_deb_gpgkey.lstrip('/') }}"
+    dest: "{{ hashicorp_deb_gpgkey }}"
+    owner: "root"
+    mode: "0644"
+
+- name: Install Hashicorp deb repository
+  ansible.builtin.copy:
+    dest: "{{ hashicorp_deb_repo_path }}"
+    content: "{{ hashicorp_deb_repo }}"
+    owner: "root"
+    mode: "0644"
+  register: _hashicorp_deb_repo_result
+
+- name: Update apt cache
+  when: _hashicorp_deb_repo_result.changed
+  ansible.builtin.apt:
+    update_cache: true

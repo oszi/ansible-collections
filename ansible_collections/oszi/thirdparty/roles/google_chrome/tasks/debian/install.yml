@@ -1,0 +1,48 @@
+---
+- name: Ensure directory for Google Chrome deb signing key
+  ansible.builtin.file:
+    path: "{{ google_chrome_deb_gpgkey | dirname }}"
+    state: "directory"
+    owner: "root"
+    mode: "0755"
+
+- name: Copy Google Chrome deb signing key
+  ansible.builtin.copy:
+    src: "{{ google_chrome_deb_gpgkey.lstrip('/') }}"
+    dest: "{{ google_chrome_deb_gpgkey }}"
+    owner: "root"
+    mode: "0644"
+
+- name: Check Google Chrome deb repository
+  ansible.builtin.copy:
+    dest: "{{ google_chrome_deb_repo_path }}"
+    content: "{{ google_chrome_deb_repo }}"
+    owner: "root"
+    mode: "0644"
+  register: _google_chrome_deb_repo_result
+  check_mode: true
+
+- name: Install Google Chrome deb repository
+  when: _google_chrome_deb_repo_result.changed
+  block:
+    - name: Ensure google-chrome.list is NOT immutable
+      ansible.builtin.file:
+        path: "{{ google_chrome_deb_repo_path }}"
+        attr: "-i"
+      failed_when: false
+
+    - name: Install Google Chrome deb repository
+      ansible.builtin.copy:
+        dest: "{{ google_chrome_deb_repo_path }}"
+        content: "{{ google_chrome_deb_repo }}"
+        owner: "root"
+        mode: "0644"
+
+    - name: Ensure google-chrome.list is immutable to prevent vendor changes
+      ansible.builtin.file:
+        path: "{{ google_chrome_deb_repo_path }}"
+        attr: "+i"
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true

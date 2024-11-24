@@ -1,0 +1,17 @@
+---
+- name: Ensure vscode.list is NOT immutable
+  ansible.builtin.file:
+    path: "{{ vscode_deb_repo_path }}"
+    attr: "-i"
+  failed_when: false
+
+- name: Uninstall VS Code deb repository
+  ansible.builtin.file:
+    path: "{{ vscode_deb_repo_path }}"
+    state: "absent"
+
+- name: Uninstall Microsoft deb signing key
+  when: not vscode_microsoft_gpgkey_used_elsewhere
+  ansible.builtin.file:
+    path: "{{ vscode_deb_gpgkey }}"
+    state: "absent"

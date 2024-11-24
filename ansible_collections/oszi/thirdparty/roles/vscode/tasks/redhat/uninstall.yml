@@ -1,0 +1,17 @@
+---
+- name: Ensure vscode.repo is NOT immutable
+  ansible.builtin.file:
+    path: "{{ vscode_rpm_repo_path }}"
+    attr: "-i"
+  failed_when: false
+
+- name: Uninstall VS Code RPM repository
+  ansible.builtin.file:
+    path: "{{ vscode_rpm_repo_path }}"
+    state: "absent"
+
+- name: Uninstall Microsoft RPM signing key
+  when: not vscode_microsoft_gpgkey_used_elsewhere
+  ansible.builtin.file:
+    path: "{{ vscode_rpm_gpgkey }}"
+    state: "absent"

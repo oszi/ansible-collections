@@ -4,7 +4,7 @@
   block:
     - name: Hashicorp repository
       ansible.builtin.include_tasks:
-        file: "{{ ansible_os_family | lower }}.yml"
+        file: "{{ ansible_os_family | lower }}/{{ hashicorp_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: Hashicorp packages are present or absent
       ansible.builtin.package:

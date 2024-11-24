@@ -5,7 +5,7 @@
   block:
     - name: Include RPMFusion configuration tasks
       ansible.builtin.include_tasks:
-        file: repositories.yml
+        file: "{{ ansible_os_family | lower }}/{{ rpmfusion_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: Include RPMFusion package setup tasks
       when: rpmfusion_packages or rpmfusion_blacklisted_packages

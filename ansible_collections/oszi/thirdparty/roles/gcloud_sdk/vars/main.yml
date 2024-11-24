@@ -1,5 +1,6 @@
 ---
 gcloud_sdk_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-google-cloud-sdk"
+gcloud_sdk_rpm_repo_path: "/etc/yum.repos.d/google-cloud-sdk.repo"
 gcloud_sdk_rpm_includepkgs:
   - "google-cloud-*"
   - "kubectl"

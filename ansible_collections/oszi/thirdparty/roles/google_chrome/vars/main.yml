@@ -1,10 +1,21 @@
 ---
 google_chrome_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome"
-google_chrome_rpm_repo_file: "/etc/yum.repos.d/google-chrome.repo"
+google_chrome_rpm_repo_path: "/etc/yum.repos.d/google-chrome.repo"
 google_chrome_rpm_includepkgs:
   - "google-chrome-beta"
   - "google-chrome-stable"
   - "google-chrome-unstable"
+
+google_chrome_rpm_repo_args:
+  file: "google-chrome"
+  name: "google-chrome"
+  description: "Google Chrome"
+  includepkgs: "{{ google_chrome_rpm_includepkgs }}"
+  baseurl: "{{ google_chrome_rpm_baseurl }}"
+  gpgkey: "file://{{ google_chrome_rpm_gpgkey }}"
+  gpgcheck: true
+  repo_gpgcheck: false
+  enabled: true
 
 google_chrome_deb_gpgkey: "/etc/apt/keyrings/google-chrome.gpg"
 google_chrome_deb_repo_path: "/etc/apt/sources.list.d/google-chrome.list"

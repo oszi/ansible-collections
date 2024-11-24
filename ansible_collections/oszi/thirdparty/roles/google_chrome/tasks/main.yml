@@ -4,7 +4,7 @@
   block:
     - name: Google Chrome repository
       ansible.builtin.include_tasks:
-        file: "{{ ansible_os_family | lower }}.yml"
+        file: "{{ ansible_os_family | lower }}/{{ google_chrome_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: Ensure Google Chrome Stable is installed
       when: google_chrome_enabled

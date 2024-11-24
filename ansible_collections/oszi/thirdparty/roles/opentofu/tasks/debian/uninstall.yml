@@ -1,0 +1,6 @@
+---
+- name: Uninstall OpenTofu deb repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ opentofu_deb_gpgkeys + [opentofu_deb_repo_path] }}"

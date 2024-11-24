@@ -1,0 +1,27 @@
+---
+- name: Ensure directory for GCloud SDK deb signing key
+  ansible.builtin.file:
+    path: "{{ gcloud_sdk_deb_gpgkey | dirname }}"
+    state: "directory"
+    owner: "root"
+    mode: "0755"
+
+- name: Copy GCloud SDK deb signing key
+  ansible.builtin.copy:
+    src: "{{ gcloud_sdk_deb_gpgkey.lstrip('/') }}"
+    dest: "{{ gcloud_sdk_deb_gpgkey }}"
+    owner: "root"
+    mode: "0644"
+
+- name: Install GCloud SDK deb repository
+  ansible.builtin.copy:
+    dest: "{{ gcloud_sdk_deb_repo_path }}"
+    content: "{{ gcloud_sdk_deb_repo }}"
+    owner: "root"
+    mode: "0644"
+  register: _gcloud_sdk_deb_repo_result
+
+- name: Update apt cache
+  when: _gcloud_sdk_deb_repo_result.changed
+  ansible.builtin.apt:
+    update_cache: true

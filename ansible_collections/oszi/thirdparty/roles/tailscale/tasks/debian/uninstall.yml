@@ -1,0 +1,8 @@
+---
+- name: Uninstall TailScale deb repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ tailscale_deb_gpgkey }}"
+    - "{{ tailscale_deb_repo_path }}"
