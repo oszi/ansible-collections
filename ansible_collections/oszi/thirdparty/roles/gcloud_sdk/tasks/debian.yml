@@ -17,9 +17,17 @@
         mode: "0644"
 
     - name: Install GCloud SDK deb repository
-      ansible.builtin.apt_repository:
-        filename: "google-cloud-sdk"
-        repo: "{{ gcloud_sdk_deb_repo }}"
+      ansible.builtin.copy:
+        dest: "{{ gcloud_sdk_deb_repo_path }}"
+        content: "{{ gcloud_sdk_deb_repo }}"
+        owner: "root"
+        mode: "0644"
+      register: _gcloud_sdk_deb_repo_result
+
+    - name: Update apt cache
+      when: _gcloud_sdk_deb_repo_result.changed
+      ansible.builtin.apt:
+        update_cache: true
 
 - name: Uninstall GCloud SDK deb repository
   when: not gcloud_sdk_enabled
@@ -28,4 +36,4 @@
     state: "absent"
   with_items:
     - "{{ gcloud_sdk_deb_gpgkey }}"
-    - "/etc/apt/sources.list.d/google-cloud-sdk.list"
+    - "{{ gcloud_sdk_deb_repo_path }}"
