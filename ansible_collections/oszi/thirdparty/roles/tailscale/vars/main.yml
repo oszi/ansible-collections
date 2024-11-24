@@ -1,0 +1,9 @@
+---
+tailscale_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale"
+tailscale_rpm_includepkgs: ["tailscale"]
+
+tailscale_deb_gpgkey: "/etc/apt/keyrings/tailscale.gpg"
+tailscale_deb_repo_path: "/etc/apt/sources.list.d/tailscale.list"
+tailscale_deb_repo: >-
+  deb [signed-by={{ tailscale_deb_gpgkey }}]
+  {{ tailscale_deb_baseurl }} {{ ansible_distribution_release }} main
