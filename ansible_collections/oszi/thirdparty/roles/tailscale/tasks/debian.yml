@@ -1,0 +1,39 @@
+---
+- name: Install TailScale deb repository
+  when: tailscale_enabled
+  block:
+    - name: Ensure directory for TailScale deb signing key
+      ansible.builtin.file:
+        path: "{{ tailscale_deb_gpgkey | dirname }}"
+        state: "directory"
+        owner: "root"
+        mode: "0755"
+
+    - name: Copy TailScale deb signing keys
+      ansible.builtin.copy:
+        src: "{{ tailscale_deb_gpgkey.lstrip('/') }}"
+        dest: "{{ tailscale_deb_gpgkey }}"
+        owner: "root"
+        mode: "0644"
+
+    - name: Install TailScale deb repository
+      ansible.builtin.copy:
+        dest: "{{ tailscale_deb_repo_path }}"
+        content: "{{ tailscale_deb_repo }}"
+        owner: "root"
+        mode: "0644"
+      register: _tailscale_deb_repo_result
+
+    - name: Update apt cache
+      when: _tailscale_deb_repo_result.changed
+      ansible.builtin.apt:
+        update_cache: true
+
+- name: Uninstall TailScale deb repository
+  when: not tailscale_enabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ tailscale_deb_gpgkey }}"
+    - "{{ tailscale_deb_repo_path }}"

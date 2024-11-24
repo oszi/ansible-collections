@@ -1,0 +1,19 @@
+---
+- name: TailScale tasks
+  tags: [tailscale]
+  block:
+    - name: TailScale repository
+      ansible.builtin.include_tasks:
+        file: "{{ ansible_os_family | lower }}.yml"
+
+    - name: TailScale package is present or absent
+      ansible.builtin.package:
+        name: "tailscale"
+        state: "{{ tailscale_enabled | ternary('present', 'absent') }}"
+
+    - name: Ensure tailscaled is enabled?
+      when: tailscale_enabled
+      ansible.builtin.systemd:
+        name: "tailscaled"
+        state: "started"
+        enabled: true
