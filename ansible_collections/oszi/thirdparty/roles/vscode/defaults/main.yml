@@ -6,6 +6,9 @@ vscode_enabled: false
 vscode_rpm_baseurl: "https://packages.microsoft.com/yumrepos/vscode"
 vscode_deb_baseurl: "https://packages.microsoft.com/repos/code"
 
+# Comma-separated list of deb repo architectures:
+vscode_deb_arch: "amd64"
+
 # Whether the Microsoft GPG key is used elsewhere?
 # * It will be removed if not and VS Code is disabled.
 vscode_microsoft_gpgkey_used_elsewhere: false
