@@ -6,14 +6,7 @@
       ansible.builtin.include_tasks:
         file: "{{ ansible_os_family | lower }}/{{ hashicorp_enabled | ternary('install', 'uninstall') }}.yml"
 
-    - name: Hashicorp packages are present or absent
-      ansible.builtin.package:
-        name: "{{ hashicorp_packages }}"
-        state: "{{ hashicorp_enabled | ternary('present', 'absent') }}"
-      when: hashicorp_packages
-
-    - name: Blacklisted Hashicorp packages are uninstalled
-      ansible.builtin.package:
-        name: "{{ hashicorp_blacklisted_packages }}"
-        state: "absent"
-      when: hashicorp_blacklisted_packages
+    - name: Include Hashicorp package setup tasks
+      when: hashicorp_packages or hashicorp_blacklisted_packages
+      ansible.builtin.include_tasks:
+        file: packages.yml

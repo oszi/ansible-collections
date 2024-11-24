@@ -1,0 +1,15 @@
+---
+- name: Flatten package list variables
+  ansible.builtin.set_fact:
+    hashicorp_packages: "{{ hashicorp_packages | flatten }}"
+    hashicorp_blacklisted_packages: "{{ hashicorp_blacklisted_packages | flatten }}"
+
+- name: Ensure blacklisted Hashicorp packages are not installed
+  ansible.builtin.package:
+    name: "{{ hashicorp_blacklisted_packages }}"
+    state: "absent"
+
+- name: Ensure Hashicorp packages are present or absent
+  ansible.builtin.package:
+    name: "{{ hashicorp_packages | difference(hashicorp_blacklisted_packages) }}"
+    state: "{{ hashicorp_enabled | ternary('present', 'absent') }}"
