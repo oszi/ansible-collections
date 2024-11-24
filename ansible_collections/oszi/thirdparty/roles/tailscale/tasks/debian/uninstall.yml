@@ -6,3 +6,4 @@
   with_items:
     - "{{ tailscale_deb_gpgkey }}"
     - "{{ tailscale_deb_repo_path }}"
+    - "/etc/bash_completion.d/tailscale"

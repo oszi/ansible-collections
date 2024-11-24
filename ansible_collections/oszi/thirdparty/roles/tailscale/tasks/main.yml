@@ -11,9 +11,6 @@
         name: "tailscale"
         state: "{{ tailscale_enabled | ternary('present', 'absent') }}"
 
-    - name: Ensure tailscaled is enabled?
+    - name: TailScale post-setup tasks
       when: tailscale_enabled
-      ansible.builtin.systemd:
-        name: "tailscaled"
-        state: "started"
-        enabled: true
+      ansible.builtin.include_tasks: post-setup.yml

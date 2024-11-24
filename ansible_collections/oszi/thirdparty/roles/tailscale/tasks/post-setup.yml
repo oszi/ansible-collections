@@ -1,0 +1,21 @@
+---
+- name: Ensure tailscaled is enabled
+  ansible.builtin.systemd:
+    name: "tailscaled"
+    state: "started"
+    enabled: true
+
+- name: Generate tailscale completion for bash
+  ansible.builtin.command: "tailscale completion bash"
+  register: _tailscale_completion_bash_result
+  changed_when: false
+  check_mode: false
+  no_log: true
+
+- name: Copy tailscale completion for bash
+  ansible.builtin.copy:
+    content: "{{ _tailscale_completion_bash_result.stdout }}"
+    dest: "/etc/bash_completion.d/tailscale"
+    owner: "root"
+    group: "root"
+    mode: "0644"
