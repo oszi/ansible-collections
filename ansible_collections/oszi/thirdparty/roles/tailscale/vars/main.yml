@@ -1,9 +1,11 @@
 ---
 tailscale_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale"
 tailscale_rpm_repo_path: "/etc/yum.repos.d/tailscale.repo"
-tailscale_rpm_includepkgs: ["tailscale"]
+tailscale_rpm_includepkgs:
+  - "tailscale"
 
-tailscale_deb_gpgkey: "/etc/apt/keyrings/tailscale.gpg"
+# Also packaged by tailscale-archive-keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
+tailscale_deb_gpgkey: "/etc/apt/keyrings/tailscale-archive-keyring.gpg"
 tailscale_deb_repo_path: "/etc/apt/sources.list.d/tailscale.list"
 tailscale_deb_repo: >-
   deb [signed-by={{ tailscale_deb_gpgkey }}]

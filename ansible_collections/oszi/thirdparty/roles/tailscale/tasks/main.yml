@@ -4,7 +4,7 @@
   block:
     - name: TailScale repository
       ansible.builtin.include_tasks:
-        file: "{{ ansible_os_family | lower }}/{{ tailscale_enabled | ternary('install', 'uninstall') }}.yml"
+        file: "{{ ansible_os_family | lower }}/{{ tailscale_upstream_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: TailScale package is present or absent
       ansible.builtin.package:
