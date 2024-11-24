@@ -2,6 +2,9 @@
 # Install TailScale?
 tailscale_enabled: false
 
+# Install the upstream (external!) deb/rpm repository?
+tailscale_upstream_enabled: "{{ tailscale_enabled and ansible_distribution != 'Fedora' }}"
+
 # Repo base URLs - change for custom mirrors
 tailscale_rpm_baseurl: "https://pkgs.tailscale.com/stable/fedora/$basearch"
 tailscale_deb_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}"
