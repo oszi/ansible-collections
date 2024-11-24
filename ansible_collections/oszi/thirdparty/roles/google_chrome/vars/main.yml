@@ -7,7 +7,7 @@ google_chrome_rpm_includepkgs:
   - "google-chrome-unstable"
 
 google_chrome_deb_gpgkey: "/etc/apt/keyrings/google-chrome.gpg"
-google_chrome_deb_repo_file: "/etc/apt/sources.list.d/google-chrome.list"
+google_chrome_deb_repo_path: "/etc/apt/sources.list.d/google-chrome.list"
 google_chrome_deb_repo: >-
-  deb [arch=amd64 signed-by={{ google_chrome_deb_gpgkey }}]
+  deb [signed-by={{ google_chrome_deb_gpgkey }}]
   {{ google_chrome_deb_baseurl }} stable main

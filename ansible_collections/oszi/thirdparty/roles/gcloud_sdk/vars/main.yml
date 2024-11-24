@@ -5,6 +5,7 @@ gcloud_sdk_rpm_includepkgs:
   - "kubectl"
 
 gcloud_sdk_deb_gpgkey: "/etc/apt/keyrings/google-cloud-sdk.gpg"
+gcloud_sdk_deb_repo_path: "/etc/apt/sources.list.d/google-cloud-sdk.list"
 gcloud_sdk_deb_repo: >-
   deb [signed-by={{ gcloud_sdk_deb_gpgkey }}]
   {{ gcloud_sdk_deb_baseurl }} cloud-sdk main

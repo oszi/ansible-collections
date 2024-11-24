@@ -17,9 +17,17 @@
         mode: "0644"
 
     - name: Install Hashicorp deb repository
-      ansible.builtin.apt_repository:
-        filename: "hashicorp"
-        repo: "{{ hashicorp_deb_repo }}"
+      ansible.builtin.copy:
+        dest: "{{ hashicorp_deb_repo_path }}"
+        content: "{{ hashicorp_deb_repo }}"
+        owner: "root"
+        mode: "0644"
+      register: _hashicorp_deb_repo_result
+
+    - name: Update apt cache
+      when: _hashicorp_deb_repo_result.changed
+      ansible.builtin.apt:
+        update_cache: true
 
 - name: Uninstall HashiCorp deb repository
   when: not hashicorp_enabled
@@ -28,4 +36,4 @@
     state: "absent"
   with_items:
     - "{{ hashicorp_deb_gpgkey }}"
-    - "/etc/apt/sources.list.d/hashicorp.list"
+    - "{{ hashicorp_deb_repo_path }}"

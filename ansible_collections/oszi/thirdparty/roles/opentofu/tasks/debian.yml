@@ -19,19 +19,23 @@
       with_items: "{{ opentofu_deb_gpgkeys }}"
 
     - name: Install OpenTofu deb repository
-      ansible.builtin.apt_repository:
-        filename: "opentofu"
-        repo: "{{ opentofu_deb_repo }}"
+      ansible.builtin.copy:
+        dest: "{{ opentofu_deb_repo_path }}"
+        content: |
+          {{ opentofu_deb_repo }}
+          {{ opentofu_deb_repo | regex_replace('^deb (.*)$', 'deb-src \1') }}
+        owner: "root"
+        mode: "0644"
+      register: _opentofu_deb_repo_result
 
-    - name: Install OpenTofu deb-src repository
-      ansible.builtin.apt_repository:
-        filename: "opentofu"
-        repo: "{{ opentofu_deb_repo | regex_replace('^deb (.*)$', 'deb-src \\1') }}"
+    - name: Update apt cache
+      when: _opentofu_deb_repo_result.changed
+      ansible.builtin.apt:
+        update_cache: true
 
 - name: Uninstall OpenTofu deb repository
   when: not opentofu_upstream_enabled
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  with_items: "{{ opentofu_deb_gpgkeys
-    + ['/etc/apt/sources.list.d/opentofu.list'] }}"
+  with_items: "{{ opentofu_deb_gpgkeys + [opentofu_deb_repo_path] }}"
