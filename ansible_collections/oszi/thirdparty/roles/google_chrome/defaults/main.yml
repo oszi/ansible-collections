@@ -5,3 +5,6 @@ google_chrome_enabled: false
 # Repo base URLs - change for custom mirrors
 google_chrome_rpm_baseurl: "https://dl-ssl.google.com/linux/chrome/rpm/stable/$basearch"
 google_chrome_deb_baseurl: "https://dl-ssl.google.com/linux/chrome/deb"
+
+# Comma-separated list of deb repo architectures:
+google_chrome_deb_arch: "amd64"

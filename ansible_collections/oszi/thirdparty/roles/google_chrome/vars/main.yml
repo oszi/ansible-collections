@@ -20,5 +20,5 @@ google_chrome_rpm_repo_args:
 google_chrome_deb_gpgkey: "/etc/apt/keyrings/google-chrome.gpg"
 google_chrome_deb_repo_path: "/etc/apt/sources.list.d/google-chrome.list"
 google_chrome_deb_repo: >-
-  deb [signed-by={{ google_chrome_deb_gpgkey }}]
+  deb [arch={{ google_chrome_deb_arch }} signed-by={{ google_chrome_deb_gpgkey }}]
   {{ google_chrome_deb_baseurl }} stable main

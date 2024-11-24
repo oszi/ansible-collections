@@ -23,5 +23,5 @@ vscode_rpm_repo_args:
 vscode_deb_gpgkey: "/etc/apt/trusted.gpg.d/microsoft.gpg"
 vscode_deb_repo_path: "/etc/apt/sources.list.d/vscode.list"
 vscode_deb_repo: >-
-  deb [signed-by={{ vscode_deb_gpgkey }}]
+  deb [arch={{ vscode_deb_arch }} signed-by={{ vscode_deb_gpgkey }}]
   {{ vscode_deb_baseurl }} stable main
