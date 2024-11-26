@@ -4,8 +4,8 @@ baselinux_sysctl_values_default:
   # Disable eBPF until next reboot
   kernel.unprivileged_bpf_disabled: 1
   # Enable source address verification (RFC3704)
-  net.ipv4.conf.default.rp_filter: 1
-  net.ipv4.conf.all.rp_filter: 1
+  net.ipv4.conf.default.rp_filter: 2
+  net.ipv4.conf.all.rp_filter: 2
   # Enable SYN-flood protections
   net.ipv4.tcp_syncookies: 1
   # Do not accept ICMP redirects
@@ -20,9 +20,10 @@ baselinux_sysctl_values_default:
   net.ipv4.conf.all.route_localnet: 1
   # Enable TCP Fast Open for both client and server
   net.ipv4.tcp_fastopen: 3
-  # Kilobytes of memory to always keep free (good for overlayfs)
-  vm.min_free_kbytes: "{{ [ansible_memtotal_mb * 1024 * 0.05, 2048 * 1024] | min | int }}"
   # Optimize memory compaction for guests
   vm.compaction_proactiveness: "{{ (ansible_virtualization_role == 'guest') | ternary(0, 10) }}"
+  # KBs of memory to always keep free - default is 2% rounded to MBs
+  # Higher values (5%) used to be beneficial for overlayfs
+  vm.min_free_kbytes: "{{ (ansible_memtotal_mb * 0.02) | int * 1024 }}"
   # Percentage of free memory before activating swap (1 = only on faults)
-  vm.swappiness: "{{ (ansible_virtualization_role == 'guest') | ternary(1, 5) }}"
+  vm.swappiness: "{{ (ansible_virtualization_role == 'guest') | ternary(1, 2) }}"
