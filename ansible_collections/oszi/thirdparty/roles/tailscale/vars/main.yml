@@ -10,3 +10,7 @@ tailscale_deb_repo_path: "/etc/apt/sources.list.d/tailscale.list"
 tailscale_deb_repo: >-
   deb [signed-by={{ tailscale_deb_gpgkey }}]
   {{ tailscale_deb_baseurl }} {{ ansible_distribution_release }} main
+
+# Files created by post-setup tasks for uninstall tasks:
+tailscale_post_setup_files:
+  - "/etc/bash_completion.d/tailscale"
