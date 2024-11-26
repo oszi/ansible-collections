@@ -6,4 +6,9 @@
   with_items:
     - "{{ tailscale_rpm_gpgkey }}"
     - "{{ tailscale_rpm_repo_path }}"
-    - "/etc/bash_completion.d/tailscale"
+
+- name: Ensure TailScale post-setup files are removed
+  when: not tailscale_enabled
+  ansible.builtin.file:
+    path: "{{ tailscale_post_setup_files }}"
+    state: "absent"
