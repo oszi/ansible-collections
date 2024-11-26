@@ -21,10 +21,20 @@
   notify: "Restart firewalld"
 
 - name: Set firewall backend to {{ firewalld_backend }}
+  when: firewalld_backend
   ansible.builtin.lineinfile:
     dest: "/etc/firewalld/firewalld.conf"
     line: "FirewallBackend={{ firewalld_backend }}"
     regexp: '^#?\s*FirewallBackend='
+    state: "present"
+  notify: "Restart firewalld"
+
+- name: Set firewalld default zone to {{ firewalld_default_zone }}
+  when: firewalld_default_zone
+  ansible.builtin.lineinfile:
+    dest: "/etc/firewalld/firewalld.conf"
+    line: "DefaultZone={{ firewalld_default_zone }}"
+    regexp: '^#?\s*DefaultZone='
     state: "present"
   notify: "Restart firewalld"
 
@@ -51,7 +61,7 @@
     interface: "{{ item.interface | default(omit) }}"
     source: "{{ item.source | default(omit) }}"
     masquerade: "{{ item.masquerade | default(omit) }}"
-    zone: "{{ item.zone | default(omit) }}"
+    zone: "{{ item.zone | default(firewalld_default_zone) }}"
     state: "{{ item.state | default('enabled') }}"
     permanent: "{{ firewalld_permanent }}"
     immediate: true
@@ -60,7 +70,7 @@
   with_items: "{{ firewalld_rich_rules }}"
   ansible.posix.firewalld:
     rich_rule: "{{ item is mapping | ternary(item.rule, item) }}"
-    zone: "{{ item.zone | default(omit) }}"
+    zone: "{{ item.zone | default(firewalld_default_zone) }}"
     state: "{{ item.state | default('enabled') }}"
     permanent: "{{ firewalld_permanent }}"
     immediate: true
@@ -69,7 +79,7 @@
   with_items: "{{ firewalld_services }}"
   ansible.posix.firewalld:
     service: "{{ item is mapping | ternary(item.service, item) }}"
-    zone: "{{ item.zone | default(omit) }}"
+    zone: "{{ item.zone | default(firewalld_default_zone) }}"
     state: "{{ item.state | default('enabled') }}"
     permanent: "{{ firewalld_permanent }}"
     immediate: true
@@ -78,7 +88,7 @@
   with_items: "{{ firewalld_ports }}"
   ansible.posix.firewalld:
     port: "{{ item is mapping | ternary(item.port, item) }}"
-    zone: "{{ item.zone | default(omit) }}"
+    zone: "{{ item.zone | default(firewalld_default_zone) }}"
     state: "{{ item.state | default('enabled') }}"
     permanent: "{{ firewalld_permanent }}"
     immediate: true
