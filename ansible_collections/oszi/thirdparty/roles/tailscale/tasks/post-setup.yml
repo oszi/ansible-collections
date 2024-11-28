@@ -1,8 +1,28 @@
 ---
-- name: Ensure tailscaled is enabled
+- name: Ensure directory for tailscaled systemd service override
+  when: tailscale_systemd_service_override
+  ansible.builtin.file:
+    dest: "{{ tailscale_systemd_service_override_path | dirname }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Install tailscaled systemd service override
+  when: tailscale_systemd_service_override
+  ansible.builtin.copy:
+    dest: "{{ tailscale_systemd_service_override_path }}"
+    content: "{{ tailscale_systemd_service_override }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  register: _tailscale_systemd_override_result
+
+- name: Ensure tailscaled is enabled and started
   ansible.builtin.systemd:
     name: "tailscaled"
-    state: "started"
+    state: "{{ _tailscale_systemd_override_result.changed | ternary('restarted', 'started') }}"
+    daemon_reload: "{{ _tailscale_systemd_override_result.changed }}"
     enabled: true
 
 - name: Generate tailscale completion for bash

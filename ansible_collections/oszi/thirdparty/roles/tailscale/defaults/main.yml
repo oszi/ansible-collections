@@ -8,3 +8,6 @@ tailscale_upstream_enabled: "{{ tailscale_enabled and ansible_distribution != 'F
 # Repo base URLs - change for custom mirrors
 tailscale_rpm_baseurl: "https://pkgs.tailscale.com/stable/fedora/$basearch"
 tailscale_deb_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}"
+
+# Systemd service drop-in content for tailscaled:
+tailscale_systemd_service_override:
