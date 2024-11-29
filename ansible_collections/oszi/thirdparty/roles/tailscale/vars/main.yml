@@ -14,6 +14,7 @@ tailscale_deb_repo: >-
 # Path for tailscale_systemd_service_override:
 tailscale_systemd_service_override_path: "/etc/systemd/system/tailscaled.service.d/override.conf"
 
-# Files created by post-setup tasks for uninstall tasks:
+# Files created by post-setup tasks - used by uninstall tasks:
 tailscale_post_setup_files:
+  - "{{ tailscale_systemd_service_override_path }}"
   - "/etc/bash_completion.d/tailscale"

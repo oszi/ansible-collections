@@ -1,5 +1,5 @@
 ---
-# Install TailScale?
+# Install Tailscale?
 tailscale_enabled: false
 
 # Install the upstream (external!) deb/rpm repository?
@@ -10,4 +10,9 @@ tailscale_rpm_baseurl: "https://pkgs.tailscale.com/stable/fedora/$basearch"
 tailscale_deb_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}"
 
 # Systemd service drop-in content for tailscaled:
+# # /etc/default/tailscaled is not present on every system [Fedora]
+# # Clear the EnvironmentFile to be cross-compatible.
+# [Service]
+# EnvironmentFile=
+# Environment=PORT=443
 tailscale_systemd_service_override:
