@@ -1,5 +1,5 @@
 ---
-- name: Uninstall TailScale deb repository
+- name: Uninstall Tailscale deb repository
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
@@ -7,8 +7,9 @@
     - "{{ tailscale_deb_gpgkey }}"
     - "{{ tailscale_deb_repo_path }}"
 
-- name: Ensure TailScale post-setup files are removed
-  when: not tailscale_enabled
+- name: Ensure Tailscale post-setup files are removed
+  when: not tailscale_enabled  # <> tailscale_upstream_enabled
   ansible.builtin.file:
-    path: "{{ tailscale_post_setup_files }}"
+    path: "{{ item }}"
     state: "absent"
+  with_items: "{{ tailscale_post_setup_files }}"

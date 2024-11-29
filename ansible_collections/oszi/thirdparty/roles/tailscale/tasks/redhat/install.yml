@@ -1,16 +1,16 @@
 ---
-- name: Copy TailScale RPM signing key
+- name: Copy Tailscale RPM signing key
   ansible.builtin.copy:
     src: "{{ tailscale_rpm_gpgkey.lstrip('/') }}"
     dest: "{{ tailscale_rpm_gpgkey }}"
     owner: "root"
     mode: "0644"
 
-- name: Install TailScale RPM repository
+- name: Install Tailscale RPM repository
   ansible.builtin.yum_repository:
     file: "tailscale"
     name: "tailscale"
-    description: "TailScale stable"
+    description: "Tailscale stable"
     includepkgs: "{{ tailscale_rpm_includepkgs }}"
     baseurl: "{{ tailscale_rpm_baseurl }}"
     gpgkey: "{{ tailscale_rpm_gpgkey }}"

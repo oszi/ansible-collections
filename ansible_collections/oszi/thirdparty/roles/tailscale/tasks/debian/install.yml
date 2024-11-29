@@ -1,19 +1,19 @@
 ---
-- name: Ensure directory for TailScale deb signing key
+- name: Ensure directory for Tailscale deb signing key
   ansible.builtin.file:
     path: "{{ tailscale_deb_gpgkey | dirname }}"
     state: "directory"
     owner: "root"
     mode: "0755"
 
-- name: Copy TailScale deb signing keys
+- name: Copy Tailscale deb signing keys
   ansible.builtin.copy:
     src: "{{ tailscale_deb_gpgkey.lstrip('/') }}"
     dest: "{{ tailscale_deb_gpgkey }}"
     owner: "root"
     mode: "0644"
 
-- name: Install TailScale deb repository
+- name: Install Tailscale deb repository
   ansible.builtin.copy:
     dest: "{{ tailscale_deb_repo_path }}"
     content: "{{ tailscale_deb_repo }}"

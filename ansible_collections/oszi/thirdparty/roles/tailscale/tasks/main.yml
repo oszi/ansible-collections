@@ -1,16 +1,16 @@
 ---
-- name: TailScale tasks
+- name: Tailscale tasks
   tags: [tailscale]
   block:
-    - name: TailScale repository
+    - name: Tailscale repository
       ansible.builtin.include_tasks:
         file: "{{ ansible_os_family | lower }}/{{ tailscale_upstream_enabled | ternary('install', 'uninstall') }}.yml"
 
-    - name: TailScale package is present or absent
+    - name: Tailscale package is present or absent
       ansible.builtin.package:
         name: "tailscale"
         state: "{{ tailscale_enabled | ternary('present', 'absent') }}"
 
-    - name: TailScale post-setup tasks
+    - name: Tailscale post-setup tasks
       when: tailscale_enabled
       ansible.builtin.include_tasks: post-setup.yml
