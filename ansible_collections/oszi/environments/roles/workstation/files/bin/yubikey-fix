@@ -1,10 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-gpgconf --kill gpg-agent ||:
+killall gpg-agent ssh-agent ||:
 
-if systemctl status pcscd >/dev/null 2>&1; then
-  sudo systemctl restart pcscd
+if systemctl is-enabled pcscd >/dev/null 2>&1; then
+  sudo systemctl restart pcscd ||:
 fi
 
 gpg --card-status
