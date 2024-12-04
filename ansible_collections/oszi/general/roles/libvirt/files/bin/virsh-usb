@@ -61,9 +61,8 @@ if [[ "$command" == attach ]]; then
     domain="$(echo "$domains" | fzf --no-multi --no-sort --tac)"
 
     if grep -q Yubi "${device}/manufacturer"; then
-        echo "To attach a Yubikey, it must be released by gpg-agent and pcscd..." >&2
-        gpgconf --kill gpg-agent ||:
-
+        echo "Yubikey must be released by gpg-agent, ssh-agent and pcscd..." >&2
+        killall gpg-agent ssh-agent ||:
         if systemctl status pcscd >/dev/null 2>&1; then
             sudo systemctl stop pcscd ||:
         fi
