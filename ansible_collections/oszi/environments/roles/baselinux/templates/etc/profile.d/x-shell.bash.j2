@@ -32,6 +32,8 @@ _x_shell_prompt () {
     fi
 
     if [[ "$PS1" != *PS1_PROMPT* ]]; then
+        # If PS1 was overridden, most likely, aliases were too.
+        . /etc/profile.d/x-aliases.sh
         _x_shell_init
     fi
 }
