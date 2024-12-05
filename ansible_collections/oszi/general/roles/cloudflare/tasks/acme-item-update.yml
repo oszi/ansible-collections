@@ -14,6 +14,7 @@
       with_items: "{{ _acme_challenge.challenge_data }}"
 
     - name: "Wait for ACME challenge records replication - {{ acme_item.common_name }}"
+      when: _acme_challenge.challenge_data
       ansible.builtin.pause:
         seconds: "{{ cloudflare_acme_delay_sec }}"
 
@@ -34,6 +35,17 @@
       retries: "{{ cloudflare_acme_validation_retries }}"
       delay: "{{ cloudflare_acme_delay_sec }}"
 
+    - name: "Ensure file ownerships for ACME cert and fullchain - {{ acme_item.common_name }}"
+      ansible.builtin.file:
+        path: "{{ acme_item.live_path }}/{{ item }}"
+        state: "file"
+        owner: "{{ acme_item.owner }}"
+        group: "{{ acme_item.group }}"
+        mode: "0640"
+      with_items:
+        - "cert.pem"
+        - "fullchain.pem"
+
     - name: "Run ACME renewal post-hook - {{ acme_item.common_name }}"
       when: "acme_item.post_hook is defined and acme_item.post_hook"
       ansible.builtin.shell: |
@@ -47,7 +59,8 @@
     - name: "Run ACME reload command - {{ acme_item.common_name }}"
       when: "acme_item.reload_cmd is defined and acme_item.reload_cmd and cloudflare_acme_reload"
       ansible.builtin.command: "{{ acme_item.reload_cmd }}"
-      changed_when: true
+      ignore_errors: "{{ cloudflare_acme_reload_ignore_errors }}"
+      tags: [skip_ansible_lint]
 
   always:
     - name: "Delete ACME challenge records - {{ acme_item.common_name }}"
