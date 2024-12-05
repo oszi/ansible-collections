@@ -18,3 +18,17 @@ cloudflare_cname_records:
     value: "jellyfin.{{ cloudflare_zone }}"
     solo: true
     ttl: 3600
+
+# Alternative to the certbot template service (with different paths!):
+cloudflare_acme_items:
+  - common_name: "jellyfin.{{ cloudflare_zone }}"
+    subject_alt_name: "DNS:jellyfin.{{ cloudflare_zone }},DNS:tv.{{ cloudflare_zone }}"
+    live_path: "{{ containerhost_etc_path }}/jellyfin/letsencrypt-ansible"
+    post_hook: |
+      openssl pkcs12 -export -clcerts -inkey privkey.pem -in cert.pem -out cert.p12 -passout pass:
+      chown {{ _jellyfin_uid }}:{{ _jellyfin_uid }} cert.p12
+      chmod 0640 cert.p12
+    reload_cmd: "systemctl restart jellyfin.service"
+    owner: "{{ _jellyfin_uid }}"
+    group: "{{ _jellyfin_uid }}"
+    remaining_days: 30

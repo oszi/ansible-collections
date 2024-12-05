@@ -9,6 +9,7 @@ python_pip3_packages: []
 # Nested list of python distro packages to install:
 # * These defaults must exist/redirect on RedHat and Debian too.
 python_distro_packages:
+  - python3-cryptography
   - python3-netaddr
   - python3-requests
   - python3-yaml

@@ -22,6 +22,7 @@ galaxy_info:
 
 dependencies:
   - role: oszi.general.bootstrap
+  - role: oszi.general.python
   - role: oszi.general.cloudflare
   - role: oszi.general.certs
   - role: oszi.general.wireguard
@@ -30,5 +31,4 @@ dependencies:
   - role: oszi.general.selinux
   - role: oszi.general.ssh
   - role: oszi.general.fail2ban
-  - role: oszi.general.python
   - role: oszi.general.borgmatic
