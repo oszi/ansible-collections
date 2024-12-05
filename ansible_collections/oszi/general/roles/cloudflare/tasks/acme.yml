@@ -1,0 +1,27 @@
+---
+- name: Ensure python3-cryptography is present
+  ansible.builtin.package:
+    name: "python3-cryptography"
+    state: "present"
+
+- name: Ensure directory for ACME account key
+  ansible.builtin.file:
+    path: "{{ cloudflare_acme_account_key | dirname }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Create ACME account key
+  community.crypto.openssl_privatekey:
+    path: "{{ cloudflare_acme_account_key }}"
+    owner: "root"
+    group: "root"
+    mode: "0640"
+
+- name: Include CloudFlare ACME item tasks
+  ansible.builtin.include_tasks:
+    file: acme-item.yml
+  with_items: "{{ cloudflare_acme_items }}"
+  loop_control:
+    loop_var: acme_item

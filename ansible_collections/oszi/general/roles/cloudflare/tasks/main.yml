@@ -1,13 +1,22 @@
 ---
 - name: CloudFlare tasks
-  become: false
-  connection: local
   tags: [cloudflare]
   block:
-    - name: Include CloudFlare tasks delegated to the ansible controller
+    - name: Include CloudFlare DNS tasks delegated to the ansible controller
       when: cloudflare_zone is not none
       ansible.builtin.include_tasks:
-        file: cloudflare.yml
+        file: dns.yml
+        apply:
+          connection: local
+          become: false
+
+    - name: Include CloudFlare ACME tasks
+      when: cloudflare_zone is not none and cloudflare_acme_items
+      ansible.builtin.include_tasks:
+        file: acme.yml
+        apply:
+          tags: [acme]
+      tags: [acme]
 
     - name: CloudFlare role completed
       ansible.builtin.debug:

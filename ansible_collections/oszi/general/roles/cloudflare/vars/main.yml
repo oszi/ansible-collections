@@ -1,1 +1,6 @@
 ---
+# ACME validation delay in seconds
+cloudflare_acme_delay_sec: 15
+
+# ACME validation retries
+cloudflare_acme_validation_retries: 6
