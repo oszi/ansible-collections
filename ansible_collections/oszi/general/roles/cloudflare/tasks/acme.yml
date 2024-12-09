@@ -4,7 +4,7 @@
     name: "python3-cryptography"
     state: "present"
 
-- name: Ensure directory for ACME account key
+- name: Ensure directory for ACME account key exists
   ansible.builtin.file:
     path: "{{ cloudflare_acme_account_key | dirname }}"
     state: "directory"
@@ -27,3 +27,10 @@
   with_items: "{{ cloudflare_acme_items }}"
   loop_control:
     loop_var: acme_item
+
+- name: Include CloudFlare ACME revoke tasks
+  ansible.builtin.include_tasks:
+    file: acme-revoke.yml
+  with_items: "{{ cloudflare_acme_revoke_paths }}"
+  loop_control:
+    loop_var: acme_revoke_item

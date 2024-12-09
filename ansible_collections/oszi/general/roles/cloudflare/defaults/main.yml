@@ -46,6 +46,10 @@ cloudflare_extra_aaaa_records: []
 #   group: 0
 cloudflare_acme_items: []
 
+# List of live_paths (see above) to revoke.
+# * Remove it first from cloudflare_acme_items.
+cloudflare_acme_revoke_paths: []
+
 # Do not execute reload commands by default, for first-time setup.
 # Set to true for updates.
 cloudflare_acme_reload: false
