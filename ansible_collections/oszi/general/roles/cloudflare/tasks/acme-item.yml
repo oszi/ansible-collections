@@ -9,6 +9,7 @@
 
 - name: "Create ACME private key - {{ acme_item.common_name }}"
   community.crypto.openssl_privatekey:
+    select_crypto_backend: "cryptography"
     path: "{{ acme_item.live_path }}/privkey.pem"
     owner: "{{ acme_item.owner }}"
     group: "{{ acme_item.group }}"
@@ -16,6 +17,7 @@
 
 - name: "Create ACME signing request - {{ acme_item.common_name }}"
   community.crypto.openssl_csr:
+    select_crypto_backend: "cryptography"
     path: "{{ acme_item.live_path }}/req.csr"
     privatekey_path: "{{ acme_item.live_path }}/privkey.pem"
     common_name: "{{ acme_item.common_name }}"
@@ -27,8 +29,10 @@
 
 - name: "Create ACME challenge - {{ acme_item.common_name }}"
   community.crypto.acme_certificate:
+    select_crypto_backend: "cryptography"
     account_email: "{{ cloudflare_acme_account_email | default(omit) }}"
-    account_key: "{{ cloudflare_acme_account_key }}"
+    account_key_src: "{{ cloudflare_acme_account_key }}"
+    account_key_passphrase: "{{ cloudflare_acme_account_key_passphrase }}"
     csr: "{{ acme_item.live_path }}/req.csr"
     dest: "{{ acme_item.live_path }}/cert.pem"
     fullchain_dest: "{{ acme_item.live_path }}/fullchain.pem"
@@ -37,10 +41,11 @@
     remaining_days: "{{ acme_item.remaining_days | default(omit) }}"
     force: "{{ _acme_request.changed }}"
     challenge: "dns-01"
+    modify_account: true
     terms_agreed: true
   register: _acme_challenge
 
-- name: Include CloudFlare ACME item update tasks
+- name: Include CloudFlare ACME validation tasks
   when: _acme_challenge.changed
   ansible.builtin.include_tasks:
-    file: acme-item-update.yml
+    file: acme-item-validate.yml

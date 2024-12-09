@@ -14,12 +14,14 @@
 
 - name: Create ACME account key
   community.crypto.openssl_privatekey:
+    select_crypto_backend: "cryptography"
     path: "{{ cloudflare_acme_account_key }}"
+    passphrase: "{{ cloudflare_acme_account_key_passphrase }}"
     owner: "root"
     group: "root"
     mode: "0640"
 
-- name: Include CloudFlare ACME item tasks
+- name: Include CloudFlare ACME certificate tasks
   ansible.builtin.include_tasks:
     file: acme-item.yml
   with_items: "{{ cloudflare_acme_items }}"
