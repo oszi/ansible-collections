@@ -28,7 +28,10 @@ cloudflare_acme_items:
       openssl pkcs12 -export -clcerts -inkey privkey.pem -in cert.pem -out cert.p12 -passout pass:
       chown {{ _jellyfin_uid }}:{{ _jellyfin_uid }} cert.p12
       chmod 0640 cert.p12
-    reload_cmd: "systemctl restart jellyfin.service"
+    reload_cmd: "systemctl try-restart jellyfin.service"
     owner: "{{ _jellyfin_uid }}"
     group: "{{ _jellyfin_uid }}"
     remaining_days: 30
+
+# cloudflare_acme_revoke_paths:
+#   - "{{ containerhost_etc_path }}/jellyfin/letsencrypt-ansible"
