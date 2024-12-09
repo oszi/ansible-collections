@@ -11,7 +11,8 @@
           become: false
 
     - name: Include CloudFlare ACME tasks
-      when: cloudflare_zone is not none and cloudflare_acme_items
+      when: "cloudflare_zone is not none
+        and (cloudflare_acme_items or cloudflare_acme_revoke_paths)"
       ansible.builtin.include_tasks:
         file: acme.yml
         apply:

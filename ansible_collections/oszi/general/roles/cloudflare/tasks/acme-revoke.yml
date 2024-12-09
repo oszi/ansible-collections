@@ -1,0 +1,14 @@
+---
+- name: Revoke ACME certificates
+  community.crypto.acme_certificate_revoke:
+    select_crypto_backend: "cryptography"
+    account_key_src: "{{ cloudflare_acme_account_key }}"
+    account_key_passphrase: "{{ cloudflare_acme_account_key_passphrase }}"
+    certificate: "{{ acme_revoke_item }}/cert.pem"
+    acme_directory: "{{ cloudflare_acme_directory_url }}"
+    acme_version: "{{ cloudflare_acme_api_version }}"
+
+- name: Remove revoked ACME live path
+  ansible.builtin.file:
+    path: "{{ acme_revoke_item }}"
+    state: "absent"
