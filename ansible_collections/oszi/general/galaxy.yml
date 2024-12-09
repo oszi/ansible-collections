@@ -1,7 +1,7 @@
 ---
 namespace: oszi
 name: general
-version: 1.16.1
+version: 1.16.2
 
 description: "Ansible collection for general, bite-sized, single-purpose roles."
 repository: "https://github.com/oszi/ansible-collections.git"
