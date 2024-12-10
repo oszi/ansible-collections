@@ -66,3 +66,20 @@
       with_items:
         - iptables
         - ip6tables
+
+- name: Trust configured certificate authorities
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ baselinux_ca_trust_anchors_path }}/{{ item | basename | regex_replace('\\.(pem|crt)$', '')
+      }}.{{ baselinux_ca_trust_anchors_extension }}"
+    owner: "root"
+    mode: "0644"
+  with_items: "{{ baselinux_ca_trust_anchors }}"
+  notify: "Update CA trust"
+
+- name: Remove blacklisted certificate authorities
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ baselinux_ca_trust_anchors_blacklisted_paths }}"
+  notify: "Update CA trust"
