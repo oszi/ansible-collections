@@ -17,5 +17,3 @@ galaxy_info:
 
 dependencies:
   - role: oszi.general.bootstrap
-  - role: oszi.general.certs
-  - role: oszi.general.cloudflare
