@@ -14,8 +14,6 @@ galaxy_info:
       versions: [all]
     - name: Ubuntu
       versions: [all]
-    - name: macOS
-      versions: [all]
 
   galaxy_tags:
     - general
