@@ -62,8 +62,8 @@ containerhost_services:
           #!/bin/sh
           set -eu
           CERT_PATH="/etc/letsencrypt/live/jellyfin"
-          openssl pkcs12 -export -clcerts -inkey "${CERT_PATH}/privkey.pem" \
-            -in "${CERT_PATH}/cert.pem" -out "${CERT_PATH}/cert.p12" -passout pass:
+          openssl pkcs12 -export -inkey "${CERT_PATH}/privkey.pem" \
+            -in "${CERT_PATH}/fullchain.pem" -out "${CERT_PATH}/cert.p12" -passout pass:
         owner: "{{ _certbot_uid0 }}"
         mode: "0755"
       - dest: "{{ containerhost_etc_path }}/jupyter/firewall_lockdown.sh"
