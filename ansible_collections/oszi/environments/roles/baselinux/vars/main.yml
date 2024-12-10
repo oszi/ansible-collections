@@ -27,3 +27,9 @@ baselinux_sysctl_values_default:
   vm.min_free_kbytes: "{{ (ansible_memtotal_mb * 0.02) | int * 1024 }}"
   # Percentage of free memory before activating swap (1 = only on faults)
   vm.swappiness: "{{ (ansible_virtualization_role == 'guest') | ternary(1, 2) }}"
+
+baselinux_ca_trust_anchors_path: "{{ '/etc/pki/ca-trust/source/anchors'
+  if ansible_os_family == 'RedHat'
+  else '/usr/local/share/ca-certificates' }}"
+
+baselinux_ca_trust_anchors_extension: "{{ 'pem' if ansible_os_family == 'RedHat' else 'crt' }}"

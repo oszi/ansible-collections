@@ -50,6 +50,13 @@ baselinux_absent_paths: []
 # * {/path/to/dest: link/src}
 baselinux_symlinks: {}
 
+# Controller-local paths of CAs to install system-wide:
+# HINT: Use {{ inventory_dir }}.
+baselinux_ca_trust_anchors: []
+# Absolute remote paths of CAs to remove:
+# HINT: Specify separate entries for Debian and RedHat.
+baselinux_ca_trust_anchors_blacklisted_paths: []
+
 # Basic system-wide shell customizations:
 baselinux_shell_histsize: 10000
 baselinux_shell_histfilesize: 10000
