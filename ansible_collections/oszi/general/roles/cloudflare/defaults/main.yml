@@ -57,7 +57,9 @@ cloudflare_acme_reload_ignore_errors: false
 
 # Path to the ACME account key - one per host:
 cloudflare_acme_account_key: "/etc/letsencrypt/account.pem"
-# Password to protect the account key (use vault):
+# Password to encrypt the account key (use vault):
+# WARNING: Changing the password here regenerates the account key!
+# Re-encrypt it manually if you want to rotate it.
 cloudflare_acme_account_key_passphrase: null
 # Optional account email to receive notifications:
 cloudflare_acme_account_email: null

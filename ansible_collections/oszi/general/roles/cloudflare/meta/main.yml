@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Local CloudFlare DNS management."
+  description: "Local CloudFlare DNS management and ACME with CloudFlare DNS validation."
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.16"
