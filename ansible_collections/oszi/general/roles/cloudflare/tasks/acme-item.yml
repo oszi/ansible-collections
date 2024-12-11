@@ -38,7 +38,7 @@
     fullchain_dest: "{{ acme_item.live_path }}/fullchain.pem"
     acme_directory: "{{ cloudflare_acme_directory_url }}"
     acme_version: "{{ cloudflare_acme_api_version }}"
-    remaining_days: "{{ acme_item.remaining_days | default(omit) }}"
+    remaining_days: "{{ acme_item.remaining_days | default(cloudflare_acme_remaining_days_default) }}"
     force: "{{ _acme_request.changed }}"
     challenge: "dns-01"
     modify_account: true

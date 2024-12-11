@@ -39,7 +39,7 @@ cloudflare_extra_aaaa_records: []
 #   live_path: "/etc/letsencrypt/live/test"
 #   remaining_days: 30
 #   post_hook: |
-#     openssl pkcs12 -export -clcerts -inkey privkey.pem -in cert.pem -out cert.p12 -passout pass:
+#     openssl pkcs12 -export -inkey privkey.pem -in fullchain.pem -out cert.p12 -passout pass:
 #     chown 0:0 cert.p12 && chmod 0640 cert.p12
 #   reload_cmd: "systemctl try-restart something.service"
 #   owner: 0
@@ -63,6 +63,10 @@ cloudflare_acme_account_key: "/etc/letsencrypt/account.pem"
 cloudflare_acme_account_key_passphrase: null
 # Optional account email to receive notifications:
 cloudflare_acme_account_email: null
+
+# Days until expiration (usually 90) to renew a certificate.
+# * Specify the maximum (usually 90) to renew right now.
+cloudflare_acme_remaining_days_default: 60
 
 # ACME API settings for all certificates:
 cloudflare_acme_directory_url: "https://acme-v02.api.letsencrypt.org/directory"
