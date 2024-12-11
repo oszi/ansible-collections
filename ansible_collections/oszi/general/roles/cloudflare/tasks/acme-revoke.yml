@@ -1,5 +1,11 @@
 ---
+- name: Check revoked ACME live path
+  ansible.builtin.stat:
+    path: "{{ acme_revoke_item }}"
+  register: _acme_revoke_item_result
+
 - name: Revoke ACME certificates
+  when: _acme_revoke_item_result.stat.exists
   community.crypto.acme_certificate_revoke:
     select_crypto_backend: "cryptography"
     account_key_src: "{{ cloudflare_acme_account_key }}"
@@ -9,6 +15,7 @@
     acme_version: "{{ cloudflare_acme_api_version }}"
 
 - name: Remove revoked ACME live path
+  when: _acme_revoke_item_result.stat.exists
   ansible.builtin.file:
     path: "{{ acme_revoke_item }}"
     state: "absent"
