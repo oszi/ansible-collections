@@ -13,7 +13,6 @@
   roles:
     # Same for toolbox and workstations
     - oszi.thirdparty.rpmfusion
-    - oszi.thirdparty.devel_downloads
     - oszi.thirdparty.gcloud_sdk
     - oszi.thirdparty.hashicorp
     - oszi.thirdparty.opentofu
