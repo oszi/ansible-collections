@@ -1,0 +1,7 @@
+#!/bin/sh
+podman image list \
+--format='{{ if eq .Tag "<none>" }}{{ join .RepoDigests "\n" }}
+{{ else }}{{ .Repository }}:{{ .Tag }}
+{{ end }}' \
+--sort=repository \
+"$@"

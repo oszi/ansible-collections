@@ -1,0 +1,6 @@
+#!/bin/sh
+podman inspect \
+--format='{{ if .NetworkSettings.Networks }}{{ range $key, $val := .NetworkSettings.Networks }}{{
+$val.IPAddress }}{{ end }}{{ else }}{{ .NetworkSettings.SandboxKey }}{{ end }}' \
+--type=container \
+"$@"

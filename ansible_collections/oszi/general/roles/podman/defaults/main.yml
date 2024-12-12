@@ -40,3 +40,6 @@ podman_networks: {}
 # Lists of dicts of args for the podman_image module: (Consider .image quadlets...)
 # https://docs.ansible.com/ansible/latest/modules/podman_image_module.html
 podman_images: []
+
+# Path for local executables
+podman_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"

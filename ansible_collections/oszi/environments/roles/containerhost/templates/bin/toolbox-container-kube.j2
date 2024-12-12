@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+
+set -x
+kubectl run "toolbox-${RANDOM:-0}" \
+    --rm \
+    --stdin \
+    --tty \
+    --restart=Never \
+    --image={{ containerhost_toolbox_container_image | quote }} \
+    "$@"
