@@ -1,6 +1,11 @@
 # shellcheck shell=sh
 [ "${PS1-}" ] || return
 
+if command -v git >/dev/null 2>&1; then
+    alias gcd='cd -- "$(git rev-parse --show-toplevel)"'
+    alias g='git'
+fi
+
 if command -v kubectl >/dev/null 2>&1; then
     alias k='kubectl'
 fi
