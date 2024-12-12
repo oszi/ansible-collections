@@ -11,17 +11,17 @@
     - "{{ containerhost_etc_path }}"
     - "{{ containerhost_var_path }}"
 
-- name: Install toolbox-container aliases
-  when: not containerhost_toolbox_container_disabled
+- name: Install toolbox-container scripts
   ansible.builtin.template:
-    src: "etc/profile.d/toolbox-container.sh.j2"
-    dest: "/etc/profile.d/toolbox-container.sh"
+    src: "{{ item }}"
+    dest: "{{ containerhost_local_bin_path }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
     owner: "root"
     group: "root"
-    mode: "0644"
+    mode: "0755"
+  with_fileglob:
+    - "templates/bin/toolbox-container*.j2"
 
-- name: Remove toolbox-container aliases
-  when: containerhost_toolbox_container_disabled
+- name: Remove obsolete /etc/profile.d/toolbox-container.sh
   ansible.builtin.file:
     path: "/etc/profile.d/toolbox-container.sh"
     state: "absent"

@@ -30,3 +30,6 @@ containerhost_podman_config_toolbox: |
 
 # Path to the container runtime for service containers
 containerhost_runtime: "{{ podman_runtime }}"
+
+# Path for local executables (toolbox-container scripts)
+containerhost_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"

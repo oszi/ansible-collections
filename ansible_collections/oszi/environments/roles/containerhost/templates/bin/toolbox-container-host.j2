@@ -1,0 +1,25 @@
+#!/bin/bash
+set -euo pipefail
+
+{{ containerhost_local_bin_path | quote }}/toolbox-container \
+    --privileged \
+    --userns=host \
+    --pid=host \
+    --ipc=host \
+    --network=host \
+    --uts=host \
+    --volume=/:/host:rw \
+    --volume=/dev:/dev:rw \
+    --volume=/home:/home:rw \
+    --volume=/media:/media:rw \
+    --volume=/mnt:/mnt:rw \
+    --volume=/tmp:/tmp:rw \
+    --volume=/sys:/sys:rw \
+    --volume=/etc/machine-id:/etc/machine-id:ro \
+    --volume=/etc/hosts:/etc/hosts:ro \
+    --volume=/etc/resolv.conf:/etc/resolv.conf:ro \
+    --volume=/etc/group:/etc/group:ro \
+    --volume=/etc/passwd:/etc/passwd:ro \
+    --volume=/etc/shadow:/etc/shadow:ro \
+    --workdir=/host \
+    "$@"

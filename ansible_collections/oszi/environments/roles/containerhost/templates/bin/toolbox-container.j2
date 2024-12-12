@@ -1,0 +1,15 @@
+#!/bin/bash
+set -euo pipefail
+IMAGE={{ containerhost_toolbox_container_image | quote }}
+args=("-it" "--rm" "--name=toolbox-${RANDOM:-0}")
+
+while [ $# -ge 1 ]; do
+    case "$1" in
+        --) shift && break;;
+        :*) IMAGE="$(echo "$IMAGE" | sed -r 's/:\w*$//')${1}" && shift;;
+         *) args+=("$1") && shift;;
+    esac
+done
+
+set -x
+{{ containerhost_runtime | quote }} run "${args[@]}" "$IMAGE" "$@"
