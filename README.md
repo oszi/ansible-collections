@@ -16,12 +16,12 @@ Software from third-party sources.
 ### Debian / Ubuntu Login Shells
 
 By default, desktop terminals on Debian are not login shells, /etc/profile.d is not sourced.  
-Manually enable login shells in desktop terminals. [Profiles / Command]
+Source /etc/profile.d/* or manually enable login shells. [Profiles - Command]
 
 ### RedHat / CentOS Support
 
 Most roles support the latest RedHat family distributions with some tweaking.  
-See the [EPEL](https://docs.fedoraproject.org/en-US/epel/) documentation as it is not enabled by default.  
+EPEL and other non-default repositories may be required.
 
 ### First-time setup
 
