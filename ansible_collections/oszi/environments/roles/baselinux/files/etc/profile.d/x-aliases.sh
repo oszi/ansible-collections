@@ -1,4 +1,5 @@
 # shellcheck shell=sh
+[ "${PS1-}" ] || return
 
 alias e='${EDITOR:-vi}'
 alias o='xdg-open'

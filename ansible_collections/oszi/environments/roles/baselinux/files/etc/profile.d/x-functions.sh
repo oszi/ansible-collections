@@ -1,4 +1,5 @@
 # shellcheck shell=sh
+[ "${PS1-}" ] || return
 
 _find_clear() {
     find "$@" -type f -not -iregex '.*\.\(aes\|asc\|gpg\|enc\|kdbx?\)$'

@@ -1,4 +1,5 @@
 # shellcheck shell=sh
+[ "${PS1-}" ] || return
 
 if command -v kubectl >/dev/null 2>&1; then
     alias k='kubectl'
