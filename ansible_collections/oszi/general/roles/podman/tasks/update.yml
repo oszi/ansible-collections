@@ -10,7 +10,8 @@
     podman_image_list: >-
       {{ podman_runtime }} image list
       --format="{{ '{{.Repository}}#{{.Tag}}#{{.Id}}' }}"
-      --filter=dangling=false | sort
+      --filter=dangling=false
+      | grep -v '<none>' | sort
 
   block:
     - name: Dump podman info

@@ -89,13 +89,3 @@
   args: "{{ item }}"
   with_items: "{{ podman_images }}"
   tags: [skip_ansible_lint]
-
-- name: Remove obsolete podman-image-gc unit files
-  ansible.builtin.file:
-    path: "/etc/systemd/system/{{ item }}"
-    state: "absent"
-  notify: "Reload systemd"
-  with_items:
-    - podman-image-gc.service
-    - podman-image-gc.timer
-    - timers.target.wants/podman-image-gc.timer
