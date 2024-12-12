@@ -1,6 +1,9 @@
 # shellcheck shell=sh
 [ "${PS1-}" ] || return
 
+alias clip='xclip -i -selection clipboard'
+alias o='xdg-open'
+
 {% if not flatpak_disabled %}
 {% set _flatpak_chromium = 'org.chromium.Chromium' %}
 {% if _flatpak_chromium in flatpak_apps %}

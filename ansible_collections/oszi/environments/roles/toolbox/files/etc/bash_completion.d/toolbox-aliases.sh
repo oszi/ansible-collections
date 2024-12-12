@@ -1,5 +1,10 @@
 # shellcheck shell=bash
 
+if command -v git >/dev/null 2>&1; then
+    _completion_loader git
+    complete -o bashdefault -o default -o nospace -F __git_wrap__git_main g
+fi
+
 if command -v kubectl >/dev/null 2>&1; then
     _completion_loader kubectl
     complete -o default -F __start_kubectl k
