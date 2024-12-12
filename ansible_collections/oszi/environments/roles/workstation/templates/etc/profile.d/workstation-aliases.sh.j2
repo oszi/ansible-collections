@@ -1,4 +1,5 @@
 # shellcheck shell=sh
+[ "${PS1-}" ] || return
 
 {% if not flatpak_disabled %}
 {% set _flatpak_chromium = 'org.chromium.Chromium' %}

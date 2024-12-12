@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+[ "${PS1-}" ] || return
 
 _x_shell_init() {
     export HISTSIZE={{ baselinux_shell_histsize | int }}
@@ -43,8 +44,7 @@ if [[ "$(declare -p PROMPT_COMMAND 2>&1)" = "declare -a"* ]]; then
 elif [[ -n "${PROMPT_COMMAND:-}" ]]; then
     PROMPT_COMMAND=("$PROMPT_COMMAND" "_x_shell_prompt")
 else
-    # shellcheck disable=SC2178 # array vs string
-    PROMPT_COMMAND="_x_shell_prompt"
+    PROMPT_COMMAND=("_x_shell_prompt")
 fi
 
 _x_shell_init
