@@ -16,3 +16,4 @@ shell_obsolete_config_files:
   - "/etc/profile.d/x-bash-source.sh"
   - "/etc/profile.d/x-functions.sh"
   - "/etc/profile.d/x-shell.bash"
+  - "/etc/profile.d/x-source.sh"

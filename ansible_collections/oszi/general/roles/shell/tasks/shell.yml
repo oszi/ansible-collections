@@ -13,18 +13,27 @@
     src: "etc/{{ item }}/"
     dest: "/etc/{{ item }}/"
     owner: "root"
+    group: "root"
     mode: "0644"
   with_items:
     - bash_completion.d
     - bashrc.d
-    - profile.d
     - skel
+
+- name: Copy skeleton files for root
+  ansible.builtin.copy:
+    src: "etc/skel/"
+    dest: "/root/"
+    owner: "root"
+    group: "root"
+    mode: "0644"
 
 - name: Install shell customizations
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "/etc/bashrc.d/{{ item | basename | regex_replace('\\.j2$', '') }}"
     owner: "root"
+    group: "root"
     mode: "0644"
   with_fileglob:
     - "templates/etc/bashrc.d/*.j2"
