@@ -21,14 +21,15 @@ _source_glob() {
     unset rc
 }
 
-if [ -n "${POSIXLY_CORRECT-}" ]; then
+if [ -z "${POSIXLY_CORRECT-}" ]; then
+    _source_glob /etc/bashrc.d/* ~/.bashrc.d/* \
+        ~/.bash_aliases
+
+    if [ -z "${BASH_COMPLETION_VERSINFO-}" ]; then
+        _source_glob /usr/share/bash-completion/bash_completion
+    fi
+
+# bash --posix # shopt -oq posix
+else
     _source_glob /etc/bashrc.d/x-*.sh ~/.bashrc.d/x-*.sh
-    return
-fi
-
-_source_glob /etc/bashrc.d/* ~/.bashrc.d/* \
-    ~/.bash_aliases
-
-if [ -z "${BASH_COMPLETION_VERSINFO-}" ]; then
-    _source_glob /usr/share/bash-completion/bash_completion
 fi
