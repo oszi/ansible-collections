@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script to initialize the git repository.
-# You may symlink this file into a parent repository - e.g. inventory.
+# You may copy this file into a parent repository - e.g. inventory.
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
