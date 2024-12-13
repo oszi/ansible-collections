@@ -2,26 +2,17 @@
 
 Personal collections of ansible roles and playbooks for Linux workstations and containers.  
 Supported distributions include the latest stable Fedora, Debian, Ubuntu.  
+Most roles also work the latest RedHat family distributions with some tweaking.  
 See the examples and role defaults for basic documentation...
+
+### Collections
 
 * [oszi.environments](ansible_collections/oszi/environments) -
 High-level environment roles.
-
 * [oszi.general](ansible_collections/oszi/general) -
 General, bite-sized, single-purpose roles.
-
 * [oszi.thirdparty](ansible_collections/oszi/thirdparty) -
 Software from third-party sources.
-
-### Debian / Ubuntu Login Shells
-
-By default, desktop terminals on Debian are not login shells, /etc/profile.d is not sourced.  
-Source /etc/profile.d/* or manually enable login shells. [Profiles - Command]
-
-### RedHat / CentOS Support
-
-Most roles support the latest RedHat family distributions with some tweaking.  
-EPEL and other non-default repositories may be required.
 
 ### First-time setup
 
