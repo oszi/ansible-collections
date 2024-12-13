@@ -23,3 +23,4 @@ galaxy_info:
 dependencies:
   - role: oszi.general.firewalld
   - role: oszi.general.selinux
+  - role: oszi.general.shell

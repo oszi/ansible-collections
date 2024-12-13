@@ -1,0 +1,11 @@
+---
+- name: "Enforce /etc/skel for user:{{ user_item.key }}"
+  ansible.builtin.copy:
+    src: "/etc/skel/{{ item }}"
+    dest: "~/{{ item }}"
+    mode: "preserve"
+    remote_src: true
+  with_items:
+    - .bashrc
+    - .bash_profile
+    - .profile

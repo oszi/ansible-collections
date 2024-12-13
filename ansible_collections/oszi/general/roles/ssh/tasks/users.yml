@@ -30,24 +30,20 @@
     uid: "{{ item.value.uid | default(omit) }}"
     state: "{{ item.value.state | default('present') }}"
   with_dict: "{{ ssh_unix_users }}"
-  register: _ssh_unix_users_result
-  tags: [shell]
 
-- name: Enforce skeleton .bashrc files for ssh_unix_users
-  when: ssh_skel_bashrc_enforced
+# root is handled in oszi.general.shell, which is a dependency.
+- name: Enforce /etc/skel config files
   tags: [shell]
-  block:
-    - name: Check existing .bashrc files
-      ansible.builtin.stat:
-        path: "{{ item }}/.bashrc"
-      with_items: "{{ _ssh_unix_users_result.results | map(attribute='home') }}"
-      register: _ssh_bashrc_result
-
-    - name: Enforce skeleton .bashrc files
-      ansible.builtin.copy:
-        src: "/etc/skel/.bashrc"
-        dest: "{{ item }}"
-        mode: "preserve"
-        remote_src: true
-      with_items: "{{ _ssh_bashrc_result.results | map(attribute='stat')
-        | selectattr('exists') | map(attribute='path') }}"
+  ansible.builtin.include_tasks:
+    file: user-skel.yml
+    apply:
+      become: true
+      become_user: "{{ user_item.key }}"
+      tags: [shell]
+  when: "ssh_etc_skel_enforced
+    and user_item.key != 'root'
+    and not user_item.value.system | default(false)
+    and user_item.value.home | default('') != '/'"
+  with_dict: "{{ ssh_unix_users }}"
+  loop_control:
+    loop_var: user_item
