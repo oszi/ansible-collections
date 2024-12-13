@@ -37,13 +37,12 @@
   ansible.builtin.include_tasks:
     file: user-skel.yml
     apply:
-      become: true
-      become_user: "{{ user_item.key }}"
       tags: [shell]
   when: "ssh_etc_skel_enforced
     and user_item.key != 'root'
     and not user_item.value.system | default(false)
-    and user_item.value.home | default('') != '/'"
+    and (user_item.value.shell is undefined
+      or not user_item.value.shell.endswith('/nologin'))"
   with_dict: "{{ ssh_unix_users }}"
   loop_control:
     loop_var: user_item
