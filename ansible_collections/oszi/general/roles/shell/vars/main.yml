@@ -1,11 +1,8 @@
 ---
 # Obsolete / superseded files to remove:
 shell_obsolete_config_files:
-  - "/etc/bash_completion.d/kubectx.bash"
-  - "/etc/bash_completion.d/kubens.bash"
   - "/etc/bash_completion.d/toolbox-aliases.sh"
   - "/etc/bash_completion.d/x-completions.sh"
-  - "/etc/profile.d/borgmatic.sh"
   - "/etc/profile.d/fzf-key-bindings.bash"
   - "/etc/profile.d/fzf-key-bindings.zsh"
   - "/etc/profile.d/podman-aliases.sh"
@@ -16,4 +13,3 @@ shell_obsolete_config_files:
   - "/etc/profile.d/x-bash-source.sh"
   - "/etc/profile.d/x-functions.sh"
   - "/etc/profile.d/x-shell.bash"
-  - "/etc/profile.d/x-source.sh"
