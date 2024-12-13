@@ -8,6 +8,7 @@ case $- in
       *) return ;;
 esac
 
+# Strictly posix-compliant files [x-*.sh]
 for rc in /etc/bashrc.d/x-*.sh "$HOME"/.bashrc.d/x-*.sh; do
     if [ -r "$rc" ]; then
         . "$rc"
