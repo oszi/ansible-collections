@@ -16,23 +16,6 @@
     state: "{{ 'present' if ansible_virtualization_type == 'VMware'
       and ansible_virtualization_role == 'guest' else 'absent' }}"
 
-- name: Copy shell config files
-  ansible.builtin.copy:
-    src: "etc/{{ item }}/"
-    dest: "/etc/{{ item }}/"
-    owner: "root"
-    mode: "0644"
-  with_items:
-    - bash_completion.d
-    - profile.d
-
-- name: Copy shell customizations
-  ansible.builtin.template:
-    src: "etc/profile.d/x-shell.bash.j2"
-    dest: "/etc/profile.d/x-shell.bash"
-    owner: "root"
-    mode: "0644"
-
 - name: Ensure baselinux_absent_paths are deleted
   ansible.builtin.file:
     path: "{{ item }}"

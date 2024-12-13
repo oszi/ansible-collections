@@ -56,8 +56,3 @@ baselinux_ca_trust_anchors: []
 # Absolute remote paths of CAs to remove:
 # HINT: Specify separate entries for Debian and RedHat.
 baselinux_ca_trust_anchors_blacklisted_paths: []
-
-# Basic system-wide shell customizations:
-baselinux_shell_histsize: 10000
-baselinux_shell_histfilesize: 10000
-baselinux_shell_histcontrol: 'ignorespace:erasedups'

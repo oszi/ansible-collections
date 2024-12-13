@@ -1,0 +1,24 @@
+---
+- name: Check traditional bat path
+  ansible.builtin.stat:
+    path: "/usr/bin/bat"
+  register: _bat_bin
+
+- name: Check alternative batcat path
+  ansible.builtin.stat:
+    path: "/usr/bin/batcat"
+  register: _batcat_bin
+
+- name: Symlink bat to batcat alternative?
+  ansible.builtin.file:
+    src: "{{ _batcat_bin.stat.path }}"
+    dest: "{{ shell_local_bin_path }}/bat"
+    state: "link"
+  when: not _bat_bin.stat.exists and _batcat_bin.stat.exists
+
+- name: Symlink batcat to bat for consistency?
+  ansible.builtin.file:
+    src: "{{ _bat_bin.stat.path }}"
+    dest: "{{ shell_local_bin_path }}/batcat"
+    state: "link"
+  when: _bat_bin.stat.exists and not _batcat_bin.stat.exists

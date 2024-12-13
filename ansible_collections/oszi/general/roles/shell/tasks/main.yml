@@ -1,0 +1,23 @@
+---
+- name: Shell setup tasks
+  tags: [shell]
+  block:
+    - name: Include shell setup tasks
+      when: not shell_disabled
+      ansible.builtin.include_tasks:
+        file: shell.yml
+
+    - name: Include fzf setup tasks
+      when: "not shell_disabled and 'fzf' in shell_packages"
+      ansible.builtin.include_tasks:
+        file: fzf.yml
+
+    - name: Include bat setup tasks
+      when: "not shell_disabled and 'bat' in shell_packages"
+      ansible.builtin.include_tasks:
+        file: bat.yml
+
+    - name: Shell role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true

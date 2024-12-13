@@ -1,0 +1,24 @@
+# shellcheck shell=sh
+
+export EDITOR={{ shell_editor | quote }}
+export HISTSIZE={{ shell_histsize | int }}
+export HISTFILESIZE={{ shell_histfilesize | int }}
+export HISTCONTROL={{ shell_histcontrol | quote }}
+{% if shell_search_paths %}
+
+# shellcheck disable=SC2043,SC2066 # run once / double quote word split
+for i in {{ shell_search_paths | join(' ') }}; do
+    case ":${PATH}:" in
+        *:"$i":*)
+            ;;
+        *)
+            if [ -d "$i" ]; then
+                PATH="${i}:${PATH}"
+            fi
+            ;;
+    esac
+    unset i
+done
+
+export PATH
+{% endif %}

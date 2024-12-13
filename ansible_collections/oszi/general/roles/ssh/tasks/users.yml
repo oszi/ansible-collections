@@ -7,6 +7,17 @@
     state: "{{ item.value.state | default('present') }}"
   with_dict: "{{ ssh_unix_groups }}"
 
+- name: Allow passwordless sudo for the specified groups
+  ansible.builtin.copy:
+    content: |
+      {% for group in ssh_sudo_nopasswd_groups %}
+      %{{ group }} ALL=(ALL) NOPASSWD: ALL
+      {% endfor %}
+    dest: "/etc/sudoers.d/nopasswd_groups"
+    owner: "root"
+    mode: "0440"
+  when: ssh_sudo_nopasswd_groups
+
 - name: Configure unix users
   ansible.builtin.user:
     name: "{{ item.key }}"
@@ -19,14 +30,24 @@
     uid: "{{ item.value.uid | default(omit) }}"
     state: "{{ item.value.state | default('present') }}"
   with_dict: "{{ ssh_unix_users }}"
+  register: _ssh_unix_users_result
+  tags: [shell]
 
-- name: Allow passwordless sudo for the specified groups
-  ansible.builtin.copy:
-    content: |
-      {% for group in ssh_sudo_nopasswd_groups %}
-      %{{ group }} ALL=(ALL) NOPASSWD: ALL
-      {% endfor %}
-    dest: "/etc/sudoers.d/nopasswd_groups"
-    owner: "root"
-    mode: "0440"
-  when: ssh_sudo_nopasswd_groups
+- name: Enforce skeleton .bashrc files for ssh_unix_users
+  when: ssh_skel_bashrc_enforced
+  tags: [shell]
+  block:
+    - name: Check existing .bashrc files
+      ansible.builtin.stat:
+        path: "{{ item }}/.bashrc"
+      with_items: "{{ _ssh_unix_users_result.results | map(attribute='home') }}"
+      register: _ssh_bashrc_result
+
+    - name: Enforce skeleton .bashrc files
+      ansible.builtin.copy:
+        src: "/etc/skel/.bashrc"
+        dest: "{{ item }}"
+        mode: "preserve"
+        remote_src: true
+      with_items: "{{ _ssh_bashrc_result.results | map(attribute='stat')
+        | selectattr('exists') | map(attribute='path') }}"

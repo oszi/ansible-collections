@@ -28,6 +28,7 @@ dependencies:
   - role: oszi.general.systemd
   - role: oszi.general.firewalld
   - role: oszi.general.selinux
+  - role: oszi.general.shell
   - role: oszi.general.ssh
   - role: oszi.general.fail2ban
   - role: oszi.general.borgmatic
