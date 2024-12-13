@@ -1,8 +1,18 @@
 ---
+- name: Get user info
+  ansible.builtin.user:
+    name: "{{ user_item.key }}"
+    state: "present"
+  register: _user_info
+  check_mode: true
+
 - name: "Enforce /etc/skel for user:{{ user_item.key }}"
+  when: "_user_info.home != '/'"
   ansible.builtin.copy:
     src: "/etc/skel/{{ item }}"
-    dest: "~/{{ item }}"
+    dest: "{{ _user_info.home }}/{{ item }}"
+    owner: "{{ user_item.key }}"
+    group: "{{ _user_info.group }}"
     mode: "preserve"
     remote_src: true
   with_items:
