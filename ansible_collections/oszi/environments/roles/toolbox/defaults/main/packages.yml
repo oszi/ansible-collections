@@ -6,9 +6,6 @@ toolbox_packages: "{{ toolbox_packages_pt_default }}"
 
 # Fedora/Debian/Ubuntu defaults to include in toolbox_packages:
 toolbox_packages_pt_default:
-  - "{{ ['exa'] if ansible_os_family == 'Debian'
-    and not (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 24)
-    else ['eza'] }}"  # (Fedora or Ubuntu 24+)
   - "{{ [
       'ansible-lint',
       'apache2-utils',
@@ -75,9 +72,6 @@ toolbox_packages_pt_default:
   - atop
   - autoconf
   - automake
-  - bash
-  - bash-completion
-  - bat
   - bridge-utils
   - btrfs-progs
   - bzip2
@@ -87,7 +81,6 @@ toolbox_packages_pt_default:
   - exfatprogs
   - file
   - findutils
-  - fzf
   - gcc
   - git
   - gnupg2

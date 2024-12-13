@@ -78,11 +78,6 @@
     group: "root"
     mode: "0755"
 
-- name: Remove obsolete /etc/profile.d/podman-aliases.sh
-  ansible.builtin.file:
-    path: "/etc/profile.d/podman-aliases.sh"
-    state: "absent"
-
 - name: Configure podman networks
   containers.podman.podman_network:
   args: "{{ item.value | combine({'name': item.key}) }}"

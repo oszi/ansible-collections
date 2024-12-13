@@ -21,11 +21,6 @@
   with_fileglob:
     - "templates/bin/toolbox-container*.j2"
 
-- name: Remove obsolete /etc/profile.d/toolbox-container.sh
-  ansible.builtin.file:
-    path: "/etc/profile.d/toolbox-container.sh"
-    state: "absent"
-
 - name: Podman pull the toolbox image
   when: containerhost_toolbox_container_pull
   containers.podman.podman_image:

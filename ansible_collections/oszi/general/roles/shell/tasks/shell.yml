@@ -1,0 +1,36 @@
+---
+- name: Flatten package list variables
+  ansible.builtin.set_fact:
+    shell_packages: "{{ shell_packages | flatten }}"
+
+- name: Ensure shell packages are installed
+  ansible.builtin.package:
+    name: "{{ shell_packages }}"
+    state: "present"
+
+- name: Copy shell config files
+  ansible.builtin.copy:
+    src: "etc/{{ item }}/"
+    dest: "/etc/{{ item }}/"
+    owner: "root"
+    mode: "0644"
+  with_items:
+    - bash_completion.d
+    - bashrc.d
+    - profile.d
+    - skel
+
+- name: Install shell customizations
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/etc/bashrc.d/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: "root"
+    mode: "0644"
+  with_fileglob:
+    - "templates/etc/bashrc.d/*.j2"
+
+- name: Remove obsolete shell config files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ shell_obsolete_config_files }}"

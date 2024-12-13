@@ -5,5 +5,9 @@
     - name: Toolbox package setup tasks
       ansible.builtin.import_tasks: packages.yml
 
-    - name: Toolbox system tasks
-      ansible.builtin.import_tasks: system.yml
+    - name: Install toolbox scripts
+      ansible.builtin.copy:
+        src: "bin/"
+        dest: "{{ toolbox_local_bin_path }}/"
+        owner: "root"
+        mode: "0755"
