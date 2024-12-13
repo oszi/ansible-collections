@@ -1,6 +1,7 @@
 #!/bin/sh
+# In rootless mode there is no real network stack, use localhost with port forwarding.
 podman inspect \
 --format='{{ if .NetworkSettings.Networks }}{{ range $key, $val := .NetworkSettings.Networks }}{{
-$val.IPAddress }}{{ end }}{{ else }}{{ .NetworkSettings.SandboxKey }}{{ end }}' \
+$val.IPAddress }}{{ end }}{{ else }}127.0.0.1{{ end }}' \
 --type=container \
 "$@"
