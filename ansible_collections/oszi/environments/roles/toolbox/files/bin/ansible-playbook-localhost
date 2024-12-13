@@ -1,5 +1,13 @@
 #!/bin/bash
+# shellcheck disable=SC1090,SC1091 # non-constant source
 set -euo pipefail
+if [ -r activate ]; then
+    echo -n "# Source $(realpath activate)? [Y/n]" >&2
+    read -r answer
+    if echo "$answer" | grep -iqv '^N'; then
+        . activate
+    fi
+fi
 echo "# Leave BECOME password empty if ansible_sudo_pass is set, or with passwordless sudo." >&2
 localhost="$(hostname -f)"
 set -x
