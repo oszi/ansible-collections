@@ -26,7 +26,8 @@ if [ -n "${POSIXLY_CORRECT-}" ]; then
     return
 fi
 
-_source_glob /etc/bashrc.d/* ~/.bashrc.d/* ~/.bash_aliases.d ~/.bash_aliases
+_source_glob /etc/bashrc.d/* ~/.bashrc.d/* \
+    ~/.bash_aliases
 
 if [ -z "${BASH_COMPLETION_VERSINFO-}" ]; then
     _source_glob /usr/share/bash-completion/bash_completion
