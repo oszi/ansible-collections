@@ -20,6 +20,7 @@
     mode: "0755"
 
 - name: Install workstation aliases
+  when: shell_disabled is defined and not shell_disabled
   ansible.builtin.template:
     src: "etc/shrc.d/workstation-aliases.sh.j2"
     dest: "/etc/shrc.d/workstation-aliases.sh"
