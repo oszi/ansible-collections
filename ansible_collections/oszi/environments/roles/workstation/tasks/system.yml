@@ -21,8 +21,8 @@
 
 - name: Install workstation aliases
   ansible.builtin.template:
-    src: "etc/bashrc.d/x-workstation-aliases.sh.j2"
-    dest: "/etc/bashrc.d/x-workstation-aliases.sh"
+    src: "etc/shrc.d/workstation-aliases.sh.j2"
+    dest: "/etc/shrc.d/workstation-aliases.sh"
     owner: "root"
     group: "root"
     mode: "0644"

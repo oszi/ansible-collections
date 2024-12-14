@@ -1,5 +1,5 @@
 # shellcheck shell=sh disable=SC1090,SC1091 # non-constant source
-# ansible managed .bashrc
+# ansible managed skel
 
 if [ -f /etc/bashrc ]; then
     . /etc/bashrc
@@ -7,29 +7,22 @@ elif [ -f /etc/bash.bashrc ]; then
     . /etc/bash.bashrc
 fi
 
-case $- in
-    *i*) ;;
-      *) return ;;
-esac
-
-_source_glob() {
+source_glob() {
     for rc in "$@"; do
         if [ -r "$rc" ]; then
-            . "$rc"
+            if [ -n "${PS1-}" ]; then
+                . "$rc"
+            else
+                . "$rc" >/dev/null
+            fi
         fi
     done
     unset rc
 }
 
 if [ -z "${POSIXLY_CORRECT-}" ]; then
-    _source_glob /etc/bashrc.d/* ~/.bashrc.d/* \
-        ~/.bash_aliases
-
-    if [ -z "${BASH_COMPLETION_VERSINFO-}" ]; then
-        _source_glob /usr/share/bash-completion/bash_completion
-    fi
-
-# bash --posix # shopt -oq posix
+    source_glob /etc/shrc.d/*.sh /etc/shrc.d/*.bash \
+        ~/.bashrc.d/* ~/.bash_aliases
 else
-    _source_glob /etc/bashrc.d/x-*.sh ~/.bashrc.d/x-*.sh
+    source_glob /etc/shrc.d/*.sh
 fi

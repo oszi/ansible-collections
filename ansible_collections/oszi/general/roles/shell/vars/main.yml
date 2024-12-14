@@ -1,6 +1,7 @@
 ---
 # Obsolete / superseded files to remove:
 shell_obsolete_config_files:
+  - "/etc/bashrc.d/"  # /etc/shrc.d/
   - "/etc/bash_completion.d/toolbox-aliases.sh"
   - "/etc/bash_completion.d/x-completions.sh"
   - "/etc/profile.d/fzf-key-bindings.bash"

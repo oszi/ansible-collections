@@ -1,9 +1,14 @@
 # shellcheck shell=bash
 
+case $- in
+    *i*) ;;
+      *) return ;;
+esac
+
 shopt -s histappend
 shopt -s checkwinsize
 
-_x_shell_init() {
+_bash_prompt_init() {
     PS1="\[\033[{{ (ansible_virtualization_role == 'guest') | ternary(32, 31) }}m\]"
     if [[ "$UID" -eq 0 ]]; then
         PS1="${PS1}\[\033[7m\]"
@@ -12,7 +17,7 @@ _x_shell_init() {
     PS1="${PS1}\u@\h\[\033[0m\]:\[\033[34m\]\W\[\033[0m\]\${PS1_PROMPT@P} "
 }
 
-_x_shell_prompt () {
+_bash_prompt_command () {
     PS1_RC=$?
 
     if [[ "$UID" -eq 0 ]]; then
@@ -31,16 +36,16 @@ _x_shell_prompt () {
     fi
 
     if [[ "$PS1" != *PS1_PROMPT* ]]; then
-        _x_shell_init
+        _bash_prompt_init
     fi
 }
 
 if [[ "$(declare -p PROMPT_COMMAND 2>&1)" = "declare -a"* ]]; then
-    PROMPT_COMMAND+=("_x_shell_prompt")
+    PROMPT_COMMAND+=("_bash_prompt_command")
 elif [[ -n "${PROMPT_COMMAND:-}" ]]; then
-    PROMPT_COMMAND=("$PROMPT_COMMAND" "_x_shell_prompt")
+    PROMPT_COMMAND=("$PROMPT_COMMAND" "_bash_prompt_command")
 else
-    PROMPT_COMMAND=("_x_shell_prompt")
+    PROMPT_COMMAND=("_bash_prompt_command")
 fi
 
-_x_shell_init
+_bash_prompt_init

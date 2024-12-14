@@ -34,9 +34,10 @@
     state: "present"
 
 - name: Copy shell aliases for Borgmatic
+  when: "not shell_disabled | default(false)"
   ansible.builtin.copy:
-    src: "etc/bashrc.d/x-borgmatic.sh"
-    dest: "/etc/bashrc.d/x-borgmatic.sh"
+    src: "etc/shrc.d/borgmatic.sh"
+    dest: "/etc/shrc.d/borgmatic.sh"
     owner: "root"
     group: "root"
     mode: "0644"

@@ -11,9 +11,9 @@ alias py='$(command -v ipython3 || command -v ipython || command -v python3 || e
 alias ssh-forget='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
 alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
 
-if (command -v exa || command -v eza) >/dev/null 2>&1; then
+if (command -v eza || command -v exa) >/dev/null 2>&1; then
     # shellcheck disable=SC2139 # expand when defined
-    alias l="$(command -v exa || command -v eza) -F --group-directories-first"
+    alias l="$(command -v eza || command -v exa) -F --group-directories-first"
     alias la='l -a'
     alias ll='l -alg'
     if ! command -v tree >/dev/null 2>&1; then
