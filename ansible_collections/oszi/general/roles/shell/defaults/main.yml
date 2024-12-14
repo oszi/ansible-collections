@@ -20,6 +20,7 @@ shell_packages:
   - bat
   - nano
   - fzf
+  - zsh
 
 # List of extra paths to add to $PATH:
 # WARNING: Escape paths here!
