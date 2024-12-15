@@ -4,6 +4,9 @@
 autoload -U compinit
 compinit
 
+autoload -U colors
+colors
+
 if [ -d /etc/shrc.d ]; then
     for rc in /etc/shrc.d/*.sh /etc/shrc.d/*.zsh; do
         if [ -r "$rc" ]; then

@@ -1,0 +1,14 @@
+# shellcheck shell=sh
+# TODO: prompt.bash feature parity
+
+case $- in
+    *i*) ;;
+      *) return ;;
+esac
+
+export HISTSIZE={{ shell_histsize | int }}
+export SAVEHIST={{ shell_histfilesize | int }}
+
+setopt COMPLETE_IN_WORD
+setopt INC_APPEND_HISTORY
+setopt SHARE_HISTORY

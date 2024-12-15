@@ -7,9 +7,6 @@ shell_histsize: 10000
 shell_histfilesize: 10000
 shell_histcontrol: 'ignorespace:erasedups'
 
-# Default editor:
-shell_editor: "nano"
-
 # Shell packages to install:
 shell_packages:
   - "{{ ['eza'] if ansible_distribution == 'Fedora'
@@ -21,6 +18,10 @@ shell_packages:
   - nano
   - fzf
   - zsh
+
+# Dict of environment variables:
+shell_environment:
+  EDITOR: nano
 
 # List of extra paths to add to $PATH:
 # WARNING: Escape paths here!
