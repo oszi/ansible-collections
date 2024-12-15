@@ -20,14 +20,6 @@
     - shrc.d
     - skel
 
-- name: Copy skeleton files for root
-  ansible.builtin.copy:
-    src: "etc/skel/"
-    dest: "/root/"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-
 - name: Install shell customizations
   ansible.builtin.template:
     src: "{{ item }}"
@@ -37,6 +29,14 @@
     mode: "0644"
   with_fileglob:
     - "templates/etc/shrc.d/*.j2"
+
+- name: Copy skeleton files for root
+  ansible.builtin.copy:
+    src: "etc/skel/"
+    dest: "/root/"
+    owner: "root"
+    group: "root"
+    mode: "0644"
 
 - name: Remove obsolete shell config files
   ansible.builtin.file:

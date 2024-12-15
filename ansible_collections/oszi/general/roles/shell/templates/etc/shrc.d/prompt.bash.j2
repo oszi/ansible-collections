@@ -5,6 +5,10 @@ case $- in
       *) return ;;
 esac
 
+export HISTSIZE={{ shell_histsize | int }}
+export HISTFILESIZE={{ shell_histfilesize | int }}
+export HISTCONTROL={{ shell_histcontrol | quote }}
+
 shopt -s histappend
 shopt -s checkwinsize
 

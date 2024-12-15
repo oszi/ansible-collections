@@ -1,9 +1,10 @@
 # shellcheck shell=sh
+{% if shell_environment %}
 
-export EDITOR={{ shell_editor | quote }}
-export HISTSIZE={{ shell_histsize | int }}
-export HISTFILESIZE={{ shell_histfilesize | int }}
-export HISTCONTROL={{ shell_histcontrol | quote }}
+{% for key, value in shell_environment.items() %}
+export {{ key }}={{ value | quote }}
+{% endfor %}
+{% endif %}
 {% if shell_search_paths %}
 
 # shellcheck disable=SC2043,SC2066 # run once / double quote word split
