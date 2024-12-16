@@ -39,14 +39,6 @@
     - "templates/etc/profile.d/*.j2"
     - "templates/etc/shrc.d/*.j2"
 
-- name: Copy skeleton files for root
-  ansible.builtin.copy:
-    src: "etc/skel/"
-    dest: "/root/"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-
 - name: Remove obsolete shell config files
   ansible.builtin.file:
     path: "{{ item }}"

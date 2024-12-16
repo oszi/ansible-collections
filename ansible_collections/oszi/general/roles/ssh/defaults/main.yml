@@ -36,7 +36,3 @@ ssh_harden_crypto: true
 ssh_host_keys:
   - /etc/ssh/ssh_host_ed25519_key
   - /etc/ssh/ssh_host_rsa_key
-
-# Enforce /etc/skel/.bashrc and co. for ssh_unix_users?
-# See oszi.general.shell for the source.
-ssh_etc_skel_enforced: "{{ not shell_disabled | default(false) }}"
