@@ -21,6 +21,7 @@ shell_packages:
 
 # Dict of environment variables:
 shell_environment:
+  ENV: /etc/shrc
   EDITOR: nano
 
 # List of extra paths to add to $PATH:

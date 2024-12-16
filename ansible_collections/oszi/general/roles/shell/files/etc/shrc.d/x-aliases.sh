@@ -1,10 +1,5 @@
 # shellcheck shell=sh
 
-case $- in
-    *i*) ;;
-      *) return ;;
-esac
-
 alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -I'

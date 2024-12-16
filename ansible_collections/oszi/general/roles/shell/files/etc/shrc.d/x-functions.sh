@@ -1,10 +1,5 @@
 # shellcheck shell=sh
 
-case $- in
-    *i*) ;;
-      *) return ;;
-esac
-
 _find_clear() {
     find "$@" -type f -not -iregex '.*\.\(aes\|asc\|gpg\|enc\|kdbx?\)$'
 }
