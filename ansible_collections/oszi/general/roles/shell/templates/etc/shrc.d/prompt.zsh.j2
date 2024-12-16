@@ -1,11 +1,6 @@
 # shellcheck shell=sh
 # TODO: prompt.bash feature parity
 
-case $- in
-    *i*) ;;
-      *) return ;;
-esac
-
 export HISTSIZE={{ shell_histsize | int }}
 export SAVEHIST={{ shell_histfilesize | int }}
 

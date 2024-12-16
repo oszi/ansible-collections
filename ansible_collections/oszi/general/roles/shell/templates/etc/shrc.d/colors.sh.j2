@@ -1,11 +1,6 @@
 # shellcheck shell=sh
 
 {% if ansible_os_family != 'RedHat' %}
-case $- in
-    *i*) ;;
-      *) return ;;
-esac
-
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 

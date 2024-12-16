@@ -2,22 +2,22 @@
 {% if shell_environment %}
 
 {% for key, value in shell_environment.items() %}
-export {{ key }}={{ value | quote }}
+export {{ key | quote }}={{ value | quote }}
 {% endfor %}
 {% endif %}
 {% if shell_search_paths %}
 
 # shellcheck disable=SC2043,SC2066 # run once / double quote word split
 for i in {{ shell_search_paths | join(' ') }}; do
-    case ":${PATH}:" in
-        *:"$i":*)
-            ;;
-        *)
-            if [ -d "$i" ]; then
+    if [ -d "$i" ]; then
+        case ":${PATH}:" in
+            *:"$i":*)
+                ;;
+            *)
                 PATH="${i}:${PATH}"
-            fi
-            ;;
-    esac
+                ;;
+        esac
+    fi
     unset i
 done
 

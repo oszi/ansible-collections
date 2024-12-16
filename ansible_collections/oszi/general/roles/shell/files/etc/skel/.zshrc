@@ -7,20 +7,8 @@ compinit
 autoload -U colors
 colors
 
-if [ -d /etc/shrc.d ]; then
-    for rc in /etc/shrc.d/*.sh /etc/shrc.d/*.zsh; do
-        if [ -r "$rc" ]; then
-            . "$rc"
-        fi
-    done
-    unset rc
-fi
+. /etc/shrc
 
 if [ -d ~/.zshrc.d ]; then
-    for rc in ~/.zshrc.d/*; do
-        if [ -r "$rc" ]; then
-            . "$rc"
-        fi
-    done
-    unset rc
+    source_glob ~/.zshrc.d/*
 fi

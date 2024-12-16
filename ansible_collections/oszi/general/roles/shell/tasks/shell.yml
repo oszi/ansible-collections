@@ -8,7 +8,7 @@
     name: "{{ shell_packages }}"
     state: "present"
 
-- name: Copy shell config files
+- name: Copy shell config directories
   ansible.builtin.copy:
     src: "etc/{{ item }}/"
     dest: "/etc/{{ item }}/"
@@ -20,14 +20,23 @@
     - shrc.d
     - skel
 
+- name: Copy /etc/shrc entrypoint
+  ansible.builtin.copy:
+    src: "etc/shrc"
+    dest: "/etc/shrc"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
 - name: Install shell customizations
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "/etc/shrc.d/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    dest: "/etc/{{ item | dirname | basename }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
     owner: "root"
     group: "root"
     mode: "0644"
   with_fileglob:
+    - "templates/etc/profile.d/*.j2"
     - "templates/etc/shrc.d/*.j2"
 
 - name: Copy skeleton files for root
