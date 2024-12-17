@@ -14,7 +14,7 @@ COLOR_RED="\033[31m"
 COLOR_YELLOW="\033[33m"
 
 VAULT_FILES_REGEX='^.*/\(group\|host\)_vars/.*vault[^/]*\.\(ya?ml\|json\)$'
-KEY_FILES_REGEX='^.*\(-key\.pem\|\.key\|\.csr\|\.p12\)$'
+KEY_FILES_REGEX='^.*\(\(private\|privkey\|-key\)\.pem\|\.key\|\.csr\|\.p12\)$'
 
 # shellcheck disable=SC2016 # quoting '^$ANSIBLE_VAULT'
 files="$(find . -type f \( -regex "$VAULT_FILES_REGEX" -or -regex "$KEY_FILES_REGEX" \) -print0 2>/dev/null \
