@@ -2,9 +2,10 @@
 set -euo pipefail
 
 killall gpg-agent ssh-agent ||:
-
-if systemctl is-enabled pcscd >/dev/null 2>&1; then
-  sudo systemctl restart pcscd ||:
+if systemctl is-enabled pcscd pcscd.socket >/dev/null 2>&1; then
+    sudo systemctl try-restart pcscd ||:
 fi
 
-gpg --card-status
+if [ -t 0 ]; then
+    gpg --card-status
+fi

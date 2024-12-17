@@ -6,6 +6,24 @@ _find_clear() {
 
 alias find-clear='_find_clear'
 
+_find_clear_gpg_encrypt() {
+    files="$(_find_clear "$@" | tee /dev/stderr)"
+    if [ -n "$files" ]; then
+        echo "Encrypt then delete the above files? [y/N]" >&2
+        read -r answer
+        if echo "$answer" | grep -iq '^Y'; then
+            if echo "$files" | xargs -d'\n' -n1 gpg -es --batch --yes \
+            --default-recipient-self --; then
+                echo "$files" | xargs -d'\n' rm -fv --
+            fi
+        fi
+        unset answer
+    fi
+    unset files
+}
+
+alias find-clear-gpg-encrypt='_find_clear_gpg_encrypt'
+
 _find_crypt() {
     find "$@" -type f -iregex '.*\.\(aes\|asc\|gpg\|enc\|kdbx?\)$'
 }
@@ -37,6 +55,13 @@ _gpg_ssh_setup() {
     if ! grep -E '^enable-ssh-support' ~/.gnupg/gpg-agent.conf >/dev/null 2>&1; then
         echo 'enable-ssh-support' >> ~/.gnupg/gpg-agent.conf
         gpg-connect-agent reloadagent /bye >/dev/null
+    fi
+
+    if systemctl is-enabled pcscd pcscd.socket >/dev/null 2>&1; then
+        if ! grep -E '^disable-ccid' ~/.gnupg/scdaemon.conf >/dev/null 2>&1; then
+            echo 'disable-ccid' >> ~/.gnupg/scdaemon.conf
+            gpg-connect-agent reloadagent /bye >/dev/null
+        fi
     fi
 
     SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
