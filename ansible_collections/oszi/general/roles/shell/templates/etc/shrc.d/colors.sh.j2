@@ -2,14 +2,17 @@
 
 {% if ansible_os_family != 'RedHat' %}
 if [ -x /usr/bin/dircolors ]; then
+    # shellcheck disable=SC2015 # if-then-else
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-
     alias ls='ls --color=auto'
-    alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
-    alias xzgrep='xzgrep --color=auto'
-    alias zgrep='zgrep --color=auto'
+
+    for grep in grep egrep fgrep xzgrep xzegrep xzfgrep zgrep zegrep zfgrep; do
+        if command -v "$grep" >/dev/null 2>&1; then
+            # shellcheck disable=SC2139 # expand when defined
+            alias "${grep}=${grep} --color=auto"
+        fi
+        unset grep
+    done
 fi
 {% else %}
 # /etc/profile.d/colorls.sh
