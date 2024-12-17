@@ -1,5 +1,6 @@
 ---
-# See also: roles/workstation/default/main/packages.yml
+# See also: environments/roles/workstation/default/main/packages.yml
+# and general/roles/shell/default/main.yml
 
 # Nested list of packages to install on toolboxes:
 toolbox_packages: "{{ toolbox_packages_pt_default }}"
@@ -88,7 +89,6 @@ toolbox_packages_pt_default:
   - hostname
   - htop
   - jq
-  - less
   - libtool
   - libxml2
   - lshw
@@ -96,7 +96,6 @@ toolbox_packages_pt_default:
   - ltrace
   - m4
   - make
-  - nano
   - net-tools
   - nftables
   - numactl
@@ -104,14 +103,11 @@ toolbox_packages_pt_default:
   - patch
   - pinentry-tty
   - psmisc
-  - ripgrep
   - rsync
-  - screen
   - socat
   - strace
   - sudo
   - tar
-  - tmux
   - traceroute
   - tree
   - util-linux

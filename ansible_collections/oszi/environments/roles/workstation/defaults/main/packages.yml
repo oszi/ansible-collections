@@ -1,6 +1,6 @@
 ---
-# See also: roles/toolbox/defaults/main/packages.yml
-# and roles/gnome/defaults/main/packages.yml
+# See also: environments/roles/toolbox/defaults/main/packages.yml
+# and general/roles/gnome/defaults/main/packages.yml
 
 # Nested list of packages to install on workstations:
 workstation_packages: "{{ workstation_packages_pt_default }}"
