@@ -12,6 +12,7 @@
     - "{{ containerhost_var_path }}"
 
 - name: Install toolbox-container scripts
+  when: not containerhost_toolbox_container_disabled
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ containerhost_local_bin_path }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
