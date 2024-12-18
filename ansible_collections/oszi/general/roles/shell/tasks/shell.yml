@@ -28,15 +28,15 @@
     group: "root"
     mode: "0644"
 
-- name: Install shell customizations
+- name: Install shrc customizations
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "/etc/{{ item | dirname | basename }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    dest: "/etc/shrc.d/{{ item | basename | regex_replace('\\.j2$', '') }}"
     owner: "root"
     group: "root"
     mode: "0644"
   with_fileglob:
-    - "templates/etc/profile.d/*.j2"
+    - "templates/etc/shrc.d/.profile.j2"
     - "templates/etc/shrc.d/*.j2"
 
 - name: Remove obsolete shell config files

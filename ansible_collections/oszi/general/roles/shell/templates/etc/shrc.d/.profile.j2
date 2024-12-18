@@ -1,5 +1,6 @@
+#!/bin/sh
 # shellcheck shell=sh
-# ansible managed
+# This file is idempotent, it may be double sourced.
 {% if shell_environment %}
 
 {% for key, value in shell_environment.items() %}

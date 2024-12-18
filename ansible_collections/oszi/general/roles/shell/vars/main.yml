@@ -8,3 +8,4 @@ shell_obsolete_config_files:
   - "/etc/bash_completion.d/x-aliases.sh"
   - "/etc/bash_completion.d/zz-aliases.sh"
   - "/etc/profile.d/x-environment.sh"
+  - "/etc/profile.d/zz-environment.sh"
