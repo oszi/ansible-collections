@@ -1,2 +1,6 @@
-# ~/.profile is not read by bash if ~/.bash_profile or ~/.bash_login exists.
+# shellcheck shell=sh disable=SC1091 # input source
 # ansible managed skel
+
+if [ -f /etc/shrc.d/.profile ]; then
+    . /etc/shrc.d/.profile
+fi
