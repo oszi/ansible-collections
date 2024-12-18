@@ -23,7 +23,7 @@ COLOR_RED="\033[31m"
 answer_yes_or_exit() {
     echo -en "${COLOR_RED}${1}${COLOR_CLEAR} [y/N]" >&2
     read -r answer
-    if ! echo "$answer" | grep -iq '^Y'; then
+    if ! [[ "$answer" =~ ^[Yy] ]]; then
         exit 1
     fi
 }

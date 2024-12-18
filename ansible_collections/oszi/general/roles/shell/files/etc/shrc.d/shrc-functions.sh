@@ -1,5 +1,11 @@
 # shellcheck shell=sh
 
+_answer_yes() {
+    printf "# %s [y/N]" "${1:-Answer yes}" >&2
+    read -r answer
+    echo "$answer" | grep -iq '^Y'
+}
+
 _find_clear() {
     find "$@" -type f -not -iregex '.*\.\(aes\|asc\|gpg\|enc\|kdbx?\)$'
 }
@@ -7,28 +13,32 @@ _find_clear() {
 alias find-clear='_find_clear'
 
 _find_clear_gpg_encrypt() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: find-clear-gpg-encrypt PATH [FIND ARGS]" >&2
+        return 1
+    fi
+
     files="$(_find_clear "$@" | tee /dev/stderr)"
     if [ -n "$files" ]; then
-        echo "Encrypt then delete the above files? [y/N]" >&2
-        read -r answer
-        if echo "$answer" | grep -iq '^Y'; then
+        if _answer_yes "GPG encrypt the above files?"; then
             if echo "$files" | xargs -d'\n' -n1 gpg -es --batch --yes \
             --default-recipient-self --; then
-                echo "$files" | xargs -d'\n' rm -fv --
+                if _answer_yes "Delete the above files?"; then
+                    echo "$files" | xargs -d'\n' rm -fv --
+                fi
             fi
         fi
-        unset answer
     fi
     unset files
 }
 
 alias find-clear-gpg-encrypt='_find_clear_gpg_encrypt'
 
-_find_crypt() {
+_find_encrypted() {
     find "$@" -type f -iregex '.*\.\(aes\|asc\|gpg\|enc\|kdbx?\)$'
 }
 
-alias find-crypt='_find_crypt'
+alias find-encrypted='_find_encrypted'
 
 _find_latest() {
     find "$@" -type f -printf '%T@\0%p\0' \
