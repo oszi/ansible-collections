@@ -28,6 +28,6 @@ fi
 
 echo -en "${COLOR_YELLOW}Run ansible-lint?${COLOR_CLEAR} [y/N]" >&2
 read -r answer
-if echo "$answer" | grep -iq '^Y'; then
+if [[ "$answer" =~ ^[Yy] ]]; then
     ansible-lint
 fi

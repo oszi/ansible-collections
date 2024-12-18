@@ -1,3 +1,4 @@
+#!/bin/sh
 # shellcheck shell=sh disable=SC1090 # non-constant source
 # ansible managed /etc/shrc for interactive shells
 

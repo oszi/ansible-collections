@@ -51,7 +51,7 @@ for domain in ${domains}; do
     if ${virsh} dumpxml "$domain" | xmllint --xpath "$device_xpath" - >/dev/null 2>&1; then
         echo -n "Detach ${vendor_id}:${product_id} from ${domain}? [Y/n]" >&2
         read -r answer
-        if echo "$answer" | grep -iqv '^N'; then
+        if ! [[ "$answer" =~ ^[Nn] ]]; then
             virsh_command detach "$domain"
         fi
     fi

@@ -1,10 +1,10 @@
 ---
 # Obsolete / superseded files to remove:
 shell_obsolete_config_files:
-  - "/etc/bashrc.d/"  # /etc/shrc.d/
-  - "/etc/shrc.d/environment.sh"
-  - "/etc/shrc.d/environment.zsh"
   - "/etc/shrc.d/x-aliases.sh"
+  - "/etc/shrc.d/zz-aliases.sh"
   - "/etc/shrc.d/x-functions.sh"
+  - "/etc/shrc.d/zz-functions.sh"
   - "/etc/bash_completion.d/x-aliases.sh"
+  - "/etc/bash_completion.d/zz-aliases.sh"
   - "/etc/profile.d/x-environment.sh"

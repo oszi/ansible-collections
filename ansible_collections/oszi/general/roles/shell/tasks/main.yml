@@ -8,6 +8,7 @@
         file: shell.yml
 
     - name: Include tasks to enforce skeleton config files
+      when: not shell_disabled
       ansible.builtin.include_tasks:
         file: skel-user.yml
       with_items: "{{ shell_skeleton_enforced_users | unique }}"
