@@ -1,6 +1,7 @@
 #!/bin/sh
 # shellcheck shell=sh
-# This file is idempotent, it may be double sourced.
+# This file is idempotent. It should be sourced from the user's .profile (login)
+# then again from /etc/shrc to ensure correct environment variables.
 {% if shell_environment %}
 
 {% for key, value in shell_environment.items() %}
@@ -9,7 +10,7 @@ export {{ key | quote }}={{ value | quote }}
 {% endif %}
 {% if shell_search_paths %}
 
-# shellcheck disable=SC2043,SC2066 # run once / double quote word split
+# shellcheck disable=SC2043 # for loop run once
 for i in {{ shell_search_paths | join(' ') }}; do
     if [ -d "$i" ]; then
         case ":${PATH}:" in
