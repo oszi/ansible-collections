@@ -1,6 +1,8 @@
 # shellcheck shell=sh disable=SC1091 # not following input sources
 # shellcheck disable=SC3044 # in POSIX complete is undefined
 
+# *.sh is sourced earlier than *.bash and *.zsh so completion is guaranteed
+# to be ready by when external completion files are sourced.
 if [ -n "${BASH_VERSION-}" ] && [ -z "${BASH_COMPLETION_VERSINFO-}" ]; then
     if [ -f /usr/share/bash-completion/bash_completion ]; then
         . /usr/share/bash-completion/bash_completion
@@ -9,7 +11,7 @@ if [ -n "${BASH_VERSION-}" ] && [ -z "${BASH_COMPLETION_VERSINFO-}" ]; then
     fi
 fi
 
-# Abort immediately if shell completion is not supported.
+# Abort immediately if completion is not supported.
 if ! type complete >/dev/null 2>&1; then
     return
 fi
