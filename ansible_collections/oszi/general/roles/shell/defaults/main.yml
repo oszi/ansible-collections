@@ -5,7 +5,6 @@ shell_disabled: false
 # Basic system-wide shell customizations:
 shell_histsize: 10000
 shell_histfilesize: 10000
-shell_histcontrol: 'ignorespace:erasedups'
 
 # Dict of environment variables:
 shell_environment:

@@ -1,15 +1,26 @@
-# shellcheck shell=bash # zsh is unsupported
+# shellcheck shell=sh disable=SC3010,SC3028 # in POSIX [[ ]] and UID are undefined
 
+export HISTFILE="$HOME"/.zsh_history
 export HISTSIZE={{ shell_histsize | int }}
 export SAVEHIST={{ shell_histfilesize | int }}
+
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
+
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS
+setopt HIST_SAVE_NO_DUPS
+
+setopt COMPLETE_IN_WORD
+setopt INC_APPEND_HISTORY
+setopt NO_SHARE_HISTORY
+unsetopt SHARE_HISTORY
 
 if [[ "${ZSH-}" = *oh-my-zsh* ]]; then
     return
 fi
 
-setopt COMPLETE_IN_WORD
-setopt INC_APPEND_HISTORY
-setopt SHARE_HISTORY
 setopt PROMPT_SUBST
 
 PROMPT='%F{{ (ansible_virtualization_role == 'guest') | ternary('{green}', '{red}') }}%n@%m%f'
