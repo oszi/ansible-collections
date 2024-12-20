@@ -63,25 +63,18 @@
         mode: "0644"
 
 # Bash completion is installed automatically by the package.
-- name: Install gcloud SDK completion for ZSH
-  when: gcloud_sdk_enabled and _etc_shrcd_stat_result.stat.exists
+- name: Install gcloud-sdk completion for ZSH
+  when: _etc_shrcd_stat_result.stat.exists
   vars:
     zsh_completion_path: "/usr/lib/google-cloud-sdk/completion.zsh.inc"
-  block:
-    - name: Check whether gcloud-sdk completion for ZSH exists
-      ansible.builtin.stat:
-        path: "{{ zsh_completion_path }}"
-      register: _gcloud_sdk_zsh_completion_stat_result
+  ansible.builtin.copy:
+    dest: "/etc/shrc.d/gcloud-sdk-completion.zsh"
+    content: |
+      # shellcheck shell=sh disable=SC1091 # not following input sources
 
-    - name: Install gcloud-sdk completion for ZSH
-      ansible.builtin.copy:
-        dest: "/etc/shrc.d/gcloud-sdk-completion.zsh"
-        content: |
-          # shellcheck shell=sh disable=SC1091 # not following input sources
-
-          if [ -f {{ zsh_completion_path | quote }} ]; then
-              . {{ zsh_completion_path | quote }}
-          fi
-        owner: "root"
-        group: "root"
-        mode: "0644"
+      if [ -f {{ zsh_completion_path | quote }} ]; then
+          . {{ zsh_completion_path | quote }}
+      fi
+    owner: "root"
+    group: "root"
+    mode: "0644"
