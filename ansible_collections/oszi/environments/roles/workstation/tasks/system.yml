@@ -19,8 +19,9 @@
     group: "root"
     mode: "0755"
 
+# oszi.general.shell is an indirect dependency.
 - name: Install workstation aliases
-  when: shell_disabled is defined and not shell_disabled
+  when: not shell_disabled
   ansible.builtin.template:
     src: "etc/shrc.d/workstation-aliases.sh.j2"
     dest: "/etc/shrc.d/workstation-aliases.sh"
