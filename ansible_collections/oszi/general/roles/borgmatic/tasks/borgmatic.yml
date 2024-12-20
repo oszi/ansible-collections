@@ -33,8 +33,13 @@
     virtualenv_site_packages: true
     state: "present"
 
+- name: Check whether /etc/shrc.d exists
+  ansible.builtin.stat:
+    path: "/etc/shrc.d"
+  register: _etc_shrcd_stat_result
+
 - name: Copy shell aliases for Borgmatic
-  when: shell_disabled is defined and not shell_disabled
+  when: _etc_shrcd_stat_result.stat.exists
   ansible.builtin.copy:
     src: "etc/shrc.d/borgmatic.sh"
     dest: "/etc/shrc.d/borgmatic.sh"
