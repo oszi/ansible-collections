@@ -16,7 +16,6 @@
     group: "root"
     mode: "0644"
   with_items:
-    - bash_completion.d
     - shrc.d
     - skel
 

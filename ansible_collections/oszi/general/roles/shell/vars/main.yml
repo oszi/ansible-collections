@@ -5,6 +5,8 @@ shell_obsolete_config_files:
   - "/etc/shrc.d/zz-aliases.sh"
   - "/etc/shrc.d/x-functions.sh"
   - "/etc/shrc.d/zz-functions.sh"
+  - "/etc/shrc.d/bash_completion.bash"
+  - "/etc/bash_completion.d/shrc-aliases.sh"
   - "/etc/bash_completion.d/x-aliases.sh"
   - "/etc/bash_completion.d/zz-aliases.sh"
   - "/etc/profile.d/x-environment.sh"
