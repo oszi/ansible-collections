@@ -11,16 +11,11 @@ setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE
 setopt HIST_REDUCE_BLANKS
 setopt HIST_SAVE_NO_DUPS
-
-setopt COMPLETE_IN_WORD
 setopt INC_APPEND_HISTORY
 setopt NO_SHARE_HISTORY
 unsetopt SHARE_HISTORY
 
-if [[ "${ZSH-}" = *oh-my-zsh* ]]; then
-    return
-fi
-
+setopt COMPLETE_IN_WORD
 setopt PROMPT_SUBST
 
 PROMPT='%F{{ (ansible_virtualization_role == 'guest') | ternary('{green}', '{red}') }}%n@%m%f'
