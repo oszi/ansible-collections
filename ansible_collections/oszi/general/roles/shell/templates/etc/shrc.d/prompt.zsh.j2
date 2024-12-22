@@ -4,9 +4,6 @@ export HISTFILE="$HOME"/.zsh_history
 export HISTSIZE={{ shell_histsize | int }}
 export SAVEHIST={{ shell_histfilesize | int }}
 
-bindkey '^[[1;5C' forward-word
-bindkey '^[[1;5D' backward-word
-
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE
 setopt HIST_REDUCE_BLANKS
