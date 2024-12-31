@@ -18,3 +18,7 @@ fi
 # /etc/profile.d/colorls.sh
 # /etc/profile.d/color*grep.sh
 {% endif %}
+
+if [ -n "${ZSH_VERSION-}" ]; then
+    autoload -Uz +X colors && colors
+fi
