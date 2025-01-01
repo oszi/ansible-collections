@@ -17,3 +17,7 @@ tailscale_deb_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_distributio
 # EnvironmentFile=
 # Environment=PORT=443
 tailscale_systemd_service_override:
+
+# System completion paths for Bash and ZSH:
+tailscale_bash_completion_path: "/etc/bash_completion.d/tailscale"
+tailscale_zsh_completion_path: "/usr/local/share/zsh/site-functions/_tailscale"

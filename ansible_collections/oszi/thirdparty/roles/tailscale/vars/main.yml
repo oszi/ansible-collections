@@ -17,4 +17,5 @@ tailscale_systemd_service_override_path: "/etc/systemd/system/tailscaled.service
 # Files created by post-setup tasks - used by uninstall tasks:
 tailscale_post_setup_files:
   - "{{ tailscale_systemd_service_override_path }}"
-  - "/etc/bash_completion.d/tailscale"
+  - "{{ tailscale_bash_completion_path }}"
+  - "{{ tailscale_zsh_completion_path }}"
