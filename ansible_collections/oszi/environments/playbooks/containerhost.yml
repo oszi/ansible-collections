@@ -11,6 +11,7 @@
   gather_facts: false
   hosts: "{{ containerhost_hosts | default(['cloud', 'containerhosts']) }}"
   roles:
+    - oszi.thirdparty.gcloud_sdk
     - oszi.thirdparty.tailscale
   tags:
     - third-party

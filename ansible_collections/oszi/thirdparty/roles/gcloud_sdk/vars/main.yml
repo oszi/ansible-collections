@@ -10,3 +10,7 @@ gcloud_sdk_deb_repo_path: "/etc/apt/sources.list.d/google-cloud-sdk.list"
 gcloud_sdk_deb_repo: >-
   deb [signed-by={{ gcloud_sdk_deb_gpgkey }}]
   {{ gcloud_sdk_deb_baseurl }} cloud-sdk main
+
+# Conflicting paths for deb - e.g. pre-installed repo:
+gcloud_sdk_deb_conflicting_paths:
+  - "/etc/apt/sources.list.d/gce_sdk.list"
