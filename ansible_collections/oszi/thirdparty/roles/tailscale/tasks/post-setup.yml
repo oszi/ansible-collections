@@ -25,17 +25,15 @@
     daemon_reload: "{{ _tailscale_systemd_override_result.changed }}"
     enabled: true
 
-- name: Check whether /etc/shrc.d exists
-  ansible.builtin.stat:
-    path: "/etc/shrc.d"
-  register: _etc_shrcd_stat_result
-
 - name: Install tailscale completion for bash
-  vars:
-    bash_completion_path: "{{ '/etc/bash_completion.d/tailscale'
-      if not _etc_shrcd_stat_result.stat.exists
-      else '/etc/shrc.d/tailscale-completion.bash' }}"
+  when: tailscale_bash_completion_path
   block:
+    - name: Ensure completion path for bash exists
+      ansible.builtin.file:
+        path: "{{ tailscale_bash_completion_path | dirname }}"
+        state: "directory"
+        mode: "0755"
+
     - name: Generate tailscale completion for bash
       ansible.builtin.command: "tailscale completion bash"
       register: _tailscale_completion_bash_result
@@ -45,17 +43,21 @@
 
     - name: Copy tailscale completion for bash
       ansible.builtin.copy:
-        dest: "{{ bash_completion_path }}"
-        content: |
-          # shellcheck disable=all
-          {{ _tailscale_completion_bash_result.stdout }}
+        dest: "{{ tailscale_bash_completion_path }}"
+        content: "{{ _tailscale_completion_bash_result.stdout }}"
         owner: "root"
         group: "root"
         mode: "0644"
 
 - name: Install tailscale completion for ZSH
-  when: _etc_shrcd_stat_result.stat.exists
+  when: tailscale_zsh_completion_path
   block:
+    - name: Ensure completion path for ZSH exists
+      ansible.builtin.file:
+        path: "{{ tailscale_zsh_completion_path | dirname }}"
+        state: "directory"
+        mode: "0755"
+
     - name: Generate tailscale completion for ZSH
       ansible.builtin.command: "tailscale completion zsh"
       register: _tailscale_completion_zsh_result
@@ -65,10 +67,8 @@
 
     - name: Copy tailscale completion for ZSH
       ansible.builtin.copy:
-        dest: "/etc/shrc.d/tailscale-completion.zsh"
-        content: |
-          # shellcheck disable=all
-          {{ _tailscale_completion_zsh_result.stdout }}
+        dest: "{{ tailscale_zsh_completion_path }}"
+        content: "{{ _tailscale_completion_zsh_result.stdout }}"
         owner: "root"
         group: "root"
         mode: "0644"
