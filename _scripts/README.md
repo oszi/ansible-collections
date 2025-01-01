@@ -13,6 +13,9 @@ SSH into a host in an ansible inventory with all configured arguments.
 * [ansible-vault-id-client](../ansible_collections/oszi/environments/roles/toolbox/files/bin/ansible-vault-id-client)  
 Script to use as "vault id" for GPG encrypted vault passwords.
 
+* [galaxy-release.sh](galaxy-release.sh)  
+Update the galaxy versions for a new release.
+
 * [git-init.sh](git-init.sh)  
 Initialize git hooks and git submodules after cloning.
 
