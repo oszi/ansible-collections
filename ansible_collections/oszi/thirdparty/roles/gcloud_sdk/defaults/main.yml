@@ -37,3 +37,9 @@ gcloud_sdk_deb_baseurl: "https://packages.cloud.google.com/apt"
 
 # Path for local executables
 gcloud_sdk_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+
+# System completion paths for Bash and ZSH:
+gcloud_sdk_kubectl_bash_completion_path: "/etc/bash_completion.d/kubectl"
+gcloud_sdk_kubectl_zsh_completion_path: "/usr/local/share/zsh/site-functions/_kubectl"
+# gcloud completion for ZSH does not work with auto-loading...
+gcloud_sdk_zsh_completion_path: "/etc/shrc.d/gcloud-sdk-completion.zsh"
