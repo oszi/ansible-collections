@@ -1,8 +1,7 @@
 ---
 # Obsolete / superseded files to remove:
 shell_obsolete_config_files:
-  - "/etc/shrc.d/bash_completion.bash"
-  # Installed in shrc.d now
-  - "/etc/bash_completion.d/shrc-aliases.sh"
-  - "/etc/bash_completion.d/kubectl"
-  - "/etc/bash_completion.d/tailscale"
+  - "/etc/shrc.d/kubectl-completion.bash"
+  - "/etc/shrc.d/kubectl-completion.zsh"
+  - "/etc/shrc.d/tailscale-completion.bash"
+  - "/etc/shrc.d/tailscale-completion.zsh"
