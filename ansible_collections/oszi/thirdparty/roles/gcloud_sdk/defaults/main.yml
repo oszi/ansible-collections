@@ -1,6 +1,6 @@
 ---
-# Install Google Cloud SDK?
-gcloud_sdk_enabled: false
+# Install Google Cloud SDK? (Only enabled by default on Google Cloud!)
+gcloud_sdk_enabled: "{{ ansible_system_vendor == 'Google' }}"
 
 # Install Google Cloud SDK App Engine components?
 gcloud_sdk_app_engine_enabled: false

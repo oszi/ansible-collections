@@ -7,3 +7,9 @@
     - "{{ gcloud_sdk_deb_gpgkey }}"
     - "{{ gcloud_sdk_deb_repo_path }}"
     - "{{ gcloud_sdk_local_bin_path }}/gcloud-entrypoint.sh"
+
+- name: Remove conflicting files for GCloud SDK deb
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ gcloud_sdk_deb_conflicting_paths }}"
