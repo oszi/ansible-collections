@@ -16,7 +16,7 @@ elif command -v tofu >/dev/null 2>&1; then
     complete -C tofu tf
 fi
 
-if command -v aws_completer >/dev/null 2>&1; then
+if (command -v aws && command -v aws_completer) >/dev/null 2>&1; then
     complete -C "$(command -v aws_completer)" aws
 fi
 

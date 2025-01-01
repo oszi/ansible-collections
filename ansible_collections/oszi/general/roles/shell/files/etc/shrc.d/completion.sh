@@ -1,9 +1,11 @@
 # shellcheck shell=sh disable=SC1091 # not following input sources
 
-# *.sh is sourced earlier than *.bash and *.zsh so completion is guaranteed
-# to be ready by when external completion files are sourced.
+# *.sh files are sourced earlier than *.bash and *.zsh so completion is
+# guaranteed to be ready by when external completion files are sourced
+# but exceptional *.sh completion files must be ordered after this file.
 
-# *.sh completion files must be ordered after this file.
+# Prefer /etc/bash_completion.d/ and /usr/local/share/zsh/site-functions/
+# for third-party software instead of /etc/shrc.d/ ...
 
 if [ -n "${BASH_VERSION-}" ] && [ -z "${BASH_COMPLETION_VERSINFO-}" ] \
         && [ -z "${POSIXLY_CORRECT-}" ]; then
