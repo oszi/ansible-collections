@@ -1,6 +1,6 @@
 # apt/dnf install ansible python3-cryptography python3-netaddr python3-psutil python3-yaml
-ansible>=9.0
-ansible-core>=2.16
+ansible
+ansible-core==2.16.*
 ansible-lint
 cryptography
 netaddr
