@@ -7,16 +7,23 @@ set -euo pipefail
 
 if [[ ! "${1:-}" =~ ^(major|minor|patch)$ ]]; then
     echo "Usage: ${0} major|minor|patch" >&2
-    exit 1
+    exit 255
 fi
 
-cd -- "$(git rev-parse --show-toplevel)/ansible_collections/oszi/"
-prev_version="$(grep -E -o -m1 '^version:.*' environments/galaxy.yml | cut -d: -f2)"
-prev_version="${prev_version#"${prev_version%%[![:space:]]*}"}"
-major="${prev_version%%.*}"
-minor="${prev_version#*.}"
+cd -- "$(git rev-parse --show-toplevel)/ansible_collections/oszi" || (
+    echo "Source 'ansible_collections/oszi' not found." >&2
+    exit 1
+)
+
+old_version="$(grep -P -o -m1 "^version:\s*['\"]?\K[0-9]+\.[0-9]+\.[0-9]+" environments/galaxy.yml)" || (
+    echo "Current version unknown or invalid semver." >&2
+    exit 2
+)
+
+major="${old_version%%.*}"
+minor="${old_version#*.}"
 minor="${minor%%.*}"
-patch="${prev_version##*.}"
+patch="${old_version##*.}"
 
 if [[ "$1" == "major" ]]; then
     ((++major))
@@ -30,8 +37,8 @@ else
 fi
 
 new_version="${major}.${minor}.${patch}"
-sed -i -E "s/^version: .*/version: ${new_version}/g;\
-s/^(\s*['\"]oszi.\w+['\"]:\s*).*/\1\">=${major}.${minor}\"/g" -- */galaxy.yml
+sed -i -E "s/^(version:).*/\1 \"${new_version}\"/g;\
+s/^(\s*['\"]?oszi.\w+['\"]?:).*/\1 \">=${major}.${minor}\"/g" -- */galaxy.yml
 
 git add -- */galaxy.yml
 git commit -n -m "Bump galaxy versions [${new_version}]" -- */galaxy.yml
