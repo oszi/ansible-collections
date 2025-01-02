@@ -12,12 +12,12 @@ fi
 
 cd -- "$(git rev-parse --show-toplevel)/ansible_collections/oszi" || (
     echo "Source 'ansible_collections/oszi' not found." >&2
-    exit 1
+    exit 2
 )
 
 old_version="$(grep -P -o -m1 "^version:\s*['\"]?\K[0-9]+\.[0-9]+\.[0-9]+" environments/galaxy.yml)" || (
     echo "Current version unknown or invalid semver." >&2
-    exit 2
+    exit 4
 )
 
 major="${old_version%%.*}"
@@ -37,8 +37,8 @@ else
 fi
 
 new_version="${major}.${minor}.${patch}"
-sed -i -E "s/^(version:).*/\1 \"${new_version}\"/g;\
-s/^(\s*['\"]?oszi.\w+['\"]?:).*/\1 \">=${major}.${minor}\"/g" -- */galaxy.yml
+sed -i -E "s/^(version:)\s+.+\$/\1 \"${new_version}\"/g;\
+s/^(\s+['\"]?oszi\.\w+['\"]?:)\s+.+\$/\1 \">=${major}.${minor}\"/g" -- */galaxy.yml
 
 git add -- */galaxy.yml
 git commit -n -m "Bump galaxy versions [${new_version}]" -- */galaxy.yml
