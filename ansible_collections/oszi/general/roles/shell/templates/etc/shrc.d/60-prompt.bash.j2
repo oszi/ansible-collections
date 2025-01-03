@@ -42,7 +42,7 @@ _bash_prompt_command () {
 
 if [[ "$(declare -p PROMPT_COMMAND 2>&1)" = "declare -a"* ]]; then
     PROMPT_COMMAND+=("_bash_prompt_command")
-elif [[ -n "${PROMPT_COMMAND:-}" ]]; then
+elif [[ -n "${PROMPT_COMMAND-}" ]]; then
     PROMPT_COMMAND=("$PROMPT_COMMAND" "_bash_prompt_command")
 else
     PROMPT_COMMAND=("_bash_prompt_command")

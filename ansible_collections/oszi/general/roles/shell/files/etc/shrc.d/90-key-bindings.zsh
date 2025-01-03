@@ -1,4 +1,10 @@
-# shellcheck shell=sh
+# shellcheck shell=sh disable=SC1091 # not following input sources
+
+if [ -f /usr/share/fzf/shell/key-bindings.zsh ]; then
+    . /usr/share/fzf/shell/key-bindings.zsh
+elif [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]; then
+    . /usr/share/doc/fzf/examples/key-bindings.zsh
+fi
 
 # If the terminal is in application mode (smkx), translate keys
 # to make them appear the same as in raw mode (rmkx).

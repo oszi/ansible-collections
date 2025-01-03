@@ -1,6 +1,6 @@
 #!/bin/sh
 # shellcheck shell=sh disable=SC1090 # non-constant source
-# ansible managed /etc/shrc for interactive shells
+# ansible managed shrc for POSIX-compliant shells
 
 case $- in
     *i*) ;;
@@ -8,7 +8,7 @@ case $- in
 esac
 
 source_glob() {
-    for rc in "$@"; do
+    for rc do
         if [ -r "$rc" ]; then
             . "$rc"
         fi
@@ -16,13 +16,23 @@ source_glob() {
     unset rc
 }
 
-source_glob /etc/shrc.d/*.sh
+source_glob_sort() {
+    IFS='
+'
+    # shellcheck disable=SC2046 # word splitting
+    set -- $(printf '%s\n' "$@" | sort -u)
+    unset IFS
+    source_glob "$@"
+}
 
-if [ -n "${BASH_VERSION-}" ]; then
-    if [ -z "${POSIXLY_CORRECT-}" ]; then
-        source_glob /etc/shrc.d/*.bash
-    fi
+if [ -n "${ZSH_VERSION-}" ]; then
+    source_glob_sort /etc/shrc.d/*.sh \
+        /etc/shrc.d/*.zsh
 
-elif [ -n "${ZSH_VERSION-}" ]; then
-    source_glob /etc/shrc.d/*.zsh
+elif [ -n "${BASH_VERSION-}" ] && [ -z "${POSIXLY_CORRECT-}" ]; then
+    source_glob_sort /etc/shrc.d/*.sh \
+        /etc/shrc.d/*.bash
+
+else
+    source_glob /etc/shrc.d/*.sh
 fi
