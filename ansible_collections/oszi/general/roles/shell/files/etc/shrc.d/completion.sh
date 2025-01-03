@@ -1,11 +1,14 @@
 # shellcheck shell=sh disable=SC1091 # not following input sources
 
-# *.sh files are sourced earlier than *.bash and *.zsh so completion is
-# guaranteed to be ready by when external completion files are sourced
-# but exceptional *.sh completion files must be ordered after this file.
+# .sh files are sourced before .bash and .zsh thus completion is guaranteed to
+# be ready by when .bash and .zsh completion files (installed by other roles)
+# are sourced. However, /etc/shrc.d is not the place for most completion files.
 
-# Prefer /etc/bash_completion.d/ and /usr/local/share/zsh/site-functions/
-# for third-party software instead of /etc/shrc.d/ ...
+# Bash: /etc/bash_completion.d
+# ZSH: /usr/{local/,}share/zsh/{site-functions,vendor-completions}
+
+# Any exceptional, cross-compatible .sh completion file must be alphabetically
+# ordered after this file.
 
 if [ -n "${BASH_VERSION-}" ] && [ -z "${BASH_COMPLETION_VERSINFO-}" ] \
         && [ -z "${POSIXLY_CORRECT-}" ]; then
