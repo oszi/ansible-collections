@@ -9,6 +9,6 @@
     - name: Google Cloud SDK packages
       ansible.builtin.include_tasks: packages.yml
 
-    - name: Google Cloud SDK scripts
+    - name: Google Cloud SDK post-setup tasks
       when: gcloud_sdk_enabled
-      ansible.builtin.include_tasks: scripts.yml
+      ansible.builtin.include_tasks: post-setup.yml
