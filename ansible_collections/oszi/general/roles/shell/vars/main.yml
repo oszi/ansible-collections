@@ -1,7 +1,4 @@
 ---
 # Obsolete / superseded files to remove:
 shell_obsolete_config_files:
-  - "/etc/shrc.d/kubectl-completion.bash"
-  - "/etc/shrc.d/kubectl-completion.zsh"
-  - "/etc/shrc.d/tailscale-completion.bash"
-  - "/etc/shrc.d/tailscale-completion.zsh"
+  - "/etc/shrc.d/.profile"

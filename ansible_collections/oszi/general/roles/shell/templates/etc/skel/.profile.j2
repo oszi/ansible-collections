@@ -1,7 +1,5 @@
-#!/bin/sh
 # shellcheck shell=sh
-# This file is idempotent. It should be sourced from the user's .profile (login)
-# then again from /etc/shrc to ensure correct environment variables.
+# ansible managed skel
 {% if shell_environment %}
 
 {% for key, value in shell_environment.items() %}

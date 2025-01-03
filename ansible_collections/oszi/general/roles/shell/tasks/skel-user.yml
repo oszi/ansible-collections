@@ -3,16 +3,28 @@
   ansible.builtin.user:
     name: "{{ skel_user_item }}"
     state: "present"
+  # The user does not exist yet if changed!
   register: _user_info
   check_mode: true
 
 - name: "Enforce /etc/skel for user:{{ skel_user_item }}"
-  when: "not _user_info.changed
+  when: >-
+    not _user_info.changed
     and not _user_info.shell.endswith('/nologin')
-    and _user_info.home != '/'"
-  ansible.builtin.copy:
-    src: "etc/skel/"
-    dest: "{{ _user_info.home }}/"
-    owner: "{{ skel_user_item }}"
-    group: "{{ _user_info.group }}"
-    mode: "0644"
+    and _user_info.home != '/'
+  block:
+    - name: "Enforce /etc/skel for user:{{ skel_user_item }}"
+      ansible.builtin.copy:
+        src: "etc/skel/"
+        dest: "{{ _user_info.home }}/"
+        owner: "{{ skel_user_item }}"
+        group: "{{ _user_info.group }}"
+        mode: "0640"
+
+    - name: "Enforce .profile template for user:{{ skel_user_item }}"
+      ansible.builtin.template:
+        src: "etc/skel/.profile.j2"
+        dest: "{{ _user_info.home }}/.profile"
+        owner: "{{ skel_user_item }}"
+        group: "{{ _user_info.group }}"
+        mode: "0640"
