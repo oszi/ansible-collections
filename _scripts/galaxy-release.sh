@@ -37,8 +37,10 @@ else
 fi
 
 new_version="${major}.${minor}.${patch}"
-sed -i -E "s/^(version:)\s+.+\$/\1 \"${new_version}\"/g;\
-s/^(\s+['\"]?oszi\.\w+['\"]?:)\s+.+\$/\1 \">=${major}.${minor}\"/g" -- */galaxy.yml
+new_version_spec="==${new_version}"
+
+sed -i -E "s/^(version:).*\$/\1 \"${new_version}\"/g;\
+s/^(\s+['\"]?oszi\.\w+['\"]?:).*\$/\1 \"${new_version_spec}\"/g" -- */galaxy.yml
 
 git add -- */galaxy.yml
 git commit -n -m "Bump galaxy versions [${new_version}]" -- */galaxy.yml
