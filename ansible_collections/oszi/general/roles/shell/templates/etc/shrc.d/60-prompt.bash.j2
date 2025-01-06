@@ -1,9 +1,9 @@
 # shellcheck shell=bash
 
-export HISTFILE="$HOME"/.bash_history
-export HISTFILESIZE={{ shell_histfilesize | int }}
-export HISTSIZE={{ shell_histsize | int }}
-export HISTCONTROL=ignorespace:erasedups
+HISTFILE=~/.bash_history
+HISTFILESIZE={{ shell_histfilesize | int }}
+HISTSIZE={{ shell_histsize | int }}
+HISTCONTROL=ignorespace:erasedups
 
 shopt -s histappend
 shopt -s checkwinsize

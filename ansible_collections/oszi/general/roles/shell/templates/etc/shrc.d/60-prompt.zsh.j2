@@ -1,8 +1,9 @@
-# shellcheck shell=sh disable=SC3010,SC3024,SC3028,SC3030 # in POSIX [[ ]], +=, arrays and UID are undefined
+# shellcheck shell=sh disable=SC2016,SC2034 # single quotes, variable appears unused
+# shellcheck disable=SC3010,SC3024,SC3028,SC3030 # in POSIX [[ ]], +=, arrays and UID are undefined
 
-export HISTFILE="$HOME"/.zsh_history
-export HISTSIZE={{ shell_histsize | int }}
-export SAVEHIST={{ shell_histfilesize | int }}
+HISTFILE=~/.zsh_history
+HISTSIZE={{ shell_histsize | int }}
+SAVEHIST={{ shell_histfilesize | int }}
 
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE
@@ -12,7 +13,7 @@ setopt INC_APPEND_HISTORY
 setopt NO_SHARE_HISTORY
 unsetopt SHARE_HISTORY
 
-setopt COMPLETE_IN_WORD
+setopt RM_STAR_SILENT # alias rm -i/-I
 setopt PROMPT_SUBST
 
 PROMPT='%F{{ (ansible_virtualization_role == 'guest') | ternary('{green}', '{red}') }}%n@%m%f'
@@ -21,8 +22,8 @@ if [[ "$UID" -eq 0 ]]; then
     PROMPT='%S'"$PROMPT"'%s'
 fi
 
-# shellcheck disable=SC2016 # single quotes
 PROMPT="$PROMPT"':%F{blue}%1~%f${vcs_info_msg_0_}%(?..%F{red})%#%f '
+RPROMPT='%F{8}[%?]%f'
 
 autoload -Uz vcs_info
 precmd_functions+=(vcs_info)
@@ -30,3 +31,9 @@ precmd_functions+=(vcs_info)
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git:*' actionformats '@%F{yellow}%b|%a%f'
 zstyle ':vcs_info:git:*' formats '@%F{yellow}%b%f'
+
+_terminal_title() {
+    print -Pn '\e]0;%n@%m:%~\a'
+}
+
+precmd_functions+=(_terminal_title)
