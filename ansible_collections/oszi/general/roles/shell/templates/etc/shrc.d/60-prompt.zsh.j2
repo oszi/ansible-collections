@@ -1,5 +1,7 @@
-# shellcheck shell=sh disable=SC2016,SC2034 # single quotes, variable appears unused
-# shellcheck disable=SC3010,SC3024,SC3028,SC3030 # in POSIX [[ ]], +=, arrays and UID are undefined
+# shellcheck shell=sh # zsh is unsupported
+# shellcheck disable=SC2016,SC2034 # single quotes, variable appears unused
+# shellcheck disable=SC3006,SC3010,SC3024,SC3028 # in POSIX (( )), [[ ]], +=, arrays are undefined
+# shellcheck disable=SC3030,SC3043,SC3045 # in POSIX UID, local, printf -v are undefined
 
 HISTFILE=~/.zsh_history
 HISTSIZE={{ shell_histsize | int }}
@@ -12,28 +14,53 @@ setopt HIST_SAVE_NO_DUPS
 setopt INC_APPEND_HISTORY
 setopt NO_SHARE_HISTORY
 unsetopt SHARE_HISTORY
-
-setopt RM_STAR_SILENT # alias rm -i/-I
+setopt RM_STAR_SILENT # redundant rm -i/-I
 setopt PROMPT_SUBST
 
-PROMPT='%F{{ (ansible_virtualization_role == 'guest') | ternary('{green}', '{red}') }}%n@%m%f'
+zmodload zsh/datetime
 
-if [[ "$UID" -eq 0 ]]; then
-    PROMPT='%S'"$PROMPT"'%s'
-fi
+_prompt_timer_start() {
+    prompt_timer_start_rt=${EPOCHREALTIME-}
+}
 
-PROMPT="$PROMPT"':%F{blue}%1~%f${vcs_info_msg_0_}%(?..%F{red})%#%f '
-RPROMPT='%F{8}[%?]%f'
+_prompt_timer_stop() {
+    if (( prompt_timer_start_rt )); then
+        local -rF rt=$(( EPOCHREALTIME - prompt_timer_start_rt ))
+        local -rF s=$(( rt % 60 ))
+        local -ri m=$(( (rt / 60) % 60 ))
+        local -ri h=$(( rt / 3600 ))
+
+        if (( h > 0 )); then
+            printf -v prompt_timer_elapsed '%ih %im %is' ${h} ${m} ${s}
+        elif (( m > 0 )); then
+            printf -v prompt_timer_elapsed '%im %is' ${m} ${s}
+        elif (( s >= 1 )); then
+            printf -v prompt_timer_elapsed '%.2fs' ${s}
+        else
+            printf -v prompt_timer_elapsed '%ims' $(( s * 1000 ))
+        fi
+        unset prompt_timer_start_rt
+
+    else
+        unset prompt_timer_elapsed
+    fi
+}
+
+_prompt_window_title() {
+    print -Pn '\e]0;%n@%m:%~\a'
+}
 
 autoload -Uz vcs_info
-precmd_functions+=(vcs_info)
-
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git:*' actionformats '@%F{yellow}%b|%a%f'
 zstyle ':vcs_info:git:*' formats '@%F{yellow}%b%f'
 
-_terminal_title() {
-    print -Pn '\e]0;%n@%m:%~\a'
-}
+# shellcheck disable=SC2206 # word splitting
+precmd_functions=(_prompt_timer_stop $precmd_functions _prompt_window_title vcs_info)
+preexec_functions+=(_prompt_timer_start)
 
-precmd_functions+=(_terminal_title)
+PROMPT='%F{{ (ansible_virtualization_role == 'guest') | ternary('{green}', '{red}') }}%n@%m%f'
+[[ "$UID" -ne 0 ]] || PROMPT='%S'"$PROMPT"'%s'
+
+PROMPT="$PROMPT"':%F{blue}%1~%f${vcs_info_msg_0_-}%(?..%F{red})%#%f '
+RPROMPT='%F{8}${prompt_timer_elapsed-}%f'
