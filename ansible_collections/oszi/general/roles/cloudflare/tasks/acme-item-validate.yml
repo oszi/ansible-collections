@@ -15,8 +15,9 @@
 
     - name: "Wait for ACME challenge records replication - {{ acme_item.common_name }}"
       when: _acme_challenge.challenge_data
-      ansible.builtin.pause:
-        seconds: "{{ cloudflare_acme_delay_sec }}"
+      # pause is not supported in the free strategy.
+      ansible.builtin.wait_for:
+        timeout: "{{ cloudflare_acme_delay_sec }}"
 
     - name: "Validate ACME challenge - {{ acme_item.common_name }}"
       community.crypto.acme_certificate:
@@ -29,6 +30,8 @@
         fullchain_dest: "{{ acme_item.live_path }}/fullchain.pem"
         acme_directory: "{{ cloudflare_acme_directory_url }}"
         acme_version: "{{ cloudflare_acme_api_version }}"
+        remaining_days: "{{ acme_item.remaining_days | default(cloudflare_acme_remaining_days_default) }}"
+        force: "{{ _acme_request.changed }}"
         data: "{{ _acme_challenge }}"
         challenge: "dns-01"
         modify_account: true
