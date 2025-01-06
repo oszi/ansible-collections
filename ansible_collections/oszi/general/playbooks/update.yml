@@ -90,14 +90,5 @@
             apply:
               become: false
 
-    - name: Include CloudFlare ACME tasks
-      when: "cloudflare_zone is defined and cloudflare_acme_items is defined
-        and cloudflare_zone is not none and cloudflare_acme_items"
-      ansible.builtin.include_role:
-        name: oszi.general.cloudflare
-        tasks_from: acme.yml
-        apply:
-          tags: [acme]
-      vars:
-        cloudflare_acme_reload: true
-      tags: [acme]
+- name: Import ACME playbook
+  import_playbook: oszi.general.acme
