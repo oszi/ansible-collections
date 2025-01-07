@@ -15,7 +15,7 @@ alias find-clear='_find_clear'
 _find_clear_gpg_encrypt() {
     if [ $# -eq 0 ]; then
         echo "Usage: find-clear-gpg-encrypt PATH [FIND ARGS]" >&2
-        return 1
+        return 255
     fi
 
     files="$(_find_clear "$@" | tee /dev/stderr)"
@@ -24,12 +24,19 @@ _find_clear_gpg_encrypt() {
             if echo "$files" | xargs -d'\n' -n1 gpg -es --batch --yes \
             --default-recipient-self --; then
                 if _answer_yes "Delete the above files?"; then
-                    echo "$files" | xargs -d'\n' rm -fv --
+                    if echo "$files" | xargs -d'\n' rm -fv --; then
+                        unset files
+                        return 0
+                    fi
+                else
+                    unset files
+                    return 0
                 fi
             fi
         fi
     fi
     unset files
+    return 1
 }
 
 alias find-clear-gpg-encrypt='_find_clear_gpg_encrypt'

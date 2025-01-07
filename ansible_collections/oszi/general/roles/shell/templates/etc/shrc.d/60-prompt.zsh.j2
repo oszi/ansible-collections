@@ -30,9 +30,9 @@ _prompt_timer_stop() {
         local -ri m=$(( (rt / 60) % 60 ))
         local -ri h=$(( rt / 3600 ))
 
-        if (( h > 0 )); then
+        if (( h >= 1 )); then
             printf -v prompt_timer_elapsed '%ih %im %is' ${h} ${m} ${s}
-        elif (( m > 0 )); then
+        elif (( m >= 1 )); then
             printf -v prompt_timer_elapsed '%im %is' ${m} ${s}
         elif (( s >= 1 )); then
             printf -v prompt_timer_elapsed '%.2fs' ${s}
@@ -56,7 +56,7 @@ zstyle ':vcs_info:git:*' actionformats '@%F{yellow}%b|%a%f'
 zstyle ':vcs_info:git:*' formats '@%F{yellow}%b%f'
 
 # shellcheck disable=SC2206 # word splitting
-precmd_functions=(_prompt_timer_stop $precmd_functions _prompt_window_title vcs_info)
+precmd_functions=(_prompt_timer_stop ${precmd_functions} _prompt_window_title vcs_info)
 preexec_functions+=(_prompt_timer_start)
 
 PROMPT='%F{{ (ansible_virtualization_role == 'guest') | ternary('{green}', '{red}') }}%n@%m%f'
