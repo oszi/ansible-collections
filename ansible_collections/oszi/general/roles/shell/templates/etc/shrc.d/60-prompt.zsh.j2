@@ -60,7 +60,9 @@ precmd_functions=(_prompt_timer_stop ${precmd_functions} _prompt_window_title vc
 preexec_functions+=(_prompt_timer_start)
 
 PROMPT='%F{{ "{red}" if ansible_virtualization_role != "guest"
-else "{green}" if "workstations" in group_names else "{cyan}" }}%n@%m%f'
+else "{green}" if "workstations" in group_names
+else "{magenta}" if ansible_virtualization_type == "container"
+else "{cyan}" }}%n@%m%f'
 [[ "$UID" -ne 0 ]] || PROMPT='%S'"$PROMPT"'%s'
 
 PROMPT="$PROMPT"':%F{blue}%1~%f${vcs_info_msg_0_-}%(?..%F{red})%#%f '
