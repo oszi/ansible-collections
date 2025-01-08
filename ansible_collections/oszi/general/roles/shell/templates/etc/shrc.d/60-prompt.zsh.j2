@@ -3,17 +3,6 @@
 # shellcheck disable=SC3006,SC3010,SC3024,SC3028 # in POSIX (( )), [[ ]], +=, arrays are undefined
 # shellcheck disable=SC3030,SC3043,SC3045 # in POSIX UID, local, printf -v are undefined
 
-HISTFILE=~/.zsh_history
-HISTSIZE={{ shell_histsize | int }}
-SAVEHIST={{ shell_histfilesize | int }}
-
-setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_IGNORE_SPACE
-setopt HIST_REDUCE_BLANKS
-setopt HIST_SAVE_NO_DUPS
-setopt INC_APPEND_HISTORY
-setopt NO_SHARE_HISTORY
-unsetopt SHARE_HISTORY
 setopt RM_STAR_SILENT # redundant rm -i/-I
 setopt PROMPT_SUBST
 

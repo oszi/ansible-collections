@@ -1,0 +1,8 @@
+# shellcheck shell=bash
+
+HISTFILE=~/.bash_history
+HISTFILESIZE={{ shell_histfilesize | int }}
+HISTSIZE={{ shell_histsize | int }}
+HISTCONTROL=ignorespace:erasedups
+
+shopt -s histappend
