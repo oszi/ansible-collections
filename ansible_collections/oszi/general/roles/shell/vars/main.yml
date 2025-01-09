@@ -1,3 +1,11 @@
 ---
 # Obsolete / superseded files to remove:
-shell_obsolete_config_files: []
+shell_obsolete_config_files:
+  - "/etc/shrc.d/10-colors.sh"
+  - "/etc/shrc.d/50-vte.sh"
+  - "/etc/shrc.d/60-prompt.bash"
+  - "/etc/shrc.d/60-prompt.zsh"
+  - "/etc/shrc.d/80-history.bash"
+  - "/etc/shrc.d/80-history.zsh"
+  - "/etc/shrc.d/90-key-bindings.bash"
+  - "/etc/shrc.d/90-key-bindings.zsh"
