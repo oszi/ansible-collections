@@ -14,6 +14,7 @@ alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyCheckin
 if (command -v eza || command -v exa) >/dev/null 2>&1; then
     # shellcheck disable=SC2139 # expand when defined
     alias l="$(command -v eza || command -v exa) -F --group-directories-first"
+    alias l.='l -d .*'
     alias la='l -a'
     alias ll='l -alg'
     if ! command -v tree >/dev/null 2>&1; then
@@ -21,6 +22,7 @@ if (command -v eza || command -v exa) >/dev/null 2>&1; then
     fi
 else
     alias l='ls -CF --group-directories-first'
+    alias l.='l -d .*'
     alias la='l -A'
     alias ll='l -Alh'
 fi
