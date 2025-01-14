@@ -1,6 +1,8 @@
 # shellcheck shell=bash disable=SC2190 # zsh is unsupported
 # shellcheck disable=SC1091,SC2154 # not following input sources, terminfo not assigned
 
+zmodload zsh/terminfo
+
 # Make sure that the terminal is in application mode when zle is active,
 # since only then values from $terminfo are valid.
 if (( ${+terminfo[smkx]} )) && (( ${+terminfo[rmkx]} )); then
@@ -97,6 +99,7 @@ bind2maps emacs viins vicmd -- ControlDelete    kill-word
 
 bindkey '\ew' kill-region          # [Esc+w]
 bindkey '\em' copy-prev-shell-word # [Esc+m]
+bindkey ' '   magic-space          # !1 history expansion
 
 unset -f bind2maps
 unset key
