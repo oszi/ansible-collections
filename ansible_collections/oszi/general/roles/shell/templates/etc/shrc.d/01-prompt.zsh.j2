@@ -1,16 +1,13 @@
 # shellcheck shell=bash # zsh is unsupported
 # shellcheck disable=SC2016,SC2034 # single quotes, variable appears unused
 
-setopt RM_STAR_SILENT # redundant rm -I
-setopt PROMPT_SUBST
-
 zmodload zsh/datetime
 
-_prompt_timer_start() {
+function _prompt_timer_start() {
     prompt_timer_start_rt=${EPOCHREALTIME-}
 }
 
-_prompt_timer_stop() {
+function _prompt_timer_stop() {
     if (( prompt_timer_start_rt )); then
         local -rF rt=$(( EPOCHREALTIME - prompt_timer_start_rt ))
         local -rF s=$(( rt % 60 ))
@@ -33,9 +30,12 @@ _prompt_timer_stop() {
     fi
 }
 
-_prompt_window_title() {
+function _prompt_window_title() {
     print -Pn '\e]0;%n@%m:%~\a'
 }
+
+setopt RM_STAR_SILENT # redundant rm -I
+setopt PROMPT_SUBST
 
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git
