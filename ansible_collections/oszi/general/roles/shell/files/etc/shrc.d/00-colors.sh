@@ -1,6 +1,6 @@
 # shellcheck shell=sh
-# RedHat/Fedora makes every shell a login shell
-# and sources /etc/profile.d/color*.sh
+# RedHat/Fedora makes every shell a login shell and sources /etc/profile.d/color*.sh
+# The following code must be idempotent to be flexible.
 
 if [ -z "${LS_COLORS-}" ] && command -v dircolors >/dev/null 2>&1; then
     # shellcheck disable=SC2015 # if-then-else

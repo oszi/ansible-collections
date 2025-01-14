@@ -19,24 +19,19 @@ _find_clear_gpg_encrypt() {
     fi
 
     files="$(_find_clear "$@" | tee /dev/stderr)"
-    if [ -n "$files" ]; then
-        if _answer_yes "GPG encrypt the above files?"; then
-            if echo "$files" | xargs -d'\n' -n1 gpg -es --batch --yes \
-            --default-recipient-self --; then
-                if _answer_yes "Delete the above files?"; then
-                    if echo "$files" | xargs -d'\n' rm -fv --; then
-                        unset files
-                        return 0
-                    fi
-                else
-                    unset files
-                    return 0
-                fi
-            fi
+    rc=1
+    if [ -n "$files" ] \
+        && _answer_yes "GPG encrypt the above files with default-recipient-self?" \
+        && echo "$files" | xargs -d'\n' -n1 gpg -es --batch --yes --default-recipient-self --; then
+
+        rc=0
+        if _answer_yes "Delete the above clear-text files?"; then
+            echo "$files" | xargs -d'\n' rm -fv --
+            rc=$?
         fi
     fi
     unset files
-    return 1
+    return $rc
 }
 
 alias find-clear-gpg-encrypt='_find_clear_gpg_encrypt'
