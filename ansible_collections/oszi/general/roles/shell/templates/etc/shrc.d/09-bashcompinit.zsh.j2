@@ -1,0 +1,15 @@
+# shellcheck shell=sh disable=SC1091 # not following input sources
+
+autoload -Uz +X bashcompinit && bashcompinit
+{% if shell_bash_completions_for_zsh %}
+{% for key, values in shell_bash_completions_for_zsh.items() %}
+
+if whence {{ key | quote }} >/dev/null 2>&1 && ! whence {{ ('_' + key) | quote }} >/dev/null 2>&1; then
+{% for value in ([values] if values is string else values) %}
+    {{ 'if' if loop.first else 'elif' }} [ -r {{ value | quote }} ]; then
+        . {{ value | quote }}
+{% endfor %}
+    fi
+fi
+{% endfor %}
+{% endif %}
