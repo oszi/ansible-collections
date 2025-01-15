@@ -1,8 +1,0 @@
----
-# These exist/redirect on Fedora and Debian too.
-python_distro_packages:
-  - ipython3
-  - python3-netaddr
-  - python3-psutil
-  - python3-requests
-  - python3-yaml
