@@ -2,7 +2,6 @@
 # shellcheck disable=SC2016,SC2034 # single quotes, variable appears unused
 
 autoload -Uz +X compinit && compinit
-autoload -Uz +X bashcompinit && bashcompinit
 
 setopt COMPLETE_IN_WORD
 

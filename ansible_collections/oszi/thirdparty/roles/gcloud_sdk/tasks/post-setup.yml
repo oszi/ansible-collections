@@ -13,35 +13,6 @@
     owner: "root"
     mode: "0755"
 
-# Bash completion is installed automatically by the package.
-- name: Install gcloud completion for ZSH
-  when: gcloud_sdk_zsh_completion_path
-  block:
-    - name: Find gcloud completion for ZSH
-      ansible.builtin.find:
-        paths:
-          - "/usr/lib/google-cloud-sdk"
-          - "/usr/lib64/google-cloud-sdk"
-        pattern:
-          - "completion.bash.inc"  # requires bashcompinit
-          - "completion.zsh.inc"   # missing from deb
-        file_type: "file"
-      register: _find_gcloud_completion_zsh_files
-
-    - name: Ensure completion path for ZSH exists
-      when: _find_gcloud_completion_zsh_files.files
-      ansible.builtin.file:
-        path: "{{ gcloud_sdk_zsh_completion_path | dirname }}"
-        state: "directory"
-        mode: "0755"
-
-    - name: Install gcloud completion for ZSH
-      when: _find_gcloud_completion_zsh_files.files
-      ansible.builtin.file:
-        src: "{{ _find_gcloud_completion_zsh_files | json_query('files[*].path') | last }}"
-        dest: "{{ gcloud_sdk_zsh_completion_path }}"
-        state: "link"
-
 - name: Install kubectl completion for bash
   when: gcloud_sdk_kubectl_enabled and gcloud_sdk_kubectl_bash_completion_path
   block:

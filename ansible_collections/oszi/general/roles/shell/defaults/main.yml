@@ -41,3 +41,13 @@ shell_packages:
 
 # Path for local executables
 shell_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+
+# Dict of ZSH compatible bash completion files (values) to pre-load
+# if there is no native completion function (_key).
+# When given a list, files are tried in order.
+shell_bash_completions_for_zsh:
+  gcloud:
+    # completion.zsh.inc is still bash and does not work with auto-loading.
+    - "/usr/lib64/google-cloud-sdk/completion.zsh.inc"
+    - "/etc/bash_completion.d/gcloud"
+  wg: "/usr/share/bash-completion/completions/wg"
