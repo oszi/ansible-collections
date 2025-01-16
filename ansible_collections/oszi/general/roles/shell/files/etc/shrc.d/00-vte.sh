@@ -8,7 +8,7 @@ if [ -n "${BASH_VERSION-}" ]; then
     fi
     # -> Bash non-login shell.
 
-elif [ -n "${ZSH_VERSION-}" ]; then
+elif [ -n "${ZSH_VERSION-}" ] && [ "$(emulate)" = "zsh" ]; then
     if [[ -o login ]]; then
         return
     fi

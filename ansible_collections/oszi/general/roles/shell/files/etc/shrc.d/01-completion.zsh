@@ -1,6 +1,8 @@
 # shellcheck shell=bash disable=SC2296 # zsh is unsupported
 # shellcheck disable=SC2016,SC2034 # single quotes, variable appears unused
 
+[ "$TERM" != "dumb" ] || return
+
 autoload -Uz +X compinit && compinit
 
 setopt COMPLETE_IN_WORD
