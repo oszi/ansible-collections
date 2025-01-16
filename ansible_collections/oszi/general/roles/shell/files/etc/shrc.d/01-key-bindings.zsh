@@ -1,6 +1,8 @@
 # shellcheck shell=bash disable=SC2190 # zsh is unsupported
 # shellcheck disable=SC1091,SC2154 # not following input sources, terminfo not assigned
 
+[ "$TERM" != "dumb" ] || return
+
 zmodload zsh/terminfo
 
 # Make sure that the terminal is in application mode when zle is active,
@@ -27,6 +29,7 @@ key=(
     End              "${terminfo[kend]}"  # ^[[F
     PageUp           "${terminfo[kpp]}"   # ^[[5~
     PageDown         "${terminfo[knp]}"   # ^[[6~
+    Tab              '\t'
     ShiftTab         "${terminfo[kcbt]}"  # ^[[Z
     Up               "${terminfo[kcuu1]}" # ^[[A
     Down             "${terminfo[kcud1]}" # ^[[B
@@ -82,6 +85,7 @@ bind2maps emacs             -- End              end-of-line
 bind2maps       viins vicmd -- End              vi-end-of-line
 bind2maps emacs viins vicmd -- PageUp           up-line-or-history
 bind2maps emacs viins vicmd -- PageDown         down-line-or-history
+bind2maps emacs viins vicmd -- Tab              expand-or-complete
 bind2maps emacs viins vicmd -- ShiftTab         reverse-menu-complete
 bind2maps emacs viins vicmd -- Up               up-line-or-beginning-search
 bind2maps emacs viins vicmd -- Down             down-line-or-beginning-search
