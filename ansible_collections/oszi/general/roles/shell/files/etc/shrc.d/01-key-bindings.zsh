@@ -29,14 +29,15 @@ key=(
     End              "${terminfo[kend]}"  # ^[[F
     PageUp           "${terminfo[kpp]}"   # ^[[5~
     PageDown         "${terminfo[knp]}"   # ^[[6~
-    Tab              '\t'
+    Tab              '^I'
     ShiftTab         "${terminfo[kcbt]}"  # ^[[Z
     Up               "${terminfo[kcuu1]}" # ^[[A
     Down             "${terminfo[kcud1]}" # ^[[B
     Left             "${terminfo[kcub1]}" # ^[[D
     Right            "${terminfo[kcuf1]}" # ^[[C
-    ControlLeft      "${terminfo[kLFT5]}" # ^[[1;5D
-    ControlRight     "${terminfo[kRIT5]}" # ^[[1;5C
+    # [Non-standard ncurses extensions]
+    ControlLeft      "${terminfo[kLFT5]:-^[[1;5D}"
+    ControlRight     "${terminfo[kRIT5]:-^[[1;5C}"
     ControlBackspace '^H'
     ControlDelete    '^[[3;5~'
 )
