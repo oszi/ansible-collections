@@ -1,19 +1,28 @@
-# shellcheck shell=sh disable=SC1091 # not following input sources
+# shellcheck shell=bash disable=SC1090,SC1091 # non-constant source
 
 [ "$TERM" != "dumb" ] || return
 
 autoload -Uz +X bashcompinit && bashcompinit
 {% if shell_bash_completions_for_zsh %}
+
+function source_bash_completion() {
+    if [[ "$1" = *bash[-_]completion* ]]; then
+        emulate -L ksh
+    fi
+    source "$1"
+}
 {% for key, values in shell_bash_completions_for_zsh.items() %}
 {% if key and values and values is iterable %}
 
 if whence {{ key | quote }} >/dev/null 2>&1 && ! whence {{ ('_' + key) | quote }} >/dev/null 2>&1; then
 {% for value in ([values] if values is string else values) %}
     {{ 'if' if loop.first else 'elif' }} [ -r {{ value | quote }} ]; then
-        . {{ value | quote }}
+        source_bash_completion {{ value | quote }}
 {% endfor %}
     fi
 fi
 {% endif %}
 {% endfor %}
+
+unset -f source_bash_completion
 {% endif %}
