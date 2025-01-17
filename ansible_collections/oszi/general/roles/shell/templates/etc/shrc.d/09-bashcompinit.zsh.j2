@@ -5,6 +5,7 @@
 autoload -Uz +X bashcompinit && bashcompinit
 {% if shell_bash_completions_for_zsh %}
 {% for key, values in shell_bash_completions_for_zsh.items() %}
+{% if key and values and values is iterable %}
 
 if whence {{ key | quote }} >/dev/null 2>&1 && ! whence {{ ('_' + key) | quote }} >/dev/null 2>&1; then
 {% for value in ([values] if values is string else values) %}
@@ -13,5 +14,6 @@ if whence {{ key | quote }} >/dev/null 2>&1 && ! whence {{ ('_' + key) | quote }
 {% endfor %}
     fi
 fi
+{% endif %}
 {% endfor %}
 {% endif %}
