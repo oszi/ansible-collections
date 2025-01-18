@@ -12,6 +12,7 @@
     dest: "{{ vscode_deb_gpgkey }}"
     owner: "root"
     mode: "0644"
+  notify: "Update code microsoft repo debconf"
 
 - name: Check VS Code deb repository
   ansible.builtin.copy:
@@ -37,6 +38,7 @@
         content: "{{ vscode_deb_repo }}"
         owner: "root"
         mode: "0644"
+      notify: "Update code microsoft repo debconf"
 
     - name: Ensure vscode.list is immutable to prevent vendor changes
       ansible.builtin.file:
