@@ -1,0 +1,13 @@
+#!/bin/bash
+# Show all arguments in a critical desktop notification.
+# This is a script, not an alias so it can be called from anywhere.
+set -euo pipefail
+
+# terminal beeps if supported (the first is sometimes silent)
+# shellcheck disable=SC2034 # $i appears unused
+for i in {1..3}; do
+    printf '\007'
+    sleep 0.5
+done &
+
+notify-send --urgency=critical "Alert" "$*"
