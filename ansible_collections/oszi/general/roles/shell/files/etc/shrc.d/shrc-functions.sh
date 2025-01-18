@@ -6,8 +6,10 @@ _answer_yes() {
     echo "$answer" | grep -iq '^Y'
 }
 
+_FIND_ENCRYPTED_REGEX='.*\.\(aes\|asc\|gpg\|enc\|encrypted\|kdbx?\)$'
+
 _find_clear() {
-    find "$@" -type f -not -iregex '.*\.\(aes\|asc\|gpg\|enc\|kdbx?\)$'
+    find "$@" -type f -not -iregex "$_FIND_ENCRYPTED_REGEX"
 }
 
 alias find-clear='_find_clear'
@@ -37,7 +39,7 @@ _find_clear_gpg_encrypt() {
 alias find-clear-gpg-encrypt='_find_clear_gpg_encrypt'
 
 _find_encrypted() {
-    find "$@" -type f -iregex '.*\.\(aes\|asc\|gpg\|enc\|kdbx?\)$'
+    find "$@" -type f -iregex "$_FIND_ENCRYPTED_REGEX"
 }
 
 alias find-encrypted='_find_encrypted'

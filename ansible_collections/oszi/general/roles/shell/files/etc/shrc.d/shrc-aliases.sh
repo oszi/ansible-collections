@@ -11,6 +11,14 @@ alias py='$(command -v ipython3 || command -v ipython || command -v python3 || e
 alias ssh-forget='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
 alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
 
+case "$(realpath /bin/sh)" in
+    */bash) alias sh='bash --posix' ;;
+esac
+
+if ! command -v beep >/dev/null 2>&1; then
+    alias beep='printf "\007"'
+fi
+
 if (command -v eza || command -v exa) >/dev/null 2>&1; then
     # shellcheck disable=SC2139 # expand when defined
     alias l="$(command -v eza || command -v exa) -F --group-directories-first"
