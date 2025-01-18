@@ -15,11 +15,6 @@
       loop_control:
         loop_var: skel_user_item
 
-    - name: Include bat/batcat setup tasks
-      when: "not shell_disabled and 'bat' in shell_packages"
-      ansible.builtin.include_tasks:
-        file: bat.yml
-
     - name: Shell role completed
       ansible.builtin.debug:
         msg: prevent-multiple-inclusions
