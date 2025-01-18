@@ -8,6 +8,11 @@
     name: "{{ shell_packages }}"
     state: "present"
 
+- name: Include bat/batcat alternatives tasks
+  when: "'bat' in shell_packages"
+  ansible.builtin.include_tasks:
+    file: bat-batcat.yml
+
 - name: Copy shell config directories
   ansible.builtin.copy:
     src: "etc/{{ item }}/"
