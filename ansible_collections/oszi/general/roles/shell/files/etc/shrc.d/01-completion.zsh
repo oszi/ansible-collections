@@ -1,9 +1,13 @@
 # shellcheck shell=bash disable=SC2296 # zsh is unsupported
 # shellcheck disable=SC2016,SC2034 # single quotes, variable appears unused
+# shellcheck disable=SC2154 # functions and compdef not assigned
 
 [ "$TERM" != "dumb" ] || return
 
-autoload -Uz +X compinit && compinit
+if ! (( $+functions[compdef] )); then
+    autoload -Uz +X compinit
+    compinit
+fi
 
 setopt COMPLETE_IN_WORD
 
