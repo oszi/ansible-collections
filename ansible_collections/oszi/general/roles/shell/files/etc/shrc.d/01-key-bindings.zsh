@@ -78,10 +78,18 @@ function _slash_wordchars() {
 
 autoload -Uz up-line-or-beginning-search
 autoload -Uz down-line-or-beginning-search
+autoload -Uz edit-command-line
 
 zle -N slash-wordchars _slash_wordchars
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
+zle -N edit-command-line
+
+bindkey '\C-x\C-e' edit-command-line     # [Ctrl+x Ctrl+e]
+bindkey '\ew'      kill-region           # [Esc+w]
+bindkey '^[m'      copy-prev-shell-word  # [Alt+m]
+bindkey '^[/'      slash-wordchars       # [Alt+/]
+bindkey ' '        magic-space           # history expansion (!N)
 
 bind2maps emacs             -- Backspace        backward-delete-char
 bind2maps       viins       -- Backspace        vi-backward-delete-char
@@ -111,11 +119,6 @@ bind2maps       viins vicmd -- ControlRight     vi-forward-word
 bind2maps emacs             -- ControlBackspace backward-kill-word
 bind2maps       viins vicmd -- ControlBackspace vi-backward-kill-word
 bind2maps emacs viins vicmd -- ControlDelete    kill-word
-
-bindkey '\ew' kill-region          # [Esc+w]
-bindkey '\em' copy-prev-shell-word # [Esc+m]
-bindkey '^[/' slash-wordchars      # [Alt+/]
-bindkey ' '   magic-space          # !1 history expansion
 
 unset -f bind2maps
 unset key
