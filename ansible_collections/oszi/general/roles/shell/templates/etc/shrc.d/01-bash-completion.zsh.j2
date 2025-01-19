@@ -4,13 +4,13 @@
 
 [ "$TERM" != "dumb" ] || return
 
-if ! (( $+functions[compdef] )); then
-    autoload -Uz +X compinit
+if ! (( ${+functions[compdef]} )); then
+    autoload -Uz compinit
     compinit
 fi
 
-if ! (( $+functions[complete] )); then
-    autoload -Uz +X bashcompinit
+if ! (( ${+functions[complete]} )); then
+    autoload -Uz bashcompinit
     bashcompinit
 fi
 
