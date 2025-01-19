@@ -1,4 +1,4 @@
-# shellcheck shell=bash disable=SC2296 # zsh is unsupported
+# shellcheck shell=bash disable=SC2296,SC2299 # zsh is unsupported
 # shellcheck disable=SC2016,SC2034 # single quotes, variable appears unused
 # shellcheck disable=SC2154 # functions and compdef not assigned
 
@@ -28,7 +28,8 @@ zstyle ':completion:*:correct:*' original true
 
 zstyle ':completion:*:approximate:*' max-errors 'reply=($((($#PREFIX+$#SUFFIX)/3)) numeric)'
 
-zstyle ':completion:*:*:kill:*' command 'ps -u $UID -o pid=,tty=,cmd='
-zstyle ':completion:*:*:kill:*' menu yes select
+zstyle ':completion:*:*:kill:*' command "ps ${${${UID#0}:+xo}:-axo} pid=,tty=,user=,cmd="
+zstyle ':completion:*:*:kill:*' menu yes select search
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 
 zstyle ':completion:*:default' list-colors "${(s.:.)LS_COLORS}"
