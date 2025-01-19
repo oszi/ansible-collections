@@ -1,7 +1,7 @@
 ---
 namespace: oszi
 name: environments
-version: "2.19.0"
+version: "2.20.0"
 
 description: "Ansible collection for personal, high-level environment roles."
 repository: "https://github.com/oszi/ansible-collections.git"
@@ -13,8 +13,8 @@ license:
   - "BSD-3-Clause"
 
 dependencies:
-  "oszi.general": "==2.19.0"
-  "oszi.thirdparty": "==2.19.0"
+  "oszi.general": "==2.20.0"
+  "oszi.thirdparty": "==2.20.0"
 
 tags:
   - environments
