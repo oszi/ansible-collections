@@ -44,8 +44,12 @@ key=(
     # [Non-standard ncurses extensions]
     ControlLeft      "${terminfo[kLFT5]:-^[[1;5D}"
     ControlRight     "${terminfo[kRIT5]:-^[[1;5C}"
+    # [Not found in terminfo]
     ControlBackspace '^H'
     ControlDelete    '^[[3;5~'
+    AltSlash         '^[/'
+    EmacsEditor      '^x^e'
+    ViEditor         '^v'
 )
 
 function bind2maps() {
@@ -68,28 +72,20 @@ function bind2maps() {
     done
 }
 
-function _slash_wordchars() {
-    if [[ "$WORDCHARS" = */* ]]; then
-        WORDCHARS="${WORDCHARS:s@/@}"
-    else
-        WORDCHARS="${WORDCHARS}/"
-    fi
+function _switch_wordchars_slash() {  # vi wordchars are different!
+    [[ "$WORDCHARS" = */* ]] \
+        && WORDCHARS="${WORDCHARS:s@/@}" \
+        || WORDCHARS="${WORDCHARS}/"
 }
 
 autoload -Uz up-line-or-beginning-search
 autoload -Uz down-line-or-beginning-search
 autoload -Uz edit-command-line
 
-zle -N slash-wordchars _slash_wordchars
+zle -N switch-wordchars-slash _switch_wordchars_slash
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 zle -N edit-command-line
-
-bindkey '\C-x\C-e' edit-command-line     # [Ctrl+x Ctrl+e]
-bindkey '\ew'      kill-region           # [Esc+w]
-bindkey '^[m'      copy-prev-shell-word  # [Alt+m]
-bindkey '^[/'      slash-wordchars       # [Alt+/]
-bindkey ' '        magic-space           # history expansion (!N)
 
 bind2maps emacs             -- Backspace        backward-delete-char
 bind2maps       viins       -- Backspace        vi-backward-delete-char
@@ -119,6 +115,12 @@ bind2maps       viins vicmd -- ControlRight     vi-forward-word
 bind2maps emacs             -- ControlBackspace backward-kill-word
 bind2maps       viins vicmd -- ControlBackspace vi-backward-kill-word
 bind2maps emacs viins vicmd -- ControlDelete    kill-word
+bind2maps emacs             -- AltSlash         switch-wordchars-slash
+bind2maps emacs             -- EmacsEditor      edit-command-line
+bind2maps             vicmd -- ViEditor         edit-command-line
+
+# history expansion on space (!N)
+bindkey ' ' magic-space
 
 unset -f bind2maps
 unset key
