@@ -20,6 +20,12 @@ if (( ${+terminfo[smkx]} )) && (( ${+terminfo[rmkx]} )); then
     zle -N zle-line-finish
 fi
 
+if [ -f /usr/share/fzf/shell/key-bindings.zsh ]; then
+    . /usr/share/fzf/shell/key-bindings.zsh
+elif [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]; then
+    . /usr/share/doc/fzf/examples/key-bindings.zsh
+fi
+
 typeset -g -A key
 key=(
     Backspace        "${terminfo[kbs]}"   # ^?
@@ -62,14 +68,18 @@ function bind2maps() {
     done
 }
 
-if [ -f /usr/share/fzf/shell/key-bindings.zsh ]; then
-    . /usr/share/fzf/shell/key-bindings.zsh
-elif [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]; then
-    . /usr/share/doc/fzf/examples/key-bindings.zsh
-fi
+function _slash_wordchars() {
+    if [[ "$WORDCHARS" = */* ]]; then
+        WORDCHARS="${WORDCHARS:s@/@}"
+    else
+        WORDCHARS="${WORDCHARS}/"
+    fi
+}
 
 autoload -Uz up-line-or-beginning-search
 autoload -Uz down-line-or-beginning-search
+
+zle -N slash-wordchars _slash_wordchars
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 
@@ -104,6 +114,7 @@ bind2maps emacs viins vicmd -- ControlDelete    kill-word
 
 bindkey '\ew' kill-region          # [Esc+w]
 bindkey '\em' copy-prev-shell-word # [Esc+m]
+bindkey '^[/' slash-wordchars      # [Alt+/]
 bindkey ' '   magic-space          # !1 history expansion
 
 unset -f bind2maps
