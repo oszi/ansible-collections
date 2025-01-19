@@ -4,14 +4,14 @@
 
 [ "$TERM" != "dumb" ] || return
 
-if ! (( $+functions[compdef] )); then
-    autoload -Uz +X compinit
+if ! (( ${+functions[compdef]} )); then
+    autoload -Uz compinit
     compinit
 fi
 
 setopt COMPLETE_IN_WORD
 
-_complete_reply() {
+function _completer_reply() {
     if [[ "$_complete_last_try" != "${HISTNO}${BUFFER}${CURSOR}" ]]; then
         _complete_last_try="${HISTNO}${BUFFER}${CURSOR}"
         reply=(_complete _match _prefix _files)
@@ -20,7 +20,7 @@ _complete_reply() {
     fi
 }
 
-zstyle -e ':completion:*' completer _complete_reply
+zstyle -e ':completion:*' completer _completer_reply
 zstyle ':completion:*' verbose yes
 
 zstyle ':completion:*:correct:*' insert-unambiguous true
