@@ -47,7 +47,7 @@ key=(
     # [Not found in terminfo]
     ControlBackspace '^H'
     ControlDelete    '^[[3;5~'
-    AltSlash         '^[/'
+    AltBackslash     $'^[\\'
     EmacsEditor      '^x^e'
     ViEditor         '^v'
 )
@@ -65,27 +65,38 @@ function bind2maps() {
     sequence="${key[$1]}"
     widget="$2"
 
-    [[ -z "$sequence" ]] && return 1
+    [[ -n "$sequence" ]] || return 1
+    [[ -n "$widget"   ]] || return 1
 
     for i in "${maps[@]}"; do
         bindkey -M "$i" "$sequence" "$widget"
     done
 }
 
-function _switch_wordchars_slash() {  # vi wordchars are different!
-    [[ "$WORDCHARS" = */* ]] \
-        && WORDCHARS="${WORDCHARS:s@/@}" \
-        || WORDCHARS="${WORDCHARS}/"
+typeset -g -r WORDCHARS_ORIG="$WORDCHARS"
+typeset -g -r WORDCHARS_PATH_MODE=',.-_+~!$%*()[]{}'  # excluding /@#?&;:=<>'"
+
+function wordchars-mode-switch() {  # vi wordchars are different!
+    [[ "$WORDCHARS" != "$WORDCHARS_ORIG" ]] \
+        && WORDCHARS="$WORDCHARS_ORIG" \
+        || WORDCHARS="$WORDCHARS_PATH_MODE"
 }
 
+function edit-command-line-fixed() {
+    zle zle-line-finish
+    edit-command-line
+    zle zle-line-init
+    zle reset-prompt
+}
+
+autoload -Uz edit-command-line
 autoload -Uz up-line-or-beginning-search
 autoload -Uz down-line-or-beginning-search
-autoload -Uz edit-command-line
 
-zle -N switch-wordchars-slash _switch_wordchars_slash
+zle -N wordchars-mode-switch
+zle -N edit-command-line edit-command-line-fixed
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
-zle -N edit-command-line
 
 bind2maps emacs             -- Backspace        backward-delete-char
 bind2maps       viins       -- Backspace        vi-backward-delete-char
@@ -115,7 +126,7 @@ bind2maps       viins vicmd -- ControlRight     vi-forward-word
 bind2maps emacs             -- ControlBackspace backward-kill-word
 bind2maps       viins vicmd -- ControlBackspace vi-backward-kill-word
 bind2maps emacs viins vicmd -- ControlDelete    kill-word
-bind2maps emacs             -- AltSlash         switch-wordchars-slash
+bind2maps emacs             -- AltBackslash     wordchars-mode-switch
 bind2maps emacs             -- EmacsEditor      edit-command-line
 bind2maps             vicmd -- ViEditor         edit-command-line
 
