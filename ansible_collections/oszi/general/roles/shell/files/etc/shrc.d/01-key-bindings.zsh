@@ -73,13 +73,16 @@ function bind2maps() {
     done
 }
 
-typeset -g -r WORDCHARS_ORIG="$WORDCHARS"
-typeset -g -r WORDCHARS_PATH_MODE=',.-_+~!$%*()[]{}'  # excluding /@#?&;:=<>'"
+typeset -g WORDCHARS_ORIG
+typeset -g WORDCHARS_PATH_MODE=',.-_+~!$%*()[]{}'  # excluding /\|@#?&;:=<>'"
 
 function wordchars-mode-switch() {  # vi wordchars are different!
-    [[ "$WORDCHARS" != "$WORDCHARS_ORIG" ]] \
-        && WORDCHARS="$WORDCHARS_ORIG" \
-        || WORDCHARS="$WORDCHARS_PATH_MODE"
+    if [[ "$WORDCHARS" != "$WORDCHARS_PATH_MODE" ]]; then
+        WORDCHARS_ORIG="$WORDCHARS"
+        WORDCHARS="$WORDCHARS_PATH_MODE"
+    elif [[ -n "$WORDCHARS_ORIG" ]]; then
+        WORDCHARS="$WORDCHARS_ORIG"
+    fi
 }
 
 function edit-command-line-fixed() {
