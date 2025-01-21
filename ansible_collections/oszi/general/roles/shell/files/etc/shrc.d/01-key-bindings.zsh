@@ -47,9 +47,10 @@ key=(
     # [Not found in terminfo]
     ControlBackspace '^H'
     ControlDelete    '^[[3;5~'
-    AltBackslash     $'^[\\'
-    EmacsEditor      '^x^e'
-    ViEditor         '^v'
+    # [Mapping-specific features]
+    EmacsWordStyle   '^x^z'
+    EmacsEditCmd     '^x^e'
+    ViEditCmd        '^v'
 )
 
 function bind2maps() {
@@ -73,18 +74,6 @@ function bind2maps() {
     done
 }
 
-typeset -g WORDCHARS_ORIG
-typeset -g WORDCHARS_PATH_MODE=',.-_+~!$%*()[]{}'  # excluding /\|@#?&;:=<>'"
-
-function wordchars-mode-switch() {  # vi wordchars are different!
-    if [[ "$WORDCHARS" != "$WORDCHARS_PATH_MODE" ]]; then
-        WORDCHARS_ORIG="$WORDCHARS"
-        WORDCHARS="$WORDCHARS_PATH_MODE"
-    elif [[ -n "$WORDCHARS_ORIG" ]]; then
-        WORDCHARS="$WORDCHARS_ORIG"
-    fi
-}
-
 function edit-command-line-fixed() {
     zle zle-line-finish
     edit-command-line
@@ -95,11 +84,12 @@ function edit-command-line-fixed() {
 autoload -Uz edit-command-line
 autoload -Uz up-line-or-beginning-search
 autoload -Uz down-line-or-beginning-search
+autoload -Uz select-word-style
 
-zle -N wordchars-mode-switch
 zle -N edit-command-line edit-command-line-fixed
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
+zle -N select-word-style
 
 bind2maps emacs             -- Backspace        backward-delete-char
 bind2maps       viins       -- Backspace        vi-backward-delete-char
@@ -122,6 +112,7 @@ bind2maps emacs             -- Left             backward-char
 bind2maps       viins vicmd -- Left             vi-backward-char
 bind2maps emacs             -- Right            forward-char
 bind2maps       viins vicmd -- Right            vi-forward-char
+
 bind2maps emacs             -- ControlLeft      backward-word
 bind2maps       viins vicmd -- ControlLeft      vi-backward-word
 bind2maps emacs             -- ControlRight     forward-word
@@ -129,9 +120,10 @@ bind2maps       viins vicmd -- ControlRight     vi-forward-word
 bind2maps emacs             -- ControlBackspace backward-kill-word
 bind2maps       viins vicmd -- ControlBackspace vi-backward-kill-word
 bind2maps emacs viins vicmd -- ControlDelete    kill-word
-bind2maps emacs             -- AltBackslash     wordchars-mode-switch
-bind2maps emacs             -- EmacsEditor      edit-command-line
-bind2maps             vicmd -- ViEditor         edit-command-line
+
+bind2maps emacs             -- EmacsWordStyle   select-word-style
+bind2maps emacs             -- EmacsEditCmd     edit-command-line
+bind2maps             vicmd -- ViEditCmd        edit-command-line
 
 # history expansion on space (!N)
 bindkey ' ' magic-space
