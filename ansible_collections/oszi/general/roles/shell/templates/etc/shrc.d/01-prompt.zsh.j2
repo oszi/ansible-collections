@@ -21,7 +21,7 @@ function _prompt_timer_stop() {
         elif (( s >= 1 )); then
             printf -v prompt_timer_elapsed '%.2fs' ${s}
         else
-            printf -v prompt_timer_elapsed '%ims' $(( s * 1000 ))
+            unset prompt_timer_elapsed
         fi
         unset prompt_timer_start_rt
 
