@@ -48,7 +48,7 @@ key=(
     ControlBackspace '^H'
     ControlDelete    '^[[3;5~'
     # [Mapping-specific features]
-    EmacsWordStyle   '^x^z'
+    EmacsWordStyle   '\ez'
     EmacsEditCmd     '^x^e'
     ViEditCmd        '^v'
 )
