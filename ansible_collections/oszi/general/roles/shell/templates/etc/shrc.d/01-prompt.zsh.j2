@@ -1,4 +1,4 @@
-# shellcheck shell=bash # zsh is unsupported
+# shellcheck shell=bash disable=SC2296 # zsh is unsupported
 # shellcheck disable=SC2016,SC2034 # single quotes, variable appears unused
 
 zmodload zsh/datetime
@@ -34,16 +34,40 @@ function _prompt_window_title() {
     print -Pn '\e]0;%${COLUMNS:-80}>...>%n@%m:%~%>>\a'
 }
 
+typeset -g _prompt_path_shrunk
+
+function _prompt_path_hook() {
+    local rel_path i j
+    local -a path_parts
+    local -a i_parts
+    _prompt_path_shrunk=''
+
+    print -Pv rel_path '%~'
+    [[ "${rel_path:0:1}" == '~' ]] || _prompt_path_shrunk+='/'
+
+    # shellcheck disable=SC2206 # splitting/globbing
+    path_parts=(${(s./.)rel_path})
+    for i in ${path_parts:0:-1}; do
+        i_parts=()
+        for j in ${(s.-.)i}; do
+            i_parts+=("${j:0:1}")
+        done
+        _prompt_path_shrunk+="${(j.-.)i_parts}/"
+    done
+    _prompt_path_shrunk+="${path_parts[-1]}"
+}
+
 setopt RM_STAR_SILENT # redundant rm -I
 setopt PROMPT_SUBST
 
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' actionformats '@%F{yellow}%b|%a%f'
 zstyle ':vcs_info:git:*' formats '@%F{yellow}%b%f'
 
 # shellcheck disable=SC2206 # word splitting
-precmd_functions=(_prompt_timer_stop ${precmd_functions} _prompt_window_title vcs_info)
+precmd_functions=(_prompt_timer_stop ${precmd_functions} _prompt_window_title _prompt_path_hook vcs_info)
 preexec_functions+=(_prompt_timer_start)
 
 PROMPT='%F{{ "{red}" if ansible_virtualization_role != "guest"
@@ -52,5 +76,5 @@ else "{magenta}" if ansible_virtualization_type == "container"
 else "{cyan}" }}%n@%m%f'
 [[ "$UID" -ne 0 ]] || PROMPT='%S'"$PROMPT"'%s'
 
-PROMPT="$PROMPT"$':%F{blue}%1~%f${vcs_info_msg_0_-}%-$((${COLUMNS:-80}/2))(l::>\n)%(?..%F{red})%#%f '
+PROMPT="$PROMPT"$':%F{blue}${_prompt_path_shrunk:-%1~}%f${vcs_info_msg_0_-}%-$((${COLUMNS:-80}/2))(l::>\n)%(?..%F{red})%#%f '
 RPROMPT='%F{8}${prompt_timer_elapsed-}%f'
