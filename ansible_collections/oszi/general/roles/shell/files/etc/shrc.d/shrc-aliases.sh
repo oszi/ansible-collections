@@ -7,16 +7,21 @@ alias xn='xargs -rd"\n"'
 alias x1='xn -n1'
 alias e='${EDITOR:-vi}'
 
-alias py='$(command -v ipython3 || command -v ipython || command -v python3 || echo python)'
-alias ssh-forget='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
-alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
+if ! command -v beep >/dev/null 2>&1; then
+    alias beep='printf "\007"'
+fi
 
 case "$(realpath /bin/sh)" in
     */bash) alias sh='bash --posix' ;;
 esac
 
-if ! command -v beep >/dev/null 2>&1; then
-    alias beep='printf "\007"'
+if command -v zsh >/dev/null 2>&1; then
+    alias sudoz='sudo -i zsh'
+fi
+
+if command -v ssh >/dev/null 2>&1; then
+    alias ssh-forget='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no"'
+    alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no"'
 fi
 
 if (command -v eza || command -v exa) >/dev/null 2>&1; then
