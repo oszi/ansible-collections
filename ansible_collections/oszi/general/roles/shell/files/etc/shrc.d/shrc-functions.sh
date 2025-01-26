@@ -1,5 +1,13 @@
 # shellcheck shell=sh
 
+py() {
+    if python3 -c 'import IPython' >/dev/null 2>&1; then
+        python3 -m IPython "$@"
+    else
+        python3 "$@"
+    fi
+}
+
 _answer_yes() {
     printf "# %s [y/N]" "${1:-Answer yes}" >&2
     read -r answer
