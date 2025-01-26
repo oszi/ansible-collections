@@ -11,12 +11,17 @@ fi
 
 setopt COMPLETE_IN_WORD
 
+function _complete_rehash() {
+    (( CURRENT == 1 )) && rehash
+    return 1
+}
+
 function _completer_reply() {
     if [[ "$_complete_last_try" != "${HISTNO}${BUFFER}${CURSOR}" ]]; then
         _complete_last_try="${HISTNO}${BUFFER}${CURSOR}"
         reply=(_complete _match _prefix _files)
     else
-        reply=(_oldlist _complete _correct _approximate _files)
+        reply=(_oldlist _complete_rehash _complete _correct _approximate _files)
     fi
 }
 
