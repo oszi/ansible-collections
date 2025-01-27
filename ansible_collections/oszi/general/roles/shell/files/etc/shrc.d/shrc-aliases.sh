@@ -15,13 +15,13 @@ case "$(realpath /bin/sh)" in
     */bash) alias sh='bash --posix' ;;
 esac
 
-if command -v zsh >/dev/null 2>&1; then
+if command -v zsh >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
     alias sudoz='sudo -i zsh'
 fi
 
 if command -v ssh >/dev/null 2>&1; then
-    alias ssh-forget='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no"'
-    alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no"'
+    alias ssh-forget='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
+    alias scp-forget='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -o "LogLevel QUIET"'
 fi
 
 if (command -v eza || command -v exa) >/dev/null 2>&1; then
