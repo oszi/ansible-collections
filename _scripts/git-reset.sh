@@ -45,5 +45,7 @@ if [[ "$(git log --ignore-missing "${UPSTREAM}..${BRANCH}" -- | tee /dev/stderr)
 fi
 
 git switch -fC "$BRANCH" "$UPSTREAM"
-git clean -fdxxx
-git submodule update --force --init --checkout --recursive
+git clean -xfd
+
+git submodule update --recursive --force --init --checkout
+git submodule foreach --recursive git clean -xfd
