@@ -13,7 +13,7 @@ fi
 
 if ! (command -v virsh && command -v virt-viewer && command -v fzf) >/dev/null 2>&1; then
     echo "virsh|virt-viewer|fzf not found" >&2
-    exit 1
+    exit 127
 fi
 
 domains="$(${virsh} list --all --name | sort)"

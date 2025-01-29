@@ -3,7 +3,7 @@ set -euo pipefail
 
 if [[ $# -ne 2 ]] || ! [[ "$1" =~ ^(at|de)tach$ ]]; then
     echo "Usage: $0 attach|detach device-pattern" >&2
-    exit 1
+    exit 2
 fi
 
 virsh="virsh -c qemu:///system"
@@ -12,7 +12,7 @@ pattern="$2"
 
 if ! (command -v virsh && command -v fzf && command -v xmllint) >/dev/null 2>&1; then
     echo "virsh|fzf|xmllint not found" >&2
-    exit 1
+    exit 127
 fi
 
 domains="$(${virsh} list --all --name | sort)"

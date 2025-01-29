@@ -7,7 +7,7 @@ GPG="gpg --batch --use-agent --yes"
 exit_help() {
     echo "# ${0} [--check | --create] [--vault-id=VAULT_ID]" >&2
     echo "# ansible --vault-id=VAULT_ID@${0}" >&2
-    exit 1
+    exit 2
 }
 
 check=0

@@ -26,7 +26,7 @@ alias find-clear='_find_clear'
 _find_clear_gpg_encrypt() {
     if [ $# -eq 0 ]; then
         echo "Usage: find-clear-gpg-encrypt PATH [FIND ARGS]" >&2
-        return 255
+        return 2
     fi
 
     files="$(_find_clear "$@" | tee /dev/stderr)"
@@ -66,7 +66,7 @@ _sort_u_file() {
         mv "$1"~ "$1"
     else
         echo 'Usage: sort-u-file <file>' >&2
-        false
+        return 2
     fi
 }
 
@@ -85,7 +85,7 @@ _proxy_set() {
         env | grep -i '_proxy=' | sort
     else
         echo 'Usage: proxy-set proto://host:port' >&2
-        false
+        return 2
     fi
 }
 
