@@ -4,7 +4,7 @@ set -euo pipefail
 
 if ! (command -v bluetoothctl && command -v fzf) >/dev/null 2>&1; then
     echo "bluetoothctl or fzf not found!" >&2
-    exit 1
+    exit 127
 fi
 
 paired_devices=$(

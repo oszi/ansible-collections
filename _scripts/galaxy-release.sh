@@ -7,12 +7,12 @@ set -euo pipefail
 
 if [[ ! "${1:-}" =~ ^(major|minor|patch)$ ]]; then
     echo "Usage: ${0} major|minor|patch" >&2
-    exit 255
+    exit 2
 fi
 
 cd -- "$(git rev-parse --show-toplevel)/ansible_collections/oszi" || {
     echo "Source 'ansible_collections/oszi' not found." >&2
-    exit 2
+    exit 1
 }
 
 old_version="$(grep -P -o -m1 "^version:\s*['\"]?\K[0-9]+\.[0-9]+\.[0-9]+" environments/galaxy.yml)" || {
@@ -23,7 +23,7 @@ old_version="$(grep -P -o -m1 "^version:\s*['\"]?\K[0-9]+\.[0-9]+\.[0-9]+" envir
 changes="$(git log --no-merges --pretty=format:"* %s" "${old_version}...HEAD")"
 [[ -n "$changes" ]] || {
     echo "No commits found since the last version." >&2
-    exit 6
+    exit 4
 }
 
 major="${old_version%%.*}"

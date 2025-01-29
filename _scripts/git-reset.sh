@@ -6,7 +6,7 @@ cd -- "$(git rev-parse --show-toplevel)"
 
 if [[ "${1:-}" =~ ^-.*$ ]]; then
     echo "Usage: ${0} [[REMOTE] BRANCH]" >&2
-    exit 1
+    exit 2
 elif [[ $# -gt 1 ]]; then
     REMOTE="$1"
     BRANCH="$2"
