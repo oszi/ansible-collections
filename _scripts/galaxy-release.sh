@@ -20,6 +20,12 @@ old_version="$(grep -P -o -m1 "^version:\s*['\"]?\K[0-9]+\.[0-9]+\.[0-9]+" envir
     exit 4
 }
 
+changes="$(git log --no-merges --pretty=format:"* %s" "${old_version}...HEAD")"
+[[ -n "$changes" ]] || {
+    echo "No commits found since the last version." >&2
+    exit 6
+}
+
 major="${old_version%%.*}"
 minor="${old_version#*.}"
 minor="${minor%%.*}"
@@ -50,7 +56,7 @@ git commit -n -m "Bump galaxy versions [${new_version}]" -- */galaxy.yml || {
     exit 8
 }
 
-git tag -s -m "Version ${new_version}" "${new_version}" || {
+git tag -s -m "Version ${new_version}" -m "${changes}" "${new_version}" || {
     git reset --quiet --soft HEAD~1
     git checkout --quiet HEAD -- */galaxy.yml
     exit 8
