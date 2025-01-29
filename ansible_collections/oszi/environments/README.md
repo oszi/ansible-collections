@@ -12,4 +12,3 @@ Ansible collection for personal, high-level environment roles.
 - **containerhost** - Baselinux and Podman with systemd-based container services.
 - **toolbox** - Baselinux and DevOps tools (CLI). It can be built as a container image.
 - **workstation** - Gnome, Flatpak, etc, and workstation-specific tweaks. Recommends Toolbox.
-- **macbook** - Dated and unused, basic automation for Macbooks.

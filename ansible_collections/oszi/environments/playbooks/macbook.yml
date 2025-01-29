@@ -1,7 +1,0 @@
----
-- name: Deploy Macbooks
-  become: false
-  gather_facts: false
-  hosts: "{{ macbook_hosts | default('macbooks') }}"
-  roles:
-    - oszi.environments.macbook

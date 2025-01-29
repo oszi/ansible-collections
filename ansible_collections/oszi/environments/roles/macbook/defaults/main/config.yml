@@ -1,8 +1,0 @@
----
-# Dict of hosts for /etc/hosts:
-# * {host: ip}
-macbook_etc_hosts: {}
-
-# Dict of config files owned by ansible_user
-# {~/.config/wireguard/wg0.conf: content}
-macbook_user_config_files: {}
