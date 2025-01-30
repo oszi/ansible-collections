@@ -20,9 +20,9 @@ old_version="$(grep -P -o -m1 "^version:\s*['\"]?\K[0-9]+\.[0-9]+\.[0-9]+" envir
     exit 4
 }
 
-changes="$(git log --no-merges --pretty=format:"* %s" "${old_version}...HEAD")"
+changes="$(git log --no-merges --pretty=format:"- %s" "${old_version}...HEAD")"
 [[ -n "$changes" ]] || {
-    echo "No commits found since the last version." >&2
+    echo "There were no commits since the last version." >&2
     exit 4
 }
 
