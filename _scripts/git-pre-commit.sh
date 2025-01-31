@@ -59,4 +59,11 @@ shellcheck-lint() {
     fi
 }
 
+# Disable ansible-vault for ansible-lint. Exclude *vault.yml in .ansible-lint!
+export ANSIBLE_ASK_VAULT_PASS='False'
+if [[ -f /etc/hostname ]]; then
+    export ANSIBLE_VAULT_PASSWORD_FILE='/etc/hostname'
+    export ANSIBLE_VAULT_IDENTITY_LIST=''
+fi
+
 ansible-lint && shellcheck-lint
