@@ -4,10 +4,18 @@
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
-if [[ "${1:-}" =~ ^-.*$ ]]; then
-    echo "Usage: ${0} [[REMOTE] BRANCH]" >&2
-    exit 2
-elif [[ $# -gt 1 ]]; then
+fetch_opts=()
+if [[ "${1-}" =~ ^-.*$ ]]; then
+    if [[ "${1-}" =~ ^(-f|--force)$ ]]; then
+        fetch_opts+=(--force --tags --prune --prune-tags)
+        shift
+    else
+        echo "Usage: ${0} [-f|--force] [[REMOTE] BRANCH]" >&2
+        exit 2
+    fi
+fi
+
+if [[ $# -gt 1 ]]; then
     REMOTE="$1"
     BRANCH="$2"
 else
@@ -16,6 +24,7 @@ else
 fi
 
 UPSTREAM="${REMOTE}/${BRANCH}"
+fetch_opts+=("$REMOTE")
 
 COLOR_CLEAR="\033[0m"
 COLOR_RED="\033[31m"
@@ -28,7 +37,7 @@ answer_yes_or_exit() {
     fi
 }
 
-if ! git fetch "$REMOTE"; then
+if ! git fetch "${fetch_opts[@]}"; then
     answer_yes_or_exit "git: remote fetch failed! Continue anyway?"
 fi
 
