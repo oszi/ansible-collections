@@ -51,14 +51,13 @@ fi
 
 if command -v terraform >/dev/null 2>&1; then
     if command -v tofu >/dev/null 2>&1; then
-        _tofu_or_terraform() {
+        tf() {
             if grep -Esq '\b(open)?tofu\b' .terraform.lock.hcl; then
                 tofu "$@"
             else
                 terraform "$@"
             fi
         }
-        alias tf='_tofu_or_terraform'
     else
         alias tf='terraform'
     fi
