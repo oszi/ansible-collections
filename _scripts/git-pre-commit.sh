@@ -14,26 +14,35 @@ COLOR_RED="\033[31m"
 COLOR_GREEN="\033[32m"
 COLOR_YELLOW="\033[33m"
 
-if ! [[ "${1-}" =~ ^-*(y|yes|f|force)$ ]]; then
+if [[ $# -eq 0 ]]; then
     echo -en "${COLOR_YELLOW}Run ansible-lint and shellcheck?${COLOR_CLEAR} [y/N]" >&2
     read -r answer
     if ! [[ "$answer" =~ ^[Yy] ]]; then
         exit 0
     fi
+elif ! [[ "${1-}" =~ ^(-f|--force|-y|--yes)$ ]]; then
+    echo "Usage: ${0} [-f|--force|-y|--yes]" >&2
+    exit 2
 fi
 
 GIT_LS_FILES='git ls-files -c -o --exclude-standard --deduplicate'
 
-vault_files=$(
-    ${GIT_LS_FILES} -z -- '**_vars/**vault.'{yaml,yml,json} '*.'{key,csr,p12} '**/'{private,privkey,\*-key}.pem \
-        | xargs -0 -r grep --files-without-match -- $'^$ANSIBLE_VAULT'
-) ||:
+ansible-vault-lint() {
+    local IFS=' '
+    local vault_files
 
-if [[ "$vault_files" != "" ]]; then
-    echo -e "${COLOR_RED}Clear-text private keys or vault files!${COLOR_CLEAR}" >&2
-    echo "$vault_files"
-    exit 1
-fi
+    vault_files=$(
+        ${GIT_LS_FILES} -z -- '**_vars/**vault.'{yaml,yml,json} '*.'{key,csr,p12} \
+            '**/'{private,privkey,\*[-.]key}.pem \
+            | xargs -0 -r grep --files-without-match -- $'^$ANSIBLE_VAULT'
+    ) ||:
+
+    if [[ "$vault_files" != "" ]]; then
+        echo -e "${COLOR_RED}Clear-text private keys or vault files!${COLOR_CLEAR}" >&2
+        echo "$vault_files"
+        return 1
+    fi
+}
 
 shellcheck-targets() {
     local IFS=' '
@@ -54,7 +63,7 @@ shellcheck-lint() {
 
     read -r -a targets -d '' < <(shellcheck-targets | sort -u) ||:
     if [[ -n "${targets-}" ]]; then
-        shellcheck -- "${targets[@]}" || exit 1
+        shellcheck -- "${targets[@]}" || return 1
         echo -e "${COLOR_GREEN}shellcheck passed${COLOR_CLEAR}: on ${#targets[@]} files." >&2
     fi
 }
@@ -66,4 +75,8 @@ if [[ -f /etc/hostname ]]; then
     export ANSIBLE_VAULT_IDENTITY_LIST=''
 fi
 
-ansible-lint && shellcheck-lint
+rc=0
+ansible-lint       || (( rc+=4  ))
+shellcheck-lint    || (( rc+=8  ))
+ansible-vault-lint || (( rc+=16 ))
+exit $rc
