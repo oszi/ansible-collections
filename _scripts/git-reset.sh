@@ -4,15 +4,14 @@
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
-fetch_opts=()
-if [[ "${1-}" =~ ^-.*$ ]]; then
-    if [[ "${1-}" =~ ^(-f|--force)$ ]]; then
-        fetch_opts+=(--force --tags --prune --prune-tags)
-        shift
-    else
-        echo "Usage: ${0} [-f|--force] [[REMOTE] BRANCH]" >&2
-        exit 2
-    fi
+fetch_opts=(--atomic)
+
+if [[ "${1-}" =~ ^(-f|--force)$ ]]; then
+    fetch_opts+=(--force --tags --prune --prune-tags)
+    shift
+elif [[ "${1-}" =~ ^-.*$ ]]; then
+    echo "Usage: ${0} [-f|--force] [[REMOTE(origin)] BRANCH(master)]" >&2
+    exit 2
 fi
 
 if [[ $# -gt 1 ]]; then
