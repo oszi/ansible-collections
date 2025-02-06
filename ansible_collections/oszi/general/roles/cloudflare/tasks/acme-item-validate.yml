@@ -80,3 +80,5 @@
         api_token: "{{ cloudflare_api_token }}"
         state: "absent"
       with_items: "{{ _acme_challenge.challenge_data }}"
+      ignore_errors: true  # TODO: update community.general (see commit)
+      tags: [skip_ansible_lint]
