@@ -4,7 +4,7 @@
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
-fetch_opts=(--atomic)
+fetch_opts=(--atomic --porcelain)
 
 if [[ "${1-}" =~ ^(-f|--force)$ ]]; then
     fetch_opts+=(--force --tags --prune --prune-tags)
@@ -27,6 +27,7 @@ fetch_opts+=("$REMOTE")
 
 COLOR_CLEAR="\033[0m"
 COLOR_RED="\033[31m"
+COLOR_YELLOW="\033[33m"
 
 answer_yes_or_exit() {
     echo -en "${COLOR_RED}${1}${COLOR_CLEAR} [y/N]" >&2
@@ -36,21 +37,31 @@ answer_yes_or_exit() {
     fi
 }
 
-if ! git fetch "${fetch_opts[@]}"; then
-    answer_yes_or_exit "git: remote fetch failed! Continue anyway?"
-fi
+print_section() {
+    echo -e "${COLOR_YELLOW}${1}${COLOR_CLEAR}" >&2
+}
 
-if ! git verify-commit "$UPSTREAM"; then
-    answer_yes_or_exit "git: signature verification failed! Continue anyway?"
-fi
+fetch_logs="$(git fetch "${fetch_opts[@]}" | tee /dev/stderr)" \
+    || answer_yes_or_exit "git: remote fetch failed! Continue anyway?"
 
-if [[ "$(git status -s | tee /dev/stderr)" != "" ]]; then
-    answer_yes_or_exit "git: working tree changes! Discard everything?"
-fi
+(grep -E '^[^-].+refs/tags/' <<< "$fetch_logs" | grep -Eo 'refs/tags/\S+' ||:) \
+    | xargs -r -d'\n' git verify-tag -v -- \
+    || answer_yes_or_exit "git: verify-tag failed! Continue anyway?"
 
-if [[ "$(git log --ignore-missing "${UPSTREAM}..${BRANCH}" -- | tee /dev/stderr)" != "" ]]; then
-    answer_yes_or_exit "git: local commits! Discard everything?"
-fi
+print_section "Verify ${UPSTREAM}^..$(git log --oneline "${UPSTREAM}^..${UPSTREAM}" -- 2>/dev/null)"
+
+git verify-commit "$UPSTREAM" \
+    || answer_yes_or_exit "git: verify-commit failed! Continue anyway?"
+
+print_section "Check working tree and local commits..." >&2
+
+[[ "$(git status -s | tee /dev/stderr)" = "" ]] \
+    || answer_yes_or_exit "git: working tree changes! Discard everything?"
+
+[[ "$(git log --ignore-missing "${UPSTREAM}..${BRANCH}" -- | tee /dev/stderr)" = "" ]] \
+    || answer_yes_or_exit "git: local commits! Discard everything?"
+
+print_section "Reset branch and clean up..." >&2
 
 git switch -fC "$BRANCH" "$UPSTREAM"
 git clean -xfd
