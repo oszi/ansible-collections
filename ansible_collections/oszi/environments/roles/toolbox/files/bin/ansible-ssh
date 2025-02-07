@@ -146,7 +146,7 @@ def ansible_list_hosts(inventory: Optional[str]) -> str:
     env.update(dict.fromkeys(("ANSIBLE_ASK_VAULT_PASS", "ANSIBLE_ASK_PASS", "ANSIBLE_BECOME_ASK_PASS"), "False"))
 
     # Skip vault scripts as nothing is actually decrypted by --list-hosts.
-    if os.path.isfile("/etc/hostname"):
+    if not env.get("ANSIBLE_VAULT_PASSWORD_FILE") and os.path.isfile("/etc/hostname"):
         env["ANSIBLE_VAULT_PASSWORD_FILE"] = "/etc/hostname"
         env["ANSIBLE_VAULT_IDENTITY_LIST"] = ""
 
