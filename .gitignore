@@ -11,6 +11,10 @@
 .ansible/
 .vagrant/
 
+# Ignore galaxy-installed collections!
+/ansible_collections/*/
+!/ansible_collections/oszi/
+
 ### Terraform ###
 *.tfstate*
 .terraform/
