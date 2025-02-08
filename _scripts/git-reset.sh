@@ -5,9 +5,11 @@ set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
 fetch_opts=(--atomic --porcelain)
+force=0
 
 if [[ "${1-}" =~ ^(-f|--force)$ ]]; then
     fetch_opts+=(--force --tags --prune --prune-tags)
+    force=1
     shift
 elif [[ "${1-}" =~ ^-.*$ ]]; then
     echo "Usage: ${0} [-f|--force] [[REMOTE(origin)] BRANCH(master)]" >&2
@@ -53,7 +55,7 @@ print_section "Verify ${UPSTREAM}^..$(git log --oneline "${UPSTREAM}^..${UPSTREA
 git verify-commit "$UPSTREAM" \
     || answer_yes_or_exit "git: verify-commit failed! Continue anyway?"
 
-print_section "Check working tree and local commits..." >&2
+print_section "Check working tree and local commits..."
 
 [[ "$(git status -s | tee /dev/stderr)" = "" ]] \
     || answer_yes_or_exit "git: working tree changes! Discard everything?"
@@ -61,10 +63,12 @@ print_section "Check working tree and local commits..." >&2
 [[ "$(git log --ignore-missing "${UPSTREAM}..${BRANCH}" -- | tee /dev/stderr)" = "" ]] \
     || answer_yes_or_exit "git: local commits! Discard everything?"
 
-print_section "Reset branch and clean up..." >&2
+print_section "Reset branch and clean up..."
 
 git switch -fC "$BRANCH" "$UPSTREAM"
-git clean -xfd
-
 git submodule update --recursive --force --init --checkout
-git submodule foreach --recursive git clean -xfd
+
+if [[ "$force" -ne 0 ]]; then
+    git clean -xfd
+    git submodule foreach --recursive git clean -xfd
+fi
