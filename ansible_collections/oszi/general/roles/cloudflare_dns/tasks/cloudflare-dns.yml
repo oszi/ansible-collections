@@ -1,107 +1,107 @@
 ---
 - name: Set host public IPv4 and IPv6 records in CloudFlare
-  when: cloudflare_host_record is not none
+  when: cloudflare_dns_host_record is not none
   block:
-    - name: Set cloudflare_host_record_a_value
+    - name: Set cloudflare_dns_host_record_a_value
       ansible.builtin.set_fact:
-        cloudflare_host_record_a_value: "{{ ansible_host
+        cloudflare_dns_host_record_a_value: "{{ ansible_host
           if ansible_host and ansible_host | ansible.utils.ipv4
           else ansible_default_ipv4.address
           if ansible_default_ipv4.address is defined
           else none }}"
-      when: cloudflare_host_record_a_value is not defined
+      when: cloudflare_dns_host_record_a_value is not defined
 
     - name: Set host public IPv4 record in CloudFlare
       community.general.cloudflare_dns:
         type: "A"
-        zone: "{{ cloudflare_zone }}"
-        record: "{{ cloudflare_host_record }}"
-        value: "{{ cloudflare_host_record_a_value }}"
-        proxied: "{{ cloudflare_host_proxied }}"
-        solo: "{{ cloudflare_host_solo }}"
-        api_token: "{{ cloudflare_api_token }}"
-      when: cloudflare_host_record_a_value
+        zone: "{{ cloudflare_dns_zone }}"
+        record: "{{ cloudflare_dns_host_record }}"
+        value: "{{ cloudflare_dns_host_record_a_value }}"
+        proxied: "{{ cloudflare_dns_host_proxied }}"
+        solo: "{{ cloudflare_dns_host_solo }}"
+        api_token: "{{ cloudflare_dns_api_token }}"
+      when: cloudflare_dns_host_record_a_value
 
-    - name: Set cloudflare_host_record_aaaa_value
+    - name: Set cloudflare_dns_host_record_aaaa_value
       ansible.builtin.set_fact:
-        cloudflare_host_record_aaaa_value: "{{ ansible_host
+        cloudflare_dns_host_record_aaaa_value: "{{ ansible_host
           if ansible_host and ansible_host | ansible.utils.ipv6
           else ansible_default_ipv6.address
           if ansible_default_ipv6.address is defined
           else none }}"
-      when: cloudflare_host_record_aaaa_value is not defined
+      when: cloudflare_dns_host_record_aaaa_value is not defined
 
     - name: Set host public IPv6 record in CloudFlare
       community.general.cloudflare_dns:
         type: "AAAA"
-        zone: "{{ cloudflare_zone }}"
-        record: "{{ cloudflare_host_record }}"
-        value: "{{ cloudflare_host_record_aaaa_value }}"
-        proxied: "{{ cloudflare_host_proxied }}"
-        solo: "{{ cloudflare_host_solo }}"
-        api_token: "{{ cloudflare_api_token }}"
-      when: cloudflare_host_record_aaaa_value
+        zone: "{{ cloudflare_dns_zone }}"
+        record: "{{ cloudflare_dns_host_record }}"
+        value: "{{ cloudflare_dns_host_record_aaaa_value }}"
+        proxied: "{{ cloudflare_dns_host_proxied }}"
+        solo: "{{ cloudflare_dns_host_solo }}"
+        api_token: "{{ cloudflare_dns_api_token }}"
+      when: cloudflare_dns_host_record_aaaa_value
 
 - name: Set CNAME records in CloudFlare
   community.general.cloudflare_dns:
     type: "CNAME"
-    zone: "{{ cloudflare_zone }}"
+    zone: "{{ cloudflare_dns_zone }}"
     record: "{{ item is mapping | ternary(item.record, item) }}"
-    value: "{{ item.value | default((cloudflare_host_record + '.' if cloudflare_host_record is not none
-      else '') + cloudflare_zone + '.') }}"
-    proxied: "{{ item.proxied | default(cloudflare_host_proxied) }}"
+    value: "{{ item.value | default((cloudflare_dns_host_record + '.' if cloudflare_dns_host_record is not none
+      else '') + cloudflare_dns_zone + '.') }}"
+    proxied: "{{ item.proxied | default(cloudflare_dns_host_proxied) }}"
     ttl: "{{ item.ttl | default(omit) }}"
     state: "{{ item.state | default('present') }}"
-    api_token: "{{ cloudflare_api_token }}"
-  with_items: "{{ cloudflare_cname_records }}"
+    api_token: "{{ cloudflare_dns_api_token }}"
+  with_items: "{{ cloudflare_dns_cname_records }}"
 
 - name: Set MX records in CloudFlare
   community.general.cloudflare_dns:
     type: "MX"
-    zone: "{{ cloudflare_zone }}"
-    record: "{{ item.record | default(cloudflare_host_record | default('@')) }}"
+    zone: "{{ cloudflare_dns_zone }}"
+    record: "{{ item.record | default(cloudflare_dns_host_record | default('@')) }}"
     value: "{{ item is mapping | ternary(item.value, item) }}"
     priority: "{{ item.priority | default(omit) }}"
     solo: "{{ item.solo | default(omit) }}"
     ttl: "{{ item.ttl | default(omit) }}"
     state: "{{ item.state | default('present') }}"
-    api_token: "{{ cloudflare_api_token }}"
-  with_items: "{{ cloudflare_mx_records }}"
+    api_token: "{{ cloudflare_dns_api_token }}"
+  with_items: "{{ cloudflare_dns_mx_records }}"
 
 - name: Set TXT records in CloudFlare
   community.general.cloudflare_dns:
     type: "TXT"
-    zone: "{{ cloudflare_zone }}"
-    record: "{{ item.record | default(cloudflare_host_record | default('@')) }}"
+    zone: "{{ cloudflare_dns_zone }}"
+    record: "{{ item.record | default(cloudflare_dns_host_record | default('@')) }}"
     value: "{{ item is mapping | ternary(item.value, item) }}"
     solo: "{{ item.solo | default(omit) }}"
     ttl: "{{ item.ttl | default(omit) }}"
     state: "{{ item.state | default('present') }}"
-    api_token: "{{ cloudflare_api_token }}"
-  with_items: "{{ cloudflare_txt_records }}"
+    api_token: "{{ cloudflare_dns_api_token }}"
+  with_items: "{{ cloudflare_dns_txt_records }}"
 
 - name: Set extra A records in CloudFlare
   community.general.cloudflare_dns:
     type: "A"
-    zone: "{{ cloudflare_zone }}"
+    zone: "{{ cloudflare_dns_zone }}"
     record: "{{ item.record }}"
     value: "{{ item.value }}"
     proxied: "{{ item.proxied | default(omit) }}"
     solo: "{{ item.solo | default(omit) }}"
     ttl: "{{ item.ttl | default(omit) }}"
     state: "{{ item.state | default('present') }}"
-    api_token: "{{ cloudflare_api_token }}"
-  with_items: "{{ cloudflare_extra_a_records }}"
+    api_token: "{{ cloudflare_dns_api_token }}"
+  with_items: "{{ cloudflare_dns_extra_a_records }}"
 
 - name: Set extra AAAA records in CloudFlare
   community.general.cloudflare_dns:
     type: "AAAA"
-    zone: "{{ cloudflare_zone }}"
+    zone: "{{ cloudflare_dns_zone }}"
     record: "{{ item.record }}"
     value: "{{ item.value }}"
     proxied: "{{ item.proxied | default(omit) }}"
     solo: "{{ item.solo | default(omit) }}"
     ttl: "{{ item.ttl | default(omit) }}"
     state: "{{ item.state | default('present') }}"
-    api_token: "{{ cloudflare_api_token }}"
-  with_items: "{{ cloudflare_extra_aaaa_records }}"
+    api_token: "{{ cloudflare_dns_api_token }}"
+  with_items: "{{ cloudflare_dns_extra_aaaa_records }}"

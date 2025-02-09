@@ -61,6 +61,12 @@
       changed_when: "'refreshed' in _snap_refresh_result.stdout"
       tags: [snap]
 
+    - name: Refresh ACME certificates
+      when: "acme_certificates is defined and acme_certificates"
+      ansible.builtin.include_role:
+        name: oszi.general.acme
+      tags: [acme]
+
     - name: Podman update tasks
       when: "not podman_disabled | default(false)"
       tags: [podman]
@@ -89,6 +95,3 @@
             tasks_from: update
             apply:
               become: false
-
-- name: Import ACME playbook
-  import_playbook: oszi.general.acme

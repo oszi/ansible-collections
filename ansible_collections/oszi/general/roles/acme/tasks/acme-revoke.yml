@@ -8,11 +8,11 @@
   when: _acme_revoke_item_result.stat.exists
   community.crypto.acme_certificate_revoke:
     select_crypto_backend: "cryptography"
-    account_key_src: "{{ cloudflare_acme_account_key }}"
-    account_key_passphrase: "{{ cloudflare_acme_account_key_passphrase }}"
+    account_key_src: "{{ acme_account_key_path }}"
+    account_key_passphrase: "{{ acme_account_key_passphrase }}"
     certificate: "{{ acme_revoke_item }}/cert.pem"
-    acme_directory: "{{ cloudflare_acme_directory_url }}"
-    acme_version: "{{ cloudflare_acme_api_version }}"
+    acme_directory: "{{ acme_directory_url }}"
+    acme_version: "{{ acme_api_version }}"
 
 - name: Remove revoked ACME live path
   when: _acme_revoke_item_result.stat.exists

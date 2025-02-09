@@ -1,9 +1,9 @@
 ---
-cloudflare_zone: "example.com"
-cloudflare_api_token: "{{ vault_cloudflare_api_token }}"
-cloudflare_host_record: "{{ inventory_hostname.split('.')[0] }}"
+cloudflare_dns_zone: "example.com"
+cloudflare_dns_api_token: "{{ vault_cloudflare_dns_api_token }}"
+cloudflare_dns_host_record: "{{ inventory_hostname.split('.')[0] }}"
 
-cloudflare_extra_a_records:
+cloudflare_dns_extra_a_records:
   - record: jupyter
     value: "{{ _jupyter_ipv4 }}"
     solo: true
@@ -13,18 +13,21 @@ cloudflare_extra_a_records:
     solo: true
     ttl: 3600
 
-cloudflare_cname_records:
+cloudflare_dns_cname_records:
   - record: tv
-    value: "jellyfin.{{ cloudflare_zone }}"
+    value: "jellyfin.{{ cloudflare_dns_zone }}"
     solo: true
     ttl: 3600
 
-cloudflare_acme_account_key_passphrase: "{{ vault_cloudflare_acme_account_key_passphrase }}"
+acme_account_key_passphrase: "{{ vault_acme_account_key_passphrase }}"
+acme_dns_provider: "cloudflare"
+acme_cloudflare_zone: "{{ cloudflare_dns_zone }}"
+acme_cloudflare_api_token: "{{ cloudflare_dns_api_token }}"
 
-# Alternative to the certbot template service (with different paths!):
-cloudflare_acme_items:
-  - common_name: "jellyfin.{{ cloudflare_zone }}"
-    subject_alt_name: "DNS:jellyfin.{{ cloudflare_zone }},DNS:tv.{{ cloudflare_zone }}"
+# Alternative to the certbot template service:
+acme_certificates:
+  - common_name: "jellyfin.{{ acme_cloudflare_zone }}"
+    subject_alt_name: "DNS:jellyfin.{{ acme_cloudflare_zone }},DNS:tv.{{ acme_cloudflare_zone }}"
     live_path: "{{ containerhost_etc_path }}/jellyfin/letsencrypt-ansible"
     post_hook: |
       openssl pkcs12 -export -inkey privkey.pem -in fullchain.pem -out cert.p12 -passout pass:
@@ -36,5 +39,5 @@ cloudflare_acme_items:
     remaining_days: 30
 
 ## Example ACME revocation (deletes live_path!):
-# cloudflare_acme_revoke_paths:
+# acme_revoke_paths:
 #   - "{{ containerhost_etc_path }}/jellyfin/letsencrypt-ansible"

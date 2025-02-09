@@ -1,0 +1,16 @@
+---
+- name: CloudFlare DNS tasks
+  tags: [cloudflare-dns]
+  block:
+    - name: Include CloudFlare DNS tasks on the ansible controller
+      when: cloudflare_dns_zone
+      ansible.builtin.include_tasks:
+        file: cloudflare-dns.yml
+        apply:
+          connection: local
+          become: false
+
+    - name: CloudFlare role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true
