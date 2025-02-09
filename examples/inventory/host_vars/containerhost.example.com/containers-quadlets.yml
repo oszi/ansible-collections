@@ -25,7 +25,7 @@ podman_quadlets:
     User=1000:100
     UIDMap=0:{{ _jupyter_uid }}:65536
     GIDMap=0:{{ _jupyter_uid }}:65536
-    HostName=jupyter.{{ cloudflare_zone }}
+    HostName=jupyter.{{ cloudflare_dns_zone }}
     Network=vmbridge-containers
     IP={{ _jupyter_ipv4 }}
     PodmanArgs=--memory=8G
@@ -58,7 +58,7 @@ podman_quadlets_copy_files:
       content: |
         {{ _container_certbot_cli_ini }}
         cert-name jupyter
-        domains jupyter.{{ cloudflare_zone }}
+        domains jupyter.{{ cloudflare_dns_zone }}
       owner: "{{ _certbot_uid0 }}"
       mode: "0600"
 

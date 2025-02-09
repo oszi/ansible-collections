@@ -105,7 +105,7 @@ _container_certbot_cli_ini: |
   dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
 
 _container_certbot_cloudflare_ini: |
-  dns_cloudflare_api_token = "{{ cloudflare_api_token }}"
+  dns_cloudflare_api_token = "{{ cloudflare_dns_api_token }}"
 
 _container_firewall_lockdown_script_template: |
   #!/bin/bash

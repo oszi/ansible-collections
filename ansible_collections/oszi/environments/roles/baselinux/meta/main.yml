@@ -23,7 +23,8 @@ galaxy_info:
 dependencies:
   - role: oszi.general.bootstrap
   - role: oszi.general.python
-  - role: oszi.general.cloudflare
+  - role: oszi.general.cloudflare_dns
+  - role: oszi.general.acme
   - role: oszi.general.wireguard
   - role: oszi.general.systemd
   - role: oszi.general.firewalld

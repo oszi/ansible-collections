@@ -1,0 +1,50 @@
+---
+# List of dicts of ACME certificates:
+# Example certificate item:
+# - common_name: "test.{{ acme_cloudflare_zone }}"
+#   subject_alt_name: "DNS:test.{{ acme_cloudflare_zone }},DNS:test_cname.{{ acme_cloudflare_zone }}" # [optional]
+#   live_path: "/etc/letsencrypt/live/test"
+#   remaining_days: 30
+#   post_hook: |
+#     openssl pkcs12 -export -inkey privkey.pem -in fullchain.pem -out cert.p12 -passout pass:
+#     chown 0:0 cert.p12 && chmod 0640 cert.p12
+#   reload_cmd: "systemctl try-restart something.service"
+#   owner: 0
+#   group: 0
+# Files created in the live path:
+# * privkey.pem req.csr cert.pem fullchain.pem
+acme_certificates: []
+
+# List of live_paths (see above) to revoke.
+# * Remove it first from acme_certificates.
+acme_revoke_paths: []
+
+# Do not execute reload commands by default, for first-time setup.
+# Set to true for updates.
+acme_reload: false
+acme_reload_ignore_errors: false
+
+# Path to the ACME account key - one per host:
+acme_account_key_path: "/etc/letsencrypt/account.pem"
+# Password to encrypt the account key (use vault):
+# WARNING: Changing the password here regenerates the account key!
+# Re-encrypt it manually if you want to rotate it.
+acme_account_key_passphrase: null
+# Optional account email to register:
+acme_account_email: null
+
+# Days until expiration (usually 90) to renew a certificate.
+# * Specify the maximum (usually 90) to renew right now.
+acme_remaining_days_default: 60
+
+# ACME API settings for the current host:
+acme_directory_url: "https://acme-v02.api.letsencrypt.org/directory"
+acme_api_version: 2
+
+# Provider for DNS01 validation (for the current host).
+acme_dns_provider: "cloudflare"
+
+# CloudFlare API token with DNS edit permission (use vault):
+acme_cloudflare_api_token: "{{ cloudflare_dns_api_token | default(undef('acme_cloudflare_api_token')) }}"
+# Zone/domain for CloudFlare DNS records
+acme_cloudflare_zone: "{{ cloudflare_dns_zone | default(undef('acme_cloudflare_zone')) }}"

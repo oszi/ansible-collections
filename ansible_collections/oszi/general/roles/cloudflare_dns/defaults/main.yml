@@ -1,0 +1,31 @@
+---
+# CloudFlare API token with DNS edit permission (use vault!)
+cloudflare_dns_api_token:
+# Zone/domain for CloudFlare DNS records
+cloudflare_dns_zone:
+
+# Automatic A/AAAA records from ansible_host or ansible_default_ipv4/6.address
+# Override with cloudflare_dns_host_record_a_value or cloudflare_dns_host_record_aaaa_value
+cloudflare_dns_host_record:
+cloudflare_dns_host_proxied: false
+cloudflare_dns_host_solo: true
+
+# List of CNAMEs (default value: cloudflare_dns_host_record):
+# - {record: "@", value: "github.io", proxied: true}
+# - "subdomain"
+cloudflare_dns_cname_records: []
+
+# List of MX records (default record: cloudflare_dns_host_record):
+# - {record: "@", value: "mail.google.com", priority: 10}
+# - "mail.google.com"
+cloudflare_dns_mx_records: []
+
+# List of TXT records (default record: cloudflare_dns_host_record):
+# - {record: "@", value: "v=spf1 include:_spf.google.com", solo: false}
+# - "google-site-verification=..."
+cloudflare_dns_txt_records: []
+
+# List of extra A/AAAA records (no default values):
+# - {record: "subdomain", value: "127.0.0.1", proxied: true, solo: false}
+cloudflare_dns_extra_a_records: []
+cloudflare_dns_extra_aaaa_records: []

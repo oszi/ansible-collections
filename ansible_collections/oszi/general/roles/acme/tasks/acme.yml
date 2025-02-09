@@ -6,7 +6,7 @@
 
 - name: Ensure directory for ACME account key exists
   ansible.builtin.file:
-    path: "{{ cloudflare_acme_account_key | dirname }}"
+    path: "{{ acme_account_key_path | dirname }}"
     state: "directory"
     owner: "root"
     group: "root"
@@ -15,22 +15,22 @@
 - name: Create ACME account key
   community.crypto.openssl_privatekey:
     select_crypto_backend: "cryptography"
-    path: "{{ cloudflare_acme_account_key }}"
-    passphrase: "{{ cloudflare_acme_account_key_passphrase }}"
+    path: "{{ acme_account_key_path }}"
+    passphrase: "{{ acme_account_key_passphrase }}"
     owner: "root"
     group: "root"
     mode: "0640"
 
-- name: Include CloudFlare ACME certificate tasks
+- name: Include ACME certificate tasks
   ansible.builtin.include_tasks:
     file: acme-item.yml
-  with_items: "{{ cloudflare_acme_items }}"
+  with_items: "{{ acme_certificates }}"
   loop_control:
     loop_var: acme_item
 
-- name: Include CloudFlare ACME revoke tasks
+- name: Include ACME revoke tasks
   ansible.builtin.include_tasks:
     file: acme-revoke.yml
-  with_items: "{{ cloudflare_acme_revoke_paths }}"
+  with_items: "{{ acme_revoke_paths }}"
   loop_control:
     loop_var: acme_revoke_item

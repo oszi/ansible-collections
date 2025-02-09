@@ -32,7 +32,7 @@ containerhost_services:
       - "--memory=8G"
       - "--network=vmbridge-containers"
       - "--ip={{ _jellyfin_ipv4 }}"
-      - "--hostname=jellyfin.{{ cloudflare_zone }}"
+      - "--hostname=jellyfin.{{ cloudflare_dns_zone }}"
       - "--cap-add=NET_RAW"
       - "--user=${CONTAINER_USER}"
       - "--volume=${HOST_DATADIR}:/config:rw,Z"
@@ -49,7 +49,7 @@ containerhost_services:
         content: |
           {{ _container_certbot_cli_ini }}
           cert-name jellyfin
-          domains jellyfin.{{ cloudflare_zone }},tv.{{ cloudflare_zone }}
+          domains jellyfin.{{ cloudflare_dns_zone }},tv.{{ cloudflare_dns_zone }}
           post-hook "sh /etc/letsencrypt/post-hook.sh"
         owner: "{{ _certbot_uid0 }}"
         mode: "0600"

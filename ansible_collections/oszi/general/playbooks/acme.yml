@@ -1,25 +1,8 @@
 ---
-- name: Run CloudFlare ACME tasks
+- name: ACME certificate management
   hosts: all
   become: true
   gather_facts: false
-  pre_tasks:
-    - name: Include bootstrap tasks
-      when: bootstrap_included is undefined or not bootstrap_included
-      ansible.builtin.include_role:
-        name: oszi.general.bootstrap
-        tasks_from: bootstrap
-      tags: [always]
-
-  tasks:
-    - name: Include CloudFlare ACME tasks
-      when: "cloudflare_zone is defined and cloudflare_acme_items is defined
-        and cloudflare_zone is not none and cloudflare_acme_items"
-      ansible.builtin.include_role:
-        name: oszi.general.cloudflare
-        tasks_from: acme.yml
-        apply:
-          tags: [acme]
-      vars:
-        cloudflare_acme_reload: true
-      tags: [acme]
+  roles:
+    - oszi.general.bootstrap
+    - oszi.general.acme
