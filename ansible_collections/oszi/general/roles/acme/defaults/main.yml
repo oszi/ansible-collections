@@ -3,6 +3,7 @@
 # Example certificate item:
 # - common_name: "test.{{ acme_cloudflare_zone }}"
 #   subject_alt_name: "DNS:test.{{ acme_cloudflare_zone }},DNS:test_cname.{{ acme_cloudflare_zone }}" # [optional]
+#   select_chain: {"issuer": {"commonName": "Preferred CA"}, "subject": {"CN": "Preferred CA"}, ...}  # [optional]
 #   live_path: "/etc/letsencrypt/live/test"
 #   remaining_days: 30
 #   post_hook: |
