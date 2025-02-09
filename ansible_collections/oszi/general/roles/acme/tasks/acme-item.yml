@@ -36,6 +36,7 @@
     csr: "{{ acme_item.live_path }}/req.csr"
     dest: "{{ acme_item.live_path }}/cert.pem"
     fullchain_dest: "{{ acme_item.live_path }}/fullchain.pem"
+    select_chain: "{{ acme_item.select_chain | default(omit) }}"
     acme_directory: "{{ acme_directory_url }}"
     acme_version: "{{ acme_api_version }}"
     remaining_days: "{{ acme_item.remaining_days | default(acme_remaining_days_default) }}"
