@@ -5,10 +5,10 @@
     state: "present"
 
 - name: Test Borgmatic virtualenv python version
-  ansible.builtin.shell: >-
+  ansible.builtin.shell: |-
     set -euo pipefail
-    && test "$({{ borgmatic_virtualenv_path }}/bin/python3 -c '{{ print_python_version }}')"
-    == "$(python3 -c '{{ print_python_version }}')"
+    test "$({{ borgmatic_virtualenv_path | quote }}/bin/python3 -c {{ print_python_version | quote }})" \
+      == "$(python3 -c {{ print_python_version | quote }})"
   args:
     executable: "/bin/bash"
   vars:
