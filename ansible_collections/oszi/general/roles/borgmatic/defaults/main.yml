@@ -5,7 +5,7 @@
 borgmatic_enabled: false
 # Python3 package version of Borgmatic
 # Requires python_disabled=false!
-borgmatic_version: ">1.7.0,<2.0.0"
+borgmatic_version: ">=1.9.10,<2.0.0"
 
 # Target directory or remote repository!
 borgmatic_repository: "/var/lib/borg-{{ inventory_hostname }}"
