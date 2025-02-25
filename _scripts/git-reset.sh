@@ -4,7 +4,7 @@
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
-fetch_opts=(--atomic --porcelain)
+fetch_opts=(--atomic)
 force=0
 
 if [[ "${1-}" =~ ^(-f|--force)$ ]]; then
@@ -43,12 +43,8 @@ print_section() {
     echo -e "${COLOR_YELLOW}${1}${COLOR_CLEAR}" >&2
 }
 
-fetch_logs="$(git fetch "${fetch_opts[@]}" | tee /dev/stderr)" \
+git fetch "${fetch_opts[@]}" \
     || answer_yes_or_exit "git: remote fetch failed! Continue anyway?"
-
-(grep -E '^[^-].+refs/tags/' <<< "$fetch_logs" | grep -Eo 'refs/tags/\S+' ||:) \
-    | xargs -r -d'\n' git verify-tag -v -- \
-    || answer_yes_or_exit "git: verify-tag failed! Continue anyway?"
 
 print_section "Verify ${UPSTREAM}^..$(git log --oneline "${UPSTREAM}^..${UPSTREAM}" -- 2>/dev/null)"
 
