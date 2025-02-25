@@ -20,7 +20,10 @@ Update the galaxy versions for a new release.
 Initialize git hooks and git submodules after cloning.
 
 * [git-pre-commit.sh](git-pre-commit.sh)  
-Pre-commit hook to protect sensitive files and to run ansible-lint.
+Pre-commit hook to protect sensitive files and to run linters.
 
 * [git-reset.sh](git-reset.sh)  
 Verify and reset the repository to a remote branch - master by default.
+
+* [git-verify.sh](git-verify.sh)  
+Verify the signatures of all git branches and tags.
