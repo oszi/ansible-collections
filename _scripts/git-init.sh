@@ -26,11 +26,10 @@ hooks=(
 
 setup_hook() {
     local hook="$1"
-    local hook_path="_scripts/git-${hook}.sh"
+    local script="_scripts/git-${hook}.sh"
 
-    if [[ -x "$hook_path" ]]; then
-        hook_path="$(realpath -s --relative-to="$hooks_path" "$hook_path")"
-        ln -sfv "$hook_path" "${hooks_path}/${hook}"
+    if [[ -x "$script" ]]; then
+        ln -s -r -f -v "$script" "${hooks_path}/${hook}"
     fi
 }
 
