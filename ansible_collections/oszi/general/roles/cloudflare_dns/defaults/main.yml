@@ -1,8 +1,8 @@
 ---
 # CloudFlare API token with DNS edit permission (use vault!)
-cloudflare_dns_api_token:
+cloudflare_dns_api_token: "{{ undef('cloudflare_dns_api_token is undefined') }}"
 # Zone/domain for CloudFlare DNS records
-cloudflare_dns_zone:
+cloudflare_dns_zone: "{{ undef('cloudflare_dns_zone is undefined') }}"
 
 # Automatic A/AAAA records from ansible_host or ansible_default_ipv4/6.address
 # Override with cloudflare_dns_host_record_a_value or cloudflare_dns_host_record_aaaa_value

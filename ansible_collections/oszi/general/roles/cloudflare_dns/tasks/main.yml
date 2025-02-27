@@ -3,7 +3,7 @@
   tags: [cloudflare-dns]
   block:
     - name: Include CloudFlare DNS tasks on the ansible controller
-      when: cloudflare_dns_zone
+      when: cloudflare_dns_zone is defined and cloudflare_dns_zone
       ansible.builtin.include_tasks:
         file: cloudflare-dns.yml
         apply:
