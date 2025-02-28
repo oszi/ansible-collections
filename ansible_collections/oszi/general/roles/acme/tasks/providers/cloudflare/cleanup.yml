@@ -4,10 +4,9 @@
   become: false
   community.general.cloudflare_dns:
     type: "TXT"
-    record: "{{ acme_challenge.challenge_data[item]['dns-01']['record'] }}"
-    value: '"{{ acme_challenge.challenge_data[item]["dns-01"]["resource_value"] }}"'
+    record: "{{ item.value['dns-01']['record'] }}"
+    value: '"{{ item.value["dns-01"]["resource_value"] }}"'
     zone: "{{ acme_cloudflare_zone }}"
     api_token: "{{ acme_cloudflare_api_token }}"
     state: "absent"
-  with_items: "{{ acme_challenge.challenge_data }}"
-  tags: [skip_ansible_lint]
+  with_dict: "{{ acme_challenge.challenge_data }}"
