@@ -1,0 +1,10 @@
+---
+- name: "Delete ACME challenge records - {{ acme_item.common_name }}"
+  connection: local
+  become: false
+  amazon.aws.route53:
+    zone: "{{ acme_route53_zone }}"
+    type: "TXT"
+    record: "{{ item.value['dns-01']['record'] }}"
+    state: "absent"
+  with_dict: "{{ acme_challenge.challenge_data }}"

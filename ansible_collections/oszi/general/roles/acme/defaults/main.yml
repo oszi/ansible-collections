@@ -43,9 +43,13 @@ acme_directory_url: "https://acme-v02.api.letsencrypt.org/directory"
 acme_api_version: 2
 
 # Provider for DNS01 validation (for the current host).
+# One of: cloudflare, route53
 acme_dns_provider: "cloudflare"
 
 # CloudFlare API token with DNS edit permission (use vault):
 acme_cloudflare_api_token: "{{ cloudflare_dns_api_token | default(undef('acme_cloudflare_api_token is undefined')) }}"
 # Zone/domain for CloudFlare DNS records
 acme_cloudflare_zone: "{{ cloudflare_dns_zone | default(undef('acme_cloudflare_zone is undefined')) }}"
+
+# AWS Route53 hosted zone
+acme_route53_zone: "{{ undef('acme_route53_zone is undefined') }}"
