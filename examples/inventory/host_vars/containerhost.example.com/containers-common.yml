@@ -7,7 +7,7 @@ containerhost_var_path: "/opt/containers/var"
 _certbot_uid0: 130000
 _containers_subnet: "172.17.0.0/24"
 _containers_ip_range: "172.17.0.240/28"
-_containers_gateway: "{{ _containers_subnet | ipaddr('1') }}"
+_containers_gateway: "{{ _containers_subnet | ansible.utils.ipaddr('1') }}"
 
 podman_networks:
   vmbridge-containers:

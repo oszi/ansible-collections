@@ -33,12 +33,12 @@ systemd_resolved_options:
 #
 #     [Network]
 #     Address={{ _wireguard_wg0_ipv4 }}
-#     DNS={{ _wireguard_peer_ipv4 | ipaddr('address') }}
+#     DNS={{ _wireguard_peer_ipv4 | ansible.utils.ipaddr('address') }}
 #     DNSDefaultRoute=true
 #     Domains=~.
 #
 #     [Route]
-#     Gateway={{ _wireguard_peer_ipv4 | ipaddr('address') }}
+#     Gateway={{ _wireguard_peer_ipv4 | ansible.utils.ipaddr('address') }}
 #     GatewayOnLink=true
 #     Table=1000
 #

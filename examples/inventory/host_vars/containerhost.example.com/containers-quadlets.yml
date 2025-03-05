@@ -2,7 +2,7 @@
 # See also: containers-common.yml
 
 _jupyter_uid: 280000
-_jupyter_ipv4: "{{ _containers_ip_range | ipaddr('2') }}"
+_jupyter_ipv4: "{{ _containers_ip_range | ansible.utils.ipaddr('2') }}"
 
 podman_quadlets:
   certbot@.container: "{{ _quadlet_container_certbot }}"

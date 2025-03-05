@@ -3,7 +3,7 @@
 # Quadlets are preferred with podman 4.4+ - containerhost_services is deprecated.
 
 _jellyfin_uid: 65000
-_jellyfin_ipv4: "{{ _containers_ip_range | ipaddr('3') }}"
+_jellyfin_ipv4: "{{ _containers_ip_range | ansible.utils.ipaddr('3') }}"
 
 containerhost_services_labels:
   io.containers.autoupdate: "local"
