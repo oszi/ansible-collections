@@ -65,6 +65,9 @@
       when: "acme_certificates is defined and acme_certificates"
       ansible.builtin.include_role:
         name: oszi.general.acme
+      vars:
+        # Reloading is disabled by default for first-time configuration.
+        acme_reload: true
       tags: [acme]
 
     - name: Podman update tasks
