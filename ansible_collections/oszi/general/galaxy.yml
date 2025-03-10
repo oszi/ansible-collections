@@ -13,6 +13,7 @@ license:
   - "BSD-3-Clause"
 
 # See also: requirements.yml (project root)
+# and bootstrap_assert_that (oszi.general.bootstrap)
 dependencies:
   "ansible.netcommon": ">=5.3"
   "ansible.posix": ">=1.5"
