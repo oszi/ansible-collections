@@ -1,11 +1,10 @@
 ---
-- name: "Delete ACME challenge records - {{ acme_item.common_name }}"
+- name: "Delete CloudFlare ACME challenge records - {{ acme_item.common_name }}"
   connection: local
   become: false
   community.general.cloudflare_dns:
     type: "TXT"
     record: "{{ item.value['dns-01']['record'] }}"
-    value: '"{{ item.value["dns-01"]["resource_value"] }}"'
     zone: "{{ acme_cloudflare_zone }}"
     api_token: "{{ acme_cloudflare_api_token }}"
     state: "absent"
