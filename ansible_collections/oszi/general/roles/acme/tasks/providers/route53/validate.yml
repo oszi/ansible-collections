@@ -1,5 +1,5 @@
 ---
-- name: "Create ACME challenge records - {{ acme_item.common_name }}"
+- name: "Create Route53 ACME challenge records - {{ acme_item.common_name }}"
   connection: local
   become: false
   amazon.aws.route53:

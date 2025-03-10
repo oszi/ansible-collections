@@ -17,6 +17,7 @@
     select_crypto_backend: "cryptography"
     path: "{{ acme_account_key_path }}"
     passphrase: "{{ acme_account_key_passphrase }}"
+    cipher: "auto"
     owner: "root"
     group: "root"
     mode: "0640"
