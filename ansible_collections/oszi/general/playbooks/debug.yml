@@ -1,13 +1,13 @@
 ---
-- name: Print collections, facts and variables
+- name: Debug collection versions and host variables
   hosts: all
   # become: undef
   gather_facts: false
-  strategy: linear
+  strategy: ansible.builtin.linear
   vars:
-    # Overridable, like so: -e host_var=ansible_default_ipv4
-    host_var: "hostvars[inventory_hostname]"
-    common_collections:
+    # Overridable, like so: -e debug_var=ansible_default_ipv4
+    debug_var: "hostvars[inventory_hostname]"
+    debug_collections:
       - ansible.netcommon
       - ansible.posix
       - ansible.utils
@@ -16,24 +16,25 @@
       - community.general
       - community.libvirt
       - containers.podman
-      - amazon.aws
-      - google.cloud
+      - oszi.environments
+      - oszi.general
+      - oszi.thirdparty
 
   tasks:
-    - name: Check collection versions
+    - name: Debug collection versions
       run_once: true  # noqa run-once[task]
       ansible.builtin.debug:
-        msg: "{{ dict(common_collections | zip(lookup('community.general.collection_version',
-          *common_collections).split(','))) }}"
+        msg: "{{ dict(debug_collections | zip(lookup('community.general.collection_version',
+          *debug_collections).split(','))) }}"
       tags: [collections]
 
     - name: Import bootstrap tasks
       ansible.builtin.import_role:
         name: oszi.general.bootstrap
         tasks_from: bootstrap
-      tags: [facts]
+      tags: [vars, bootstrap]
 
-    - name: Print facts and variables
+    - name: "Debug variable - {{ debug_var }}"
       ansible.builtin.debug:
-        var: "{{ host_var }}"
-      tags: [facts]
+        var: "{{ debug_var }}"
+      tags: [vars]
