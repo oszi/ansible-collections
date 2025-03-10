@@ -1,0 +1,39 @@
+---
+- name: Print collections, facts and variables
+  hosts: all
+  # become: undef
+  gather_facts: false
+  strategy: linear
+  vars:
+    # Overridable, like so: -e host_var=ansible_default_ipv4
+    host_var: "hostvars[inventory_hostname]"
+    common_collections:
+      - ansible.netcommon
+      - ansible.posix
+      - ansible.utils
+      - community.crypto
+      - community.dns
+      - community.general
+      - community.libvirt
+      - containers.podman
+      - amazon.aws
+      - google.cloud
+
+  tasks:
+    - name: Check collection versions
+      run_once: true  # noqa run-once[task]
+      ansible.builtin.debug:
+        msg: "{{ dict(common_collections | zip(lookup('community.general.collection_version',
+          *common_collections).split(','))) }}"
+      tags: [collections]
+
+    - name: Import bootstrap tasks
+      ansible.builtin.import_role:
+        name: oszi.general.bootstrap
+        tasks_from: bootstrap
+      tags: [facts]
+
+    - name: Print facts and variables
+      ansible.builtin.debug:
+        var: "{{ host_var }}"
+      tags: [facts]
