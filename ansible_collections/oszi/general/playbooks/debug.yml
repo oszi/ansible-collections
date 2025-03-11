@@ -5,8 +5,9 @@
   gather_facts: false
   strategy: ansible.builtin.linear
   vars:
-    # Overridable, like so: -e debug_var=ansible_default_ipv4
-    debug_var: "hostvars[inventory_hostname]"
+    # Overridable, like so: ansible-playbook -i ... -l ...
+    # -e debug_var='hostvars[inventory_hostname]'
+    debug_var: "ansible_facts"
     debug_collections:
       - ansible.netcommon
       - ansible.posix
@@ -32,7 +33,7 @@
       ansible.builtin.import_role:
         name: oszi.general.bootstrap
         tasks_from: bootstrap
-      tags: [vars, bootstrap]
+      tags: [bootstrap]
 
     - name: "Debug variable - {{ debug_var }}"
       ansible.builtin.debug:
