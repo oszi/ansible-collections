@@ -1,5 +1,5 @@
 ---
-- name: Debug collection versions and host variables
+- name: Debug host variables and facts
   hosts: all
   # become: undef
   gather_facts: false
@@ -8,27 +8,7 @@
     # Overridable, like so: ansible-playbook -i ... -l ...
     # -e debug_var='hostvars[inventory_hostname]'
     debug_var: "ansible_facts"
-    debug_collections:
-      - ansible.netcommon
-      - ansible.posix
-      - ansible.utils
-      - community.crypto
-      - community.dns
-      - community.general
-      - community.libvirt
-      - containers.podman
-      - oszi.environments
-      - oszi.general
-      - oszi.thirdparty
-
   tasks:
-    - name: Debug collection versions
-      run_once: true  # noqa run-once[task]
-      ansible.builtin.debug:
-        msg: "{{ dict(debug_collections | zip(lookup('community.general.collection_version',
-          *debug_collections).split(','))) }}"
-      tags: [collections]
-
     - name: Import bootstrap tasks
       ansible.builtin.import_role:
         name: oszi.general.bootstrap
