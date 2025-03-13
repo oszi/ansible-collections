@@ -62,27 +62,29 @@
           kernel: "{{ ansible_kernel }} {{ ansible_kernel_version }}"
       tags: [facts]
 
-    - name: Gather container client versions
+    - name: Gather container system versions
       ansible.builtin.shell: |
         {% raw %}
         set -o pipefail
         if command -v podman >/dev/null 2>&1; then
           echo -n "Podman Version: "
-          podman version -f '{{.Client.Version}}'
+          podman version -f '{{.Client.Version}}' || echo "error"
         fi
 
         if command -v docker >/dev/null 2>&1; then
-          echo -n "Docker Version: "
-          if docker -v | grep -iq podman; then
-            echo "podman-docker"
+          if ! docker -v | grep -iq podman; then
+            echo -n "Docker Client Version: "
+            docker version -f '{{.Client.Version}}' || echo "error"
+            echo -n "Docker Server Version: "
+            docker version -f '{{.Server.Version}}' || echo "error"
           else
-            docker version -f '{{.Client.Version}}'
+            echo "Docker Version: podman-docker"
           fi
         fi
 
         if command -v kubectl >/dev/null 2>&1; then
-          echo -n "Kubectl "
-          kubectl version --client
+          echo -n "Kubernetes "
+          kubectl version || true
         fi
         {% endraw %}
       args:
@@ -93,7 +95,7 @@
       register: _shell_result
       tags: [containers]
 
-    - name: Print container client versions
+    - name: Print container system versions
       when: _shell_result.stdout_lines
       ansible.builtin.debug:
         msg: "{{ _shell_result.stdout_lines }}"
