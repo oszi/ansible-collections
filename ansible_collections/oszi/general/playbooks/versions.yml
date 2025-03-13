@@ -32,8 +32,8 @@
     - name: Print collection versions
       run_once: true  # noqa run-once[task]
       ansible.builtin.debug:
-        msg: "{{ dict(common_collections | zip(lookup('community.general.collection_version',
-          *common_collections).split(','))) }}"
+        msg: "{{ dict(common_collections | zip(lookup('community.general.collection_version', *common_collections,
+          result_no_version='*', result_not_found='-').split(','))) }}"  # use strings!
       tags: [ansible]
 
     - name: Deferred setup to gather facts
