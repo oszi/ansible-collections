@@ -3,9 +3,34 @@
 chromium_policies_disabled: false
 
 # Mandatory Chromium policies to install under {{ chromium_policies_paths }}/managed/{{ item.key }}.json
-# You may include chromium_policies_recommended_pt_privacy in managed policies too.
 chromium_policies_managed:
   default: "{{ chromium_policies_managed_pt_default }}"
+  # privacy: "{{ chromium_policies_recommended_pt_privacy }}"  # Enforce recommended privacy.
+  # strict:
+  #   BrowserSignin: 0                      # Disable browser sign-in.
+  #   DefaultJavaScriptSetting: 2           # Disable JavaScript.
+  #   DefaultJavaScriptJitSetting: 2        # Disable JIT (not WASM).
+  #   DefaultJavaScriptOptimizerSetting: 2  # Disable JavaScript optimizers.
+  #   JavaScriptAllowedForUrls:
+  #     - "scheme://[*.]domain:port/path"
+  #   JavaScriptJitAllowedForSites:         # (eTLD+1)
+  #     - "[*.]example.edu"
+  #   JavaScriptOptimizerAllowedForSites:   # (eTLD+1)
+  #     - "[*.]example.edu"
+  #   AllowedDomainsForApps: []
+  #   URLAllowList:
+  #     - "chrome://*"
+  #     - "chrome-error://*"
+  #     - "chrome-untrusted://new-tab-page"
+  #     - "devtools://*"
+  #     - "file://*"
+  #     - "[*.]example.edu"
+  #   URLBlocklist:
+  #     - "*"
+  #   ExtensionInstallAllowlist:
+  #     - ddkjiahejlhfcafbddmgiahcphecmpfh  # uBlock Origin Lite
+  #   ExtensionInstallBlocklist:
+  #     - "*"
 
 chromium_policies_managed_pt_default:
   HttpsOnlyMode: "force_enabled"
