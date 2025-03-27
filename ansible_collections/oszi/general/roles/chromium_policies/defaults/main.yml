@@ -10,14 +10,13 @@ chromium_policies_managed:
 chromium_policies_managed_pt_default:
   HttpsOnlyMode: "force_enabled"
   PromptForDownloadLocation: true
-  # https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline
-  # https://github.com/uBlockOrigin/uBOL-home/wiki/Frequently-asked-questions-(FAQ)#filtering-capabilities-which-cant-be-ported-to-mv3
-  ExtensionManifestV2Availability: 2
   ExtensionSettings:
-    cjpalhdlnbpafiamejdnhcphjbkeiagm:   # uBlock Origin
+    ddkjiahejlhfcafbddmgiahcphecmpfh:  # uBlock Origin Lite [MV3]
       installation_mode: "force_installed"
       toolbar_pin: "force_pinned"
       update_url: "https://clients2.google.com/service/update2/crx"
+    cjpalhdlnbpafiamejdnhcphjbkeiagm:  # uBlock Origin [MV2]
+      installation_mode: "removed"
 
 # Recommended Chromium policies to install under {{ chromium_policies_paths }}/recommended/{{ item.key }}.json
 chromium_policies_recommended:
