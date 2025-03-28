@@ -12,18 +12,20 @@ chromium_policies_managed:
   #   DefaultJavaScriptJitSetting: 2        # Disable JIT (not WASM).
   #   DefaultJavaScriptOptimizerSetting: 2  # Disable JavaScript optimizers.
   #   JavaScriptAllowedForUrls:
-  #     - "scheme://[*.]domain:port/path"
+  #     - "https://[*.]domain:port/path"
+  #   JavaScriptBlockedForUrls:
+  #     - "http://*"
   #   JavaScriptJitAllowedForSites:         # (eTLD+1)
   #     - "[*.]example.edu"
   #   JavaScriptOptimizerAllowedForSites:   # (eTLD+1)
   #     - "[*.]example.edu"
-  #   AllowedDomainsForApps: []
   #   URLAllowList:
   #     - "chrome://*"
   #     - "chrome-error://*"
   #     - "chrome-untrusted://new-tab-page"
   #     - "devtools://*"
   #     - "file://*"
+  #     - "view-source:*"
   #     - "[*.]example.edu"
   #   URLBlocklist:
   #     - "*"
