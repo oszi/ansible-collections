@@ -8,17 +8,19 @@ chromium_policies_managed:
   # privacy: "{{ chromium_policies_recommended_pt_privacy }}"  # Enforce recommended privacy.
   # strict:
   #   BrowserSignin: 0                      # Disable browser sign-in.
+  #   SyncDisabled: true
+  #   DefaultCookiesSetting: 4              # 1 = Allow, 2 = Disallow, 4 = Session duration.
   #   DefaultJavaScriptSetting: 2           # Disable JavaScript.
   #   DefaultJavaScriptJitSetting: 2        # Disable JIT (not WASM).
   #   DefaultJavaScriptOptimizerSetting: 2  # Disable JavaScript optimizers.
   #   JavaScriptAllowedForUrls:
   #     - "https://[*.]domain:port/path"
-  #   JavaScriptBlockedForUrls:
+  #   JavaScriptBlockedForUrls:             # Disable JavaScript for clear-text http!
   #     - "http://*"
   #   JavaScriptJitAllowedForSites:         # (eTLD+1)
-  #     - "[*.]example.edu"
+  #     - "https://[*.]example.edu"
   #   JavaScriptOptimizerAllowedForSites:   # (eTLD+1)
-  #     - "[*.]example.edu"
+  #     - "https://[*.]example.edu"
   #   URLAllowList:
   #     - "chrome://*"
   #     - "chrome-error://*"
@@ -33,6 +35,8 @@ chromium_policies_managed:
   #     - ddkjiahejlhfcafbddmgiahcphecmpfh  # uBlock Origin Lite
   #   ExtensionInstallBlocklist:
   #     - "*"
+  #   DeviceHardwareVideoDecodingEnabled: false
+  #   HardwareAccelerationModeEnabled: false
 
 chromium_policies_managed_pt_default:
   HttpsOnlyMode: "force_enabled"
