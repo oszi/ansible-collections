@@ -40,6 +40,8 @@ chromium_policies_managed:
 
 chromium_policies_managed_pt_default:
   HttpsOnlyMode: "force_enabled"
+  AutofillAddressEnabled: false
+  AutofillCreditCardEnabled: false
   PromptForDownloadLocation: true
   ExtensionSettings:
     ddkjiahejlhfcafbddmgiahcphecmpfh:  # uBlock Origin Lite [MV3]
@@ -56,20 +58,16 @@ chromium_policies_recommended:
 
 chromium_policies_recommended_pt_default:
   RestoreOnStartup: 1  # Restore last session.
-  PromptForDownloadLocation: true
   BackgroundModeEnabled: false
   PasswordManagerEnabled: false
-  PaymentMethodQueryEnabled: false
-  AutofillAddressEnabled: false
 
 chromium_policies_recommended_pt_privacy:
   SafeBrowsingProtectionLevel: 0
   BlockThirdPartyCookies: true
-  SyncDisabled: true
-  SpellCheckServiceEnabled: false
-  SearchSuggestEnabled: false
-  TranslateEnabled: false
   MetricsReportingEnabled: false
+  SearchSuggestEnabled: false
+  SpellCheckServiceEnabled: false
+  TranslateEnabled: false
 
 # List of base paths for managed & recommended Chromium policies:
 # * /etc/chromium/policies # Chromium Upstream
