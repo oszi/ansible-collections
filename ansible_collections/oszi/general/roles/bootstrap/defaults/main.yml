@@ -18,8 +18,6 @@ bootstrap_facts_gather_subset:
 # * Do not interpolate here!
 bootstrap_assert_that:
   - "ansible_os_family in ['Debian', 'RedHat']"
-  - "lookup('community.general.collection_version', 'community.general')
-    is version('9.5.5', '>=')"
 
 # Update the default package manager cache after fact gathering?
 # * Useful to avoid having to specify cache_valid_time in apt package tasks.
