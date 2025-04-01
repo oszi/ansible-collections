@@ -7,12 +7,7 @@
 bootstrap_ssh_port_fallback: 22
 
 # List of fact subsets for ansible.builtin.setup:
-bootstrap_facts_gather_subset:
-  - "!all"
-  - "min"
-  - "hardware"
-  - "network"
-  - "virtual"
+bootstrap_facts_gather_subset: ["all"]
 
 # List of rules for ansible.builtin.assert:
 # * Do not interpolate here!
