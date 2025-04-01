@@ -1,5 +1,5 @@
 ---
-- name: Ensure chromium policies directories exist
+- name: Ensure chromium policy directories exist
   ansible.builtin.file:
     path: "{{ chromium_policies_path }}/{{ item }}"
     state: "directory"
@@ -10,7 +10,7 @@
     - managed
     - recommended
 
-- name: Install managed chromium policies
+- name: Install managed chromium policy files
   ansible.builtin.copy:
     content: "{{ item.value | to_nice_json }}"
     dest: "{{ chromium_policies_path }}/managed/{{ item.key }}.json"
@@ -19,7 +19,7 @@
     mode: "0644"
   with_dict: "{{ chromium_policies_managed }}"
 
-- name: Install recommended chromium policies
+- name: Install recommended chromium policy files
   ansible.builtin.copy:
     content: "{{ item.value | to_nice_json }}"
     dest: "{{ chromium_policies_path }}/recommended/{{ item.key }}.json"

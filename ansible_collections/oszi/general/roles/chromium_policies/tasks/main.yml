@@ -2,11 +2,20 @@
 - name: Chromium policies setup tasks
   tags: [chromium-policies]
   block:
-    - name: Include chromium policies setup tasks
+    - name: Include chromium policy file tasks
       when: not chromium_policies_disabled
       ansible.builtin.include_tasks:
         file: chromium-policies.yml
-      with_items: "{{ chromium_policies_paths }}"
+      with_items: "{{ [chromium_policies_paths[0]] if chromium_policies_use_hard_links
+        else chromium_policies_paths }}"
+      loop_control:
+        loop_var: chromium_policies_path
+
+    - name: Include chromium policy link tasks
+      when: not chromium_policies_disabled and chromium_policies_use_hard_links
+      ansible.builtin.include_tasks:
+        file: chromium-policies-links.yml
+      with_items: "{{ chromium_policies_paths[1:] }}"
       loop_control:
         loop_var: chromium_policies_path
 
