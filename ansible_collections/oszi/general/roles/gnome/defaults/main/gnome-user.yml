@@ -72,7 +72,7 @@ gnome_dconf_vars_default:
   /org/gnome/shell/keybindings/screenshot: ['<Shift>Print']
   /org/gnome/shell/keybindings/screenshot-window: ['<Control>Print']  # Incompatible default: <Alt>Print
 
-  /org/gnome/settings-daemon/plugins/media-keys/screensaver: ['<Super>Delete']
+  /org/gnome/settings-daemon/plugins/media-keys/screensaver: ['<Super>Delete', '<Super>L']
 
   /org/gnome/desktop/session/idle-delay: "uint32 {{ 1800 if ansible_virtualization_role != 'guest' else 0 }}"
 
@@ -146,20 +146,6 @@ gnome_dconf_vars_default:
   /org/gnome/settings-daemon/plugins/media-keys/volume-down: ['AudioLowerVolume']
   /org/gnome/settings-daemon/plugins/media-keys/volume-mute: ['AudioMute']
   /org/gnome/settings-daemon/plugins/media-keys/volume-up: ['AudioRaiseVolume']
-
-  # Disable legacy screenshot shortcuts since Gnome 42.
-  /org/gnome/settings-daemon/plugins/media-keys/area-screenshot-clip: "@as []"
-  /org/gnome/settings-daemon/plugins/media-keys/area-screenshot: "@as []"
-  /org/gnome/settings-daemon/plugins/media-keys/screenshot-clip: "@as []"
-  /org/gnome/settings-daemon/plugins/media-keys/screenshot: "@as []"
-  /org/gnome/settings-daemon/plugins/media-keys/window-screenshot-clip: "@as []"
-  /org/gnome/settings-daemon/plugins/media-keys/window-screenshot: "@as []"
-
-  # Workspaces are left to right since Gnome 42.
-  /org/gnome/desktop/wm/keybindings/move-to-workspace-up: "@as []"
-  /org/gnome/desktop/wm/keybindings/move-to-workspace-down: "@as []"
-  /org/gnome/desktop/wm/keybindings/switch-to-workspace-up: "@as []"
-  /org/gnome/desktop/wm/keybindings/switch-to-workspace-down: "@as []"
 
   # Disabled keybindings / shortcut conflicts.
   /org/gnome/desktop/wm/keybindings/move-to-center: "@as []"
