@@ -13,9 +13,11 @@
     value: "{{ item.value | string }}"
     state: "present"
   with_dict: "{{ gnome_dconf_vars }}"
+  tags: [dconf]
 
 - name: Set custom keyboard shortcuts
   when: gnome_dconf_custom_keybindings
+  tags: [dconf]
   block:
     - name: Set dconf custom keybindings - binding attr
       community.general.dconf:
@@ -50,3 +52,20 @@
         key: "{{ gnome_dconf_custom_keybindings_prefix }}"
         value: "{{ _dconf_custom_keybindings_key_map_yaml | from_yaml | string }}"
         state: "present"
+
+- name: Override Gnome Screenshots directory with a symlink
+  when: gnome_screenshots_path
+  block:
+    - name: Ensure alternative Screenshots directory exists
+      ansible.builtin.file:
+        path: "{{ gnome_screenshots_path }}"
+        state: "directory"
+        owner: "{{ gnome_user }}"
+        mode: "0750"
+
+    - name: Override Gnome Screenshots directory with a symlink
+      ansible.builtin.file:
+        src: "{{ gnome_screenshots_path }}"
+        dest: "{{ gnome_xdg_pictures_screenshots_path }}"
+        force: true
+        state: "link"
