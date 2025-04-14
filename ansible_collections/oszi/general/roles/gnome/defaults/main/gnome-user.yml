@@ -3,6 +3,10 @@
 # Required for all Gnome user configuration tasks!
 gnome_user:
 
+# Override Gnome Screenshots directory by symlinking gnome_screenshots_path
+# to gnome_xdg_pictures_screenshots_path ($XDG_PICTURES_DIR).
+gnome_screenshots_path:
+
 # Keep in mind that the dconf CLI tool, which this module wraps around, utilises an unusual syntax
 # for the values (GVariant). For example, if you wanted to provide a string value, the correct syntax
 # would be value="'myvalue'" - with single quotes as part of the Ansible parameter value.
