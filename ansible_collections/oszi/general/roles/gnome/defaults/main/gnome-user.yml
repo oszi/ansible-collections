@@ -67,6 +67,11 @@ gnome_dconf_vars_default:
   /org/gnome/shell/keybindings/toggle-application-view: ['LaunchB']
   /org/gnome/shell/keybindings/toggle-overview: ['LaunchA']
 
+  /org/gnome/shell/keybindings/show-screenshot-ui: ['Print']
+  /org/gnome/shell/keybindings/show-screen-recording-ui: ['<Super>Print']  # Instead of: <Shift><Control><Alt>R
+  /org/gnome/shell/keybindings/screenshot: ['<Shift>Print']
+  /org/gnome/shell/keybindings/screenshot-window: ['<Control>Print']  # Incompatible default: <Alt>Print
+
   /org/gnome/settings-daemon/plugins/media-keys/screensaver: ['<Super>Delete']
 
   /org/gnome/desktop/session/idle-delay: "uint32 {{ 1800 if ansible_virtualization_role != 'guest' else 0 }}"
