@@ -3,5 +3,6 @@
 workstation_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
 # Options for the hid_apple kernel module:
+# See /sys/module/hid_apple/parameters/*
 workstation_hid_apple_options:
-  fnmode: 1
+  fnmode: 2  # Fix Keychron Windows mode!
