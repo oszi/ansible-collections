@@ -53,7 +53,7 @@
         value: "{{ _dconf_custom_keybindings_key_map_yaml | from_yaml | string }}"
         state: "present"
 
-- name: Override Gnome Screenshots directory with a symlink
+- name: Override Gnome Screenshots and Screencasts directories with symlinks
   when: gnome_screenshots_path
   block:
     - name: Ensure alternative Screenshots directory exists
@@ -63,9 +63,28 @@
         owner: "{{ gnome_user }}"
         mode: "0750"
 
+    - name: Check original Gnome Screenshots directory
+      ansible.builtin.stat:
+        path: "{{ gnome_xdg_pictures_screenshots_path | dirname }}"
+      register: _gnome_xdg_pictures_screenshots_path_result
+
     - name: Override Gnome Screenshots directory with a symlink
+      when: _gnome_xdg_pictures_screenshots_path_result.stat.exists
       ansible.builtin.file:
         src: "{{ gnome_screenshots_path }}"
         dest: "{{ gnome_xdg_pictures_screenshots_path }}"
+        force: true
+        state: "link"
+
+    - name: Check original Gnome Screencasts directory
+      ansible.builtin.stat:
+        path: "{{ gnome_xdg_videos_screencasts_path | dirname }}"
+      register: _gnome_xdg_videos_screencasts_path_result
+
+    - name: Override Gnome Screencasts directory with a symlink
+      when: _gnome_xdg_videos_screencasts_path_result.stat.exists
+      ansible.builtin.file:
+        src: "{{ gnome_screenshots_path }}"
+        dest: "{{ gnome_xdg_videos_screencasts_path }}"
         force: true
         state: "link"
