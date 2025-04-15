@@ -3,8 +3,9 @@
 # Required for all Gnome user configuration tasks!
 gnome_user:
 
-# Override Gnome Screenshots directory by symlinking gnome_screenshots_path
-# to gnome_xdg_pictures_screenshots_path ($XDG_PICTURES_DIR).
+# Override Gnome Screenshots and Screencasts directories by symlinking
+# gnome_screenshots_path to gnome_xdg_pictures_screenshots_path ($XDG_PICTURES_DIR)
+# and to gnome_xdg_videos_screencasts_path ($XDG_VIDEOS_DIR).
 gnome_screenshots_path:
 
 # Keep in mind that the dconf CLI tool, which this module wraps around, utilises an unusual syntax
