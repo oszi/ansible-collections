@@ -78,6 +78,7 @@ workstation_blacklisted_packages_pt_office:
   - evolution
   - evolution-common
   - evolution-langpacks
+  - "{{ ['@libreoffice'] if (ansible_os_family == 'RedHat') else [] }}"
   - libreoffice
   - libreoffice-common
   - libreoffice-core
