@@ -1,3 +1,7 @@
+# Ignore galaxy-installed collections!
+/ansible_collections/*/
+!/ansible_collections/oszi/
+
 ### General ###
 *~
 *.bak
@@ -10,10 +14,6 @@
 *.retry
 .ansible/
 .vagrant/
-
-# Ignore galaxy-installed collections!
-/ansible_collections/*/
-!/ansible_collections/oszi/
 
 ### Terraform ###
 *.tfstate*
