@@ -18,6 +18,7 @@ google_chrome_rpm_repo_args:
   enabled: true
 
 google_chrome_deb_gpgkey: "/etc/apt/keyrings/google-chrome.gpg"
+google_chrome_deb_gpgkey_vendored: "/etc/apt/trusted.gpg.d/google-chrome.gpg"
 google_chrome_deb_repo_path: "/etc/apt/sources.list.d/google-chrome.list"
 google_chrome_deb_repo: >-
   deb [arch={{ google_chrome_deb_arch }} signed-by={{ google_chrome_deb_gpgkey }}]

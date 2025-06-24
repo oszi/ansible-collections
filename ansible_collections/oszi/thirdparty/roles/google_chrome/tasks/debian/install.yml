@@ -13,6 +13,12 @@
     owner: "root"
     mode: "0644"
 
+- name: Remove vendored Google Chrome deb signing key
+  when: "google_chrome_deb_gpgkey_vendored != google_chrome_deb_gpgkey"
+  ansible.builtin.file:
+    path: "{{ google_chrome_deb_gpgkey_vendored }}"
+    state: "absent"
+
 - name: Check Google Chrome deb repository
   ansible.builtin.copy:
     dest: "{{ google_chrome_deb_repo_path }}"
