@@ -26,11 +26,19 @@
 - name: Install VS Code deb repository when changed
   when: _vscode_deb_repo_result.changed
   block:
-    - name: Ensure vscode.list is NOT immutable
+    - name: Ensure vscode.sources/list is NOT immutable
       ansible.builtin.file:
-        path: "{{ vscode_deb_repo_path }}"
+        path: "{{ item }}"
         attr: "-i"
       failed_when: false
+      with_items:
+        - "{{ vscode_deb_repo_path }}"
+        - "{{ vscode_deb_repo_path_legacy }}"
+
+    - name: Remove legacy VS Code deb repository
+      ansible.builtin.file:
+        path: "{{ vscode_deb_repo_path_legacy }}"
+        state: "absent"
 
     - name: Install VS Code deb repository
       ansible.builtin.copy:
@@ -40,7 +48,7 @@
         mode: "0644"
       notify: "Update code microsoft repo debconf"
 
-    - name: Ensure vscode.list is immutable to prevent vendor changes
+    - name: Ensure vscode.sources is immutable to prevent vendor changes
       ansible.builtin.file:
         path: "{{ vscode_deb_repo_path }}"
         attr: "+i"
