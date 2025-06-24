@@ -2,7 +2,7 @@
 - name: Update code microsoft repo debconf
   ansible.builtin.shell: |
     set -euo pipefail
-    echo "code code/add-microsoft-repo boolean true" | debconf-set-selections
+    echo "code code/add-microsoft-repo boolean false" | debconf-set-selections
     {% if not vscode_microsoft_gpgkey_used_elsewhere %}
     rm -fv /etc/apt/trusted.gpg.d/microsoft.gpg
     {% endif %}
