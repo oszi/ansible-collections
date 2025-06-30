@@ -72,45 +72,8 @@ _sort_u_file() {
 
 alias sort-u-file='_sort_u_file'
 
-_PROXY_ENV_VARS='all_proxy http_proxy https_proxy ftp_proxy ALL_PROXY HTTP_PROXY HTTPS_PROXY FTP_PROXY'
-
-if [ -z "${no_proxy-}" ]; then
-    export no_proxy='localhost,.local,.localdomain'
-    export NO_PROXY="$no_proxy"
-fi
-
-_proxy_set() {
-    if echo "${1-}" | grep -q '://'; then
-        for _env_var in $_PROXY_ENV_VARS; do export "$_env_var"="$1"; done
-        env | grep -i '_proxy=' | sort
-    else
-        echo 'Usage: proxy-set proto://host:port' >&2
-        return 2
-    fi
-}
-
-alias proxy-set='_proxy_set'
-alias proxy-set-lo5h='_proxy_set socks5h://localhost:1080'
-alias proxy-unset='unset $_PROXY_ENV_VARS'
-
 # Abort here if ssh client is absent.
 command -v ssh >/dev/null 2>&1 || return
-
-_ssh_proxied() {
-    if [ -n "${all_proxy-}" ]; then
-        _ssh_proxy="$(echo "$all_proxy" | awk -F'://' '{print $NF}')"
-        _ssh_proxy_type="$(echo "$all_proxy" | grep -Eo '^(http|socks[45])')"  # only supported
-    else
-        _ssh_proxy='localhost:1080'
-        _ssh_proxy_type='socks5'
-    fi
-    _ssh_cmd="$1"
-    shift
-    "$_ssh_cmd" -o "ProxyCommand=nc --proxy=\"$_ssh_proxy\" --proxy-type=\"$_ssh_proxy_type\" %h %p" "$@"
-}
-
-alias ssh-proxied='_ssh_proxied ssh'
-alias scp-proxied='_ssh_proxied scp'
 
 _gpg_ssh_setup() {
     gpg -K --with-keygrip # creates ~/.gnupg
