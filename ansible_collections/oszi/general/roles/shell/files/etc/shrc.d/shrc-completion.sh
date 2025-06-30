@@ -5,18 +5,19 @@ if ! type complete >/dev/null 2>&1; then
     return
 fi
 
-if command -v tofu >/dev/null 2>&1; then
-    complete -C tofu tofu
-fi
-
 if command -v terraform >/dev/null 2>&1; then
     complete -C terraform terraform
     complete -C terraform tf
-elif command -v tofu >/dev/null 2>&1; then
-    complete -C tofu tf
 fi
 
-if (command -v aws && command -v aws_completer) >/dev/null 2>&1; then
+if command -v tofu >/dev/null 2>&1; then
+    complete -C tofu tofu
+    if ! command -v terraform >/dev/null 2>&1; then
+        complete -C tofu tf
+    fi
+fi
+
+if command -v aws >/dev/null 2>&1 && command -v aws_completer >/dev/null 2>&1; then
     complete -C "$(command -v aws_completer)" aws
 fi
 
