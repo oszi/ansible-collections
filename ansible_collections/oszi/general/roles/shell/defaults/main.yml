@@ -24,14 +24,12 @@ shell_skeleton_enforced_users: "{{ (['root', ansible_user | default('root')]
 
 # Nested list of shell packages to install:
 shell_packages:
-  - "{{ ['eza'] if (ansible_distribution == 'Fedora' and ansible_distribution_major_version | int < 42)
-    or (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 24)
-    else [] }}"
   - bash
   - bash-completion
   - bat
   - fzf
   - grep
+  - jq
   - less
   - nano
   - ripgrep
