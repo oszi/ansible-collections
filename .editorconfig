@@ -13,7 +13,7 @@ insert_final_newline = true
 [{{BSD,GNU,}makefile,Makefile*,*.mk,*.gmk,*.make}]
 indent_style = tab
 
-[*.{json,yaml,yml,tf,hcl,ini,cfg,conf,toml,xml,html,css}{,[-_~],.j2}]
+[*.{json,yaml,yml,tf,hcl,ini,cfg,conf,toml,xml,html,css}{,[-_~],.j2,.jinja2,.jinja}]
 indent_style = space
 indent_size = 2
 

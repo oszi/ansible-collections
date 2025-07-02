@@ -48,7 +48,7 @@ shellcheck-targets() {
     local IFS=' '
 
     ${GIT_LS_FILES} -- '*.'{sh,bash,ksh,zsh} '**/*shrc' '**/.*profile'
-    ${GIT_LS_FILES} -z -- '**scripts/*' '**/bin/*' '**/sbin/*' ':!:*.'{j2,jinja} \
+    ${GIT_LS_FILES} -z -- '**scripts/*' '**/bin/*' '**/sbin/*' ':!:*.'{j2,jinja2,jinja} \
         | xargs -0 -r awk -- 'FNR>1 {nextfile} /^#![^ ]+[/ ](sh|bash|ksh|zsh)$/ {print FILENAME; nextfile}'
 }
 
