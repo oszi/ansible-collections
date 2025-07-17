@@ -28,13 +28,19 @@ shell_packages:
   - bash-completion
   - bat
   - fzf
+  - git
   - grep
   - jq
   - less
+  - make
   - nano
   - ripgrep
+  - rsync
   - screen
+  - tar
   - tmux
+  - unzip
+  - zip
   - zsh
 
 # Path for local executables
