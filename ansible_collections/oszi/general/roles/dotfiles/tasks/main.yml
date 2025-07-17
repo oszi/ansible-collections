@@ -1,0 +1,16 @@
+---
+- name: Dotfiles tasks
+  tags: [dotfiles]
+  block:
+    - name: Include tasks for dotfiles
+      when: not dotfiles_disabled
+      ansible.builtin.include_tasks:
+        file: dotfiles.yml
+      with_items: "{{ dotfiles_users | unique }}"
+      loop_control:
+        loop_var: dotfiles_user
+
+    - name: Dotfiles role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true

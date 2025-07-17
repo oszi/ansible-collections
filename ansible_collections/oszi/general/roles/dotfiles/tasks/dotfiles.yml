@@ -1,0 +1,61 @@
+---
+- name: "Get info about user:{{ dotfiles_user }}"
+  ansible.builtin.user:
+    name: "{{ dotfiles_user }}"
+    state: "present"
+  # The user does not exist yet if changed!
+  register: _user_info
+  check_mode: true
+
+- name: "Install dotfiles for user:{{ dotfiles_user }}"
+  when: "not _user_info.changed"
+  block:
+    - name: "Check directories for user:{{ dotfiles_user }}"
+      vars:
+        _extra_directories: "{{ dotfiles_extra | map('dirname') | reject('equalto', '') }}"
+        _role_directories: "{{ ['.gnupg'] if dotfiles_gnupg_enabled else [] }}"
+      ansible.builtin.stat:
+        path: "{{ _user_info.home }}/{{ item }}"
+      with_items: "{{ (_extra_directories + _role_directories) | unique }}"
+      register: _dotfiles_directories
+
+    # Do not change existing owners and permissions!
+    - name: "Create missing directories for user:{{ dotfiles_user }}"
+      ansible.builtin.file:
+        path: "{{ item.invocation.module_args.path }}"
+        owner: "{{ _user_info.uid }}"
+        group: "{{ _user_info.group }}"
+        mode: "0750"
+        state: "directory"
+      with_items: "{{ _dotfiles_directories.results | selectattr('stat.exists', 'equalto', false) }}"
+
+    - name: "Install git dotfiles for user:{{ dotfiles_user }}"
+      when: dotfiles_git_enabled
+      ansible.builtin.template:
+        src: "{{ item }}"
+        dest: "{{ _user_info.home }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+        owner: "{{ _user_info.uid }}"
+        group: "{{ _user_info.group }}"
+        mode: "0640"
+      with_fileglob:
+        - "templates/.git*.j2"
+
+    - name: "Install gnupg dotfiles for user:{{ dotfiles_user }}"
+      when: dotfiles_gnupg_enabled
+      ansible.builtin.template:
+        src: "{{ item }}"
+        dest: "{{ _user_info.home }}/.gnupg/{{ item | basename | regex_replace('\\.j2$', '') }}"
+        owner: "{{ _user_info.uid }}"
+        group: "{{ _user_info.group }}"
+        mode: "0640"
+      with_fileglob:
+        - "templates/.gnupg/*.j2"
+
+    - name: "Install extra dotfiles for user:{{ dotfiles_user }}"
+      ansible.builtin.copy:
+        content: "{{ item.value }}"
+        dest: "{{ _user_info.home }}/{{ item.key }}"
+        owner: "{{ _user_info.uid }}"
+        group: "{{ _user_info.group }}"
+        mode: "0640"
+      with_dict: "{{ dotfiles_extra }}"

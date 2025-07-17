@@ -31,5 +31,6 @@ dependencies:
   - role: oszi.general.selinux
   - role: oszi.general.shell
   - role: oszi.general.ssh
+  - role: oszi.general.dotfiles
   - role: oszi.general.fail2ban
   - role: oszi.general.borgmatic
