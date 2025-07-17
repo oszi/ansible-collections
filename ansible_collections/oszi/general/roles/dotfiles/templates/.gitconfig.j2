@@ -1,0 +1,57 @@
+# ansible managed
+[user]
+name = {{ dotfiles_git_user_name }}
+email = {{ dotfiles_git_user_email }}
+{% if dotfiles_git_user_signingkey is not none %}
+signingkey = {{ dotfiles_git_user_signingkey }}
+{% endif %}
+
+[core]
+editor = {{ dotfiles_git_editor }}
+excludesfile = ~/.gitignore
+
+[commit]
+gpgSign = {{ dotfiles_git_user_signingkey is not none | lower }}
+
+[push]
+default = simple
+autoSetupRemote = true
+followTags = true
+
+[pull]
+rebase = true
+
+[branch]
+sort = -committerdate
+
+[tag]
+sort = version:refname
+
+[column]
+ui = auto
+
+[diff]
+algorithm = histogram
+colorMoved = plain
+mnemonicPrefix = true
+renames = true
+
+[merge]
+conflictstyle = zdiff3
+
+[rebase]
+autoSquash = true
+autoStash = true
+updateRefs = true
+
+[rerere]
+enabled = true
+autoupdate = true
+
+{% if gcloud_sdk_enabled | default(false) %}
+[credential "https://source.developers.google.com"]
+helper = gcloud
+
+{% endif %}
+[http]
+cookiefile = ~/.gitcookies
