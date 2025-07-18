@@ -1,0 +1,19 @@
+---
+- name: "Ensure ~/.gnupg exists for user:{{ dotfiles_user }}"
+  ansible.builtin.file:
+    path: "{{ _user_info.home }}/.gnupg"
+    owner: "{{ _user_info.uid }}"
+    group: "{{ _user_info.group }}"
+    mode: "0700"
+    state: "directory"
+  register: _gnupg_directory
+
+- name: "Install gnupg dotfiles for user:{{ dotfiles_user }}"
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ _gnupg_directory.path }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: "{{ _user_info.uid }}"
+    group: "{{ _user_info.group }}"
+    mode: "0600"
+  with_fileglob:
+    - "templates/.gnupg/*.j2"

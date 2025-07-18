@@ -1,0 +1,28 @@
+---
+- name: "Get info about user:{{ dotfiles_user }}"
+  ansible.builtin.user:
+    name: "{{ dotfiles_user }}"
+    state: "present"
+  # The user does not exist yet if changed!
+  register: _user_info
+  check_mode: true
+
+- name: "Fail if the dotfiles user does not exist"
+  when: _user_info.changed
+  ansible.builtin.fail:
+    msg: "{{ dotfiles_user }} user does not exist"
+
+- name: "Include gnupg dotfiles for user:{{ dotfiles_user }}"
+  when: dotfiles_gnupg_enabled
+  ansible.builtin.include_tasks:
+    file: dotfiles/gnupg.yml
+
+- name: "Include git dotfiles for user:{{ dotfiles_user }}"
+  when: dotfiles_git_enabled
+  ansible.builtin.include_tasks:
+    file: dotfiles/git.yml
+
+- name: "Include extra dotfiles for user:{{ dotfiles_user }}"
+  when: dotfiles_extra
+  ansible.builtin.include_tasks:
+    file: dotfiles/extra.yml
