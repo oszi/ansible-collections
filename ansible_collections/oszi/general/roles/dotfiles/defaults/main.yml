@@ -26,15 +26,15 @@ dotfiles_git_enabled: true
 
 # Template vars for .gnupg/gpg.conf.j2 and co.
 dotfiles_gnupg_default_key: null
-dotfiles_gnupg_use_agent: true
 dotfiles_gnupg_extra_options: []
-
 dotfiles_gnupg_agent_options: []
 dotfiles_gnupg_sshcontrol_keygrips: []
 
+# Set to hkp://localhost to disable the keyserver, or null for system default.
 dotfiles_gnupg_dirmngr_keyserver: "hkps://keys.openpgp.org"
-dotfiles_gnupg_dirmngr_hkp_cacert: null
+dotfiles_gnupg_dirmngr_hkp_cacerts: []
 
+# Workarounds for smart cards.
 dotfiles_gnupg_scdaemon_reader_port: null  # e.g. "Yubico Yubi"
 dotfiles_gnupg_scdaemon_disable_ccid: true
 
