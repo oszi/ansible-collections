@@ -4,11 +4,11 @@
     name: "{{ dotfiles_user }}"
     state: "present"
   # The user does not exist yet if changed!
-  register: _user_info
+  register: user_info
   check_mode: true
 
 - name: "Fail if the dotfiles user does not exist"
-  when: _user_info.changed
+  when: user_info.changed
   ansible.builtin.fail:
     msg: "{{ dotfiles_user }} user does not exist"
 

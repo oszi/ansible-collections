@@ -13,7 +13,7 @@ dotfiles_extra: {}
   # .ssh/config: |
   #   # ansible generated
   #   {% if dotfiles_gnupg_sshcontrol_keygrips %}
-  #   IdentityAgent /run/user/{{ _user_info.uid }}/gnupg/S.gpg-agent.ssh
+  #   IdentityAgent /run/user/{{ user_info.uid }}/gnupg/S.gpg-agent.ssh
   #
   #   {% endif %}
   #   Host 192.168.88.1
@@ -39,7 +39,7 @@ dotfiles_gnupg_scdaemon_reader_port: null  # e.g. "Yubico Yubi"
 dotfiles_gnupg_scdaemon_disable_ccid: true
 
 # Template vars for .gitconfig.j2
-dotfiles_git_user_name: "{{ _user_info.name }}"
-dotfiles_git_user_email: "{{ _user_info.name }}@{{ inventory_hostname }}"
+dotfiles_git_user_name: "{{ user_info.name }}"
+dotfiles_git_user_email: "{{ user_info.name }}@{{ inventory_hostname }}"
 dotfiles_git_user_signingkey: "{{ dotfiles_gnupg_default_key }}"
 dotfiles_git_editor: "nano"
