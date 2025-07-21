@@ -42,4 +42,5 @@ dotfiles_gnupg_scdaemon_disable_ccid: true
 dotfiles_git_user_name: "{{ user_info.name }}"
 dotfiles_git_user_email: "{{ user_info.name }}@{{ inventory_hostname }}"
 dotfiles_git_user_signingkey: "{{ dotfiles_gnupg_default_key }}"
-dotfiles_git_editor: "nano"
+dotfiles_git_editor: null  # defaults to $EDITOR (see oszi.general.shell)
+dotfiles_git_config_extra: ""  # appended to .gitconfig
