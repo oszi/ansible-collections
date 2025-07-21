@@ -36,6 +36,8 @@ dotfiles_gnupg_dirmngr_hkp_cacerts: []
 
 # Workarounds for smart cards.
 dotfiles_gnupg_scdaemon_reader_port: null  # e.g. "Yubico Yubi"
+dotfiles_gnupg_scdaemon_card_timeout: 300
+dotfiles_gnupg_scdaemon_pcsc_shared: false
 dotfiles_gnupg_scdaemon_disable_ccid: true
 
 # Template vars for .gitconfig.j2
