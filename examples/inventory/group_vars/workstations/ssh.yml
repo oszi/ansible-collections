@@ -1,27 +1,4 @@
 ---
-sudoers_group: "{{ 'sudo' if ansible_os_family == 'Debian' else 'wheel' }}"
-ssh_sudo_nopasswd_groups: []
-
-ssh_unix_groups: "{{ ssh_unix_groups_pt_workstations }}"
-ssh_unix_groups_pt_workstations:
-  david: {}
-  libvirt:
-    system: true
-  plugdev:
-    system: true
-  tcpdump:
-    system: true
-  wireshark:
-    system: true
-
-ssh_unix_users: "{{ ssh_unix_users_pt_workstations }}"
-ssh_unix_users_pt_workstations:  # use with combine(..., recursive=true, list_merge='append_rp')
-  david:
-    group: "david"
-    groups: "{{ [sudoers_group] + ssh_unix_groups_pt_workstations.keys() | list }}"
-  root:
-    password: "!!"
-
 ssh_authorized_keys:
   david: "{{ lookup('ansible.builtin.url', 'https://github.com/oszi.keys') }}"
 

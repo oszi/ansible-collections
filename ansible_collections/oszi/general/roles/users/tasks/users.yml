@@ -5,18 +5,18 @@
     system: "{{ item.value.system | default(omit) }}"
     gid: "{{ item.value.gid | default(omit) }}"
     state: "{{ item.value.state | default('present') }}"
-  with_dict: "{{ ssh_unix_groups }}"
+  with_dict: "{{ users_groups }}"
 
 - name: Allow passwordless sudo for the specified groups
+  when: users_sudo_nopasswd_groups
   ansible.builtin.copy:
     content: |
-      {% for group in ssh_sudo_nopasswd_groups %}
+      {% for group in users_sudo_nopasswd_groups %}
       %{{ group }} ALL=(ALL) NOPASSWD: ALL
       {% endfor %}
     dest: "/etc/sudoers.d/nopasswd_groups"
     owner: "root"
     mode: "0440"
-  when: ssh_sudo_nopasswd_groups
 
 - name: Configure unix users
   ansible.builtin.user:
@@ -29,4 +29,4 @@
     system: "{{ item.value.system | default(omit) }}"
     uid: "{{ item.value.uid | default(omit) }}"
     state: "{{ item.value.state | default('present') }}"
-  with_dict: "{{ ssh_unix_users }}"
+  with_dict: "{{ users_users }}"

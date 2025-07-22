@@ -1,0 +1,11 @@
+---
+- name: Unix users tasks
+  tags: [users]
+  block:
+    - name: Import unix users tasks
+      ansible.builtin.import_tasks: users.yml
+
+    - name: Users role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true

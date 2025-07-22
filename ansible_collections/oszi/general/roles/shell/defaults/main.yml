@@ -20,7 +20,7 @@ shell_search_paths:
 
 # List of users to enforce /etc/skel/.bashrc and co.:
 shell_skeleton_enforced_users: "{{ (['root', ansible_user | default('root')]
-  + (ssh_unix_users.keys() | list if ssh_unix_users is defined else [])) | unique }}"
+  + (users_users.keys() | list if users_users is defined else [])) | unique }}"
 
 # Nested list of shell packages to install:
 shell_packages:
