@@ -2,14 +2,14 @@
 - name: Deploy containerhosts
   become: true
   gather_facts: false
-  hosts: "{{ containerhost_hosts | default(['cloud', 'containerhosts']) }}"
+  hosts: "{{ containerhost_hosts | default('containerhosts') }}"
   roles:
     - oszi.environments.containerhost
 
 - name: Deploy third-party roles for containerhosts - all disabled by default
   become: true
   gather_facts: false
-  hosts: "{{ containerhost_hosts | default(['cloud', 'containerhosts']) }}"
+  hosts: "{{ containerhost_hosts | default('containerhosts') }}"
   roles:
     - oszi.thirdparty.gcloud_sdk
     - oszi.thirdparty.tailscale
