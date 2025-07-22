@@ -30,6 +30,7 @@ dependencies:
   - role: oszi.general.firewalld
   - role: oszi.general.selinux
   - role: oszi.general.shell
+  - role: oszi.general.users
   - role: oszi.general.ssh
   - role: oszi.general.dotfiles
   - role: oszi.general.fail2ban

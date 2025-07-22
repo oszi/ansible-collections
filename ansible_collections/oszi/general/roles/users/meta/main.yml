@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Configure the SSH server on Linux."
+  description: "Configure local users on Linux."
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.16"
@@ -19,7 +19,3 @@ galaxy_info:
     - general
     - linux
     - baselinux
-
-dependencies:
-  - role: oszi.general.firewalld
-  - role: oszi.general.selinux

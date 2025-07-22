@@ -1,0 +1,23 @@
+---
+sudoers_group: "{{ 'sudo' if ansible_os_family == 'Debian' else 'wheel' }}"
+users_sudo_nopasswd_groups: []
+
+users_groups: "{{ users_groups_pt_workstations }}"
+users_groups_pt_workstations:
+  david: {}
+  libvirt:
+    system: true
+  plugdev:
+    system: true
+  tcpdump:
+    system: true
+  wireshark:
+    system: true
+
+users_users: "{{ users_users_pt_workstations }}"
+users_users_pt_workstations:  # use with combine(..., recursive=true, list_merge='append_rp')
+  david:
+    group: "david"
+    groups: "{{ [sudoers_group] + users_groups_pt_workstations.keys() | list }}"
+  root:
+    password: "!!"

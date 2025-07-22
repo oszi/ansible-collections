@@ -1,11 +1,7 @@
 ---
-- name: Local users and SSH tasks
+- name: SSH configuration tasks
   tags: [ssh]
   block:
-    - name: Import local users configuration tasks
-      ansible.builtin.import_tasks: users.yml
-      tags: [users]
-
     - name: Include SSH configuration tasks
       when: not ssh_server_disabled
       ansible.builtin.include_tasks:
