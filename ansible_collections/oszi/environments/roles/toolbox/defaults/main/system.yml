@@ -1,8 +1,3 @@
 ---
 # Path for local executables
 toolbox_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
-
-# Enable fzf bash key-bindings?
-toolbox_fzf_bash_enabled: true
-# Enable fzf zsh key-bindings?
-toolbox_fzf_zsh_enabled: true

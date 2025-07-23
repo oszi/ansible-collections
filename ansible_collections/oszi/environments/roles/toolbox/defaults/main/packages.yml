@@ -82,13 +82,16 @@ toolbox_packages_pt_default:
   - exfatprogs
   - file
   - findutils
+  - fzf
   - gcc
   - git
-  - gnupg2
+  - gnupg
+  - grep
   - hdparm
   - hostname
   - htop
   - jq
+  - less
   - libtool
   - libxml2
   - lshw
@@ -96,6 +99,7 @@ toolbox_packages_pt_default:
   - ltrace
   - m4
   - make
+  - nano
   - net-tools
   - nftables
   - numactl
@@ -103,6 +107,7 @@ toolbox_packages_pt_default:
   - patch
   - pinentry-tty
   - psmisc
+  - ripgrep
   - rsync
   - socat
   - strace
@@ -110,6 +115,7 @@ toolbox_packages_pt_default:
   - tar
   - traceroute
   - tree
+  - unzip
   - util-linux
   - wget
   - xfsprogs
@@ -154,10 +160,7 @@ toolbox_packages_pt_default:
   - telnet
   - testdisk
   - unar
-  - unzip
   - whois
-  - zsh
 
 # Packages to remove from toolboxes (Fedora/Debian/Ubuntu)
-toolbox_blacklisted_packages:
-  - hstr  # fzf shell
+toolbox_blacklisted_packages: []
