@@ -1,15 +1,13 @@
 ---
-# XXX: Inherit defaults from the ssh role for backwards compatibility.
-
 # Dict of groups with optional items: name*, system (bool), gid
 # Use combine to build the final users_groups from parts in the inventory:
 # {{ users_groups | combine(users_groups_pt_..., ...) }}
-users_groups: "{{ ssh_unix_groups | default({}) }}"
+users_groups: {}
 
 # Dict of users with optional items: name*, group, groups (list), password (hash), shell, home, system (bool), uid
 # Use combine to build the final users_users from parts in the inventory (groups fields are lists):
 # {{ users_users | combine(users_users_pt_..., ..., list_merge='append_rp', recursive=true) }}
-users_users: "{{ ssh_unix_users | default({}) }}"
+users_users: {}
 
 # Allow passwordless sudo for these groups (list):
-users_sudo_nopasswd_groups: "{{ ssh_sudo_nopasswd_groups | default([]) }}"
+users_sudo_nopasswd_groups: []
