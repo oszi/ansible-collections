@@ -7,7 +7,7 @@ signingkey = {{ dotfiles_git_user_signingkey }}
 
 [commit]
 gpgSign = true
-{% if dotfiles_git_user_signingkey.startswith('ssh') or '.ssh/' in dotfiles_git_user_signingkey %}
+{% if dotfiles_git_user_signingkey.startswith('ssh-') or '.ssh/' in dotfiles_git_user_signingkey %}
 
 [gpg]
 format = ssh
@@ -69,5 +69,5 @@ helper = gcloud
 {% endif %}
 {% if dotfiles_git_config_extra %}
 
-{{ dotfiles_git_config_extra }}
+{{ dotfiles_git_config_extra -}}
 {% endif %}

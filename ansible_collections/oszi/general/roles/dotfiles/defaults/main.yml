@@ -22,7 +22,7 @@ dotfiles_extra: {}
 
 # Enable built-in dotfiles templates?
 dotfiles_gnupg_enabled: "{{ 'workstations' in group_names }}"
-dotfiles_git_enabled: true
+dotfiles_git_enabled: "{{ 'workstations' in group_names }}"
 
 # Template vars for .gnupg/gpg.conf.j2 and co.
 dotfiles_gnupg_default_key: null
