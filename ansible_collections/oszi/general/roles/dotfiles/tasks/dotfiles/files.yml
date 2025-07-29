@@ -2,7 +2,7 @@
 - name: "Check directories for user:{{ dotfiles_user }}"
   ansible.builtin.stat:
     path: "{{ user_info.home }}/{{ item }}"
-  with_items: "{{ dotfiles_extra | map('dirname') | reject('equalto', '') | unique }}"
+  with_items: "{{ dotfiles_files | map('dirname') | reject('equalto', '') | unique }}"
   register: _dotfiles_directories
 
 # Do not change existing owners and permissions!
@@ -22,4 +22,4 @@
     owner: "{{ user_info.uid }}"
     group: "{{ user_info.group }}"
     mode: "0640"
-  with_dict: "{{ dotfiles_extra }}"
+  with_dict: "{{ dotfiles_files }}"
