@@ -1,4 +1,6 @@
 ---
+ssh_allow_users: ["david"]
+
 ssh_authorized_keys:
   david: "{{ lookup('ansible.builtin.url', 'https://github.com/oszi.keys') }}"
 
