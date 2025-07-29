@@ -1,11 +1,14 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
+set +e
 
-killall gpg-agent ssh-agent ||:
+killall gpg-agent ssh-agent
 if systemctl is-enabled pcscd pcscd.socket >/dev/null 2>&1; then
-    sudo systemctl try-restart pcscd ||:
+    sudo systemctl try-restart pcscd
 fi
 
 if [ -t 0 ]; then
+    find ~/.ssh/ -type s -name '*@*:*' -print0 \
+        | xargs -0 -r rm -f -v --
     gpg --card-status
 fi
