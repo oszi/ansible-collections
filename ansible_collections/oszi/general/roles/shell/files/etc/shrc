@@ -1,7 +1,7 @@
 #!/bin/sh
+# Ansible managed shrc for POSIX-compatible shells
 # shellcheck shell=sh disable=SC1090 # non-constant source
 # shellcheck disable=SC3009 # in POSIX brace expansion is undefined
-# ansible managed shrc for POSIX-compatible shells
 
 case $- in
     *i*) ;;
