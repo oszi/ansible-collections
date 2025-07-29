@@ -21,7 +21,7 @@ podman_networks:
       mode: "bridge"
 
 podman_config_containers: |
-  # ANSIBLE GENERATED
+  # Ansible managed
   # See /usr/share/containers/containers.conf
   [containers]
   dns_servers = ["{{ _containers_gateway }}"]

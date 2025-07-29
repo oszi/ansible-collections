@@ -11,11 +11,15 @@ dotfiles_users: "{{ ['root', ansible_user | default('root')] | unique }}"
 # Specify lookup paths relative to inventory_dir.
 dotfiles_files: {}
   # .ssh/config: |
-  #   # ansible generated
+  #   # Ansible managed
   #   {% if dotfiles_gnupg_sshcontrol_keygrips %}
   #   IdentityAgent /run/user/{{ user_info.uid }}/gnupg/S.gpg-agent.ssh
   #
   #   {% endif %}
+  #   ControlPath ~/.ssh/S.%r@%h:%p
+  #   ControlMaster auto
+  #   ControlPersist 7200s
+  #
   #   Host 192.168.88.1
   #     Port 22
   #     User admin
