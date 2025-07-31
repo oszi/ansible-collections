@@ -6,18 +6,18 @@
       when: not chromium_policies_disabled
       ansible.builtin.include_tasks:
         file: chromium-policies.yml
-      with_items: "{{ [chromium_policies_paths[0]] if chromium_policies_use_hard_links
+      loop: "{{ [chromium_policies_paths[0]] if chromium_policies_use_hard_links
         else chromium_policies_paths }}"
       loop_control:
-        loop_var: chromium_policies_path
+        loop_var: chromium_policies_path_item
 
     - name: Include chromium policy link tasks
       when: not chromium_policies_disabled and chromium_policies_use_hard_links
       ansible.builtin.include_tasks:
         file: chromium-policies-links.yml
-      with_items: "{{ chromium_policies_paths[1:] }}"
+      loop: "{{ chromium_policies_paths[1:] }}"
       loop_control:
-        loop_var: chromium_policies_path
+        loop_var: chromium_policies_path_item
 
     - name: Chromium policies role completed
       ansible.builtin.debug:

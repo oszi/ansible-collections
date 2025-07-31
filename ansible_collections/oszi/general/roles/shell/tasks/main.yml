@@ -11,7 +11,7 @@
       when: not shell_disabled
       ansible.builtin.include_tasks:
         file: skel-user.yml
-      with_items: "{{ shell_skeleton_enforced_users | unique }}"
+      loop: "{{ shell_skeleton_enforced_users | unique }}"
       loop_control:
         loop_var: skel_user_item
 

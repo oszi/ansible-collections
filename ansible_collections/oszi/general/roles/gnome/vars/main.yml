@@ -3,6 +3,6 @@
 gnome_dconf_custom_keybindings_prefix: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
 
 # Default Gnome Screenshots and Screencasts paths relative to $HOME.
-# * Tasks from gnome-user.yml are run as gnome_user!
+# * Tasks from gnome-user.yml are run as gnome_user_item!
 gnome_xdg_pictures_screenshots_path: "~/Pictures/Screenshots"
 gnome_xdg_videos_screencasts_path: "~/Videos/Screencasts"

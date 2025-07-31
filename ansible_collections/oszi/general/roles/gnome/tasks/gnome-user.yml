@@ -3,8 +3,8 @@
   ansible.builtin.copy:
     src: "home/.themes/"
     dest: "~/.themes/"
-    owner: "{{ gnome_user }}"
-    group: "{{ gnome_user }}"
+    owner: "{{ gnome_user_item }}"
+    group: "{{ gnome_user_item }}"
     mode: "0644"
 
 - name: Set dconf settings for the Gnome user
@@ -60,7 +60,8 @@
       ansible.builtin.file:
         path: "{{ gnome_screenshots_path }}"
         state: "directory"
-        owner: "{{ gnome_user }}"
+        owner: "{{ gnome_user_item }}"
+        group: "{{ gnome_user_item }}"
         mode: "0750"
 
     - name: Check original Gnome Screenshots directory
