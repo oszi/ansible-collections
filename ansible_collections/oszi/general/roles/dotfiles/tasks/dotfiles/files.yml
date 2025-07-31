@@ -1,12 +1,12 @@
 ---
-- name: "Check directories for user:{{ dotfiles_user }}"
+- name: "Check directories for user:{{ dotfiles_user_item }}"
   ansible.builtin.stat:
     path: "{{ user_info.home }}/{{ item }}"
   with_items: "{{ dotfiles_files | map('dirname') | reject('equalto', '') | unique }}"
   register: _dotfiles_directories
 
 # Keep owners and modes of existing directories!
-- name: "Create missing directories for user:{{ dotfiles_user }}"
+- name: "Create missing directories for user:{{ dotfiles_user_item }}"
   ansible.builtin.file:
     path: "{{ item.invocation.module_args.path }}"
     owner: "{{ user_info.uid }}"
@@ -15,7 +15,7 @@
     state: "directory"
   with_items: "{{ _dotfiles_directories.results | selectattr('stat.exists', 'equalto', false) }}"
 
-- name: "Install extra dotfiles for user:{{ dotfiles_user }}"
+- name: "Install extra dotfiles for user:{{ dotfiles_user_item }}"
   ansible.builtin.copy:
     content: "{{ item.value }}"
     dest: "{{ user_info.home }}/{{ item.key }}"

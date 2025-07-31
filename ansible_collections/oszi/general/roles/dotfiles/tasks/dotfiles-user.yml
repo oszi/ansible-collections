@@ -1,7 +1,7 @@
 ---
-- name: "Get info about user:{{ dotfiles_user }}"
+- name: "Get info about user:{{ dotfiles_user_item }}"
   ansible.builtin.user:
-    name: "{{ dotfiles_user }}"
+    name: "{{ dotfiles_user_item }}"
     state: "present"
   # The user does not exist yet if changed!
   register: user_info
@@ -10,19 +10,19 @@
 - name: "Fail if the dotfiles user does not exist"
   when: user_info.changed
   ansible.builtin.fail:
-    msg: "{{ dotfiles_user }} user does not exist"
+    msg: "{{ dotfiles_user_item }} user does not exist"
 
-- name: "Include gnupg dotfiles for user:{{ dotfiles_user }}"
+- name: "Include gnupg dotfiles for user:{{ dotfiles_user_item }}"
   when: dotfiles_gnupg_enabled
   ansible.builtin.include_tasks:
     file: dotfiles/gnupg.yml
 
-- name: "Include git dotfiles for user:{{ dotfiles_user }}"
+- name: "Include git dotfiles for user:{{ dotfiles_user_item }}"
   when: dotfiles_git_enabled
   ansible.builtin.include_tasks:
     file: dotfiles/git.yml
 
-- name: "Include extra dotfiles for user:{{ dotfiles_user }}"
+- name: "Include extra dotfiles for user:{{ dotfiles_user_item }}"
   when: dotfiles_files
   ansible.builtin.include_tasks:
     file: dotfiles/files.yml

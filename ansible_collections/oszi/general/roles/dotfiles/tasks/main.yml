@@ -6,9 +6,9 @@
       when: not dotfiles_disabled
       ansible.builtin.include_tasks:
         file: dotfiles-user.yml
-      with_items: "{{ dotfiles_users | unique }}"
+      loop: "{{ dotfiles_users | unique }}"
       loop_control:
-        loop_var: dotfiles_user
+        loop_var: dotfiles_user_item
 
     - name: Dotfiles role completed
       ansible.builtin.debug:

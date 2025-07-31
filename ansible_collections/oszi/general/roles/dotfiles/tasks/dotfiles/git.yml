@@ -1,5 +1,5 @@
 ---
-- name: "Install git dotfiles for user:{{ dotfiles_user }}"
+- name: "Install git dotfiles for user:{{ dotfiles_user_item }}"
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ user_info.home }}/{{ item | basename | regex_replace('\\.j2$', '') }}"

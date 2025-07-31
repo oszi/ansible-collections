@@ -11,6 +11,6 @@
     - name: Include tasks for XDG users
       ansible.builtin.include_tasks:
         file: xdg-user.yml
-      with_items: "{{ workstation_xdg_users | unique }}"
+      loop: "{{ workstation_xdg_users | unique }}"
       loop_control:
-        loop_var: workstation_xdg_user
+        loop_var: xdg_user_item

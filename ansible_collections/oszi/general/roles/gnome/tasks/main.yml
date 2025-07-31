@@ -10,7 +10,7 @@
         file: gnome-user.yml
         apply:
           become: true
-          become_user: "{{ gnome_user }}"
-      with_items: "{{ gnome_users | unique }}"
+          become_user: "{{ gnome_user_item }}"
+      loop: "{{ gnome_users | unique }}"
       loop_control:
-        loop_var: gnome_user
+        loop_var: gnome_user_item
