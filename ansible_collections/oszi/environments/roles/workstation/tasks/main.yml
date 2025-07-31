@@ -7,3 +7,10 @@
 
     - name: Workstation system tasks
       ansible.builtin.import_tasks: system.yml
+
+    - name: Include tasks for XDG users
+      ansible.builtin.include_tasks:
+        file: xdg-user.yml
+      with_items: "{{ workstation_xdg_users | unique }}"
+      loop_control:
+        loop_var: workstation_xdg_user
