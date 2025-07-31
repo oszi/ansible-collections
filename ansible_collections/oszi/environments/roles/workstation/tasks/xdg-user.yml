@@ -7,6 +7,11 @@
   register: user_info
   check_mode: true
 
+- name: "Fail if the workstation user does not exist"
+  when: user_info.changed
+  ansible.builtin.fail:
+    msg: "{{ workstation_xdg_user }} user does not exist"
+
 - name: "Ensure XDG_CONFIG_HOME exists for user:{{ workstation_xdg_user }}"
   ansible.builtin.file:
     path: "{{ user_info.home }}/{{ workstation_xdg_config_directory }}"
