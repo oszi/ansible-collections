@@ -1,5 +1,5 @@
 ---
-gnome_user: "david"
+gnome_users: ["david"]
 
 # Friendly format for setting custom keyboard shortcuts:
 # Do NOT set custom keybindings in gnome_dconf_vars!

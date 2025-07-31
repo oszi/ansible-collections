@@ -1,5 +1,5 @@
 ---
-workstation_xdg_users: "{{ [gnome_user] if gnome_user else [] }}"
+workstation_xdg_users: "{{ gnome_users }}"  # (oszi.general.gnome is a dependency)
 
 workstation_xdg_user_dirs:
   desktop: "$HOME/Desktop"
