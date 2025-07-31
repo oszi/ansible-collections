@@ -6,6 +6,10 @@ dotfiles_disabled: false
 # The role works without privilege escalation with a single user.
 dotfiles_users: "{{ ['root', ansible_user | default('root')] | unique }}"
 
+# Role-local template vars:
+# {{ dotfiles_user }} - Loop var of dotfiles_users.
+# {{ user_info }} - Result of ansible.builtin.user for dotfiles_user.
+
 # Dict of dotfiles - mapping name to content.
 # Use lookups, and jinja for templating and interpolating.
 # Specify lookup paths relative to inventory_dir.
@@ -26,7 +30,7 @@ dotfiles_files: {}
 
 # Enable built-in dotfiles templates?
 dotfiles_gnupg_enabled: "{{ 'workstations' in group_names }}"
-dotfiles_git_enabled: "{{ 'workstations' in group_names }}"
+dotfiles_git_enabled: "{{ 'workstations' in group_names and dotfiles_user != 'root' }}"
 
 # Template vars for .gnupg/gpg.conf.j2 and co.
 dotfiles_gnupg_default_key: null
