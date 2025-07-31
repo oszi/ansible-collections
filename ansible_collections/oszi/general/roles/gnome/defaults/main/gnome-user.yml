@@ -1,7 +1,8 @@
 ---
-# Desktop user to use as become_user to configure Gnome settings.
+# List of desktop users to use as become_user to configure Gnome settings.
 # Required for all Gnome user configuration tasks!
-gnome_user:
+gnome_users: "{{ [gnome_user] if gnome_user is defined and gnome_user
+  else [ansible_user] if ansible_user | default('root') != 'root' else [] }}"
 
 # Override Gnome Screenshots and Screencasts directories by symlinking
 # gnome_screenshots_path to gnome_xdg_pictures_screenshots_path ($XDG_PICTURES_DIR)

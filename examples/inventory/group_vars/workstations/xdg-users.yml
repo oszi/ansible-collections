@@ -1,5 +1,5 @@
 ---
-workstation_xdg_users: ["david"]
+workstation_xdg_users: "{{ gnome_users }}"
 
 workstation_xdg_user_dirs:
   desktop: "$HOME/Desktop"

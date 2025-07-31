@@ -6,9 +6,11 @@
       ansible.builtin.import_tasks: packages.yml
 
     - name: Include Gnome user setup tasks
-      when: gnome_user is not none
       ansible.builtin.include_tasks:
         file: gnome-user.yml
         apply:
           become: true
           become_user: "{{ gnome_user }}"
+      with_items: "{{ gnome_users | unique }}"
+      loop_control:
+        loop_var: gnome_user
