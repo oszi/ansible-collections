@@ -1,4 +1,14 @@
 ---
+# Role-local template vars:
+# {{ dotfiles_user_item }} - Loop var of dotfiles_users.
+# {{ user_info }} - Result of ansible.builtin.user for dotfiles_user_item.
+
+# Use the template vars for varying multi-user configurations...
+# With lookup tables: dotfiles_gnupg_default_key: "{{ user_gnupg_keys[dotfiles_user_item] }}"
+# or with jinja conditionals like below.
+
+dotfiles_users: ["root", "david"]
+
 dotfiles_gnupg_default_key: "0000000000000000000000000000000000000000"
 dotfiles_gnupg_sshcontrol_keygrips: ["FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"]
 
