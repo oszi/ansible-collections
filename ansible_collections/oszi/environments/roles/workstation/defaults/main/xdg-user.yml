@@ -1,6 +1,10 @@
 ---
-workstation_xdg_users: "{{ gnome_users }}"  # (oszi.general.gnome is a dependency)
+# List of users to apply XDG user-dirs settings for.
+# * oszi.general.gnome is a dependency of oszi.environments.workstation.
+workstation_xdg_users: "{{ gnome_users }}"
 
+# XDG user-dirs shell-escaped, homedir-relative paths:
+# * man xdg-user-dir
 workstation_xdg_user_dirs:
   desktop: "$HOME/Desktop"
   download: "$HOME/Downloads"
