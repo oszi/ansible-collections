@@ -102,7 +102,7 @@ class AnsibleSSHArgs:
         ssh_args.append(self.host)
         if command:
             ssh_args.append("--")
-            ssh_args += command
+            ssh_args.extend(map(shlex.quote, command))
 
         return ssh_args
 
