@@ -2,13 +2,26 @@
 set -uo pipefail
 set +e
 
-killall gpg-agent ssh-agent
-if systemctl is-enabled pcscd pcscd.socket >/dev/null 2>&1; then
-    sudo systemctl try-restart pcscd
+# Kill all agents as root when triggered by udev.
+# Kill only our own when run as a user.
+killall ssh-agent gpg-agent scdaemon
+
+# Stop pcscd to release devices. Restarted by socket activation.
+if systemctl is-active pcscd >/dev/null 2>&1; then
+    sudo systemctl stop pcscd
 fi
 
+# In live terminals...
 if [ -t 0 ]; then
-    find ~/.ssh/ -type s -name '*@*:*' -print0 \
-        | xargs -0 -r rm -f -v --
+    # Delete stuck SSH control sockets.
+    find ~/.ssh/ -type s -name '*@*:*' -delete
+
+    # Start failed pcscd manually - due to too many restarts.
+    if (systemctl is-enabled pcscd && systemctl is-failed pcscd) >/dev/null 2>&1; then
+        sudo systemctl reset-failed pcscd
+        sudo systemctl start pcscd
+    fi
+
+    # Start services via socket activation.
     gpg --card-status
 fi
