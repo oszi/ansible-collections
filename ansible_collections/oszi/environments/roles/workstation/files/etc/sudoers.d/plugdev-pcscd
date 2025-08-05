@@ -1,4 +1,5 @@
 %plugdev ALL=(ALL:ALL) NOPASSWD: /bin/systemctl try-restart pcscd
 %plugdev ALL=(ALL:ALL) NOPASSWD: /bin/systemctl restart pcscd
+%plugdev ALL=(ALL:ALL) NOPASSWD: /bin/systemctl reset-failed pcscd
 %plugdev ALL=(ALL:ALL) NOPASSWD: /bin/systemctl start pcscd
 %plugdev ALL=(ALL:ALL) NOPASSWD: /bin/systemctl stop pcscd

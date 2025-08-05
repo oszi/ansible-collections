@@ -1,3 +1,10 @@
 ---
 # Relative to HOME. Always use the default XDG_CONFIG_HOME.
 workstation_xdg_config_directory: ".config"
+
+# String of udev attributes to match Yubikeys.
+workstation_yubikey_udev_attrs: >-
+  KERNEL=="hidraw*",
+  SUBSYSTEM=="hidraw",
+  ATTRS{idVendor}=="1050",
+  ATTRS{idProduct}=="0113|0114|0115|0116|0120|0121|0200|0402|0403|0406|0407|0410"
