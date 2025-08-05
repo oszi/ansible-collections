@@ -3,7 +3,7 @@
 if command -v python3 >/dev/null 2>&1; then
     py() {
         if python3 -c "import importlib.util, sys; \
-    sys.exit(int(importlib.util.find_spec('IPython') is None))" >/dev/null 2>&1; then
+sys.exit(int(importlib.util.find_spec('IPython') is None))" >/dev/null 2>&1; then
             python3 -m IPython "$@"
         else
             python3 "$@"
@@ -45,7 +45,6 @@ if command -v find >/dev/null 2>&1; then
         find "$@" -type f -not -iregex "$_FIND_ENCRYPTED_REGEX"
     }
 
-    alias find-clear='_find_not_encrypted' # legacy alias
     alias find-not-encrypted='_find_not_encrypted'
 
     _find_encrypted() {
@@ -77,7 +76,6 @@ if command -v find >/dev/null 2>&1; then
             return $rc
         }
 
-        alias find-clear-gpg-encrypt='_find_gpg_encrypt_self' # legacy alias
         alias find-gpg-encrypt-self='_find_gpg_encrypt_self'
     fi
 fi
@@ -99,7 +97,7 @@ if command -v gpg-connect-agent >/dev/null 2>&1; then
                 gpg-connect-agent reloadagent /bye >/dev/null
             fi
 
-            if systemctl is-enabled pcscd pcscd.socket >/dev/null 2>&1; then
+            if systemctl is-enabled pcscd >/dev/null 2>&1; then
                 if ! grep -E '^disable-ccid' ~/.gnupg/scdaemon.conf >/dev/null 2>&1; then
                     echo 'disable-ccid' >> ~/.gnupg/scdaemon.conf
                     gpg-connect-agent reloadagent /bye >/dev/null
