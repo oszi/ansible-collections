@@ -1,7 +1,7 @@
 ---
 - name: Install Gnome user themes
   ansible.builtin.copy:
-    src: "home/.themes/"
+    src: "home/themes/"
     dest: "~/.themes/"
     owner: "{{ gnome_user_item }}"
     group: "{{ gnome_user_item }}"

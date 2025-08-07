@@ -16,4 +16,4 @@
     group: "{{ user_info.group }}"
     mode: "0600"
   with_fileglob:
-    - "templates/.gnupg/*.j2"
+    - "templates/dotfiles/gnupg/*.j2"

@@ -2,10 +2,10 @@
 - name: "Install git dotfiles for user:{{ dotfiles_user_item }}"
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "{{ user_info.home }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    dest: "{{ user_info.home }}/.{{ item | basename | regex_replace('\\.j2$', '') }}"
     owner: "{{ user_info.uid }}"
     group: "{{ user_info.group }}"
     mode: "0640"
   with_items:
-    - "templates/.gitconfig.j2"
-    - "templates/.gitignore.j2"
+    - "templates/dotfiles/gitconfig.j2"
+    - "templates/dotfiles/gitignore.j2"
