@@ -10,17 +10,17 @@ workstation_packages_pt_default:
   - "{{ [
       'hunspell-en-gb',
       'hunspell-en-us',
+      'hunspell-hu',
       'pcscd',
       'scdaemon',
     ]
     if (ansible_os_family == 'Debian')
     else [
       'hunspell-en',
+      'hunspell-hu',
       'pcsc-lite',
     ] }}"
-  - hunspell-hu
-  - mesa-vulkan-drivers
-  # Utilities
+  # [All distributions]
   - ddccontrol
   - efitools
   - firewall-config
@@ -29,11 +29,10 @@ workstation_packages_pt_default:
   - i2c-tools
   - keepassxc
   - ltunify
+  - mesa-vulkan-drivers
   - pcsc-tools
-  - peek
   - powertop
   - remmina
-  - sshuttle
   - tilix
   - wireshark
   - xclip
@@ -45,6 +44,7 @@ workstation_blacklisted_packages:
   - "{{ workstation_blacklisted_packages_pt_imagemagick if ansible_virtualization_role != 'guest' else [] }}"
   - "{{ workstation_blacklisted_packages_pt_office }}"
   - apport  # Protect kernel.core_pattern on Debian/Ubuntu!
+  - peek  # Replaced by gnome-screenshot video.
 
 # Use the latest Chromium flatpak or snap with hardened configuration.
 # On Debian, the default firefox-esr cannot be removed without installing another browser.
@@ -58,8 +58,6 @@ workstation_blacklisted_packages_pt_to_sandbox:
   - clementine
   - firefox
   - gimp
-  - hexchat
-  - inkscape
   - steam
   - transmission
   - wine
@@ -86,6 +84,3 @@ workstation_blacklisted_packages_pt_office:
   - libreoffice-opensymbol-fonts
   - libreoffice-ure-common
   - libreofficekit-data
-  # Use texlive/-scheme-basic and collections; requires inkscape.
-  - texlive-full
-  - texlive-scheme-full

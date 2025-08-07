@@ -69,67 +69,37 @@ toolbox_packages_pt_default:
       'which',
       'xz',
     ] }}"
-  # Essential Packages
+  # [All distributions]
+  - ansible
   - atop
   - autoconf
   - automake
+  - binwalk
+  - blktrace
+  - borgbackup
   - bridge-utils
+  - brotli
   - btrfs-progs
   - bzip2
+  - checksec
   - curl
+  - dnsenum
+  - duperemove
   - e2fsprogs
   - ethtool
   - exfatprogs
   - file
   - findutils
   - fzf
+  - gawk
   - gcc
   - git
   - gnupg
   - grep
   - hdparm
+  - hexedit
   - hostname
   - htop
-  - jq
-  - less
-  - libtool
-  - libxml2
-  - lshw
-  - lsof
-  - ltrace
-  - m4
-  - make
-  - nano
-  - net-tools
-  - nftables
-  - numactl
-  - passwd
-  - patch
-  - pinentry-tty
-  - psmisc
-  - ripgrep
-  - rsync
-  - socat
-  - strace
-  - sudo
-  - tar
-  - traceroute
-  - tree
-  - unzip
-  - util-linux
-  - wget
-  - xfsprogs
-  - zip
-  # Toolbox
-  - ansible
-  - binwalk
-  - blktrace
-  - borgbackup
-  - brotli
-  - checksec
-  - dnsenum
-  - duperemove
-  - hexedit
   - httpie
   - hwloc
   - iftop
@@ -137,30 +107,62 @@ toolbox_packages_pt_default:
   - iotop
   - iperf3
   - irssi
+  - jq
+  - less
   - lftp
-  - mc
+  - libtool
+  - libxml2
+  - lshw
+  - lsof
+  - ltrace
+  - m4
+  - make
   - mediainfo
+  - nano
+  - net-tools
   - netsniff-ng
+  - nftables
   - nmap
+  - numactl
   - openssl
   - p7zip
+  - passwd
+  - patch
   - perl
+  - pinentry-tty
+  - psmisc
   - pv
   - rclone
+  - ripgrep
+  - rsync
   - shellcheck
   - smartmontools
+  - socat
   - speedtest-cli
   - sslscan
   - sslsplit
+  - strace
   - stunnel
   - subnetcalc
+  - sudo
   - sysstat
+  - tar
   - tcpdump
   - tcpreplay
   - telnet
   - testdisk
+  - traceroute
+  - tree
   - unar
+  - unzip
+  - util-linux
+  - wget
   - whois
+  - xfsprogs
+  - zip
 
 # Packages to remove from toolboxes (Fedora/Debian/Ubuntu)
-toolbox_blacklisted_packages: []
+toolbox_blacklisted_packages:
+  # Unused tools
+  - mc
+  - sshuttle
