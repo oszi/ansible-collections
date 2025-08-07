@@ -1,7 +1,6 @@
 ---
 # List of desktop users to use as become_user to configure Gnome user settings.
-gnome_users: "{{ [gnome_user] if gnome_user is defined and gnome_user
-  else [ansible_user] if ansible_user | default('root') != 'root' else [] }}"
+gnome_users: "{{ [ansible_user] if ansible_user | default('root') != 'root' else [] }}"
 
 # Use the gnome_user_item loop var for varying multi-user configurations...
 # With lookup tables: /org/gnome/...: "{{ user_dconf_vars[gnome_user_item]['/org/gnome/...'] }}"
