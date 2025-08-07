@@ -29,4 +29,4 @@
     group: "{{ user_info.group }}"
     mode: "0640"
   with_fileglob:
-    - "templates/home/.config/user-dirs.*.j2"
+    - "templates/home/config/user-dirs.*.j2"
