@@ -102,6 +102,8 @@ class AnsibleSSHArgs:
         ssh_args.append(self.host)
         if command:
             ssh_args.append("--")
+            # SSH executes commands in a shell and joins arguments by spaces.
+            # Double quote command args to preserve ansible-ssh args.
             ssh_args.extend(map(shlex.quote, command))
 
         return ssh_args
@@ -280,7 +282,9 @@ def main():
         get_config_ssh_args() + get_inventory_ssh_args(app_args) + get_app_ssh_args(app_args)
     ).get_args(app_args.command)
 
-    print("+", shlex.join(ssh_cmd), file=sys.stderr)
+    if app_args.verbose:
+        print(f"ssh_cmd = {ssh_cmd}", file=sys.stderr)
+
     with sp.Popen(ssh_cmd) as ssh_proc:
 
         def signal_handler(signum, frame):  # pylint: disable=unused-argument
