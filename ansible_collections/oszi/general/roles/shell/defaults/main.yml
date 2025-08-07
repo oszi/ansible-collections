@@ -45,6 +45,7 @@ shell_packages:
   - screen
   - tar
   - tmux
+  - util-linux
 
 # Path for local executables
 shell_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
