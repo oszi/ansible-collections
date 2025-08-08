@@ -37,6 +37,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+    validate: "udevadm verify %s"
   with_dict: "{{ baselinux_udev_rules }}"
 
 - name: Install custom sudoers rules
@@ -46,6 +47,7 @@
     owner: "root"
     group: "root"
     mode: "0440"
+    validate: "visudo -csf %s"
   with_dict: "{{ baselinux_sudoers_rules }}"
 
 - name: Ensure system mount points exist

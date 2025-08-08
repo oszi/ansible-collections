@@ -36,6 +36,7 @@
     owner: "root"
     group: "root"
     mode: "0440"
+    validate: "visudo -csf %s"
 
 - name: Install /etc/udev/rules.d/yubikey-fix.rules
   ansible.builtin.template:
@@ -44,6 +45,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+    validate: "udevadm verify %s"
 
 - name: Copy /etc/pipewire/media-session.d/bluez-monitor.conf
   ansible.builtin.copy:
