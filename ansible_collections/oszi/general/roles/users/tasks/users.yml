@@ -17,6 +17,7 @@
     dest: "/etc/sudoers.d/nopasswd_groups"
     owner: "root"
     mode: "0440"
+    validate: "visudo -csf %s"
 
 - name: Configure unix users
   ansible.builtin.user:
