@@ -1,5 +1,5 @@
 # {{ ansible_managed }}
-{% if dotfiles_gnupg_sshcontrol_keygrips %}
+{% if dotfiles_gnupg_sshcontrol_keygrips and 'enable-ssh-support' not in dotfiles_gnupg_agent_options %}
 enable-ssh-support
 {% endif %}
 {{ dotfiles_gnupg_agent_options | join('\n') }}

@@ -1,8 +1,8 @@
 # {{ ansible_managed }}
-# Options for dirmngr (user service)
 {% if dotfiles_gnupg_dirmngr_keyserver is not none %}
 keyserver {{ dotfiles_gnupg_dirmngr_keyserver }}
 {% endif %}
 {% for item in dotfiles_gnupg_dirmngr_hkp_cacerts %}
 hkp-cacert {{ item }}
 {% endfor %}
+{{ dotfiles_gnupg_dirmngr_extra_options | join('\n') }}

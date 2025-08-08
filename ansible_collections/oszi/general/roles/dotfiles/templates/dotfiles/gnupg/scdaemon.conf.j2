@@ -2,9 +2,10 @@
 {% if dotfiles_gnupg_scdaemon_reader_port is not none %}
 reader-port {{ dotfiles_gnupg_scdaemon_reader_port }}
 {% endif %}
-{% if dotfiles_gnupg_scdaemon_pcsc_shared %}
-pcsc-shared
-{% endif %}
 {% if dotfiles_gnupg_scdaemon_disable_ccid %}
 disable-ccid
 {% endif %}
+{% if dotfiles_gnupg_scdaemon_pcsc_shared %}
+pcsc-shared
+{% endif %}
+{{ dotfiles_gnupg_scdaemon_extra_options | join('\n') }}

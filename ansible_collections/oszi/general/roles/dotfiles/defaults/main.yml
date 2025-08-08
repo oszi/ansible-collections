@@ -36,24 +36,27 @@ dotfiles_files: {}
 dotfiles_gnupg_enabled: "{{ 'workstations' in group_names }}"
 dotfiles_git_enabled: "{{ 'workstations' in group_names and dotfiles_user_item != 'root' }}"
 
-# Template vars for .gnupg/gpg.conf.j2 and co.
+# Template vars for gnupg/gpg.conf.j2 and co.
 dotfiles_gnupg_default_key: null
 dotfiles_gnupg_extra_options: []
 dotfiles_gnupg_agent_options: []
 dotfiles_gnupg_sshcontrol_keygrips: []
 
-# Set to hkp://localhost to disable the keyserver, or null for system default.
+# Options for dirmngr - socket activated user service.
+# Set to hkp://localhost to disable the keyserver, or null for the distribution default.
 dotfiles_gnupg_dirmngr_keyserver: "hkps://keys.openpgp.org"
 dotfiles_gnupg_dirmngr_hkp_cacerts: []
+dotfiles_gnupg_dirmngr_extra_options: []
 
-# Workarounds for smart cards.
-dotfiles_gnupg_scdaemon_reader_port: null  # e.g. "Yubico Yubi"
-dotfiles_gnupg_scdaemon_pcsc_shared: false
-dotfiles_gnupg_scdaemon_disable_ccid: true
+# GnuPG scdaemon settings for smart cards.
+dotfiles_gnupg_scdaemon_reader_port: null   # e.g. "Yubico Yubi"
+dotfiles_gnupg_scdaemon_disable_ccid: true  # Non-exclusive access with pcscd/pcsc-lite (recommended)
+dotfiles_gnupg_scdaemon_pcsc_shared: false  # Shared mode without caching - requires disable-ccid
+dotfiles_gnupg_scdaemon_extra_options: []
 
-# Template vars for .gitconfig.j2
+# Template vars for gitconfig.j2
 dotfiles_git_user_name: "{{ user_info.name }}"
 dotfiles_git_user_email: "{{ user_info.name }}@{{ inventory_hostname }}"
 dotfiles_git_user_signingkey: "{{ dotfiles_gnupg_default_key }}"
-dotfiles_git_editor: null  # defaults to $EDITOR (see oszi.general.shell)
-dotfiles_git_config_extra: ""  # appended to .gitconfig
+dotfiles_git_editor: null  # Defaults to $EDITOR (see oszi.general.shell)
+dotfiles_git_config_extra: ""  # Appended to .gitconfig
