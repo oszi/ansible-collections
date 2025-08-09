@@ -6,7 +6,7 @@ Ansible collection for personal, high-level environment roles.
 * Each environment role comes with a targeted, matching playbook.
 * Include roles from **oszi.thirdparty** in the playbooks.
 
-### Environments
+## Environments
 
 - **baselinux** - Base for every Linux environment, depends on most roles from **oszi.general**.
 - **containerhost** - Baselinux and Podman with systemd-based container services.

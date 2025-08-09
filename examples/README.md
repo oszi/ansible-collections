@@ -1,6 +1,8 @@
-# Working Examples
+# Examples
 
-### Running the playbooks
+The example inventory is configured to target localhost in the workstations group.
+
+## Run some playbooks
 
 ```bash
 # cd examples
@@ -13,7 +15,7 @@ ansible-playbook --list-tags oszi.general.update
 ansible-playbook -K oszi.general.update
 ```
 
-### Using ansible-vault-id-client
+## Use ansible-vault-id-client with ansible-vault
 
 ```bash
 # Interactively store a GPG encrypted password
