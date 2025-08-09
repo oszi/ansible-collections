@@ -30,6 +30,12 @@ ansible-galaxy collection install \
 git submodule add "https://github.com/oszi/ansible-collections.git" ansible/collections
 ```
 
-See the examples for configuring ansible. Symlink what you need from _scripts.
+See the [examples](examples) for setting up an ansible inventory.
+
+### Release policy
+
+The collections are always installed from source. There is no Ansible Galaxy release.  
+All collections are versioned as one and pinned for simplicity. See the [scripts](_scripts).  
+Obsolete backwards-compatibility support may be dropped at any time.
 
 Commits are signed by [AFDE0AB3943D1FB3](https://oszi.dev/oszi.dev.asc)
