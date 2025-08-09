@@ -1,11 +1,11 @@
 # _scripts
 
-Scripts to facilitate local ansible deployments and source control.
+Scripts to facilitate ansible deployments and source control.
 
-If you're using this repository as a submodule, symlink these in the _scripts directory.
+If you're using a git submodule, symlink what you need in a _scripts directory.
 
 * [ansible-playbook-localhost](../ansible_collections/oszi/environments/roles/toolbox/files/bin/ansible-playbook-localhost)  
-ansible-playbook with local connection and filtered to the full hostname.
+ansible-playbook using "local" connection, filtered to the full hostname.
 
 * [ansible-ssh](../ansible_collections/oszi/environments/roles/toolbox/files/bin/ansible-ssh)  
 SSH into a host in an ansible inventory with all configured arguments.
