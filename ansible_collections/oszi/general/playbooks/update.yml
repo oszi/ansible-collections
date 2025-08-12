@@ -19,6 +19,12 @@
         upgrade: "dist"
       tags: [apt]
 
+    - name: Auto-remove APT orphaned packages
+      when: "ansible_os_family == 'Debian' and apt_autoremove | default(true)"
+      ansible.builtin.apt:
+        autoremove: true
+      tags: [apt]
+
     - name: Update DNF packages
       when: "ansible_os_family == 'RedHat'"
       ansible.builtin.dnf:
@@ -26,6 +32,12 @@
         state: "latest"
         update_cache: true
       tags: [dnf, skip_ansible_lint]
+
+    - name: Auto-remove DNF orphaned packages
+      when: "ansible_os_family == 'RedHat' and dnf_autoremove | default(true)"
+      ansible.builtin.dnf:
+        autoremove: true
+      tags: [dnf]
 
     - name: Update pip3 packages from inventory
       when: "python_pip3_packages is defined and python_pip3_packages"
