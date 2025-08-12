@@ -11,33 +11,25 @@
       tags: [always]
 
   tasks:
-    - name: Update APT packages
-      when: "ansible_os_family == 'Debian'"
-      ansible.builtin.apt:
-        cache_valid_time: 3600
-        update_cache: true
-        upgrade: "dist"
-      tags: [apt]
+    - name: Update distribution packages
+      ansible.builtin.package:
+      args: "{{ apt_args if ansible_pkg_mgr == 'apt' else dnf_args }}"
+      vars:
+        apt_args:
+          cache_valid_time: 3600
+          update_cache: true
+          upgrade: "dist"
+        dnf_args:
+          name: "*"
+          state: "latest"
+          update_cache: true
+      tags: [package]
 
-    - name: Auto-remove APT orphaned packages
-      when: "ansible_os_family == 'Debian' and apt_autoremove | default(true)"
-      ansible.builtin.apt:
+    - name: Autoremove orphaned packages
+      when: "update_package_autoremove | default(true)"
+      ansible.builtin.package:
         autoremove: true
-      tags: [apt]
-
-    - name: Update DNF packages
-      when: "ansible_os_family == 'RedHat'"
-      ansible.builtin.dnf:
-        name: "*"
-        state: "latest"
-        update_cache: true
-      tags: [dnf, skip_ansible_lint]
-
-    - name: Auto-remove DNF orphaned packages
-      when: "ansible_os_family == 'RedHat' and dnf_autoremove | default(true)"
-      ansible.builtin.dnf:
-        autoremove: true
-      tags: [dnf]
+      tags: [package]
 
     - name: Update pip3 packages from inventory
       when: "python_pip3_packages is defined and python_pip3_packages"
