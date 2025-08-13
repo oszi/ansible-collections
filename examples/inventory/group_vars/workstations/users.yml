@@ -1,5 +1,5 @@
 ---
-sudoers_group: "{{ 'sudo' if ansible_os_family == 'Debian' else 'wheel' }}"
+sudoers_group: "{{ 'sudo' if ansible_facts.os_family == 'Debian' else 'wheel' }}"
 users_sudo_nopasswd_groups: []
 
 users_groups: "{{ users_groups_pt_workstations }}"

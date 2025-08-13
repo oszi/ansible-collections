@@ -47,9 +47,9 @@ zstyle ':vcs_info:git:*' formats '@%F{yellow}%b%f'
 precmd_functions=(_prompt_timer_stop ${(@)precmd_functions} _prompt_window_title vcs_info)
 preexec_functions+=(_prompt_timer_start)
 
-PROMPT='%F{{ "{red}" if ansible_virtualization_role != "guest"
+PROMPT='%F{{ "{red}" if ansible_facts.virtualization_role != "guest"
 else "{green}" if "workstations" in group_names
-else "{magenta}" if ansible_virtualization_type == "container"
+else "{magenta}" if ansible_facts.virtualization_type == "container"
 else "{cyan}" }}%n@%m%f'
 [[ "$UID" -ne 0 ]] || PROMPT='%S'"$PROMPT"'%s'
 

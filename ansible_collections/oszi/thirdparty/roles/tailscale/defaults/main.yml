@@ -3,12 +3,12 @@
 tailscale_enabled: false
 
 # Install the upstream (external!) deb/rpm repository?
-tailscale_upstream_enabled: "{{ tailscale_enabled and ansible_distribution != 'Fedora' }}"
+tailscale_upstream_enabled: "{{ tailscale_enabled and ansible_facts.distribution != 'Fedora' }}"
 
 # Repo base URLs - change for custom mirrors
-tailscale_rpm_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower | replace('redhat', 'rhel')
-  }}/{{ (ansible_distribution != 'Fedora') | ternary('$releasever/$basearch', '$basearch') }}"
-tailscale_deb_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}"
+tailscale_rpm_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower | replace('redhat', 'rhel')
+  }}/{{ (ansible_facts.distribution != 'Fedora') | ternary('$releasever/$basearch', '$basearch') }}"
+tailscale_deb_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower }}"
 
 # Systemd service drop-in content for tailscaled:
 # # /etc/default/tailscaled is not present on every system [Fedora]

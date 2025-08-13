@@ -76,7 +76,7 @@ chromium_policies_recommended_pt_privacy:
 # * /var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies
 # * /var/snap/chromium/current/policies  # Snap (version specific)
 chromium_policies_paths: "{{ ['/etc/chromium/policies']
-  + (['/etc/chromium-browser/policies'] if ansible_os_family == 'Debian' else [])
+  + (['/etc/chromium-browser/policies'] if ansible_facts.os_family == 'Debian' else [])
   + (['/var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies'] if not flatpak_disabled | default(false) else [])
   + (['/var/snap/chromium/current/policies'] if not snap_disabled | default(false) else [])
   + (['/etc/opt/chrome/policies'] if google_chrome_enabled | default(false) else []) }}"

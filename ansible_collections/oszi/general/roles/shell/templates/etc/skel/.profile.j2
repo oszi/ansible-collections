@@ -6,7 +6,7 @@
 export {{ key | quote }}={{ value | quote }}
 {% endfor %}
 {% endif %}
-{% if ansible_os_family == 'Debian' %}
+{% if ansible_facts.os_family == 'Debian' %}
 
 # See /etc/zsh/zshrc
 export DEBIAN_PREVENT_KEYBOARD_CHANGES=1

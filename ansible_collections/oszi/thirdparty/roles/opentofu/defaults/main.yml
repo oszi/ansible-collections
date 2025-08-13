@@ -5,7 +5,7 @@
 opentofu_enabled: false
 
 # Install the upstream (external!) deb/rpm repository?
-opentofu_upstream_enabled: "{{ opentofu_enabled and ansible_distribution != 'Fedora' }}"
+opentofu_upstream_enabled: "{{ opentofu_enabled and ansible_facts.distribution != 'Fedora' }}"
 
 # Repo base URLs - change for custom mirrors
 opentofu_rpm_baseurl: "https://packages.opentofu.org/opentofu/tofu/rpm_any/rpm_any/$basearch"

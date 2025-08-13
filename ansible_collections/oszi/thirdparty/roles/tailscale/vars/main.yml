@@ -9,7 +9,7 @@ tailscale_deb_gpgkey: "/etc/apt/keyrings/tailscale-archive-keyring.gpg"
 tailscale_deb_repo_path: "/etc/apt/sources.list.d/tailscale.list"
 tailscale_deb_repo: >-
   deb [signed-by={{ tailscale_deb_gpgkey }}]
-  {{ tailscale_deb_baseurl }} {{ ansible_distribution_release }} main
+  {{ tailscale_deb_baseurl }} {{ ansible_facts.distribution_release }} main
 
 # Path for tailscale_systemd_service_override:
 tailscale_systemd_service_override_path: "/etc/systemd/system/tailscaled.service.d/override.conf"

@@ -82,14 +82,14 @@ gnome_dconf_vars_default:
 
   /org/gnome/settings-daemon/plugins/media-keys/screensaver: ['<Super>Delete', '<Super>L']
 
-  /org/gnome/desktop/session/idle-delay: "uint32 {{ 1800 if ansible_virtualization_role != 'guest' else 0 }}"
+  /org/gnome/desktop/session/idle-delay: "uint32 {{ 1800 if ansible_facts.virtualization_role != 'guest' else 0 }}"
 
   /org/gnome/desktop/wm/preferences/action-middle-click-titlebar: "'lower'"
   /org/gnome/desktop/wm/preferences/button-layout: "':minimize,close'"
   /org/gnome/desktop/wm/preferences/theme: "'Adwaita'"
 
-  /org/gnome/desktop/interface/gtk-theme: "'{{ 'Yaru-dark' if ansible_distribution == 'Ubuntu' else 'Adwaita' }}'"
-  /org/gnome/desktop/interface/icon-theme: "'{{ 'Yaru' if ansible_distribution == 'Ubuntu' else 'Adwaita' }}'"
+  /org/gnome/desktop/interface/gtk-theme: "'{{ 'Yaru-dark' if ansible_facts.distribution == 'Ubuntu' else 'Adwaita' }}'"
+  /org/gnome/desktop/interface/icon-theme: "'{{ 'Yaru' if ansible_facts.distribution == 'Ubuntu' else 'Adwaita' }}'"
   /org/gnome/shell/extensions/user-theme/name: "'transparent'"
 
   /org/gnome/desktop/calendar/show-weekdate: "true"
@@ -132,12 +132,12 @@ gnome_dconf_vars_default:
   /org/gnome/desktop/privacy/usb-protection: "true"
 
   # Restrict dangerous Tracker Miner and thumbnails!
-  /org/freedesktop/tracker/miner/files/enable-monitors: "{{ (ansible_virtualization_role == 'guest') | lower }}"
+  /org/freedesktop/tracker/miner/files/enable-monitors: "{{ (ansible_facts.virtualization_role == 'guest') | lower }}"
   /org/freedesktop/tracker/miner/files/index-removable-devices: "false"
   /org/freedesktop/tracker/miner/files/index-recursive-directories: "@as []"
   /org/freedesktop/tracker/miner/files/index-single-directories: "@as []"
   /org/gnome/desktop/search-providers/disable-external: "true"
-  /org/gnome/desktop/thumbnailers/disable-all: "{{ (ansible_virtualization_role != 'guest') | lower }}"
+  /org/gnome/desktop/thumbnailers/disable-all: "{{ (ansible_facts.virtualization_role != 'guest') | lower }}"
 
   /org/gnome/desktop/media-handling/autorun-x-content-ignore: "@as []"
   /org/gnome/desktop/media-handling/autorun-x-content-open-folder: "@as []"

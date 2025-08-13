@@ -4,7 +4,7 @@
   block:
     - name: Google Cloud SDK repository
       ansible.builtin.include_tasks:
-        file: "{{ ansible_os_family | lower }}/{{ gcloud_sdk_enabled | ternary('install', 'uninstall') }}.yml"
+        file: "{{ ansible_facts.os_family | lower }}/{{ gcloud_sdk_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: Google Cloud SDK packages
       ansible.builtin.include_tasks: packages.yml

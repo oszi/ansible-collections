@@ -1,5 +1,5 @@
 ---
 - name: Update CA trust
-  ansible.builtin.command: "{{ '/usr/bin/update-ca-trust' if ansible_os_family == 'RedHat'
+  ansible.builtin.command: "{{ '/usr/bin/update-ca-trust' if ansible_facts.os_family == 'RedHat'
     else '/usr/sbin/update-ca-certificates' }}"
   tags: [skip_ansible_lint]

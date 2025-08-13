@@ -1,7 +1,7 @@
 ---
 # Skip libvirt setup and configuration?
 # * Set to false for nested virtualization.
-libvirt_disabled: "{{ ansible_virtualization_role == 'guest' }}"
+libvirt_disabled: "{{ ansible_facts.virtualization_role == 'guest' }}"
 
 # Path for local executables
 libvirt_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
@@ -16,9 +16,9 @@ libvirt_packages:
       'libvirt-daemon-system',
       'libguestfs-tools',
       'python3-guestfs',
-      ['virtiofsd'] if ansible_distribution_release in ['noble', 'sid', 'trixie'] else [],
+      ['virtiofsd'] if ansible_facts.distribution_release in ['noble', 'sid', 'trixie'] else [],
     ]
-    if (ansible_os_family == 'Debian')
+    if (ansible_facts.os_family == 'Debian')
     else [
       'libvirt-devel',
       'libvirt',

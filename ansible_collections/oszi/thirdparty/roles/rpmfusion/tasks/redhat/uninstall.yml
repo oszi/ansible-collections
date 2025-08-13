@@ -2,10 +2,10 @@
 - name: Ensure RPMFusion is NOT installed
   ansible.builtin.package:
     name:
-      - "rpmfusion-free-release-{{ ansible_distribution_major_version }}"
-      - "rpmfusion-free-appstream-data-{{ ansible_distribution_major_version }}"
-      - "rpmfusion-nonfree-release-{{ ansible_distribution_major_version }}"
-      - "rpmfusion-nonfree-appstream-data-{{ ansible_distribution_major_version }}"
+      - "rpmfusion-free-release-{{ ansible_facts.distribution_major_version }}"
+      - "rpmfusion-free-appstream-data-{{ ansible_facts.distribution_major_version }}"
+      - "rpmfusion-nonfree-release-{{ ansible_facts.distribution_major_version }}"
+      - "rpmfusion-nonfree-appstream-data-{{ ansible_facts.distribution_major_version }}"
     state: "absent"
 
 - name: Find leftover RPMFusion repository files

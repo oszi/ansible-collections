@@ -103,7 +103,7 @@ _container_firewall_lockdown_exec_command: |-
       --replace \
       --rm \
       --network=container:%N \
-  {% if ansible_virtualization_role == 'guest' %}
+  {% if ansible_facts.virtualization_role == 'guest' %}
       --privileged \
   {% else %}
       --cap-drop=ALL \

@@ -6,8 +6,8 @@
       ansible.builtin.set_fact:
         cloudflare_dns_host_record_a_value: "{{ ansible_host
           if ansible_host and ansible_host | ansible.utils.ipv4
-          else ansible_default_ipv4.address
-          if ansible_default_ipv4.address is defined
+          else ansible_facts.default_ipv4.address
+          if ansible_facts.default_ipv4.address is defined
           else none }}"
       when: cloudflare_dns_host_record_a_value is not defined
 
@@ -26,8 +26,8 @@
       ansible.builtin.set_fact:
         cloudflare_dns_host_record_aaaa_value: "{{ ansible_host
           if ansible_host and ansible_host | ansible.utils.ipv6
-          else ansible_default_ipv6.address
-          if ansible_default_ipv6.address is defined
+          else ansible_facts.default_ipv6.address
+          if ansible_facts.default_ipv6.address is defined
           else none }}"
       when: cloudflare_dns_host_record_aaaa_value is not defined
 

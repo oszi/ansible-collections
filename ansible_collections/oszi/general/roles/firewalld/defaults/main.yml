@@ -1,6 +1,6 @@
 ---
 # Disable firewalld?
-firewalld_disabled: "{{ ansible_virtualization_type == 'container' }}"
+firewalld_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
 
 # Override the firewalld default zone?
 # Upstream default: public
