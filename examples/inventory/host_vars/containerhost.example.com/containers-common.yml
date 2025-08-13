@@ -81,7 +81,7 @@ _quadlet_container_toolbox_firewall: |
   Volume={{ containerhost_etc_path }}/%i/firewall_lockdown.sh:/mnt/firewall_lockdown.sh:ro,Z
 
   Network=container:systemd-%i
-  {% if ansible_virtualization_role == 'guest' %}
+  {% if ansible_facts.virtualization_role == 'guest' %}
   PodmanArgs=--privileged
   {% else %}
   DropCapability=ALL

@@ -8,17 +8,17 @@ gnome_packages:
       'gnome-shell-extension-places-menu',
       'gnome-shell-extension-user-theme',
     ]
-    if (ansible_os_family == 'RedHat') else [] }}"
+    if (ansible_facts.os_family == 'RedHat') else [] }}"
   - "{{ [
       'gnome-extensions-app',
       'gnome-shell-extension-blur-my-shell',
     ]
-    if (ansible_distribution == 'Fedora') else [] }}"
+    if (ansible_facts.distribution == 'Fedora') else [] }}"
   - "{{ [
       'gnome-shell-extension-prefs',
       'gnome-shell-extensions',
     ]
-    if (ansible_os_family == 'Debian') else [] }}"
+    if (ansible_facts.os_family == 'Debian') else [] }}"
   - dconf-editor
   - gnome-control-center
   - gnome-screenshot
@@ -37,7 +37,7 @@ gnome_blacklisted_packages:
       'fedora-chromium-config-gnome',
       'fedora-chromium-config-gssapi',
     ]
-    if (ansible_distribution == 'Fedora') else [] }}"
+    if (ansible_facts.distribution == 'Fedora') else [] }}"
   # Unwanted common Gnome packages
   - chrome-gnome-shell
   - gnome-boxes

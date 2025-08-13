@@ -26,12 +26,12 @@ python_devel_distro_packages:
       'make',
       'redhat-rpm-config',
     ]
-    if (ansible_os_family == 'RedHat') else [] }}"
+    if (ansible_facts.os_family == 'RedHat') else [] }}"
   - "{{ [
       'python3-dev',
       'python3-venv',
       'build-essential',
     ]
-    if (ansible_os_family == 'Debian') else [] }}"
+    if (ansible_facts.os_family == 'Debian') else [] }}"
   - "python3-setuptools"
   - "python3-virtualenv"

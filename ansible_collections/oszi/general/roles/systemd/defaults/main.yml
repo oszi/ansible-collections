@@ -1,6 +1,6 @@
 ---
 # Skip systemd setup tasks?
-systemd_disabled: "{{ ansible_virtualization_type == 'container' }}"
+systemd_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
 
 # Dict of systemd service, timer and drop-in files:
 # * {name.service: content, name.timer: content, name.service.d/drop-in.conf: content}

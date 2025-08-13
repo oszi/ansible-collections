@@ -3,9 +3,9 @@
 shopt -s checkwinsize
 
 function _bash_prompt_init() {
-    PS1="\[\033[{{ 31 if ansible_virtualization_role != "guest"
+    PS1="\[\033[{{ 31 if ansible_facts.virtualization_role != "guest"
     else 32 if "workstations" in group_names
-    else 35 if ansible_virtualization_type == "container"
+    else 35 if ansible_facts.virtualization_type == "container"
     else 36 }}m\]"
     if [[ "$UID" -eq 0 ]]; then
         PS1="${PS1}\[\033[7m\]"

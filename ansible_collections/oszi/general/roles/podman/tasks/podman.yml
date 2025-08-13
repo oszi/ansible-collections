@@ -14,7 +14,7 @@
 
 - name: Ensure toolbox is installed - containertoolbx.org
   ansible.builtin.package:
-    name: "{{ (ansible_os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
+    name: "{{ (ansible_facts.os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
     state: "{{ podman_toolbox_enabled | ternary('present', 'absent') }}"
 
 - name: Change default podman graphroot?

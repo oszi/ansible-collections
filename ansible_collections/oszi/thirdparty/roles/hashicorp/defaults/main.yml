@@ -11,5 +11,5 @@ hashicorp_blacklisted_packages: []
 
 # Repo base URLs - change for custom mirrors
 hashicorp_rpm_baseurl: "https://rpm.releases.hashicorp.com/{{
-  (ansible_distribution == 'Fedora') | ternary('fedora', 'RHEL') }}/$releasever/$basearch"
+  (ansible_facts.distribution == 'Fedora') | ternary('fedora', 'RHEL') }}/$releasever/$basearch"
 hashicorp_deb_baseurl: "https://apt.releases.hashicorp.com"

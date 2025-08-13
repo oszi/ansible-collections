@@ -7,14 +7,14 @@
 - name: "[Un]install QEMU guest agent"
   ansible.builtin.package:
     name: "qemu-guest-agent"
-    state: "{{ 'present' if ansible_virtualization_type in ['kvm', 'xen']
-      and ansible_virtualization_role == 'guest' else 'absent' }}"
+    state: "{{ 'present' if ansible_facts.virtualization_type in ['kvm', 'xen']
+      and ansible_facts.virtualization_role == 'guest' else 'absent' }}"
 
 - name: "[Un]install VMWare guest agent"
   ansible.builtin.package:
     name: "open-vm-tools"
-    state: "{{ 'present' if ansible_virtualization_type == 'VMware'
-      and ansible_virtualization_role == 'guest' else 'absent' }}"
+    state: "{{ 'present' if ansible_facts.virtualization_type == 'VMware'
+      and ansible_facts.virtualization_role == 'guest' else 'absent' }}"
 
 - name: Ensure baselinux_absent_paths are deleted
   ansible.builtin.file:
@@ -36,7 +36,7 @@
     - name: Ensure iptables-nft and nftables are installed
       ansible.builtin.package:
         name:
-          - "{{ 'iptables-nft' if ansible_os_family == 'RedHat' else 'iptables' }}"
+          - "{{ 'iptables-nft' if ansible_facts.os_family == 'RedHat' else 'iptables' }}"
           - "nftables"
         state: "present"
 

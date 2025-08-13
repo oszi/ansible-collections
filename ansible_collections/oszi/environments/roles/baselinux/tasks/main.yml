@@ -7,4 +7,4 @@
 
     - name: Privileged system setup tasks
       ansible.builtin.import_tasks: system-privileged.yml
-      when: "ansible_virtualization_type != 'container'"
+      when: "ansible_facts.virtualization_type != 'container'"

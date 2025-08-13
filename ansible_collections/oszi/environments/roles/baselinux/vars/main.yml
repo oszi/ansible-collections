@@ -21,15 +21,15 @@ baselinux_sysctl_values_default:
   # Enable TCP Fast Open for both client and server
   net.ipv4.tcp_fastopen: 3
   # Optimize memory compaction for guests
-  vm.compaction_proactiveness: "{{ (ansible_virtualization_role == 'guest') | ternary(0, 10) }}"
+  vm.compaction_proactiveness: "{{ (ansible_facts.virtualization_role == 'guest') | ternary(0, 10) }}"
   # KBs of memory to always keep free - default is 2% rounded to MBs
   # Higher values (5%) used to be beneficial for overlayfs
-  vm.min_free_kbytes: "{{ (ansible_memtotal_mb * 0.02) | int * 1024 }}"
+  vm.min_free_kbytes: "{{ (ansible_facts.memtotal_mb * 0.02) | int * 1024 }}"
   # Percentage of free memory before activating swap (1 = only on faults)
   vm.swappiness: 1
 
 baselinux_ca_trust_anchors_path: "{{ '/etc/pki/ca-trust/source/anchors'
-  if ansible_os_family == 'RedHat'
+  if ansible_facts.os_family == 'RedHat'
   else '/usr/local/share/ca-certificates' }}"
 
-baselinux_ca_trust_anchors_extension: "{{ 'pem' if ansible_os_family == 'RedHat' else 'crt' }}"
+baselinux_ca_trust_anchors_extension: "{{ 'pem' if ansible_facts.os_family == 'RedHat' else 'crt' }}"

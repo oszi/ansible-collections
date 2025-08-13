@@ -4,7 +4,7 @@
   block:
     - name: OpenTofu repository
       ansible.builtin.include_tasks:
-        file: "{{ ansible_os_family | lower }}/{{ opentofu_upstream_enabled | ternary('install', 'uninstall') }}.yml"
+        file: "{{ ansible_facts.os_family | lower }}/{{ opentofu_upstream_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: OpenTofu package is present or absent
       ansible.builtin.package:

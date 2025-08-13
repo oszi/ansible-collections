@@ -51,15 +51,15 @@
     - name: Print python facts
       ansible.builtin.debug:
         msg:
-          python_executable: "{{ ansible_python.executable }}"
-          python_version: "{{ ansible_python_version }}"
+          python_executable: "{{ ansible_facts.python.executable }}"
+          python_version: "{{ ansible_facts.python_version }}"
       tags: [facts]
 
     - name: Print distribution facts
       ansible.builtin.debug:
         msg:
-          distribution: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
-          kernel: "{{ ansible_kernel }} {{ ansible_kernel_version }}"
+          distribution: "{{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}"
+          kernel: "{{ ansible_facts.kernel }} {{ ansible_facts.kernel_version }}"
       tags: [facts]
 
     - name: Gather container system versions

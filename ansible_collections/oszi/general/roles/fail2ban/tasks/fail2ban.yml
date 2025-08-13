@@ -5,7 +5,7 @@
     state: "present"
 
 - name: Ensure RedHat family packages are present or absent
-  when: "ansible_os_family == 'RedHat'"
+  when: "ansible_facts.os_family == 'RedHat'"
   block:
     - name: Ensure fail2ban-systemd is installed
       ansible.builtin.package:
@@ -23,7 +23,7 @@
         state: "{{ firewalld_disabled | ternary('absent', 'present') }}"
 
 - name: Copy fail2ban/jail.d/00-systemd-firewalld.conf config file
-  when: "ansible_os_family != 'RedHat'"
+  when: "ansible_facts.os_family != 'RedHat'"
   ansible.builtin.copy:
     content: |
       [DEFAULT]

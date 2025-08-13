@@ -13,7 +13,7 @@
   tasks:
     - name: Update distribution packages
       ansible.builtin.package:
-      args: "{{ apt_args if ansible_pkg_mgr == 'apt' else dnf_args }}"
+      args: "{{ apt_args if ansible_facts.pkg_mgr == 'apt' else dnf_args }}"
       vars:
         apt_args:
           cache_valid_time: 3600

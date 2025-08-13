@@ -1,6 +1,6 @@
 ---
 # Disable and uninstall(!) OpenSSH server?
-ssh_server_disabled: "{{ ansible_virtualization_type == 'container' }}"
+ssh_server_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
 
 # Dict of authorized keys by user
 # * Multiple keys can be separated by new lines

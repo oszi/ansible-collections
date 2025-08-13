@@ -1,6 +1,6 @@
 ---
 # Disable Snap?
-snap_disabled: "{{ ansible_os_family != 'Debian' and not snap_packages }}"
+snap_disabled: "{{ ansible_facts.os_family != 'Debian' and not snap_packages }}"
 
 # List of dicts of snaps to install:
 # - {name: "aws-cli", channel: "v1/stable", classic: true}

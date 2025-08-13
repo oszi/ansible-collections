@@ -7,7 +7,7 @@ workstation_packages: "{{ workstation_packages_pt_default }}"
 
 # Fedora/Debian/Ubuntu defaults to include in workstation_packages:
 workstation_packages_pt_default:
-  - "{{ workstation_packages_pt_hardware if ansible_virtualization_role != 'guest' else [] }}"
+  - "{{ workstation_packages_pt_hardware if ansible_facts.virtualization_role != 'guest' else [] }}"
   - "{{ [
       'hunspell-en-gb',
       'hunspell-en-us',
@@ -15,7 +15,7 @@ workstation_packages_pt_default:
       'pcscd',
       'scdaemon',
     ]
-    if (ansible_os_family == 'Debian')
+    if (ansible_facts.os_family == 'Debian')
     else [
       'hunspell-en',
       'hunspell-hu',
@@ -46,9 +46,9 @@ workstation_packages_pt_hardware:
 # Packages to remove from workstations (Fedora/Debian/Ubuntu):
 workstation_blacklisted_packages:
   - "{{ workstation_blacklisted_packages_pt_to_sandbox }}"
-  - "{{ workstation_blacklisted_packages_pt_imagemagick if ansible_virtualization_role != 'guest' else [] }}"
+  - "{{ workstation_blacklisted_packages_pt_imagemagick if ansible_facts.virtualization_role != 'guest' else [] }}"
   - "{{ workstation_blacklisted_packages_pt_office }}"
-  - "{{ workstation_packages_pt_hardware if ansible_virtualization_role == 'guest' else [] }}"
+  - "{{ workstation_packages_pt_hardware if ansible_facts.virtualization_role == 'guest' else [] }}"
   - apport  # Protect kernel.core_pattern on Debian/Ubuntu!
   - peek  # Replaced by gnome-screenshot video.
 
@@ -82,7 +82,7 @@ workstation_blacklisted_packages_pt_office:
   - evolution
   - evolution-common
   - evolution-langpacks
-  - "{{ ['@libreoffice'] if (ansible_os_family == 'RedHat') else [] }}"
+  - "{{ ['@libreoffice'] if (ansible_facts.os_family == 'RedHat') else [] }}"
   - libreoffice
   - libreoffice-common
   - libreoffice-core
