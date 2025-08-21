@@ -11,6 +11,7 @@ python_pip3_packages: []
 # * See also: ansible-collections/requirements.txt
 python_distro_packages:
   - python3-cryptography
+  - python3-jmespath
   - python3-netaddr
   - python3-psutil
   - python3-requests

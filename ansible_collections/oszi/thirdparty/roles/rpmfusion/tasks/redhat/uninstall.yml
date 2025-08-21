@@ -15,10 +15,10 @@
       - "/etc/pki/rpm-gpg"
     pattern: "*rpmfusion*"
     file_type: "any"
-  register: _rpmfusion_leftover_files
+  register: _rpmfusion_leftovers_found
 
 - name: Remove leftover RPMFusion repository files
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  with_items: "{{ _rpmfusion_leftover_files | json_query('files[*].path') }}"
+  with_items: "{{ _rpmfusion_leftovers_found.files | map(attribute='path') }}"
