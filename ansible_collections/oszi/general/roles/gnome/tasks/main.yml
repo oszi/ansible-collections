@@ -3,7 +3,8 @@
   tags: [gnome]
   block:
     - name: Gnome package setup tasks
-      ansible.builtin.import_tasks: packages.yml
+      ansible.builtin.import_tasks:
+        file: packages.yml
 
     - name: Include Gnome user setup tasks
       ansible.builtin.include_tasks:

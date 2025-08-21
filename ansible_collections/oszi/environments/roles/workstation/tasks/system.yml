@@ -64,13 +64,13 @@
     mode: "0644"
 
 - name: Customize kernel module for Apple keyboards
+  when: workstation_hid_apple_options is truthy
   ansible.builtin.copy:
     dest: "/etc/modprobe.d/hid_apple.conf"
     content: "options hid_apple {{ workstation_hid_apple_options.items() | map('join', '=') | join(' ') }}\n"
     owner: "root"
     group: "root"
     mode: "0644"
-  when: workstation_hid_apple_options
 
 - name: Replace Shift+Alt_R with Compose key (XKB lv3:ralt_alt)
   ansible.builtin.replace:

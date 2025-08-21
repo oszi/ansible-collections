@@ -3,7 +3,8 @@
   tags: [containerhost]
   block:
     - name: Import containerhost tasks
-      ansible.builtin.import_tasks: containerhost.yml
+      ansible.builtin.import_tasks:
+        file: containerhost.yml
 
     - name: Configure container services
       ansible.builtin.include_tasks:

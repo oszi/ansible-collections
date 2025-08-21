@@ -3,10 +3,12 @@
   tags: [workstation]
   block:
     - name: Workstation package setup tasks
-      ansible.builtin.import_tasks: packages.yml
+      ansible.builtin.import_tasks:
+        file: packages.yml
 
     - name: Workstation system tasks
-      ansible.builtin.import_tasks: system.yml
+      ansible.builtin.import_tasks:
+        file: system.yml
 
     - name: Include tasks for XDG users
       ansible.builtin.include_tasks:

@@ -1,13 +1,13 @@
 ---
 - name: Set system timezone
+  when: baselinux_timezone is not none
   community.general.timezone:
     name: "{{ baselinux_timezone }}"
-  when: baselinux_timezone is not none
 
 - name: Set system locale
+  when: baselinux_set_locale is not none
   ansible.builtin.command: "/usr/bin/localectl set-locale {{ baselinux_set_locale }}"
   changed_when: false
-  when: baselinux_set_locale is not none
 
 - name: Set custom sysctl parameters
   ansible.posix.sysctl:

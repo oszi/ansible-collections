@@ -29,7 +29,7 @@
       check_mode: false
 
     - name: Pull podman images
-      when: _podman_images_result.stdout
+      when: "_podman_images_result.stdout is truthy"
       ansible.builtin.shell: |
         set -uo pipefail
         awk -F'#' '{print $1":"$2}' \
@@ -48,7 +48,7 @@
           and 'Error: initializing source' not in _podman_pull_result.stderr
 
     - name: List updated podman images
-      when: _podman_images_result.stdout and _podman_pull_result.changed
+      when: "_podman_images_result.stdout is truthy and _podman_pull_result.changed"
       ansible.builtin.debug:
         msg: "{{ _podman_images_result.stdout_lines
           | difference(_podman_pull_result.stdout_lines) }}"
@@ -63,4 +63,4 @@
     - name: Prune dangling images
       ansible.builtin.command: "{{ podman_runtime }} image prune --force"
       register: _podman_prune_result
-      changed_when: _podman_prune_result.stdout
+      changed_when: "_podman_prune_result.stdout is truthy"

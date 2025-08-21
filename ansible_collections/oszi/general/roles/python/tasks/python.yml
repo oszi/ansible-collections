@@ -11,8 +11,8 @@
     state: "present"
 
 - name: Install pip3 packages on the host
+  when: "python_pip3_packages | length > 0"
   ansible.builtin.pip:
     name: "{{ python_pip3_packages }}"
     executable: "pip3"
     state: "present"
-  when: python_pip3_packages

@@ -7,8 +7,10 @@
         file: "{{ ansible_facts.os_family | lower }}/{{ gcloud_sdk_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: Google Cloud SDK packages
-      ansible.builtin.include_tasks: packages.yml
+      ansible.builtin.include_tasks:
+        file: packages.yml
 
     - name: Google Cloud SDK post-setup tasks
       when: gcloud_sdk_enabled
-      ansible.builtin.include_tasks: post-setup.yml
+      ansible.builtin.include_tasks:
+        file: post-setup.yml

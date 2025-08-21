@@ -32,7 +32,7 @@
       tags: [package]
 
     - name: Update pip3 packages from inventory
-      when: "python_pip3_packages is defined and python_pip3_packages"
+      when: "python_pip3_packages is defined and python_pip3_packages | length > 0"
       ansible.builtin.pip:
         name: "{{ python_pip3_packages }}"
         executable: "pip3"
@@ -66,11 +66,11 @@
       tags: [snap]
 
     - name: Refresh ACME certificates
-      when: "acme_certificates is defined and acme_certificates"
+      when: "acme_certificates is defined and acme_certificates | length > 0"
       ansible.builtin.include_role:
         name: oszi.general.acme
       vars:
-        # Reloading is disabled by default for first-time configuration.
+        # Reloading is disabled by default for first-time setup.
         acme_reload: true
       tags: [acme]
 

@@ -8,6 +8,6 @@
         file: "{{ ansible_facts.os_family | lower }}/{{ rpmfusion_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: Include RPMFusion package setup tasks
-      when: rpmfusion_packages or rpmfusion_blacklisted_packages
+      when: "rpmfusion_packages | length > 0 or rpmfusion_blacklisted_packages | length > 0"
       ansible.builtin.include_tasks:
         file: packages.yml

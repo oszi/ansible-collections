@@ -3,12 +3,14 @@
   tags: [podman]
   block:
     - name: Include podman setup tasks
-      ansible.builtin.include_tasks: podman.yml
       when: not podman_disabled
+      ansible.builtin.include_tasks:
+        file: podman.yml
 
     - name: Include podman-docker setup tasks
-      ansible.builtin.include_tasks: podman-docker.yml
       when: not podman_disabled
+      ansible.builtin.include_tasks:
+        file: podman-docker.yml
 
     - name: Install podman quadlets
       when: not podman_disabled
@@ -22,5 +24,6 @@
       tags: [quadlet]
 
     - name: Include podman disabled tasks
-      ansible.builtin.include_tasks: podman-disabled.yml
       when: podman_disabled
+      ansible.builtin.include_tasks:
+        file: podman-disabled.yml

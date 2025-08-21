@@ -2,12 +2,12 @@
 - name: Validate ACME certificate
   block:
     - name: Include DNS01 provider validation tasks
-      when: acme_challenge.challenge_data
+      when: "acme_challenge.challenge_data | length > 0"
       ansible.builtin.include_tasks:
         file: "providers/{{ acme_dns_provider }}/validate.yml"
 
     - name: "Wait for ACME challenge records replication - {{ acme_item.common_name }}"
-      when: acme_challenge.challenge_data
+      when: "acme_challenge.challenge_data | length > 0"
       ansible.builtin.wait_for:
         timeout: "{{ acme_delay_sec }}"
 
@@ -46,7 +46,7 @@
         - "fullchain.pem"
 
     - name: "Run ACME renewal post-hook - {{ acme_item.common_name }}"
-      when: "acme_item.post_hook is defined and acme_item.post_hook"
+      when: "acme_item.post_hook is defined and acme_item.post_hook is truthy"
       ansible.builtin.shell: |
         set -euo pipefail
         {{ acme_item.post_hook }}
@@ -56,13 +56,13 @@
       changed_when: true
 
     - name: "Run ACME reload command - {{ acme_item.common_name }}"
-      when: "acme_item.reload_cmd is defined and acme_item.reload_cmd and acme_reload"
+      when: "acme_item.reload_cmd is defined and acme_item.reload_cmd is truthy and acme_reload"
       ansible.builtin.command: "{{ acme_item.reload_cmd }}"
       ignore_errors: "{{ acme_reload_ignore_errors }}"
       tags: [skip_ansible_lint]
 
   always:
     - name: Include DNS01 provider cleanup tasks
-      when: acme_challenge.challenge_data
+      when: "acme_challenge.challenge_data | length > 0"
       ansible.builtin.include_tasks:
         file: "providers/{{ acme_dns_provider }}/cleanup.yml"

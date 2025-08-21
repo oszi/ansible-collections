@@ -6,13 +6,13 @@
     _container_copy_results: null  # Reset previous iteration.
 
 - name: Pull the image - {{ container_service_vars.image }}
+  when: "'podman' in containerhost_runtime"
   containers.podman.podman_image:
     name: "{{ container_service_vars.image }}"
     state: "present"
-  when: "'podman' in containerhost_runtime"
 
 - name: Copy static files for the container
-  when: "'copy_files' in container_service_vars and container_service_vars.copy_files"
+  when: "container_service_vars.copy_files is defined and container_service_vars.copy_files | length > 0"
   block:
     - name: "Ensure directories exist for container {{ container_service }}"
       ansible.builtin.file:
@@ -34,6 +34,7 @@
       register: _container_copy_results
 
 - name: "Run init script for container {{ container_service }}"
+  when: container_service_vars.init_script is defined
   ansible.builtin.shell: |
     set -euxo pipefail
     {{ container_service_vars.init_script }}
@@ -43,7 +44,6 @@
     executable: "/bin/bash"
   environment: "{{ {'IMAGE': container_service_vars.image, 'NAME': container_service}
     | combine(container_service_vars.environment | default({})) }}"
-  when: "'init_script' in container_service_vars"
   tags: [skip_ansible_lint]
 
 - name: "Install container service {{ container_service }}"

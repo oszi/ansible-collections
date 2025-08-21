@@ -29,12 +29,12 @@
   tags: [skip_ansible_lint]
 
 - name: Initialize the local Borg repository
+  when: "borgmatic_repository[0] == '/'"
   ansible.builtin.command: "borg init -e repokey {{ borgmatic_repository }}"
   args:
     creates: "{{ borgmatic_repository }}/*"
   environment:
     borgmatic_passphrase: "{{ borgmatic_passphrase }}"
-  when: "borgmatic_repository[0] == '/'"
 
 - name: Ensure borg timer is started
   ansible.builtin.systemd:

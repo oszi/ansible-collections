@@ -13,9 +13,9 @@
   register: _wait_for_ssh
 
 - name: Fallback to the default SSH port otherwise
+  when: _wait_for_ssh is undefined or _wait_for_ssh.state is undefined
   ansible.builtin.set_fact:
     ansible_port: "{{ bootstrap_ssh_port_fallback }}"
-  when: _wait_for_ssh is undefined or _wait_for_ssh.state is undefined
 
 - name: Check connectivity
   ansible.builtin.ping:
