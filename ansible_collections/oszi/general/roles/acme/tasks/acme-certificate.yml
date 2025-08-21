@@ -1,0 +1,52 @@
+---
+- name: "Ensure directory for ACME live path - {{ acme_certificate_item.common_name }}"
+  ansible.builtin.file:
+    path: "{{ acme_certificate_item.live_path }}"
+    state: "directory"
+    owner: "{{ acme_certificate_item.owner }}"
+    group: "{{ acme_certificate_item.group }}"
+    mode: "0750"
+
+- name: "Create ACME private key - {{ acme_certificate_item.common_name }}"
+  community.crypto.openssl_privatekey:
+    select_crypto_backend: "cryptography"
+    path: "{{ acme_certificate_item.live_path }}/privkey.pem"
+    owner: "{{ acme_certificate_item.owner }}"
+    group: "{{ acme_certificate_item.group }}"
+    mode: "0640"
+
+- name: "Create ACME signing request - {{ acme_certificate_item.common_name }}"
+  community.crypto.openssl_csr:
+    select_crypto_backend: "cryptography"
+    path: "{{ acme_certificate_item.live_path }}/req.csr"
+    privatekey_path: "{{ acme_certificate_item.live_path }}/privkey.pem"
+    common_name: "{{ acme_certificate_item.common_name }}"
+    subject_alt_name: "{{ acme_certificate_item.subject_alt_name | default(omit) }}"
+    owner: "{{ acme_certificate_item.owner }}"
+    group: "{{ acme_certificate_item.group }}"
+    mode: "0640"
+  register: acme_request_item
+
+- name: "Create ACME challenge - {{ acme_certificate_item.common_name }}"
+  community.crypto.acme_certificate:
+    select_crypto_backend: "cryptography"
+    account_email: "{{ acme_account_email | default(omit) }}"
+    account_key_src: "{{ acme_account_key_path }}"
+    account_key_passphrase: "{{ acme_account_key_passphrase }}"
+    csr: "{{ acme_certificate_item.live_path }}/req.csr"
+    dest: "{{ acme_certificate_item.live_path }}/cert.pem"
+    fullchain_dest: "{{ acme_certificate_item.live_path }}/fullchain.pem"
+    select_chain: "{{ acme_certificate_item.select_chain | default(omit) }}"
+    acme_directory: "{{ acme_directory_url }}"
+    acme_version: "{{ acme_api_version }}"
+    remaining_days: "{{ acme_certificate_item.remaining_days | default(acme_remaining_days_default) }}"
+    force: "{{ acme_request_item.changed }}"
+    challenge: "dns-01"
+    modify_account: true
+    terms_agreed: true
+  register: acme_challenge_item
+
+- name: Include ACME validation tasks
+  when: acme_challenge_item.changed
+  ansible.builtin.include_tasks:
+    file: acme-certificate-validate.yml

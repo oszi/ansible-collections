@@ -103,5 +103,5 @@
     {% endif %}
   args:
     executable: "/bin/bash"
-  register: _shell_result
-  changed_when: "'ALREADY_ENABLED' not in _shell_result.stderr"
+  register: _firewalld_direct_rules_result
+  changed_when: "'ALREADY_ENABLED' not in _firewalld_direct_rules_result.stderr"

@@ -1,5 +1,5 @@
 ---
-- name: "Create Route53 ACME challenge records - {{ acme_item.common_name }}"
+- name: "Create Route53 ACME challenge records - {{ acme_certificate_item.common_name }}"
   connection: local
   become: false
   amazon.aws.route53:
@@ -10,4 +10,4 @@
     ttl: 60
     wait: true
     state: "present"
-  with_dict: "{{ acme_challenge.challenge_data }}"
+  with_dict: "{{ acme_challenge_item.challenge_data }}"

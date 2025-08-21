@@ -28,16 +28,13 @@
   community.libvirt.virt_net:
   args: "{{ item }}"
   with_items: "{{ libvirt_networks }}"
-  tags: [skip_ansible_lint]
 
 - name: Apply libvirt storage pools
   community.libvirt.virt_pool:
   args: "{{ item }}"
   with_items: "{{ libvirt_pools }}"
-  tags: [skip_ansible_lint]
 
 - name: Apply libvirt domains
   community.libvirt.virt:
   args: "{{ item }}"
   with_items: "{{ libvirt_domains }}"
-  tags: [skip_ansible_lint]

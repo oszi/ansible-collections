@@ -21,7 +21,7 @@
           upgrade: "dist"
         dnf_args:
           name: "*"
-          state: "latest"
+          state: "latest"  # noqa: package-latest
           update_cache: true
       tags: [package]
 
@@ -36,8 +36,8 @@
       ansible.builtin.pip:
         name: "{{ python_pip3_packages }}"
         executable: "pip3"
-        state: "latest"
-      tags: [python, skip_ansible_lint]
+        state: "latest"  # noqa: package-latest
+      tags: [python]
 
     - name: Update flatpak packages
       ansible.builtin.shell: |

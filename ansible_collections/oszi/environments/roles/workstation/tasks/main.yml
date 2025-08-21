@@ -15,4 +15,4 @@
         file: xdg-user.yml
       loop: "{{ workstation_xdg_users | unique }}"
       loop_control:
-        loop_var: xdg_user_item
+        loop_var: workstation_xdg_user_item

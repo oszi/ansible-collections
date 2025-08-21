@@ -5,7 +5,7 @@ containerhost_etc_path: "/opt/containers/etc"
 containerhost_var_path: "/opt/containers/var"
 
 # Dicts of vars for templates/etc/systemd/system/container.service.j2:
-# * service_name: container_service_vars
+# * service_name: containerhost_service_vars
 # Extra vars parsed by tasks, not the template above:
 # * copy_files: {copy module args}
 # * init_script: shell script that runs once before installing

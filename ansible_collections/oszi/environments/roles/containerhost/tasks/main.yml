@@ -13,5 +13,5 @@
           tags: [container-service]
       loop: "{{ containerhost_services | dict2items }}"
       loop_control:
-        loop_var: container_service_item
+        loop_var: containerhost_service_item
       tags: [container-service]

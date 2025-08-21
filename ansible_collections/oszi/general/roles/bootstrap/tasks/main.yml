@@ -14,8 +14,7 @@
         update_cache: true
         cache_valid_time: "{{ bootstrap_apt_cache_valid_time if ansible_facts.pkg_mgr == 'apt' else omit }}"
       changed_when: false
-      ignore_errors: true  # We could be offline.
-      tags: [skip_ansible_lint]
+      ignore_errors: true  # We could be offline. # noqa: ignore-errors
 
     - name: Bootstrap role completed
       ansible.builtin.debug:

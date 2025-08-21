@@ -13,7 +13,7 @@
         file: skel-user.yml
       loop: "{{ shell_skeleton_enforced_users | unique }}"
       loop_control:
-        loop_var: skel_user_item
+        loop_var: shell_user_item
 
     - name: Shell role completed
       ansible.builtin.debug:

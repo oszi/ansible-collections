@@ -24,10 +24,10 @@
 
 - name: Include ACME certificate tasks
   ansible.builtin.include_tasks:
-    file: acme-item.yml
+    file: acme-certificate.yml
   loop: "{{ acme_certificates }}"
   loop_control:
-    loop_var: acme_item
+    loop_var: acme_certificate_item
 
 - name: Include ACME revoke tasks
   ansible.builtin.include_tasks:

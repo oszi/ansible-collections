@@ -42,7 +42,7 @@
 
     - name: Generate dconf custom keybindings key-map helper yaml
       ansible.builtin.set_fact:
-        _dconf_custom_keybindings_key_map_yaml: |-
+        _gnome_dconf_custom_keybindings_key_map_yaml: |-
           {% for key in gnome_dconf_custom_keybindings.keys() %}
           - '{{ gnome_dconf_custom_keybindings_prefix }}/{{ key }}/'
           {% endfor %}
@@ -50,7 +50,7 @@
     - name: Set dconf custom keybindings key-map helper
       community.general.dconf:
         key: "{{ gnome_dconf_custom_keybindings_prefix }}"
-        value: "{{ _dconf_custom_keybindings_key_map_yaml | from_yaml | string }}"
+        value: "{{ _gnome_dconf_custom_keybindings_key_map_yaml | from_yaml | string }}"
         state: "present"
 
 - name: Override Gnome Screenshots and Screencasts directories with symlinks

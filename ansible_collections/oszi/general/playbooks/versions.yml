@@ -22,7 +22,7 @@
 
   tasks:
     - name: Print ansible version
-      run_once: true  # noqa run-once[task]
+      run_once: true  # noqa: run-once[task]
       ansible.builtin.debug:
         msg:
           ansible_config_file: "{{ ansible_config_file }}"
@@ -30,7 +30,7 @@
       tags: [ansible]
 
     - name: Print collection versions
-      run_once: true  # noqa run-once[task]
+      run_once: true  # noqa: run-once[task]
       ansible.builtin.debug:
         msg: "{{ dict(common_collections | zip(lookup('community.general.collection_version', *common_collections,
           result_no_version='*', result_not_found='-').split(','))) }}"  # use strings!
@@ -92,11 +92,11 @@
       changed_when: false
       check_mode: false
       no_log: true
-      register: _shell_result
+      register: _container_system_versions
       tags: [containers]
 
     - name: Print container system versions
-      when: "_shell_result.stdout_lines | length > 0"
+      when: "_container_system_versions.stdout_lines | length > 0"
       ansible.builtin.debug:
-        msg: "{{ _shell_result.stdout_lines }}"
+        msg: "{{ _container_system_versions.stdout_lines }}"
       tags: [containers]
