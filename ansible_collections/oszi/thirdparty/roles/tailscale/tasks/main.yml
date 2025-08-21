@@ -13,4 +13,5 @@
 
     - name: Tailscale post-setup tasks
       when: tailscale_enabled
-      ansible.builtin.include_tasks: post-setup.yml
+      ansible.builtin.include_tasks:
+        file: post-setup.yml

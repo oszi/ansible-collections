@@ -8,7 +8,7 @@
   with_dict: "{{ users_groups }}"
 
 - name: Allow passwordless sudo for the specified groups
-  when: users_sudo_nopasswd_groups
+  when: "users_sudo_nopasswd_groups | length > 0"
   ansible.builtin.copy:
     content: |
       {% for group in users_sudo_nopasswd_groups %}

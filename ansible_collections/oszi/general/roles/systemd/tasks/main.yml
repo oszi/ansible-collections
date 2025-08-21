@@ -3,12 +3,14 @@
   tags: [systemd]
   block:
     - name: Systemd setup tasks
-      ansible.builtin.include_tasks: systemd.yml
       when: not systemd_disabled
+      ansible.builtin.include_tasks:
+        file: systemd.yml
 
     - name: Systemd-networkd setup tasks
-      ansible.builtin.include_tasks: systemd-networkd.yml
       when: not systemd_disabled and systemd_networkd_enabled
+      ansible.builtin.include_tasks:
+        file: systemd-networkd.yml
 
     - name: Systemd role completed
       ansible.builtin.debug:

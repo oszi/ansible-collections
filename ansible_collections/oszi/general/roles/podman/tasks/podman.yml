@@ -32,6 +32,7 @@
       register: _ini_file_result
 
     - name: Set SELinux for new podman graphroot
+      when: _ini_file_result.changed
       ansible.builtin.shell: |
         set -euo pipefail
         mkdir -p -m 0711 {{ podman_graphroot | quote }}
@@ -40,11 +41,10 @@
       args:
         executable: "/bin/bash"
       ignore_errors: true
-      when: _ini_file_result.changed
       tags: [skip_ansible_lint]
 
 - name: Configure podman policy.json
-  when: podman_config_policy
+  when: podman_config_policy is truthy
   ansible.builtin.copy:
     content: "{{ podman_config_policy | to_nice_json }}"
     dest: "{{ podman_config_policy_path }}"
@@ -53,7 +53,7 @@
     mode: "0644"
 
 - name: Configure podman containers.conf
-  when: podman_config_containers
+  when: podman_config_containers is truthy
   ansible.builtin.copy:
     content: "{{ podman_config_containers }}"
     dest: "{{ podman_config_containers_path }}"
@@ -62,7 +62,7 @@
     mode: "0644"
 
 - name: Configure podman toolbox.conf
-  when: podman_toolbox_enabled and podman_config_toolbox
+  when: podman_toolbox_enabled and podman_config_toolbox is truthy
   ansible.builtin.copy:
     content: "{{ podman_config_toolbox }}"
     dest: "{{ podman_config_toolbox_path }}"

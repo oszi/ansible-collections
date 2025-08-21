@@ -1,6 +1,6 @@
 ---
 - name: Ensure directory prefixes for container services
-  when: containerhost_services
+  when: "containerhost_services | length > 0"
   ansible.builtin.file:
     dest: "{{ item }}"
     state: "directory"

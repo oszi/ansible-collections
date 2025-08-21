@@ -3,7 +3,8 @@
   tags: [toolbox]
   block:
     - name: Toolbox package setup tasks
-      ansible.builtin.import_tasks: packages.yml
+      ansible.builtin.import_tasks:
+        file: packages.yml
 
     - name: Install toolbox scripts
       ansible.builtin.copy:

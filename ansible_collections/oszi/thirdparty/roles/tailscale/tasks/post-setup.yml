@@ -1,6 +1,6 @@
 ---
 - name: Ensure directory for tailscaled systemd service override
-  when: tailscale_systemd_service_override
+  when: tailscale_systemd_service_override is truthy
   ansible.builtin.file:
     dest: "{{ tailscale_systemd_service_override_path | dirname }}"
     state: "directory"
@@ -9,7 +9,7 @@
     mode: "0755"
 
 - name: Install tailscaled systemd service override
-  when: tailscale_systemd_service_override
+  when: tailscale_systemd_service_override is truthy
   ansible.builtin.copy:
     dest: "{{ tailscale_systemd_service_override_path }}"
     content: "{{ tailscale_systemd_service_override }}"
@@ -26,7 +26,7 @@
     enabled: true
 
 - name: Install tailscale completion for bash
-  when: tailscale_bash_completion_path
+  when: tailscale_bash_completion_path is truthy
   block:
     - name: Ensure completion path for bash exists
       ansible.builtin.file:
@@ -50,7 +50,7 @@
         mode: "0644"
 
 - name: Install tailscale completion for ZSH
-  when: tailscale_zsh_completion_path
+  when: tailscale_zsh_completion_path is truthy
   block:
     - name: Ensure completion path for ZSH exists
       ansible.builtin.file:

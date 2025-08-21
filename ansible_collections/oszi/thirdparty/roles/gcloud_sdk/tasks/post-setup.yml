@@ -14,7 +14,7 @@
     mode: "0755"
 
 - name: Install kubectl completion for bash
-  when: gcloud_sdk_kubectl_enabled and gcloud_sdk_kubectl_bash_completion_path
+  when: gcloud_sdk_kubectl_enabled and gcloud_sdk_kubectl_bash_completion_path is truthy
   block:
     - name: Ensure completion path for bash exists
       ansible.builtin.file:
@@ -38,7 +38,7 @@
         mode: "0644"
 
 - name: Install kubectl completion for ZSH
-  when: gcloud_sdk_kubectl_enabled and gcloud_sdk_kubectl_zsh_completion_path
+  when: gcloud_sdk_kubectl_enabled and gcloud_sdk_kubectl_zsh_completion_path is truthy
   block:
     - name: Ensure completion path for ZSH exists
       ansible.builtin.file:

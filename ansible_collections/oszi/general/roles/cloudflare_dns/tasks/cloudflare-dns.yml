@@ -3,15 +3,16 @@
   when: cloudflare_dns_host_record is not none
   block:
     - name: Set cloudflare_dns_host_record_a_value
+      when: cloudflare_dns_host_record_a_value is none
       ansible.builtin.set_fact:
         cloudflare_dns_host_record_a_value: "{{ ansible_host
           if ansible_host and ansible_host | ansible.utils.ipv4
           else ansible_facts.default_ipv4.address
           if ansible_facts.default_ipv4.address is defined
           else none }}"
-      when: cloudflare_dns_host_record_a_value is not defined
 
     - name: Set host public IPv4 record in CloudFlare
+      when: cloudflare_dns_host_record_a_value is truthy
       community.general.cloudflare_dns:
         type: "A"
         zone: "{{ cloudflare_dns_zone }}"
@@ -20,18 +21,18 @@
         proxied: "{{ cloudflare_dns_host_proxied }}"
         solo: "{{ cloudflare_dns_host_solo }}"
         api_token: "{{ cloudflare_dns_api_token }}"
-      when: cloudflare_dns_host_record_a_value
 
     - name: Set cloudflare_dns_host_record_aaaa_value
+      when: cloudflare_dns_host_record_aaaa_value is none
       ansible.builtin.set_fact:
         cloudflare_dns_host_record_aaaa_value: "{{ ansible_host
           if ansible_host and ansible_host | ansible.utils.ipv6
           else ansible_facts.default_ipv6.address
           if ansible_facts.default_ipv6.address is defined
           else none }}"
-      when: cloudflare_dns_host_record_aaaa_value is not defined
 
     - name: Set host public IPv6 record in CloudFlare
+      when: cloudflare_dns_host_record_aaaa_value is truthy
       community.general.cloudflare_dns:
         type: "AAAA"
         zone: "{{ cloudflare_dns_zone }}"
@@ -40,13 +41,12 @@
         proxied: "{{ cloudflare_dns_host_proxied }}"
         solo: "{{ cloudflare_dns_host_solo }}"
         api_token: "{{ cloudflare_dns_api_token }}"
-      when: cloudflare_dns_host_record_aaaa_value
 
 - name: Set CNAME records in CloudFlare
   community.general.cloudflare_dns:
     type: "CNAME"
     zone: "{{ cloudflare_dns_zone }}"
-    record: "{{ item is mapping | ternary(item.record, item) }}"
+    record: "{{ item.record if item is mapping else item }}"
     value: "{{ item.value | default((cloudflare_dns_host_record + '.' if cloudflare_dns_host_record is not none
       else '') + cloudflare_dns_zone + '.') }}"
     proxied: "{{ item.proxied | default(cloudflare_dns_host_proxied) }}"
@@ -60,7 +60,7 @@
     type: "MX"
     zone: "{{ cloudflare_dns_zone }}"
     record: "{{ item.record | default(cloudflare_dns_host_record | default('@')) }}"
-    value: "{{ item is mapping | ternary(item.value, item) }}"
+    value: "{{ item.value if item is mapping else item }}"
     priority: "{{ item.priority | default(omit) }}"
     solo: "{{ item.solo | default(omit) }}"
     ttl: "{{ item.ttl | default(omit) }}"
@@ -73,7 +73,7 @@
     type: "TXT"
     zone: "{{ cloudflare_dns_zone }}"
     record: "{{ item.record | default(cloudflare_dns_host_record | default('@')) }}"
-    value: "{{ item is mapping | ternary(item.value, item) }}"
+    value: "{{ item.value if item is mapping else item }}"
     solo: "{{ item.solo | default(omit) }}"
     ttl: "{{ item.ttl | default(omit) }}"
     state: "{{ item.state | default('present') }}"

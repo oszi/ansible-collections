@@ -23,6 +23,6 @@
     file: dotfiles/git.yml
 
 - name: "Include extra dotfiles for user:{{ dotfiles_user_item }}"
-  when: dotfiles_files
+  when: "dotfiles_files | length > 0"
   ansible.builtin.include_tasks:
     file: dotfiles/files.yml

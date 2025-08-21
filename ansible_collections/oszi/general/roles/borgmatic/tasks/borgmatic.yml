@@ -48,6 +48,6 @@
     mode: "0644"
 
 - name: Include borgmatic configuration tasks
-  when: "borgmatic_passphrase and ansible_facts.virtualization_type != 'container'"
+  when: "borgmatic_passphrase is truthy and ansible_facts.virtualization_type != 'container'"
   ansible.builtin.include_tasks:
     file: borgmatic-config.yml

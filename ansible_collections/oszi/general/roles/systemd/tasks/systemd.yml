@@ -28,13 +28,13 @@
   with_dict: "{{ systemd_system_units }}"
 
 - name: Ensure directory /etc/systemd/system-preset exists
+  when: "systemd_system_presets | length > 0"
   ansible.builtin.file:
     path: "/etc/systemd/system-preset"
     state: "directory"
     owner: "root"
     group: "root"
     mode: "0755"
-  when: systemd_system_presets
 
 - name: Install inventory systemd system-preset files
   ansible.builtin.copy:

@@ -16,7 +16,7 @@
   tags: [dconf]
 
 - name: Set custom keyboard shortcuts
-  when: gnome_dconf_custom_keybindings
+  when: "gnome_dconf_custom_keybindings | length > 0"
   tags: [dconf]
   block:
     - name: Set dconf custom keybindings - binding attr
@@ -54,7 +54,7 @@
         state: "present"
 
 - name: Override Gnome Screenshots and Screencasts directories with symlinks
-  when: gnome_screenshots_path
+  when: gnome_screenshots_path is truthy
   block:
     - name: Ensure alternative Screenshots directory exists
       ansible.builtin.file:

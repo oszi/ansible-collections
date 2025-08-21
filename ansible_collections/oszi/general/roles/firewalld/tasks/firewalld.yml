@@ -21,7 +21,7 @@
   notify: "Restart firewalld"
 
 - name: Set firewall backend to {{ firewalld_backend }}
-  when: firewalld_backend
+  when: firewalld_backend is truthy
   ansible.builtin.lineinfile:
     dest: "/etc/firewalld/firewalld.conf"
     line: "FirewallBackend={{ firewalld_backend }}"
@@ -30,7 +30,7 @@
   notify: "Restart firewalld"
 
 - name: Set firewalld default zone to {{ firewalld_default_zone }}
-  when: firewalld_default_zone
+  when: firewalld_default_zone is truthy
   ansible.builtin.lineinfile:
     dest: "/etc/firewalld/firewalld.conf"
     line: "DefaultZone={{ firewalld_default_zone }}"
@@ -69,7 +69,7 @@
 - name: Enable pre-defined rich rules in firewalld
   with_items: "{{ firewalld_rich_rules }}"
   ansible.posix.firewalld:
-    rich_rule: "{{ item is mapping | ternary(item.rule, item) }}"
+    rich_rule: "{{ item.rule if item is mapping else item }}"
     zone: "{{ item.zone | default(firewalld_default_zone) }}"
     state: "{{ item.state | default('enabled') }}"
     permanent: "{{ firewalld_permanent }}"
@@ -78,7 +78,7 @@
 - name: Enable pre-defined services in firewalld
   with_items: "{{ firewalld_services }}"
   ansible.posix.firewalld:
-    service: "{{ item is mapping | ternary(item.service, item) }}"
+    service: "{{ item.service if item is mapping else item }}"
     zone: "{{ item.zone | default(firewalld_default_zone) }}"
     state: "{{ item.state | default('enabled') }}"
     permanent: "{{ firewalld_permanent }}"
@@ -87,7 +87,7 @@
 - name: Enable pre-defined ports in firewalld
   with_items: "{{ firewalld_ports }}"
   ansible.posix.firewalld:
-    port: "{{ item is mapping | ternary(item.port, item) }}"
+    port: "{{ item.port if item is mapping else item }}"
     zone: "{{ item.zone | default(firewalld_default_zone) }}"
     state: "{{ item.state | default('enabled') }}"
     permanent: "{{ firewalld_permanent }}"
