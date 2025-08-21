@@ -15,11 +15,11 @@
       - "/etc/systemd/system"
     pattern: "*podman*"
     file_type: "any"
-  register: _podman_leftover_files
+  register: _podman_leftovers_found
 
 - name: Remove leftover podman system files
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  with_items: "{{ _podman_leftover_files | json_query('files[*].path') }}"
+  with_items: "{{ _podman_leftovers_found.files | map(attribute='path') }}"
   notify: "Reload systemd"
