@@ -1,7 +1,7 @@
 ---
 namespace: oszi
 name: thirdparty
-version: "3.30.0"
+version: "3.31.0"
 
 description: "Ansible collection for software from third-party sources."
 repository: "https://github.com/oszi/ansible-collections.git"
