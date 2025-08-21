@@ -16,4 +16,3 @@
       }}/rpmfusion-{{ item }}-release-{{
       ansible_facts.distribution_major_version }}.noarch.rpm"
   with_items: ["free", "nonfree"]
-  tags: [skip_ansible_lint]

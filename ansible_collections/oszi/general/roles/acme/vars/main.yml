@@ -1,6 +1,5 @@
 ---
 # ACME validation delay in seconds
-acme_delay_sec: 15
-
+acme_validation_delay: 15
 # ACME validation retries
 acme_validation_retries: 6

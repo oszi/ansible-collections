@@ -1,28 +1,27 @@
 ---
 - name: Set container service vars
   ansible.builtin.set_fact:
-    container_service: "{{ container_service_item.key }}"
-    container_service_vars: "{{ container_service_item.value }}"
-    _container_copy_results: null  # Reset previous iteration.
+    containerhost_service_name: "{{ containerhost_service_item.key }}"
+    containerhost_service_vars: "{{ containerhost_service_item.value }}"
+    _containerhost_copy_results: null  # Reset previous iteration.
 
-- name: Pull the image - {{ container_service_vars.image }}
+- name: Pull the image - {{ containerhost_service_vars.image }}
   when: "'podman' in containerhost_runtime"
   containers.podman.podman_image:
-    name: "{{ container_service_vars.image }}"
+    name: "{{ containerhost_service_vars.image }}"
     state: "present"
 
 - name: Copy static files for the container
-  when: "container_service_vars.copy_files is defined and container_service_vars.copy_files | length > 0"
+  when: "containerhost_service_vars.copy_files is defined and containerhost_service_vars.copy_files | length > 0"
   block:
-    - name: "Ensure directories exist for container {{ container_service }}"
-      ansible.builtin.file:
+    - name: "Ensure directories exist for container {{ containerhost_service_name }}"
+      # Do not set permissions as they could be changed by the service.
+      ansible.builtin.file:  # noqa: risky-file-permissions
         path: "{{ item }}"
         state: "directory"
-      with_items: "{{ container_service_vars.copy_files | map(attribute='dest') | map('dirname') | unique }}"
-      # Do not set permissions as they could be changed by the service.
-      tags: [skip_ansible_lint]
+      with_items: "{{ containerhost_service_vars.copy_files | map(attribute='dest') | map('dirname') | unique }}"
 
-    - name: "Copy static files for container {{ container_service }}"
+    - name: "Copy static files for container {{ containerhost_service_name }}"
       ansible.builtin.copy:
         dest: "{{ item.dest }}"
         content: "{{ item.content | default(omit) }}"
@@ -30,37 +29,35 @@
         owner: "{{ item.owner | default(omit) }}"
         group: "{{ item.group | default(item.owner | default(omit)) }}"
         mode: "{{ item.mode | default(omit) }}"
-      with_items: "{{ container_service_vars.copy_files }}"
-      register: _container_copy_results
+      with_items: "{{ containerhost_service_vars.copy_files }}"
+      register: _containerhost_copy_results
 
-- name: "Run init script for container {{ container_service }}"
-  when: container_service_vars.init_script is defined
+- name: "Run init script for container {{ containerhost_service_name }}"
+  when: containerhost_service_vars.init_script is defined
   ansible.builtin.shell: |
     set -euxo pipefail
-    {{ container_service_vars.init_script }}
+    {{ containerhost_service_vars.init_script }}
   args:
     # White lie to only execute once before installing.
-    creates: "/etc/systemd/system/{{ container_service }}.service"
+    creates: "/etc/systemd/system/{{ containerhost_service_name }}.service"
     executable: "/bin/bash"
-  environment: "{{ {'IMAGE': container_service_vars.image, 'NAME': container_service}
-    | combine(container_service_vars.environment | default({})) }}"
-  tags: [skip_ansible_lint]
+  environment: "{{ {'IMAGE': containerhost_service_vars.image, 'NAME': containerhost_service_name}
+    | combine(containerhost_service_vars.environment | default({})) }}"
 
-- name: "Install container service {{ container_service }}"
+- name: "Install container service {{ containerhost_service_name }}"
   ansible.builtin.template:
     src: "etc/systemd/system/container.service.j2"
-    dest: "/etc/systemd/system/{{ container_service }}.service"
+    dest: "/etc/systemd/system/{{ containerhost_service_name }}.service"
     owner: "root"
     mode: "0644"
-  register: _container_service_result
+  register: _containerhost_service_result
 
-- name: "Restart container service {{ container_service }}"
+- name: "Restart container service {{ containerhost_service_name }}"
   ansible.builtin.systemd:
-    name: "{{ container_service }}"
+    name: "{{ containerhost_service_name }}"
     state: "{{ _container_service_changed | ternary('restarted', 'started') }}"
     daemon_reload: "{{ _container_service_changed }}"
     enabled: true
   vars:
-    _container_service_changed: "{{ _container_service_result.changed
-      or _container_copy_results is not none and _container_copy_results.changed }}"
-  tags: [skip_ansible_lint]
+    _container_service_changed: "{{ _containerhost_service_result.changed
+      or _containerhost_copy_results is not none and _containerhost_copy_results.changed }}"

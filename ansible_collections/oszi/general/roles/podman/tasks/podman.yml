@@ -18,7 +18,7 @@
     state: "{{ podman_toolbox_enabled | ternary('present', 'absent') }}"
 
 - name: Change default podman graphroot?
-  when: podman_graphroot is not none
+  when: podman_graphroot is truthy
   block:
     - name: Change podman graphroot
       community.general.ini_file:
@@ -29,10 +29,10 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      register: _ini_file_result
+      register: _podman_storage_config_result
 
     - name: Set SELinux for new podman graphroot
-      when: _ini_file_result.changed
+      when: _podman_storage_config_result.changed
       ansible.builtin.shell: |
         set -euo pipefail
         mkdir -p -m 0711 {{ podman_graphroot | quote }}
@@ -40,8 +40,8 @@
         restorecon -R -v {{ podman_graphroot | quote }}
       args:
         executable: "/bin/bash"
-      ignore_errors: true
-      tags: [skip_ansible_lint]
+      changed_when: true
+      ignore_errors: true  # noqa: ignore-errors
 
 - name: Configure podman policy.json
   when: podman_config_policy is truthy
@@ -82,10 +82,8 @@
   containers.podman.podman_network:
   args: "{{ item.value | combine({'name': item.key}) }}"
   with_dict: "{{ podman_networks }}"
-  tags: [skip_ansible_lint]
 
 - name: Manage podman images
   containers.podman.podman_image:
   args: "{{ item }}"
   with_items: "{{ podman_images }}"
-  tags: [skip_ansible_lint]

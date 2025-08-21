@@ -8,7 +8,7 @@
 - name: Check upstream /etc/profile.d/podman-docker.sh
   ansible.builtin.stat:
     path: "/etc/profile.d/podman-docker.sh"
-  register: _etc_profile_podman_docker
+  register: _podman_docker_etc_profile_result
 
 - name: Enable podman daemons and docker-compose
   when: podman_docker_enabled
@@ -26,7 +26,7 @@
         enabled: true
 
     - name: Set DOCKER_HOST if upstream had not done so already
-      when: not _etc_profile_podman_docker.stat.exists
+      when: not _podman_docker_etc_profile_result.stat.exists
       ansible.builtin.copy:
         content: |
           if [ -z "${DOCKER_HOST:-}" ]; then
@@ -43,7 +43,7 @@
         state: "{{ podman_docker_compose_enabled | ternary('present', 'absent') }}"
 
 - name: Remove obsolete /etc/profile.d/podman-docker-socket.sh?
-  when: not podman_docker_enabled or _etc_profile_podman_docker.stat.exists
+  when: not podman_docker_enabled or _podman_docker_etc_profile_result.stat.exists
   ansible.builtin.file:
     path: "/etc/profile.d/podman-docker-socket.sh"
     state: "absent"

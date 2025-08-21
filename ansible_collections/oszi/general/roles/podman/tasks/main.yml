@@ -20,7 +20,7 @@
           tags: [quadlet]
       loop: "{{ podman_quadlets | dict2items }}"
       loop_control:
-        loop_var: quadlet_item
+        loop_var: podman_quadlet_item
       tags: [quadlet]
 
     - name: Include podman disabled tasks

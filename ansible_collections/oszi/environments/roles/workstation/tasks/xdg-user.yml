@@ -1,32 +1,32 @@
 ---
-- name: "Get info about user:{{ xdg_user_item }}"
+- name: "Get info about user:{{ workstation_xdg_user_item }}"
   ansible.builtin.user:
-    name: "{{ xdg_user_item }}"
+    name: "{{ workstation_xdg_user_item }}"
     state: "present"
   # The user does not exist yet if changed!
-  register: user_info
+  register: workstation_xdg_user_info
   check_mode: true
 
 - name: "Fail if the workstation user does not exist"
-  when: user_info.changed
+  when: workstation_xdg_user_info.changed
   ansible.builtin.fail:
-    msg: "{{ xdg_user_item }} user does not exist"
+    msg: "{{ workstation_xdg_user_item }} user does not exist"
 
-- name: "Ensure XDG_CONFIG_HOME exists for user:{{ xdg_user_item }}"
+- name: "Ensure XDG_CONFIG_HOME exists for user:{{ workstation_xdg_user_item }}"
   ansible.builtin.file:
-    path: "{{ user_info.home }}/{{ workstation_xdg_config_directory }}"
-    owner: "{{ user_info.uid }}"
-    group: "{{ user_info.group }}"
+    path: "{{ workstation_xdg_user_info.home }}/{{ workstation_xdg_config_directory }}"
+    owner: "{{ workstation_xdg_user_info.uid }}"
+    group: "{{ workstation_xdg_user_info.group }}"
     mode: "0750"
     state: "directory"
-  register: _xdg_config_directory
+  register: _workstation_xdg_config_directory_result
 
-- name: "Install XDG user-dirs for user:{{ xdg_user_item }}"
+- name: "Install XDG user-dirs for user:{{ workstation_xdg_user_item }}"
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "{{ _xdg_config_directory.path }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
-    owner: "{{ user_info.uid }}"
-    group: "{{ user_info.group }}"
+    dest: "{{ _workstation_xdg_config_directory_result.path }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: "{{ workstation_xdg_user_info.uid }}"
+    group: "{{ workstation_xdg_user_info.group }}"
     mode: "0640"
   with_fileglob:
     - "templates/home/config/user-dirs.*.j2"

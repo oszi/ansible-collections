@@ -1,5 +1,5 @@
 ---
-- name: "Create CloudFlare ACME challenge records - {{ acme_item.common_name }}"
+- name: "Create CloudFlare ACME challenge records - {{ acme_certificate_item.common_name }}"
   connection: local
   become: false
   community.general.cloudflare_dns:
@@ -9,4 +9,4 @@
     zone: "{{ acme_cloudflare_zone }}"
     api_token: "{{ acme_cloudflare_api_token }}"
     state: "present"
-  with_dict: "{{ acme_challenge.challenge_data }}"
+  with_dict: "{{ acme_challenge_item.challenge_data }}"

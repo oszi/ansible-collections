@@ -8,7 +8,7 @@ dotfiles_users: "{{ ['root', ansible_user | default('root')] | unique }}"
 
 # Role-local template vars:
 # {{ dotfiles_user_item }} - Loop var of dotfiles_users.
-# {{ user_info }} - Result of ansible.builtin.user for dotfiles_user_item.
+# {{ dotfiles_user_info }} - Result of ansible.builtin.user for dotfiles_user_item.
 
 # Use the template vars for varying multi-user configurations...
 # With lookup tables: dotfiles_gnupg_default_key: "{{ user_gnupg_keys[dotfiles_user_item] }}"
@@ -21,7 +21,7 @@ dotfiles_files: {}
   # .ssh/config: |
   #   # Ansible managed
   #   {% if dotfiles_gnupg_sshcontrol_keygrips %}
-  #   IdentityAgent /run/user/{{ user_info.uid }}/gnupg/S.gpg-agent.ssh
+  #   IdentityAgent /run/user/{{ dotfiles_user_info.uid }}/gnupg/S.gpg-agent.ssh
   #
   #   {% endif %}
   #   ControlPath ~/.ssh/S.%r@%h:%p
@@ -55,8 +55,8 @@ dotfiles_gnupg_scdaemon_pcsc_shared: false  # Shared mode without caching - requ
 dotfiles_gnupg_scdaemon_extra_options: []
 
 # Template vars for gitconfig.j2
-dotfiles_git_user_name: "{{ user_info.name }}"
-dotfiles_git_user_email: "{{ user_info.name }}@{{ inventory_hostname }}"
+dotfiles_git_user_name: "{{ dotfiles_user_info.name }}"
+dotfiles_git_user_email: "{{ dotfiles_user_info.name }}@{{ inventory_hostname }}"
 dotfiles_git_user_signingkey: "{{ dotfiles_gnupg_default_key }}"
 dotfiles_git_editor: null  # Defaults to $EDITOR (see oszi.general.shell)
 dotfiles_git_config_extra: ""  # Appended to .gitconfig

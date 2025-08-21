@@ -1,7 +1,7 @@
 ---
 # Role-local template vars:
 # {{ dotfiles_user_item }} - Loop var of dotfiles_users.
-# {{ user_info }} - Result of ansible.builtin.user for dotfiles_user_item.
+# {{ dotfiles_user_info }} - Result of ansible.builtin.user for dotfiles_user_item.
 
 # Use the template vars for varying multi-user configurations...
 # With lookup tables: dotfiles_gnupg_default_key: "{{ user_gnupg_keys[dotfiles_user_item] }}"
@@ -25,7 +25,7 @@ dotfiles_files:
   .ssh/config: |
     # Ansible managed
     {% if dotfiles_gnupg_sshcontrol_keygrips %}
-    IdentityAgent /run/user/{{ user_info.uid }}/gnupg/S.gpg-agent.ssh
+    IdentityAgent /run/user/{{ dotfiles_user_info.uid }}/gnupg/S.gpg-agent.ssh
 
     {% endif %}
     ControlPath ~/.ssh/S.%r@%h:%p

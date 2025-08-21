@@ -1,23 +1,22 @@
 ---
 - name: Set quadlet loop vars
   ansible.builtin.set_fact:
-    _quadlet_name: "{{ (quadlet_item.key | basename).split('.')[0] }}"
-    _quadlet_path: "{{ podman_quadlet_systemd_path }}/{{ quadlet_item.key }}"
-    _quadlet_copy_results: null  # Reset previous iteration.
+    _podman_quadlet_name: "{{ (podman_quadlet_item.key | basename).split('.')[0] }}"
+    _podman_quadlet_path: "{{ podman_quadlet_systemd_path }}/{{ podman_quadlet_item.key }}"
+    _podman_quadlet_copy_results: null  # Reset previous iteration.
 
 - name: Copy static files for the quadlet
-  when: quadlet_item.key in podman_quadlets_copy_files
+  when: podman_quadlet_item.key in podman_quadlets_copy_files
   block:
-    - name: "Ensure directories exist for quadlet {{ quadlet_item.key }}"
-      ansible.builtin.file:
+    # Do not set permissions as they could be changed by the service.
+    - name: "Ensure directories exist for quadlet {{ podman_quadlet_item.key }}"
+      ansible.builtin.file:  # noqa: risky-file-permissions
         path: "{{ item }}"
         state: "directory"
-      with_items: "{{ podman_quadlets_copy_files[quadlet_item.key]
+      with_items: "{{ podman_quadlets_copy_files[podman_quadlet_item.key]
         | map(attribute='dest') | map('dirname') | unique }}"
-      # Do not set permissions as they could be changed by the service.
-      tags: [skip_ansible_lint]
 
-    - name: "Copy static files for quadlet {{ quadlet_item.key }}"
+    - name: "Copy static files for quadlet {{ podman_quadlet_item.key }}"
       ansible.builtin.copy:
         dest: "{{ item.dest }}"
         content: "{{ item.content | default(omit) }}"
@@ -25,41 +24,41 @@
         owner: "{{ item.owner | default(omit) }}"
         group: "{{ item.group | default(item.owner | default(omit)) }}"
         mode: "{{ item.mode | default(omit) }}"
-      with_items: "{{ podman_quadlets_copy_files[quadlet_item.key] }}"
-      register: _quadlet_copy_results
+      with_items: "{{ podman_quadlets_copy_files[podman_quadlet_item.key] }}"
+      register: _podman_quadlet_copy_results
 
-- name: "Run init script for quadlet {{ quadlet_item.key }}"
-  when: quadlet_item.key in podman_quadlets_init_scripts
+- name: "Run init script for quadlet {{ podman_quadlet_item.key }}"
+  when: podman_quadlet_item.key in podman_quadlets_init_scripts
   ansible.builtin.shell: |
     set -euxo pipefail
-    {{ podman_quadlets_init_scripts[quadlet_item.key] }}
+    {{ podman_quadlets_init_scripts[podman_quadlet_item.key] }}
   args:
     # White lie to only execute once before installing.
-    creates: "{{ _quadlet_path }}"
+    creates: "{{ _podman_quadlet_path }}"
     executable: "/bin/bash"
 
-- name: "Install quadlet {{ quadlet_item.key }}"
+- name: "Install quadlet {{ podman_quadlet_item.key }}"
   ansible.builtin.copy:
-    content: "{{ quadlet_item.value }}"
-    dest: "{{ _quadlet_path }}"
+    content: "{{ podman_quadlet_item.value }}"
+    dest: "{{ _podman_quadlet_path }}"
     owner: "root"
     mode: "0644"
-  register: _quadlet_unit_result
+  register: _podman_quadlet_unit_result
 
 - name: Find potential quadlet errors
-  when: _quadlet_unit_result.changed
+  when: _podman_quadlet_unit_result.changed
   ansible.builtin.command: "{{ podman_system_generator_path }} --dryrun"
   changed_when: false
   check_mode: false
 
-- name: "Restart quadlet {{ quadlet_item.key }}"
+- name: "Restart quadlet {{ podman_quadlet_item.key }}"
   ansible.builtin.systemd:
-    name: "{{ _quadlet_name }}.service"
-    daemon_reload: "{{ _quadlet_changed }}"
-    enabled: "{{ true if not _quadlet_is_template else omit }}"
-    state: "{{ omit if _quadlet_is_template
-      else 'restarted' if _quadlet_changed else 'started' }}"
+    name: "{{ _podman_quadlet_name }}.service"
+    daemon_reload: "{{ _podman_quadlet_changed }}"
+    enabled: "{{ true if not _podman_quadlet_is_template else omit }}"
+    state: "{{ omit if _podman_quadlet_is_template
+      else 'restarted' if _podman_quadlet_changed else 'started' }}"
   vars:
-    _quadlet_changed: "{{ _quadlet_unit_result.changed
-      or _quadlet_copy_results is not none and _quadlet_copy_results.changed }}"
-    _quadlet_is_template: "{{ '@' in _quadlet_name }}"
+    _podman_quadlet_changed: "{{ _podman_quadlet_unit_result.changed
+      or _podman_quadlet_copy_results is not none and _podman_quadlet_copy_results.changed }}"
+    _podman_quadlet_is_template: "{{ '@' in _podman_quadlet_name }}"

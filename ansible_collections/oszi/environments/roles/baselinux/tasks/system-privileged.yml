@@ -51,12 +51,13 @@
   with_dict: "{{ baselinux_sudoers_rules }}"
 
 - name: Ensure system mount points exist
-  ansible.builtin.file:
+  # Do not set permissions as they could be changed by the users.
+  ansible.builtin.file:  # noqa: risky-file-permissions
     path: "{{ item }}"
     state: "directory"
-  ignore_errors: true  # Could be fuse mount point.
+  # It could be a fuse mount point, not a directory.
+  ignore_errors: true  # noqa: ignore-errors
   with_items: "{{ baselinux_posix_mounts | map(attribute='path') }}"
-  tags: [skip_ansible_lint]
 
 - name: Create system mounts - fstab entries
   ansible.posix.mount:

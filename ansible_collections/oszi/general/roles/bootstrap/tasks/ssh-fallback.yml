@@ -9,13 +9,13 @@
   become: false
   connection: local
   check_mode: false
-  ignore_errors: true
-  register: _wait_for_ssh
+  ignore_errors: true  # noqa: ignore-errors
+  register: _bootstrap_wait_for_ssh_result
 
 - name: Fallback to the default SSH port otherwise
-  when: _wait_for_ssh is undefined or _wait_for_ssh.state is undefined
+  when: _bootstrap_wait_for_ssh_result is undefined or _bootstrap_wait_for_ssh_result.state is undefined
   ansible.builtin.set_fact:
-    ansible_port: "{{ bootstrap_ssh_port_fallback }}"
+    ansible_port: "{{ bootstrap_ssh_port_fallback }}"  # noqa: var-naming[no-role-prefix]
 
 - name: Check connectivity
   ansible.builtin.ping:
