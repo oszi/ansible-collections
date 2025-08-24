@@ -16,7 +16,7 @@ HostKey {{ item }}
 Subsystem sftp internal-sftp
 UsePAM yes
 UseDNS no
-{% if ssh_server_config_extra is not none %}
+{% if ssh_server_config_extra %}
 
-{{ ssh_server_config_extra }}
+{{ ssh_server_config_extra -}}
 {% endif %}
