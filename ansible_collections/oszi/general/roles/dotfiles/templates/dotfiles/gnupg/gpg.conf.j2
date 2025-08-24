@@ -1,5 +1,5 @@
 # {{ ansible_managed }}
-{% if dotfiles_gnupg_default_key is not none %}
+{% if dotfiles_gnupg_default_key %}
 default-key {{ dotfiles_gnupg_default_key }}
 default-recipient-self
 {% endif %}

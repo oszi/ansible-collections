@@ -2,7 +2,7 @@
 [user]
 name = {{ dotfiles_git_user_name }}
 email = {{ dotfiles_git_user_email }}
-{% if dotfiles_git_user_signingkey is not none %}
+{% if dotfiles_git_user_signingkey %}
 signingkey = {{ dotfiles_git_user_signingkey }}
 
 [commit]
@@ -15,7 +15,7 @@ format = ssh
 {% endif %}
 
 [core]
-{% if dotfiles_git_editor is not none %}
+{% if dotfiles_git_editor %}
 editor = {{ dotfiles_git_editor }}
 {% endif %}
 excludesfile = ~/.gitignore

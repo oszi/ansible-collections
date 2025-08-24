@@ -1,5 +1,5 @@
 # {{ ansible_managed }}
-{% if dotfiles_gnupg_dirmngr_keyserver is not none %}
+{% if dotfiles_gnupg_dirmngr_keyserver %}
 keyserver {{ dotfiles_gnupg_dirmngr_keyserver }}
 {% endif %}
 {% for item in dotfiles_gnupg_dirmngr_hkp_cacerts %}

@@ -1,5 +1,5 @@
 # {{ ansible_managed }}
-{% if dotfiles_gnupg_scdaemon_reader_port is not none %}
+{% if dotfiles_gnupg_scdaemon_reader_port %}
 reader-port {{ dotfiles_gnupg_scdaemon_reader_port }}
 {% endif %}
 {% if dotfiles_gnupg_scdaemon_disable_ccid %}

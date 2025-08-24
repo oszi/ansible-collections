@@ -1,11 +1,11 @@
 ---
 - name: Set system timezone
-  when: baselinux_timezone is not none
+  when: baselinux_timezone is truthy
   community.general.timezone:
     name: "{{ baselinux_timezone }}"
 
 - name: Set system locale
-  when: baselinux_set_locale is not none
+  when: baselinux_set_locale is truthy
   ansible.builtin.command: "/usr/bin/localectl set-locale {{ baselinux_set_locale }}"
   changed_when: false
 
