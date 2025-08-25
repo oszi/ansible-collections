@@ -4,9 +4,13 @@ podman_runtime: "/usr/bin/podman"
 
 # Path to install quadlet system units
 podman_quadlet_systemd_path: "/etc/containers/systemd"
-
 # Path to the podman-system-generator executable
 podman_system_generator_path: "/usr/lib/systemd/system-generators/podman-system-generator"
+
+# Systemd unit of the upstream podman-kube template service
+podman_kube_service: "podman-kube@.service"
+# Path to install PodSpec yaml files for podman-kube
+podman_kube_pods_path: "/etc/containers/pods"
 
 # Podman config paths
 podman_config_containers_path: "/etc/containers/containers.conf"
