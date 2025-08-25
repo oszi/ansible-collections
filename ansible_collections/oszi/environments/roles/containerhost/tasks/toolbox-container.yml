@@ -1,16 +1,4 @@
 ---
-- name: Ensure directory prefixes for container services
-  when: "containerhost_services | length > 0"
-  ansible.builtin.file:
-    dest: "{{ item }}"
-    state: "directory"
-    owner: "root"
-    group: "root"
-    mode: "0755"
-  with_items:
-    - "{{ containerhost_etc_path }}"
-    - "{{ containerhost_var_path }}"
-
 - name: Install toolbox-container scripts
   when: not containerhost_toolbox_container_disabled
   ansible.builtin.template:

@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Configure podman and container services on Linux."
+  description: "Deploy container services with podman."
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.16"
