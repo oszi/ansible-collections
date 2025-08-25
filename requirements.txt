@@ -1,6 +1,6 @@
 # apt/dnf install ansible python3-cryptography python3-jmespath python3-netaddr python3-psutil python3-yaml
 ansible
-ansible-core>=2.16
+ansible-core>=2.18.0
 ansible-lint
 cryptography
 jmespath
