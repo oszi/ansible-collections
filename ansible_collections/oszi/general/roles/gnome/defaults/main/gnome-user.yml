@@ -175,8 +175,7 @@ gnome_dconf_vars_default:
   # Tilix terminal settings
   /com/gexperts/Tilix/auto-hide-mouse: "true"
   /com/gexperts/Tilix/prompt-on-close: "true"
-  /com/gexperts/Tilix/quake-active-monitor: "true"
-  /com/gexperts/Tilix/quake-height-percent: "uint32 50"
+  /com/gexperts/Tilix/quake-height-percent: "40"
   /com/gexperts/Tilix/quake-hide-headerbar: "true"
   /com/gexperts/Tilix/keybindings/app-new-session: "'<Super>t'"
   /com/gexperts/Tilix/keybindings/app-new-window: "'<Super>n'"

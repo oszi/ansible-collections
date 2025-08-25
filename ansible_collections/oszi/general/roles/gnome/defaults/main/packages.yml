@@ -26,6 +26,7 @@ gnome_packages:
   - gnome-shell-extension-appindicator
   - gnome-tweaks
   - seahorse
+  - tilix
   - xdg-desktop-portal-gnome
 
 # Packages to remove from Gnome workstations (Fedora/Debian/Ubuntu):
