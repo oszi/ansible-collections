@@ -16,3 +16,6 @@ gnome_dconf_vars_extra:
   # Apple Magick KB: Emulate PrintScrn, Numpad with dot, lv3:ralt_alt (Shift+R_Alt) is patched as Compose Key.
   /org/gnome/desktop/input-sources/xkb-options: ['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']
   /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"
+  # Tilix Quake settings:
+  /com/gexperts/Tilix/quake-active-monitor: "false"  # X11-only even with XWayland
+  /com/gexperts/Tilix/quake-specific-monitor: "-1"   # -1 = Primary monitor

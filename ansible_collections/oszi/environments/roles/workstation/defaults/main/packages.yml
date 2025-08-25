@@ -31,7 +31,6 @@ workstation_packages_pt_default:
   - pcsc-tools
   - powertop
   - remmina
-  - tilix
   - wireshark
   - xclip
   - yubikey-manager
