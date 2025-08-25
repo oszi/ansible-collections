@@ -15,9 +15,9 @@ short_description: Generate wireguard public keys from private keys.
 description:
     - Generate wireguard public keys from private keys.
 options:
-_terms:
-    description: private key(s)
-    required: True
+    _terms:
+        description: private key(s)
+        required: True
 """
 
 display = Display()
@@ -31,7 +31,7 @@ class LookupModule(LookupBase):
         ret = []
         for term in terms:
             try:
-                pubkey = check_output_wg_pubkey(input=term).strip()
+                pubkey = check_output_wg_pubkey(input=term).rstrip()
                 ret.append(pubkey)
             except CalledProcessError as e:
                 raise AnsibleError("Command 'wg pubkey' returned non-zero exit status") from e
