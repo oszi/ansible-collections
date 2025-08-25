@@ -1,0 +1,23 @@
+---
+acme_account_key_passphrase: "{{ vault_acme_account_key_passphrase }}"
+acme_dns_provider: "cloudflare"
+acme_cloudflare_zone: "{{ cloudflare_dns_zone }}"
+acme_cloudflare_api_token: "{{ cloudflare_dns_api_token }}"
+
+# Ansible-native alternative to the certbot container service:
+acme_certificates:
+  - common_name: "jupyter.{{ acme_cloudflare_zone }}"
+    subject_alt_name: "DNS:jupyter.{{ acme_cloudflare_zone }},DNS:notebook.{{ acme_cloudflare_zone }}"
+    live_path: "{{ _containers_etc_path }}/jupyter/letsencrypt-ansible"
+    post_hook: |
+      openssl pkcs12 -export -inkey privkey.pem -in fullchain.pem -out cert.p12 -passout pass:
+      chown {{ _jupyter_uid }}:{{ _jupyter_uid }} cert.p12
+      chmod 0640 cert.p12
+    reload_cmd: "systemctl try-restart jupyter.service"
+    owner: "{{ _jupyter_uid }}"
+    group: "{{ _jupyter_uid }}"
+    remaining_days: 30
+
+## Example ACME revocation (deletes live_path!):
+# acme_revoke_paths:
+#   - "{{ _containers_etc_path }}/jupyter/letsencrypt-ansible"

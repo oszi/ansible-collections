@@ -1,6 +1,4 @@
 ---
-# See also: containers-common.yml
-
 _jupyter_uid: 280000
 _jupyter_ipv4: "{{ _containers_ip_range | ansible.utils.ipaddr('2') }}"
 
@@ -30,16 +28,26 @@ podman_quadlets:
     IP={{ _jupyter_ipv4 }}
     PodmanArgs=--memory=8G
 
-    Volume={{ containerhost_var_path }}/%N:/home/jovyan:rw,Z
-    Volume={{ containerhost_etc_path }}/%N/letsencrypt/archive:/etc/letsencrypt/archive:ro,U,Z
-    Volume={{ containerhost_etc_path }}/%N/letsencrypt/live:/etc/letsencrypt/live:ro,U,Z
+    Volume={{ _containers_var_path }}/%N:/home/jovyan:rw,Z
+    Volume={{ _containers_etc_path }}/%N/letsencrypt/archive:/etc/letsencrypt/archive:ro,U,Z
+    Volume={{ _containers_etc_path }}/%N/letsencrypt/live:/etc/letsencrypt/live:ro,U,Z
 
     Exec=start-notebook.py \
     --ServerApp.certfile=/etc/letsencrypt/live/jupyter/fullchain.pem \
     --ServerApp.keyfile=/etc/letsencrypt/live/jupyter/privkey.pem \
     --PasswordIdentityProvider.hashed_password={{ vault_jupyter_password_hash | quote }}
 
-    {{ _quadlet_container_service_common }}
+    DropCapability=ALL
+    AddCapability=CHOWN KILL NET_BIND_SERVICE
+    NoNewPrivileges=true
+    ReadOnly=true
+    ReadOnlyTmpfs=true
+    Tmpfs=/run:exec
+    AutoUpdate=local
+
+    [Service]
+    Restart=on-failure
+    RestartSec=10
 
     [Install]
     WantedBy=multi-user.target
@@ -47,14 +55,14 @@ podman_quadlets:
 podman_quadlets_init_scripts:
   jupyter.container: |
     HOST_USER={{ _jupyter_uid + 1000 }}:{{ _jupyter_uid + 100 }}
-    HOST_DATADIR={{ containerhost_var_path | quote }}/jupyter
+    HOST_DATADIR={{ _containers_var_path | quote }}/jupyter
 
     /usr/bin/mkdir -p -m 0750 ${HOST_DATADIR}
     /usr/bin/chown -R ${HOST_USER} ${HOST_DATADIR}
 
 podman_quadlets_copy_files:
   jupyter.container:
-    - dest: "{{ containerhost_etc_path }}/jupyter/letsencrypt/cli.ini"
+    - dest: "{{ _containers_etc_path }}/jupyter/letsencrypt/cli.ini"
       content: |
         {{ _container_certbot_cli_ini }}
         cert-name jupyter
@@ -62,12 +70,12 @@ podman_quadlets_copy_files:
       owner: "{{ _certbot_uid0 }}"
       mode: "0600"
 
-    - dest: "{{ containerhost_etc_path }}/jupyter/letsencrypt/cloudflare.ini"
+    - dest: "{{ _containers_etc_path }}/jupyter/letsencrypt/cloudflare.ini"
       content: "{{ _container_certbot_cloudflare_ini }}"
       owner: "{{ _certbot_uid0 }}"
       mode: "0600"
 
-    - dest: "{{ containerhost_etc_path }}/jupyter/firewall_lockdown.sh"
+    - dest: "{{ _containers_etc_path }}/jupyter/firewall_lockdown.sh"
       content: "{{ _container_firewall_lockdown_script_template }}"
       owner: "root"
       mode: "0700"
