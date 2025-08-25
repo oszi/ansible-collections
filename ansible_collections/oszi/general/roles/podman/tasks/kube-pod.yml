@@ -1,0 +1,63 @@
+---
+- name: Set podman-kube pod loop vars
+  ansible.builtin.set_fact:
+    _podman_kube_pod_path: "{{ podman_kube_pods_path }}/{{ podman_kube_pod_item.key }}.yml"
+    _podman_kube_copy_results: null  # Reset previous iteration.
+
+- name: Copy static files for the kube
+  when: podman_kube_pod_item.key in podman_kube_copy_files
+  block:
+    # Do not set permissions as they could be changed by the service.
+    - name: "Ensure directories exist for podman-kube pod {{ podman_kube_pod_item.key }}"
+      ansible.builtin.file:  # noqa: risky-file-permissions
+        path: "{{ item }}"
+        state: "directory"
+      with_items: "{{ podman_kube_copy_files[podman_kube_pod_item.key]
+        | map(attribute='dest') | map('dirname') | unique }}"
+
+    - name: "Copy static files for podman-kube pod {{ podman_kube_pod_item.key }}"
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        content: "{{ item.content | default(omit) }}"
+        src: "{{ item.src | default(omit) }}"
+        owner: "{{ item.owner | default(omit) }}"
+        group: "{{ item.group | default(item.owner | default(omit)) }}"
+        mode: "{{ item.mode | default(omit) }}"
+      with_items: "{{ podman_kube_copy_files[podman_kube_pod_item.key] }}"
+      register: _podman_kube_copy_results
+
+- name: "Run init script for podman-kube pod {{ podman_kube_pod_item.key }}"
+  when: podman_kube_pod_item.key in podman_kube_init_scripts
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    {{ podman_kube_init_scripts[podman_kube_pod_item.key] }}
+  args:
+    # White lie to only execute once before installing.
+    creates: "{{ _podman_kube_pod_path }}"
+    executable: "/bin/bash"
+
+- name: "Ensure directory for podman-kube pods exists"
+  ansible.builtin.file:
+    dest: "{{ podman_kube_pods_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0750"
+
+- name: "Install podman-kube pod {{ podman_kube_pod_item.key }}"
+  ansible.builtin.copy:
+    content: "{{ podman_kube_pod_item.value }}"
+    dest: "{{ _podman_kube_pod_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0640"
+  register: _podman_kube_pod_result
+
+- name: "Restart podman-kube pod {{ podman_kube_pod_item.key }}"
+  ansible.builtin.systemd:
+    name: "{{ lookup('oszi.general.systemd_escape', _podman_kube_pod_path, template=podman_kube_service) }}"
+    daemon_reload: "{{ _podman_kube_changed }}"
+    state: "{{ 'restarted' if _podman_kube_changed else 'started' }}"
+    enabled: true
+  vars:
+    _podman_kube_changed: "{{ _podman_kube_pod_result.changed
+      or _podman_kube_copy_results is not none and _podman_kube_copy_results.changed }}"
