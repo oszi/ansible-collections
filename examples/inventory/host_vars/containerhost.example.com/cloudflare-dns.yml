@@ -1,0 +1,16 @@
+---
+cloudflare_dns_zone: "example.com"
+cloudflare_dns_api_token: "{{ vault_cloudflare_dns_api_token }}"
+cloudflare_dns_host_record: "{{ inventory_hostname.split('.')[0] }}"
+
+cloudflare_dns_extra_a_records:
+  - record: jupyter
+    value: "{{ _jupyter_ipv4 }}"
+    solo: true
+    ttl: 3600
+
+cloudflare_dns_cname_records:
+  - record: notebook
+    value: "jupyter.{{ cloudflare_dns_zone }}"
+    solo: true
+    ttl: 3600
