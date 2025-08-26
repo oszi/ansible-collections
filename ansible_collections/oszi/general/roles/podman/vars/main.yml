@@ -7,10 +7,10 @@ podman_quadlet_systemd_path: "/etc/containers/systemd"
 # Path to the podman-system-generator executable
 podman_system_generator_path: "/usr/lib/systemd/system-generators/podman-system-generator"
 
-# Systemd unit of the upstream podman-kube template service
-podman_kube_service: "podman-kube@.service"
-# Path to install PodSpec yaml files for podman-kube
-podman_kube_pods_path: "/etc/containers/pods"
+# Systemd template unit of the upstream podman-kube service
+podman_kube_template_service: "podman-kube@.service"
+# Base path to install PodSpec files to - overridable with absolute paths
+podman_kube_pods_base_path: "/etc/containers/pods"
 
 # Podman config paths
 podman_config_containers_path: "/etc/containers/containers.conf"

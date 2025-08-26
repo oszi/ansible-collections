@@ -1,7 +1,7 @@
 ---
 - name: Set podman-kube pod loop vars
   ansible.builtin.set_fact:
-    _podman_kube_pod_path: "{{ podman_kube_pods_path }}/{{ podman_kube_pod_item.key }}.yml"
+    _podman_kube_pod_path: "{{ [podman_kube_pods_base_path, podman_kube_pod_item.key] | path_join }}"
     _podman_kube_copy_results: null  # Reset previous iteration.
 
 - name: Copy static files for the kube
@@ -36,25 +36,26 @@
     creates: "{{ _podman_kube_pod_path }}"
     executable: "/bin/bash"
 
-- name: "Ensure directory for podman-kube pods exists"
+- name: "Ensure directory for podman-kube PodSpec {{ podman_kube_pod_item.key }}"
   ansible.builtin.file:
-    dest: "{{ podman_kube_pods_path }}"
+    path: "{{ _podman_kube_pod_path | dirname }}"
+    state: "directory"
     owner: "root"
     group: "root"
-    mode: "0750"
+    mode: "0755"
 
-- name: "Install podman-kube pod {{ podman_kube_pod_item.key }}"
+- name: "Install podman-kube PodSpec {{ podman_kube_pod_item.key }}"
   ansible.builtin.copy:
     content: "{{ podman_kube_pod_item.value }}"
     dest: "{{ _podman_kube_pod_path }}"
     owner: "root"
     group: "root"
-    mode: "0640"
+    mode: "0644"
   register: _podman_kube_pod_result
 
 - name: "Restart podman-kube pod {{ podman_kube_pod_item.key }}"
   ansible.builtin.systemd:
-    name: "{{ lookup('oszi.general.systemd_escape', _podman_kube_pod_path, template=podman_kube_service) }}"
+    name: "{{ lookup('oszi.general.systemd_escape', _podman_kube_pod_path, template=podman_kube_template_service) }}"
     daemon_reload: "{{ _podman_kube_changed }}"
     state: "{{ 'restarted' if _podman_kube_changed else 'started' }}"
     enabled: true
