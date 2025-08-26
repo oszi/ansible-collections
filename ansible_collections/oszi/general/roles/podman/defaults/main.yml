@@ -26,19 +26,20 @@ podman_config_toolbox:
 # Keys: NAME.container / NAME.kube / NAME.pod / NAME.image / NAME.network / ...
 # https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
 podman_quadlets: {}
-# Map keys of quadlets to dicts of args for the builtin copy module.
-# Use this to copy configuration files before installing.
+# Map keys of quadlets to lists of dicts of args for the builtin copy module.
+# Use this to copy configuration files before installing. (See examples/inventory)
 podman_quadlets_copy_files: {}
 # Map keys of quadlets to inline shell scripts that run once before installing.
 # Use this for first-time setup - run with the builtin shell module with -euo pipefail.
 podman_quadlets_init_scripts: {}
 
-# Dict of kubernetes pods for podman-kube@.service. Map keys to yaml content.
-# Values must be strings, not native yaml. (Multiple yaml files are separated by ---)
+# Dict of kubernetes pods for podman-kube@.service. Map keys to PodSpec contents.
+# Keys must be relative paths to podman_kube_pods_base_path or absolute paths.
+# Values must be strings, not native yaml. Multiple yaml files (to include a ConfigMap) are separated by ---
 # Use podman-kube when quadlets are not available or undesirable.
 podman_kube_pods: {}
-# Map keys of podman-kube pods to dicts of args for the builtin copy module.
-# Use this to copy configuration files before installing.
+# Map keys of podman-kube pods to lists of dicts of args for the builtin copy module.
+# Use this to copy configuration files before installing. (See examples/inventory)
 podman_kube_copy_files: {}
 # Map keys of podman-kube pods to inline shell scripts that run once before installing.
 # Use this for first-time setup - run with the builtin shell module with -euo pipefail.

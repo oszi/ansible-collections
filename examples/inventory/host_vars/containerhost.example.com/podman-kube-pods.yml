@@ -8,7 +8,7 @@ _podman_kube_common_annotations: |-
   io.podman.annotations.publish-all/CONTAINER_NAME: "FALSE"
 
 podman_kube_pods:
-  proxy: |
+  proxy.yml: |
     ---
     apiVersion: v1
     kind: Pod
@@ -65,11 +65,11 @@ podman_kube_pods:
           name: tmpfs-run
 
 # podman_kube_init_scripts:
-#   proxy: |
+#   proxy.yml: |
 #     mkdir ...
 
 # podman_kube_copy_files:
-#   proxy:
+#   proxy.yml:
 #     - dest: "{{ _containers_etc_path }}/proxy/config"
 #       content: |
 #         ...
