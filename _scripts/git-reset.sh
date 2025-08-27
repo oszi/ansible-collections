@@ -27,9 +27,15 @@ fi
 UPSTREAM="${REMOTE}/${BRANCH}"
 fetch_opts+=("$REMOTE")
 
-COLOR_CLEAR="\033[0m"
-COLOR_RED="\033[31m"
-COLOR_YELLOW="\033[33m"
+if [[ -t 0 ]]; then
+    COLOR_CLEAR="\033[0m"
+    COLOR_RED="\033[31m"
+    COLOR_YELLOW="\033[33m"
+else
+    COLOR_CLEAR=""
+    COLOR_RED=""
+    COLOR_YELLOW=""
+fi
 
 answer_yes_or_exit() {
     echo -en "${COLOR_RED}${1}${COLOR_CLEAR} [y/N]" >&2
