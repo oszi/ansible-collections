@@ -7,11 +7,17 @@ cd -- "$(git rev-parse --show-toplevel)"
 GPG_KEY_ID="AFDE0AB3943D1FB3"
 GPG_IMPORT_URL="https://oszi.dev/oszi.dev.asc"
 
-COLOR_CLEAR="\033[0m"
-COLOR_RED="\033[31m"
-COLOR_GREEN="\033[32m"
+if [[ -t 0 ]]; then
+    COLOR_CLEAR="\033[0m"
+    COLOR_RED="\033[31m"
+    COLOR_GREEN="\033[32m"
+else
+    COLOR_CLEAR=""
+    COLOR_RED=""
+    COLOR_GREEN=""
+fi
 
-if ! gpg -k "$GPG_KEY_ID"; then
+if [[ -t 1 ]] && ! gpg -k "$GPG_KEY_ID"; then
     echo -en "Import GPG key: ${GPG_KEY_ID} from ${GPG_IMPORT_URL}? [y/N]" >&2
     read -r answer
     if [[ "$answer" =~ ^[Yy] ]]; then
