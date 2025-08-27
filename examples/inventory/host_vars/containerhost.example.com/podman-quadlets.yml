@@ -52,6 +52,25 @@ podman_quadlets:
     [Install]
     WantedBy=multi-user.target
 
+  kube-test.network: |
+    [Network]
+    Subnet=192.168.30.0/24
+    Gateway=192.168.30.1
+    Label=app=kube-test
+
+  kube-test.kube: |
+    [Unit]
+    Description=Kube Test Example
+
+    [Kube]
+    Yaml=kube-test-pod.yml
+    ConfigMap=kube-test-configmap.yml
+    Network=kube-test.network
+    PublishPort=1080:1080
+
+    [Install]
+    WantedBy=default.target
+
 podman_quadlets_init_scripts:
   jupyter.container: |
     HOST_USER={{ _jupyter_uid + 1000 }}:{{ _jupyter_uid + 100 }}
@@ -79,3 +98,22 @@ podman_quadlets_copy_files:
       content: "{{ _container_firewall_lockdown_script_template }}"
       owner: "root"
       mode: "0700"
+
+  kube-test.kube:
+    - dest: "{{ podman_quadlet_systemd_path }}/kube-test-pod.yml"
+      content: |
+        ---
+        apiVersion: v1
+        kind: Pod
+        ...
+      owner: "root"
+      mode: "0644"
+
+    - dest: "{{ podman_quadlet_systemd_path }}/kube-test-configmap.yml"
+      content: |
+        ---
+        apiVersion: v1
+        kind: ConfigMap
+        ...
+      owner: "root"
+      mode: "0644"
