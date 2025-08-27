@@ -28,7 +28,7 @@ latest_version="$(git describe --tags --abbrev=0 | grep -E '^[0-9]+\.[0-9]+\.[0-
     exit 4
 }
 
-change_log="$(git log --no-merges --pretty=format:"* %s" "${latest_version}..HEAD")"
+change_log="$(git log --no-merges --pretty=format:"* %h %s" "${latest_version}..HEAD")"
 [[ -n "$change_log" ]] || {
     echo "There are no commits since the latest version." >&2
     exit 4
@@ -75,7 +75,7 @@ new_version="${major}.${minor}.${patch}"
 new_version_spec="==${new_version}"
 
 [[ "${#collections_affected[@]}" -gt 0 ]] || {
-    git commit -n --allow-empty -m "Update repository version [${new_version}]" || exit 6
+    git commit -n --allow-empty -m "Bump repository version [${new_version}]" || exit 6
     git tag -s -m "Version ${new_version}" -m "${change_log}" -m "Collections updated: -" "${new_version}" || {
         git reset --quiet --soft HEAD~1
         exit 6
@@ -99,7 +99,7 @@ done
 
 git add -- */galaxy.yml
 
-git commit -n -m "Update galaxy versions [${new_version}]" -- */galaxy.yml || {
+git commit -n -m "Bump galaxy versions [${new_version}]" -- */galaxy.yml || {
     git reset --quiet HEAD -- */galaxy.yml
     git checkout --quiet HEAD -- */galaxy.yml
     exit 8
