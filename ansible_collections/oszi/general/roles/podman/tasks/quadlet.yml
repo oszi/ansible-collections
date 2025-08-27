@@ -1,7 +1,8 @@
 ---
 - name: Set quadlet loop vars
   ansible.builtin.set_fact:
-    _podman_quadlet_name: "{{ (podman_quadlet_item.key | basename).split('.')[0] }}"
+    _podman_quadlet_name: "{{ podman_quadlet_item.key.split('.', 2)[0] }}"
+    _podman_quadlet_type: "{{ podman_quadlet_item.key.split('.', 2)[1] }}"
     _podman_quadlet_path: "{{ podman_quadlet_systemd_path }}/{{ podman_quadlet_item.key }}"
     _podman_quadlet_copy_results: null  # Reset previous iteration.
 
@@ -52,14 +53,16 @@
   changed_when: false
   check_mode: false
 
-- name: "Restart quadlet {{ podman_quadlet_item.key }}"
+- name: "Enable or restart quadlet {{ podman_quadlet_item.key }}"
   ansible.builtin.systemd:
-    name: "{{ _podman_quadlet_name }}.service"
-    daemon_reload: "{{ _podman_quadlet_changed }}"
+    name: "{{ _podman_quadlet_service if not _podman_quadlet_is_template else omit }}"
     enabled: "{{ true if not _podman_quadlet_is_template else omit }}"
     state: "{{ omit if _podman_quadlet_is_template
       else 'restarted' if _podman_quadlet_changed else 'started' }}"
+    daemon_reload: "{{ _podman_quadlet_changed }}"
   vars:
     _podman_quadlet_changed: "{{ _podman_quadlet_unit_result.changed
       or _podman_quadlet_copy_results is not none and _podman_quadlet_copy_results.changed }}"
+    _podman_quadlet_service: "{{ _podman_quadlet_name }}{{ '-' + _podman_quadlet_type
+      if _podman_quadlet_type not in ['container', 'kube'] else '' }}.service"
     _podman_quadlet_is_template: "{{ '@' in _podman_quadlet_name }}"
