@@ -33,8 +33,10 @@ See the [examples](examples) for setting up an ansible inventory.
 
 ## Release policy
 
-The collections are always installed from source. There is no Ansible Galaxy release.  
-All collections are versioned as one and pinned for simplicity. See the [scripts](_scripts).  
+This repository uses lock-step semantic versioning with version pinning.  
+Only the affected collections are updated in a release; minor versions may be skipped.  
+Git tags are strictly incremental and contain all relevant release information.  
+The collections are always installed from source; there is no Ansible Galaxy release.  
 Obsolete backwards-compatibility support may be dropped at any time.
 
 Commits are signed by [AFDE0AB3943D1FB3](https://oszi.dev/oszi.dev.asc)
