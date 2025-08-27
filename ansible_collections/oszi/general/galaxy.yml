@@ -1,6 +1,8 @@
 ---
 namespace: oszi
 name: general
+
+# Versioned by _scripts/galaxy-release.sh
 version: "4.1.0"
 
 description: "Ansible collection for general, bite-sized, single-purpose roles."

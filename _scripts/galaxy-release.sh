@@ -1,8 +1,12 @@
 #!/bin/bash
-# Crude script to update the galaxy versions for a new release.
-# The collections are always installed from source. There is no Ansible Galaxy release.
-# There is no need for changelogs besides the git history as of yet.
-# All collections are versioned as one to make it simple.
+# Script to update the collection versions and git tags for a new release.
+# This repository uses lock-step semantic versioning with version pinning:
+# - Only the affected collections are updated in a release.
+# - Minor versions may be skipped but they are always sequential.
+# - Major versions are always in sync for every collection.
+# - Git tags are strictly incremental and contain all relevant release information.
+# The collections are always installed from source; there is no Ansible Galaxy release.
+# There are no galaxy changelogs - use the git history instead.
 set -euo pipefail
 
 if [[ ! "${1:-}" =~ ^(major|minor|patch)$ ]]; then
@@ -10,32 +14,55 @@ if [[ ! "${1:-}" =~ ^(major|minor|patch)$ ]]; then
     exit 2
 fi
 
-cd -- "$(git rev-parse --show-toplevel)/ansible_collections/oszi" || {
-    echo "Source 'ansible_collections/oszi' not found." >&2
+SEVERITY="$1"
+NAMESPACE="oszi"
+
+cd -- "$(git rev-parse --show-toplevel)/ansible_collections/${NAMESPACE}" || {
+    echo "Source 'ansible_collections/${NAMESPACE}' not found." >&2
     exit 1
 }
 
-old_version="$(grep -P -o -m1 "^version:\s*['\"]?\K[0-9]+\.[0-9]+\.[0-9]+" environments/galaxy.yml)" || {
-    echo "Current version unknown or invalid semver." >&2
+latest_version="$(git describe --tags --abbrev=0 | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')" || {
+    echo "Latest version unknown." >&2
     exit 4
 }
 
-changes="$(git log --no-merges --pretty=format:"* %s" "${old_version}...HEAD")"
-[[ -n "$changes" ]] || {
-    echo "There were no commits since the last version." >&2
+change_log="$(git log --no-merges --pretty=format:"* %s" "${latest_version}..HEAD")"
+[[ -n "$change_log" ]] || {
+    echo "There are no commits since the latest version." >&2
     exit 4
 }
 
-major="${old_version%%.*}"
-minor="${old_version#*.}"
+declare -a collections_all
+declare -a collections_affected
+
+# shellcheck disable=SC2011 # find instead of ls
+read -r -a collections_all -d '' < <(ls -- */galaxy.yml | xargs dirname --) ||:
+
+get_affected_collections() {
+    if [[ "$SEVERITY" == "major" ]]; then
+        printf '%s\n' "${collections_all[@]}"
+        return 0
+    fi
+
+    (git diff-tree -r --no-commit-id --name-only "${latest_version}..HEAD" \
+            && git diff --cached --name-only --diff-filter=ACM -- '*/galaxy.yml') \
+        | grep -E -o "^ansible_collections/${NAMESPACE}/[^/]+" \
+        | sort -u | xargs -r basename -a --
+}
+
+read -r -a collections_affected -d '' < <(get_affected_collections) ||:
+
+major="${latest_version%%.*}"
+minor="${latest_version#*.}"
 minor="${minor%%.*}"
-patch="${old_version##*.}"
+patch="${latest_version##*.}"
 
-if [[ "$1" == "major" ]]; then
+if [[ "$SEVERITY" == "major" ]]; then
     ((++major))
     minor=0
     patch=0
-elif [[ "$1" == "minor" ]]; then
+elif [[ "$SEVERITY" == "minor" ]]; then
     ((++minor))
     patch=0
 else
@@ -45,18 +72,39 @@ fi
 new_version="${major}.${minor}.${patch}"
 new_version_spec="==${new_version}"
 
-sed -i -E "s/^(version:).*\$/\1 \"${new_version}\"/g;\
-s/^(\s+['\"]?oszi\.\w+['\"]?:).*\$/\1 \"${new_version_spec}\"/g" -- */galaxy.yml
+[[ "${#collections_affected[@]}" -gt 0 ]] || {
+    git tag -s -m "Version ${new_version}" -m "${change_log}" -m "Collections updated: -" "${new_version}" || {
+        exit 8
+    }
+    echo "There are no affected collections. Not updating galaxy versions." >&2
+    exit 0
+}
+
+# Update pinned dependencies - affecting dependent collections...
+for collection_item in "${collections_affected[@]}"; do
+    sed -i -E "s/^(\s+['\"]?${NAMESPACE}\.${collection_item}['\"]?:).*\$/\1 \"${new_version_spec}\"/g" -- */galaxy.yml
+done
+
+git add -- */galaxy.yml
+read -r -a collections_affected -d '' < <(get_affected_collections) ||:
+
+for collection_item in "${collections_affected[@]}"; do
+    sed -i -E "s/^(version:).*\$/\1 \"${new_version}\"/g" -- "${collection_item}/galaxy.yml"
+done
 
 git add -- */galaxy.yml
 
-git commit -n -m "Bump galaxy versions [${new_version}]" -- */galaxy.yml || {
+git commit -n -m "Update galaxy versions [${new_version}]" -- */galaxy.yml || {
     git reset --quiet HEAD -- */galaxy.yml
     git checkout --quiet HEAD -- */galaxy.yml
     exit 8
 }
 
-git tag -s -m "Version ${new_version}" -m "${changes}" "${new_version}" || {
+change_log_collections="Collections updated:
+
+$(printf "* ${NAMESPACE}."'%s\n' "${collections_affected[@]}")"
+
+git tag -s -m "Version ${new_version}" -m "${change_log}" -m "${change_log_collections}" "${new_version}" || {
     git reset --quiet --soft HEAD~1
     git checkout --quiet HEAD -- */galaxy.yml
     exit 8

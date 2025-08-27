@@ -1,6 +1,8 @@
 ---
 namespace: oszi
 name: environments
+
+# Versioned by _scripts/galaxy-release.sh
 version: "4.1.0"
 
 description: "Ansible collection for personal, high-level environment roles."

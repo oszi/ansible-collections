@@ -1,6 +1,8 @@
 ---
 namespace: oszi
 name: thirdparty
+
+# Versioned by _scripts/galaxy-release.sh
 version: "4.1.0"
 
 description: "Ansible collection for software from third-party sources."
