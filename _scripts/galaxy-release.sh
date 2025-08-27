@@ -22,6 +22,7 @@ cd -- "$(git rev-parse --show-toplevel)/ansible_collections/${NAMESPACE}" || {
     exit 1
 }
 
+# Get the closest tag on the current branch. Supports backport branches.
 latest_version="$(git describe --tags --abbrev=0 | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')" || {
     echo "Latest version unknown." >&2
     exit 4
@@ -45,6 +46,7 @@ get_affected_collections() {
         return 0
     fi
 
+    # List changed files since the latest version and staged dependency updates in */galaxy.yml
     (git diff-tree -r --no-commit-id --name-only "${latest_version}..HEAD" \
             && git diff --cached --name-only --diff-filter=ACM -- '*/galaxy.yml') \
         | grep -E -o "^ansible_collections/${NAMESPACE}/[^/]+" \
@@ -73,14 +75,17 @@ new_version="${major}.${minor}.${patch}"
 new_version_spec="==${new_version}"
 
 [[ "${#collections_affected[@]}" -gt 0 ]] || {
+    git commit -n --allow-empty -m "Update repository version [${new_version}]" || exit 6
     git tag -s -m "Version ${new_version}" -m "${change_log}" -m "Collections updated: -" "${new_version}" || {
-        exit 8
+        git reset --quiet --soft HEAD~1
+        exit 6
     }
+
     echo "There are no affected collections. Not updating galaxy versions." >&2
     exit 0
 }
 
-# Update pinned dependencies - affecting dependent collections...
+# Update pinned dependencies - affects dependent collections...
 for collection_item in "${collections_affected[@]}"; do
     sed -i -E "s/^(\s+['\"]?${NAMESPACE}\.${collection_item}['\"]?:).*\$/\1 \"${new_version_spec}\"/g" -- */galaxy.yml
 done
