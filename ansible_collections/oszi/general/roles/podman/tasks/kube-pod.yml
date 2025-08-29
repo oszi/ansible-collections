@@ -62,3 +62,12 @@
   vars:
     _podman_kube_changed: "{{ _podman_kube_pod_result.changed
       or _podman_kube_copy_results is not none and _podman_kube_copy_results.changed }}"
+
+- name: "Run post-install script for podman-kube pod {{ podman_kube_pod_item.key }}"
+  when: _podman_kube_pod_result.changed and podman_kube_pod_item.key in podman_kube_post_install_scripts
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    {{ podman_kube_post_install_scripts[podman_kube_pod_item.key] }}
+  args:
+    executable: "/bin/bash"
+  changed_when: true

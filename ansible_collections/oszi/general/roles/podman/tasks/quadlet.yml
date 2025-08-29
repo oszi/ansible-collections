@@ -73,3 +73,12 @@
       %}-{{ _podman_quadlet_type }}{% endif %}.service"
     _podman_quadlet_changed: "{{ _podman_quadlet_unit_result.changed
       or _podman_quadlet_copy_results is not none and _podman_quadlet_copy_results.changed }}"
+
+- name: "Run post-install script for quadlet {{ podman_quadlet_item.key }}"
+  when: _podman_quadlet_unit_result.changed and podman_quadlet_item.key in podman_quadlets_post_install_scripts
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    {{ podman_quadlets_post_install_scripts[podman_quadlet_item.key] }}
+  args:
+    executable: "/bin/bash"
+  changed_when: true

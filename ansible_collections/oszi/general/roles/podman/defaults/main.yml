@@ -32,6 +32,9 @@ podman_quadlets_copy_files: {}
 # Map keys of quadlets to inline shell scripts that run once before installing.
 # Use this for first-time setup - run with the builtin shell module with -euo pipefail.
 podman_quadlets_init_scripts: {}
+# Map keys of quadlets to inline shell scripts that run after the systemd unit was changed.
+# Use this for post-install setup - run with the builtin shell module with -euo pipefail.
+podman_quadlets_post_install_scripts: {}
 
 # Dict of kubernetes pods for podman-kube@.service. Map keys to PodSpec contents.
 # Keys must be relative paths to podman_kube_pods_base_path or absolute paths.
@@ -44,6 +47,9 @@ podman_kube_copy_files: {}
 # Map keys of podman-kube pods to inline shell scripts that run once before installing.
 # Use this for first-time setup - run with the builtin shell module with -euo pipefail.
 podman_kube_init_scripts: {}
+# Map keys of podman-kube pods to inline shell scripts that run after the systemd unit was changed.
+# Use this for post-install setup - run with the builtin shell module with -euo pipefail.
+podman_kube_post_install_scripts: {}
 
 # Dict of podman networks: (Consider .network quadlets...)
 # * Items are args for containers.podman.podman_network
