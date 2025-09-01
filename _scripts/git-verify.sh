@@ -35,5 +35,5 @@ xargs_git() {
     fi
 }
 
-git branch -a --format='%(refname)' | grep -Ev '^\(' | xargs_git verify-commit
-git tag -l | xargs_git verify-tag
+git branch -a --format='%(refname)' | grep -Ev '^\(' | xargs_git verify-commit || exit 1
+git tag -l --sort=version:refname | xargs_git verify-tag || exit 1
