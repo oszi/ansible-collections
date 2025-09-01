@@ -24,7 +24,7 @@ else
     BRANCH="${1:-master}"
 fi
 
-UPSTREAM="${REMOTE}/${BRANCH}"
+REFERENCE="refs/remotes/${REMOTE}/${BRANCH}"
 fetch_opts+=("$REMOTE")
 
 if [[ -t 0 ]]; then
@@ -45,29 +45,39 @@ answer_yes_or_exit() {
     fi
 }
 
+exit_with_error() {
+    echo -e "${COLOR_RED}${1}${COLOR_CLEAR}" >&2
+    exit 1
+}
+
 print_section() {
     echo -e "${COLOR_YELLOW}${1}${COLOR_CLEAR}" >&2
 }
 
+print_section "git: Fetch ${REMOTE} [${fetch_opts[*]:0:${#fetch_opts[@]}-1}]"
+
 git fetch "${fetch_opts[@]}" \
-    || answer_yes_or_exit "git: remote fetch failed! Continue anyway?"
+    || answer_yes_or_exit "git: Remote fetch failed! Continue anyway?"
 
-print_section "Verify ${UPSTREAM}^..$(git log --oneline "${UPSTREAM}^..${UPSTREAM}" -- 2>/dev/null)"
+git show-ref --quiet --verify -- "${REFERENCE}" \
+    || exit_with_error "git: Branch not found: ${REFERENCE}"
 
-git verify-commit "$UPSTREAM" \
-    || answer_yes_or_exit "git: verify-commit failed! Continue anyway?"
+print_section "git: Verify commit $(git log --oneline "${REFERENCE}^..${REFERENCE}" -- 2>/dev/null)"
 
-print_section "Check working tree and local commits..."
+git verify-commit "$REFERENCE" \
+    || answer_yes_or_exit "git: Verify-commit failed! Continue anyway?"
+
+print_section "git: Check working tree and local commits..."
 
 [[ "$(git status -s | tee /dev/stderr)" = "" ]] \
-    || answer_yes_or_exit "git: working tree changes! Discard everything?"
+    || answer_yes_or_exit "git: Working tree changes! Discard everything?"
 
-[[ "$(git log --ignore-missing "${UPSTREAM}..${BRANCH}" -- | tee /dev/stderr)" = "" ]] \
-    || answer_yes_or_exit "git: local commits! Discard everything?"
+[[ "$(git log --ignore-missing "${REFERENCE}..${BRANCH}" -- | tee /dev/stderr)" = "" ]] \
+    || answer_yes_or_exit "git: Local commits! Discard everything?"
 
-print_section "Reset branch and clean up..."
+print_section "git: Reset branch and clean up..."
 
-git switch -fC "$BRANCH" "$UPSTREAM"
+git switch -fC "$BRANCH" "$REFERENCE"
 git submodule update --recursive --force --init --checkout
 
 if [[ "$force" -ne 0 ]]; then
