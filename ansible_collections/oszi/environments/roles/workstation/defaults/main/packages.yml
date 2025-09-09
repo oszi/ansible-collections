@@ -7,7 +7,6 @@ workstation_packages: "{{ workstation_packages_pt_default }}"
 
 # Fedora/Debian/Ubuntu defaults to include in workstation_packages:
 workstation_packages_pt_default:
-  - "{{ workstation_packages_pt_hardware if ansible_facts.virtualization_role != 'guest' else [] }}"
   - "{{ [
       'hunspell-en-gb',
       'hunspell-en-us',
@@ -22,6 +21,13 @@ workstation_packages_pt_default:
       'pcsc-lite',
     ] }}"
   # [All distributions]
+  - "{{ [
+      'ddccontrol',
+      'i2c-tools',
+      'ltunify',
+      'piper',
+    ]
+    if ansible_facts.virtualization_role != 'guest' else [] }}"
   - efitools
   - firewall-config
   - gamemode
@@ -35,23 +41,13 @@ workstation_packages_pt_default:
   - xclip
   - yubikey-manager
 
-# Fedora/Debian/Ubuntu hardware-related default packages:
-workstation_packages_pt_hardware:
-  - ddccontrol
-  - i2c-tools
-  - ltunify
-  - piper
-
 # Packages to remove from workstations (Fedora/Debian/Ubuntu):
 workstation_blacklisted_packages:
   - "{{ workstation_blacklisted_packages_pt_to_sandbox }}"
-  - "{{ workstation_blacklisted_packages_pt_imagemagick if ansible_facts.virtualization_role != 'guest' else [] }}"
   - "{{ workstation_blacklisted_packages_pt_office }}"
-  - "{{ workstation_packages_pt_hardware if ansible_facts.virtualization_role == 'guest' else [] }}"
   - apport  # Protect kernel.core_pattern on Debian/Ubuntu!
-  - peek  # Replaced by gnome-screenshot video.
 
-# Use the latest Chromium flatpak or snap with hardened configuration.
+# Use flatpak or snap with hardened configurations.
 # On Debian, the default firefox-esr cannot be removed without installing another browser.
 workstation_blacklisted_packages_pt_to_sandbox:
   - ['lxc', 'lxc-libs', 'liblxc-common']  # lxcbr0
@@ -64,16 +60,7 @@ workstation_blacklisted_packages_pt_to_sandbox:
   - firefox
   - gimp
   - steam
-  - transmission
   - wine
-
-workstation_blacklisted_packages_pt_imagemagick:
-  - ImageMagick
-  - imagemagick
-  - imagemagick-6-common
-  - GraphicsMagick
-  - graphicsmagick
-  - libgraphicsmagick-q16-3
 
 workstation_blacklisted_packages_pt_office:
   - evince
