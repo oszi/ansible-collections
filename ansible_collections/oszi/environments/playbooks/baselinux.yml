@@ -1,0 +1,7 @@
+---
+- name: Deploy baselinux
+  become: true
+  gather_facts: false
+  hosts: "{{ baselinux_hosts | default('all') }}"
+  roles:
+    - oszi.environments.baselinux
