@@ -182,31 +182,48 @@ def get_config_ssh_args() -> AnsibleSSHArgs:
 
 def get_inventory_ssh_args(app_args) -> AnsibleSSHArgs:
     cmd = ["ansible-inventory", "--yaml", "--host", app_args.host]
+    ansible_args = []
     if app_args.inventory:
-        cmd += ["-i", app_args.inventory]
+        ansible_args += ["-i", app_args.inventory]
     if app_args.vault_id:
-        cmd += ["--vault-id", app_args.vault_id]
+        ansible_args += ["--vault-id", app_args.vault_id]
     if app_args.vault_password_file:
-        cmd += ["--vault-password-file", app_args.vault_password_file]
+        ansible_args += ["--vault-password-file", app_args.vault_password_file]
     if app_args.ask_vault_password:
-        cmd += ["--ask-vault-password"]
+        ansible_args += ["--ask-vault-password"]
 
+    cmd.extend(ansible_args)
     hostvars = from_yaml(ansible_command(cmd))
-    ssh_args = AnsibleSSHArgs()
 
+    def get_hostvar(variable: str) -> str:
+        if not isinstance(hostvars[variable], str) or "{{" not in hostvars[variable]:
+            return str(hostvars[variable])
+
+        # A workaround for variables that are not interpolated by ansible-inventory itself.
+        # The debug module runs locally, no SSH connection will be established.
+        cmd = ["ansible", app_args.host, "--one-line", "-m", "ansible.builtin.debug", "-a", "var=" + variable]
+        cmd.extend(ansible_args)
+
+        output = ansible_command(cmd)
+        result_start = output.find("=> {") + 3
+        result_end = output.find("}", result_start) + 1
+        result = from_yaml(output[result_start:result_end], json_only=True)
+        return result[variable]
+
+    ssh_args = AnsibleSSHArgs()
     if "ansible_ssh_common_args" in hostvars:
-        ssh_args.ssh_common_args = shlex.split(hostvars["ansible_ssh_common_args"])
+        ssh_args.ssh_common_args = shlex.split(get_hostvar("ansible_ssh_common_args"))
     if "ansible_ssh_extra_args" in hostvars:
-        ssh_args.ssh_extra_args = shlex.split(hostvars["ansible_ssh_extra_args"])
+        ssh_args.ssh_extra_args = shlex.split(get_hostvar("ansible_ssh_extra_args"))
     if "ansible_port" in hostvars:
-        ssh_args.ssh_args += ["-p", str(hostvars["ansible_port"])]
+        ssh_args.ssh_args += ["-p", get_hostvar("ansible_port")]
 
     if "ansible_user" in hostvars:
-        ssh_args.user = hostvars["ansible_user"]
+        ssh_args.user = get_hostvar("ansible_user")
     if "ansible_ssh_private_key_file" in hostvars:
-        ssh_args.key_file = hostvars["ansible_ssh_private_key_file"]
+        ssh_args.key_file = get_hostvar("ansible_ssh_private_key_file")
     if "ansible_host" in hostvars:
-        ssh_args.host = hostvars["ansible_host"]
+        ssh_args.host = get_hostvar("ansible_host")
 
     return ssh_args
 
