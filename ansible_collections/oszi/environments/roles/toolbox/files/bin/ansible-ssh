@@ -206,7 +206,8 @@ def get_inventory_ssh_args(app_args) -> AnsibleSSHArgs:
 
         output = ansible_command(cmd)
         result_start = output.find("=> {") + 3
-        result_end = output.find("}", result_start) + 1
+        result_end = output.rfind("}") + 1
+        assert 0 + 3 < result_start < result_end  # ansible_command should have failed if this is false.
         result = from_yaml(output[result_start:result_end], json_only=True)
         return result[variable]
 
