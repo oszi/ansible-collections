@@ -17,6 +17,13 @@ if command -v chromium >/dev/null 2>&1; then
 fi
 
 if command -v ykman >/dev/null 2>&1; then
-    alias oath-list='ykman oath accounts list'
-    alias oath-code='ykman oath accounts code'
+    alias ykman-oath-list='ykman oath accounts list'
+    alias ykman-oath-code='_ykman_oath_code'
+    _ykman_oath_code() {
+        if [ -n "${1-}" ]; then
+            ykman oath accounts code "$1" | tee /dev/stderr | awk '{printf $(NF)}' | clip
+        else
+            ykman oath accounts code
+        fi
+    }
 fi
