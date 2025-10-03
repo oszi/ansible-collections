@@ -1,6 +1,4 @@
 # shellcheck shell=sh
-
-alias clip='xclip -i -selection clipboard'
 alias o='xdg-open'
 
 {% if not flatpak_disabled %}
@@ -25,14 +23,18 @@ if command -v chromium >/dev/null 2>&1; then
     alias chromium-x11='chromium --ozone-platform=x11'
 fi
 
+if command -v xclip >/dev/null 2>&1; then
+    alias clip='xclip -i -selection clipboard'
+fi
+
 if command -v ykman >/dev/null 2>&1; then
-    alias ykman-oath-list='ykman oath accounts list'
-    alias ykman-oath-code='_ykman_oath_code'
     _ykman_oath_code() {
-        if [ -n "${1-}" ]; then
-            ykman oath accounts code "$1" | tee /dev/stderr | awk '{printf $(NF)}' | clip
+        if command -v clip >/dev/null 2>&1; then
+            ykman oath accounts code "$@" | tee /dev/stderr | awk '{print $(NF)}' | clip
         else
-            ykman oath accounts code
+            ykman oath accounts code "$@"
         fi
     }
+
+    alias ykman-oath-code='_ykman_oath_code'
 fi
