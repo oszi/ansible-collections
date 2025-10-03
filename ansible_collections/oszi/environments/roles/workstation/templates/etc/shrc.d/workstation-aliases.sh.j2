@@ -12,8 +12,17 @@ fi
 
 {% endif %}
 {% endif %}
+if command -v google-chrome >/dev/null 2>&1; then
+    alias google-chrome-jitless='google-chrome --js-flags="--jitless"'
+    alias google-chrome-x11='google-chrome --ozone-platform=x11'
+    if ! command -v chromium >/dev/null 2>&1; then
+        alias chromium='google-chrome'
+    fi
+fi
+
 if command -v chromium >/dev/null 2>&1; then
     alias chromium-jitless='chromium --js-flags="--jitless"'
+    alias chromium-x11='chromium --ozone-platform=x11'
 fi
 
 if command -v ykman >/dev/null 2>&1; then
