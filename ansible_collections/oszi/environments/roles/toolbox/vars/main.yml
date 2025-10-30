@@ -1,1 +1,4 @@
 ---
+# Obsolete toolbox scripts to remove:
+toolbox_obsolete_scripts:
+  - "{{ toolbox_local_bin_path }}/ansible-playbook-localhost"

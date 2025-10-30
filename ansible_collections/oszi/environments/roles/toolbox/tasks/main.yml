@@ -12,3 +12,9 @@
         dest: "{{ toolbox_local_bin_path }}/"
         owner: "root"
         mode: "0755"
+
+    - name: Remove obsolete toolbox scripts
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "absent"
+      with_items: "{{ toolbox_obsolete_scripts }}"
