@@ -21,4 +21,8 @@ update versions: FORCE
 oszi.% playbooks/%: FORCE
 	$(ANSIBLE_PLAYBOOK) $(ANSIBLE_ARGS) $@
 
+# FORCE: collections/.git
+# collections/.git:
+# 	../_scripts/git-init.sh
+
 .PHONY: FORCE
