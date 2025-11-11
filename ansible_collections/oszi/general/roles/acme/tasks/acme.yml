@@ -1,5 +1,6 @@
 ---
 - name: Ensure python3-cryptography is present
+  when: acme_install_python3_cryptography
   ansible.builtin.package:
     name: "python3-cryptography"
     state: "present"

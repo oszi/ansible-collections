@@ -10,8 +10,8 @@
 #     openssl pkcs12 -export -inkey privkey.pem -in fullchain.pem -out cert.p12 -passout pass:
 #     chown 0:0 cert.p12 && chmod 0640 cert.p12
 #   reload_cmd: "systemctl try-restart something.service"
-#   owner: 0
-#   group: 0
+#   owner: 0  # or ansible_facts.user_id
+#   group: 0  # or ansible_facts.group_id
 # Files created in the live path:
 # * privkey.pem req.csr cert.pem fullchain.pem
 acme_certificates: []
@@ -25,14 +25,19 @@ acme_revoke_paths: []
 acme_reload: false
 acme_reload_ignore_errors: false
 
-# Path to the ACME account key - one per host:
-acme_account_key_path: "/etc/letsencrypt/account.pem"
 # Password to encrypt the account key (use vault):
 # WARNING: Changing the password here regenerates the account key!
 # Re-encrypt it manually if you want to rotate it.
 acme_account_key_passphrase: null
 # Optional account email to register:
 acme_account_email: null
+# Path to the ACME account key - one per host:
+acme_account_key_path: "{{ '/etc/letsencrypt/account.pem' if ansible_facts.user_id | int == 0
+  else '~/.letsencrypt/account.pem' }}"
+
+# Ensure python3-cryptography is installed?
+# Disable for a virtual environment or for running without root.
+acme_install_python3_cryptography: "{{ ansible_facts.user_id | int == 0 }}"
 
 # Days until expiration (usually 90) to renew a certificate.
 # * Specify the maximum (usually 90) to renew right now.
