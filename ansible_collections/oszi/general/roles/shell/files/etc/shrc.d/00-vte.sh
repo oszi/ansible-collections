@@ -1,6 +1,6 @@
 # Fix uninitialized VTE in non-login shells for VTE-based desktop terminals.
 # shellcheck shell=sh disable=SC1091 # not following input sources
-# shellcheck disable=SC3010,SC3044 # in POSIX [[ ]] and shopt are undefined
+# shellcheck disable=SC3010,SC3044,SC3062 # in POSIX [[ ]] and shopt are undefined
 
 if [ -n "${BASH_VERSION-}" ]; then
     if shopt -q login_shell; then
