@@ -1,4 +1,8 @@
 ---
+- name: Assert that acme_dns_provider is valid
+  ansible.builtin.assert:
+    that: "acme_dns_provider in ['cloudflare', 'route53']"
+
 - name: Ensure python3-cryptography is present
   when: acme_install_python3_cryptography
   ansible.builtin.package:
