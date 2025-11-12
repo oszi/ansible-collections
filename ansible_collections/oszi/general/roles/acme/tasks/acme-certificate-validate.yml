@@ -38,8 +38,8 @@
       ansible.builtin.file:
         path: "{{ acme_certificate_item.live_path }}/{{ item }}"
         state: "file"
-        owner: "{{ acme_certificate_item.owner }}"
-        group: "{{ acme_certificate_item.group }}"
+        owner: "{{ acme_certificate_item.owner | default(omit) }}"
+        group: "{{ acme_certificate_item.group | default(omit) }}"
         mode: "0640"
       with_items:
         - "cert.pem"

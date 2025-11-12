@@ -13,8 +13,7 @@
   ansible.builtin.file:
     path: "{{ acme_account_key_path | dirname }}"
     state: "directory"
-    owner: "root"
-    group: "root"
+    # owner: ansible_user or root
     mode: "0755"
 
 - name: Create ACME account key
@@ -23,8 +22,7 @@
     path: "{{ acme_account_key_path }}"
     passphrase: "{{ acme_account_key_passphrase }}"
     cipher: "auto"
-    owner: "root"
-    group: "root"
+    # owner: ansible_user or root
     mode: "0640"
 
 - name: Include ACME certificate tasks
