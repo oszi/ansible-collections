@@ -39,8 +39,10 @@ baselinux_udev_rules: {}
 # Dict of sudoers rules to install under /etc/sudoers.d/{{ item.key }}
 baselinux_sudoers_rules: {}
 
-# List of system packages to install:
+# List of packages to install on all Linux hosts:
 baselinux_extra_packages: []
+# List of packages to remove on all Linux hosts:
+baselinux_blacklisted_packages: []
 # List of dicts of options for ansible.posix.mount:
 # - {path: "/mnt/data", src: "UUID=...", fstype: "xfs", state: "present"}
 baselinux_posix_mounts: []

@@ -1,7 +1,17 @@
 ---
-- name: Ensure system packages are installed
+- name: Flatten package list variables
+  ansible.builtin.set_fact:
+    baselinux_extra_packages: "{{ baselinux_extra_packages | flatten }}"
+    baselinux_blacklisted_packages: "{{ baselinux_blacklisted_packages | flatten }}"
+
+- name: Ensure blacklisted packages are removed
   ansible.builtin.package:
-    name: "{{ baselinux_extra_packages | flatten }}"
+    name: "{{ baselinux_blacklisted_packages | flatten }}"
+    state: "absent"
+
+- name: Ensure extra packages are installed
+  ansible.builtin.package:
+    name: "{{ baselinux_extra_packages | difference(baselinux_blacklisted_packages) }}"
     state: "present"
 
 - name: "[Un]install QEMU guest agent"
