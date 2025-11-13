@@ -16,5 +16,5 @@ bootstrap_assert_that:
 
 # Update the default package manager cache after fact gathering?
 # * Useful to avoid having to specify cache_valid_time in apt package tasks.
-bootstrap_package_update_cache: "{{ ansible_facts.pkg_mgr == 'apt' }}"
+bootstrap_package_update_cache: "{{ ansible_facts.pkg_mgr == 'apt' and ansible_facts.user_uid | int == 0 }}"
 bootstrap_apt_cache_valid_time: 86400
