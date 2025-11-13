@@ -1,7 +1,7 @@
 ---
 - name: "Validate quadlet name {{ podman_quadlets_item.key }}"
   ansible.builtin.assert:
-    that: "podman_quadlets_item.key | regex_search('^[\\w.-]+@?\\.\\w+$')"
+    that: "podman_quadlets_item.key | regex_search('^[\\w:._-]+@?\\.\\w+$')"
 
 - name: Set podman quadlet loop vars
   ansible.builtin.set_fact:
