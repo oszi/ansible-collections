@@ -1,11 +1,12 @@
 ---
 # WARNING: The inventory must be designed for rootless mode!
-- name: Run rootless roles from dotfiles to containers
+- name: Deploy all rootless roles
   hosts: "{{ rootless_hosts | default('rootless') }}"
   become: false
   gather_facts: false
   roles:
     - oszi.general.bootstrap
+    - oszi.general.cloudflare_dns
     - oszi.general.dotfiles
     - oszi.general.acme
     - oszi.general.podman_kube
