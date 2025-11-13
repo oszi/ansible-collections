@@ -3,7 +3,7 @@
   community.general.flatpak_remote:
     name: "{{ item.key }}"
     flatpakrepo_url: "{{ item.value }}"
-    method: "system"
+    method: "{{ flatpak_method }}"
     state: "present"
   with_dict: "{{ flatpak_remotes }}"
 
@@ -11,26 +11,26 @@
   community.general.flatpak:
     name: "{{ item.key }}"
     remote: "{{ item.value }}"
-    method: "system"
+    method: "{{ flatpak_method }}"
     state: "present"
   with_dict: "{{ flatpak_apps }}"
 
 - name: Ensure blacklisted flatpak apps are not installed
   community.general.flatpak:
     name: "{{ item }}"
-    method: "system"
+    method: "{{ flatpak_method }}"
     state: "absent"
   with_items: "{{ flatpak_blacklisted_apps }}"
 
 - name: Ensure app flatpak overrides are set
   ansible.builtin.command: >-
-    flatpak override --system {% for option in item.value
+    flatpak override --{{ flatpak_method }} {% for option in item.value
     %} {{ option | quote }} {% endfor %} {{ item.key | quote }}
   with_dict: "{{ flatpak_app_overrides }}"
   changed_when: false
 
 - name: Ensure global flatpak overrides are set
   ansible.builtin.command: >-
-    flatpak override --system {% for option in flatpak_global_overrides
+    flatpak override --{{ flatpak_method }} {% for option in flatpak_global_overrides
     %} {{ option | quote }} {% endfor %}
   changed_when: false

@@ -3,6 +3,7 @@
   tags: [flatpak]
   block:
     - name: Ensure flatpak is present or absent
+      when: "flatpak_method == 'system'"
       ansible.builtin.package:
         name: "flatpak"
         state: "{{ flatpak_disabled | ternary('absent', 'present') }}"
