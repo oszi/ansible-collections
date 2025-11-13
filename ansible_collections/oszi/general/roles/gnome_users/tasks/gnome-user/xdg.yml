@@ -1,0 +1,19 @@
+---
+- name: "Ensure XDG_CONFIG_HOME exists for user:{{ gnome_users_item }}"
+  ansible.builtin.file:
+    path: "{{ gnome_users_info.home }}/{{ gnome_users_xdg_config_directory }}"
+    owner: "{{ gnome_users_info.uid }}"
+    group: "{{ gnome_users_info.group }}"
+    mode: "0750"
+    state: "directory"
+  register: _gnome_users_xdg_config_directory_result
+
+- name: "Install XDG user-dirs for user:{{ gnome_users_item }}"
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ _gnome_users_xdg_config_directory_result.path }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: "{{ gnome_users_info.uid }}"
+    group: "{{ gnome_users_info.group }}"
+    mode: "0640"
+  with_fileglob:
+    - "templates/home/config/user-dirs.*.j2"

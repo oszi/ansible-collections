@@ -1,16 +1,4 @@
 ---
-# List of desktop users to use as become_user to configure Gnome user settings.
-gnome_users: "{{ [ansible_user] if ansible_user | default('root') != 'root' else [] }}"
-
-# Use the gnome_user_item loop var for varying multi-user configurations...
-# With lookup tables: /org/gnome/...: "{{ user_dconf_vars[gnome_user_item]['/org/gnome/...'] }}"
-# or with jinja conditionals. (The gnome role does not support per-user inclusion.)
-
-# Override Gnome Screenshots and Screencasts directories by symlinking
-# gnome_screenshots_path to gnome_xdg_pictures_screenshots_path ($XDG_PICTURES_DIR)
-# and to gnome_xdg_videos_screencasts_path ($XDG_VIDEOS_DIR).
-gnome_screenshots_path:
-
 # Keep in mind that the dconf CLI tool, which this module wraps around, utilizes an unusual syntax
 # for the values (GVariant). For example, if you wanted to provide a string value, the correct syntax
 # would be value="'myvalue'" - with single quotes as part of the Ansible parameter value.
@@ -20,17 +8,19 @@ gnome_screenshots_path:
 # to the parameter variable can avoid potential conversion problems.
 
 # Friendly format for setting custom keyboard shortcuts:
-# Do NOT set custom keybindings in gnome_dconf_vars!
-gnome_dconf_custom_keybindings:
+# Do NOT set custom keybindings in gnome_users_dconf_vars!
+gnome_users_dconf_custom_keybindings: "{{ gnome_dconf_custom_keybindings }}"
+gnome_dconf_custom_keybindings:  # noqa: var-naming[no-role-prefix]
   custom0:
     binding: "'<Alt>Above_Tab'"
     command: "'env GDK_BACKEND=x11 tilix --quake'"
     name: "'Open Tilix'"
 
 # Dict of dconf settings. Set to override my personal defaults below...
-# Or combine them: {{ gnome_dconf_vars_default | combine(gnome_dconf_vars_extra) }}
-gnome_dconf_vars: "{{ gnome_dconf_vars_default }}"
-gnome_dconf_vars_default:
+# Or combine them: {{ gnome_users_dconf_vars_default | combine(gnome_users_dconf_vars_extra) }}
+gnome_users_dconf_vars: "{{ gnome_dconf_vars | default(gnome_users_dconf_vars_default) }}"
+gnome_users_dconf_vars_default: "{{ gnome_dconf_vars_default }}"
+gnome_dconf_vars_default:  # noqa: var-naming[no-role-prefix]
   # Apple Magick KB: Emulate PrintScrn, Numpad with dot, lv3:ralt_alt (Shift+R_Alt) is patched as Compose Key.
   /org/gnome/desktop/input-sources/xkb-options: ['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']
   /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"

@@ -2,16 +2,17 @@
 - name: Gnome setup tasks
   tags: [gnome]
   block:
-    - name: Gnome package setup tasks
-      ansible.builtin.import_tasks:
-        file: packages.yml
+    - name: Flatten package list variables
+      ansible.builtin.set_fact:
+        gnome_packages: "{{ gnome_packages | flatten }}"
+        gnome_blacklisted_packages: "{{ gnome_blacklisted_packages | flatten }}"
 
-    - name: Include Gnome user setup tasks
-      ansible.builtin.include_tasks:
-        file: gnome-user.yml
-        apply:
-          become: true
-          become_user: "{{ gnome_user_item }}"
-      loop: "{{ gnome_users | unique }}"
-      loop_control:
-        loop_var: gnome_user_item
+    - name: Ensure blacklisted packages are not installed
+      ansible.builtin.package:
+        name: "{{ gnome_blacklisted_packages }}"
+        state: "absent"
+
+    - name: Ensure Gnome packages are installed
+      ansible.builtin.package:
+        name: "{{ gnome_packages | difference(gnome_blacklisted_packages) }}"
+        state: "present"

@@ -12,3 +12,4 @@
     - oszi.general.podman_kube
     - oszi.general.podman_quadlets
     - oszi.general.flatpak
+    - oszi.general.gnome_users

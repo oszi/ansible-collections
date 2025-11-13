@@ -25,3 +25,4 @@ dependencies:
   - role: oszi.general.snap
   - role: oszi.general.chromium_policies
   - role: oszi.general.gnome
+  - role: oszi.general.gnome_users

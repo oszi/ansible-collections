@@ -1,0 +1,34 @@
+---
+- name: "Get info about user:{{ gnome_users_item }}"
+  ansible.builtin.user:
+    name: "{{ gnome_users_item }}"
+    state: "present"
+  # The user does not exist yet if changed!
+  register: gnome_users_info
+  check_mode: true
+
+- name: "Fail if the gnome user does not exist"
+  when: gnome_users_info.changed
+  ansible.builtin.fail:
+    msg: "{{ gnome_users_item }} user does not exist"
+
+- name: Install Gnome user themes
+  ansible.builtin.copy:
+    src: "home/themes/"
+    dest: "{{ gnome_users_info.home }}/.themes/"
+    owner: "{{ gnome_users_info.uid }}"
+    group: "{{ gnome_users_info.group }}"
+    mode: "0644"
+
+- name: Include Gnome dconf settings tasks
+  ansible.builtin.include_tasks:
+    file: gnome-user/dconf.yml
+
+- name: Include Gnome Screenshots and Screencasts linking tasks
+  when: gnome_users_screenshots_path is truthy
+  ansible.builtin.include_tasks:
+    file: gnome-user/screenshots.yml
+
+- name: Include Gnome XDG user-dirs tasks
+  ansible.builtin.include_tasks:
+    file: gnome-user/xdg.yml

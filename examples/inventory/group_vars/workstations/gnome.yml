@@ -2,20 +2,31 @@
 gnome_users: ["david"]
 
 # Friendly format for setting custom keyboard shortcuts:
-# Do NOT set custom keybindings in gnome_dconf_vars!
-gnome_dconf_custom_keybindings:
+# Do NOT set custom keybindings in gnome_users_dconf_vars!
+gnome_users_dconf_custom_keybindings:
   custom0:
     binding: "'<Alt>Above_Tab'"
     command: "'env GDK_BACKEND=x11 tilix --quake'"
     name: "'Open Tilix'"
 
 # See the defaults in oszi/general/roles/gnome/defaults/main/gnome-user.yml
-gnome_dconf_vars: "{{ gnome_dconf_vars_default | combine(gnome_dconf_vars_extra) }}"
-
-gnome_dconf_vars_extra:
+gnome_users_dconf_vars: "{{ gnome_users_dconf_vars_default | combine(gnome_users_dconf_vars_extra) }}"
+gnome_users_dconf_vars_extra:
   # Apple Magick KB: Emulate PrintScrn, Numpad with dot, lv3:ralt_alt (Shift+R_Alt) is patched as Compose Key.
   /org/gnome/desktop/input-sources/xkb-options: ['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']
   /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"
   # Tilix Quake settings:
   /com/gexperts/Tilix/quake-active-monitor: "false"  # X11-only even with XWayland
   /com/gexperts/Tilix/quake-specific-monitor: "-1"   # -1 = Primary monitor
+
+# XDG user-dirs shell-escaped, homedir-relative paths:
+# * man xdg-user-dir
+gnome_users_xdg_user_dirs:
+  desktop: "$HOME/Desktop"
+  download: "$HOME/Downloads"
+  documents: "$HOME/Documents"
+  music: "$HOME/Music"
+  pictures: "$HOME/Pictures"
+  videos: "$HOME/Videos"
+  # templates: "$HOME/Templates"
+  # publicshare: "$HOME/Public"

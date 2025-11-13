@@ -1,0 +1,14 @@
+---
+# List of users to use as become_user to configure Gnome (become if gnome_users_item != ansible_user):
+# noqa: var-naming[no-role-prefix]
+gnome_users: "{{ [ansible_user] if ansible_user | default('root') != 'root'
+  and 'workstations' in group_names else [] }}"
+
+# Use the gnome_users_item loop var for varying multi-user configurations...
+# With lookup tables: /org/gnome/...: "{{ user_dconf_vars[gnome_users_item]['/org/gnome/...'] }}"
+# or with jinja conditionals. (The gnome role does not support per-user inclusion.)
+
+# Override Gnome Screenshots and Screencasts directories by symlinking
+# gnome_users_screenshots_path to gnome_users_xdg_pictures_screenshots_path ($XDG_PICTURES_DIR)
+# and to gnome_users_xdg_videos_screencasts_path ($XDG_VIDEOS_DIR).
+gnome_users_screenshots_path: "{{ gnome_screenshots_path | default(None) }}"

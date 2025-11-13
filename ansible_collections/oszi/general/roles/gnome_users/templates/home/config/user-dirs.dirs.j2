@@ -7,6 +7,6 @@
 # homedir-relative path, or XDG_xxx_DIR="/yyy", where /yyy is an
 # absolute path. No other format is supported.
 
-{% for key, value in workstation_xdg_user_dirs.items() %}
+{% for key, value in gnome_users_xdg_user_dirs.items() %}
 XDG_{{ key | upper }}_DIR="{{ value }}"
 {% endfor %}

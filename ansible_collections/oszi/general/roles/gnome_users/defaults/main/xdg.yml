@@ -1,11 +1,8 @@
 ---
-# List of users to apply XDG user-dirs settings for.
-# * oszi.general.gnome is a dependency of oszi.environments.workstation.
-workstation_xdg_users: "{{ gnome_users }}"
-
 # XDG user-dirs shell-escaped, homedir-relative paths:
 # * man xdg-user-dir
-workstation_xdg_user_dirs:
+gnome_users_xdg_user_dirs: "{{ workstation_xdg_user_dirs | default(gnome_users_xdg_user_dirs_default) }}"
+gnome_users_xdg_user_dirs_default:
   desktop: "$HOME/Desktop"
   download: "$HOME/Downloads"
   templates: "$HOME/Templates"
@@ -15,4 +12,5 @@ workstation_xdg_user_dirs:
   pictures: "$HOME/Pictures"
   videos: "$HOME/Videos"
 
-workstation_xdg_user_dirs_locale: "en_US"
+# Contents of user-dirs.locale for directory naming
+gnome_users_xdg_user_dirs_locale: "{{ workstation_xdg_user_dirs_locale | default('en_US') }}"

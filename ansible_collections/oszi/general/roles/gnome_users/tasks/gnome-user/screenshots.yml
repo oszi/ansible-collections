@@ -1,0 +1,34 @@
+---
+- name: Ensure alternative Screenshots directory exists
+  ansible.builtin.file:
+    path: "{{ gnome_users_screenshots_path }}"
+    state: "directory"
+    owner: "{{ gnome_users_info.uid }}"
+    group: "{{ gnome_users_info.group }}"
+    mode: "0750"
+
+- name: Check original Gnome Screenshots directory
+  ansible.builtin.stat:
+    path: "{{ gnome_users_xdg_pictures_screenshots_path | dirname }}"
+  register: _gnome_users_xdg_pictures_screenshots_path_result
+
+- name: Override Gnome Screenshots directory with a symlink
+  when: _gnome_users_xdg_pictures_screenshots_path_result.stat.exists
+  ansible.builtin.file:
+    src: "{{ gnome_users_screenshots_path }}"
+    dest: "{{ gnome_users_xdg_pictures_screenshots_path }}"
+    force: true
+    state: "link"
+
+- name: Check original Gnome Screencasts directory
+  ansible.builtin.stat:
+    path: "{{ gnome_users_xdg_videos_screencasts_path | dirname }}"
+  register: _gnome_users_xdg_videos_screencasts_path_result
+
+- name: Override Gnome Screencasts directory with a symlink
+  when: _gnome_users_xdg_videos_screencasts_path_result.stat.exists
+  ansible.builtin.file:
+    src: "{{ gnome_users_screenshots_path }}"
+    dest: "{{ gnome_users_xdg_videos_screencasts_path }}"
+    force: true
+    state: "link"
