@@ -42,30 +42,38 @@
     creates: "{{ _podman_quadlets_path }}"
     executable: "/bin/bash"
 
+- name: "Ensure systemd directory exists for quadlet {{ podman_quadlets_item.key }}"
+  ansible.builtin.file:
+    dest: "{{ _podman_quadlets_path | dirname }}"
+    state: "directory"
+    # owner: ansible_user or root
+    mode: "0755"
+
 - name: "Install quadlet {{ podman_quadlets_item.key }}"
   ansible.builtin.copy:
     content: "{{ podman_quadlets_item.value }}"
     dest: "{{ _podman_quadlets_path }}"
-    owner: "root"
-    group: "root"
+    # owner: ansible_user or root
     mode: "0644"
   register: _podman_quadlets_unit_result
 
 - name: Find potential quadlet errors
   when: _podman_quadlets_unit_result.changed
-  ansible.builtin.command: "{{ podman_quadlets_system_generator_path }} --dryrun"
+  ansible.builtin.command: "{{ podman_quadlets_system_generator_dryrun }}"
   changed_when: false
   check_mode: false
 
 - name: "Reload systemd for quadlet {{ podman_quadlets_item.key }}"
   when: _podman_quadlets_unit_result.changed  # Whether it is a template or not.
   ansible.builtin.systemd:
+    scope: "{{ podman_quadlets_systemd_scope }}"
     daemon_reload: true
 
 - name: "Enable or restart quadlet {{ podman_quadlets_item.key }}"
   when: "not _podman_quadlets_name.endswith('@')"
   ansible.builtin.systemd:
     name: "{{ _podman_quadlets_service }}"
+    scope: "{{ podman_quadlets_systemd_scope }}"
     state: "{{ 'restarted' if _podman_quadlets_changed else 'started' }}"
     enabled: true
   vars:

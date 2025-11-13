@@ -3,7 +3,7 @@
   tags: [podman, podman-quadlets]
   block:
     - name: Install podman quadlets
-      when: not podman_disabled
+      when: "not podman_disabled | default(false)"
       ansible.builtin.include_tasks:
         file: quadlet.yml
       loop: "{{ podman_quadlets | dict2items }}"

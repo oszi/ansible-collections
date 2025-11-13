@@ -1,6 +1,11 @@
 ---
 # Path to install quadlet system units
-podman_quadlets_systemd_path: "/etc/containers/systemd"
+podman_quadlets_systemd_path: "{{ '/etc/containers/systemd' if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.config/containers/systemd' }}"
 
-# Path to the podman-system-generator executable
-podman_quadlets_system_generator_path: "/usr/lib/systemd/system-generators/podman-system-generator"
+# Command to run podman-system-generator in dry-run mode
+podman_quadlets_system_generator_dryrun: "/usr/lib/systemd/system-generators/podman-system-generator{%
+  if ansible_facts.user_uid | int > 0 %} -user{% endif %} -dryrun"
+
+# Systemd scope for systemd module calls (one of system, user, global)
+podman_quadlets_systemd_scope: "{{ 'system' if ansible_facts.user_uid | int == 0 else 'user' }}"

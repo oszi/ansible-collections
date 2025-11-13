@@ -40,22 +40,21 @@
   ansible.builtin.file:
     path: "{{ _podman_kube_pod_path | dirname }}"
     state: "directory"
-    owner: "root"
-    group: "root"
+    # owner: ansible_user or root
     mode: "0755"
 
 - name: "Install podman-kube PodSpec {{ podman_kube_pod_item.key }}"
   ansible.builtin.copy:
     content: "{{ podman_kube_pod_item.value }}"
     dest: "{{ _podman_kube_pod_path }}"
-    owner: "root"
-    group: "root"
+    # owner: ansible_user or root
     mode: "0644"
   register: _podman_kube_pod_result
 
 - name: "Restart podman-kube pod {{ podman_kube_pod_item.key }}"
   ansible.builtin.systemd:
     name: "{{ lookup('oszi.general.systemd_escape', _podman_kube_pod_path, template=podman_kube_template_service) }}"
+    scope: "{{ podman_kube_systemd_scope }}"
     daemon_reload: "{{ _podman_kube_changed }}"
     state: "{{ 'restarted' if _podman_kube_changed else 'started' }}"
     enabled: true
