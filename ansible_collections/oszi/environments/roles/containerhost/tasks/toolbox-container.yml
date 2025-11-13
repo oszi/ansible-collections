@@ -14,4 +14,5 @@
   when: containerhost_toolbox_container_pull
   containers.podman.podman_image:
     name: "{{ containerhost_toolbox_container_image }}"
+    executable: "{{ containerhost_runtime }}"
     state: "present"

@@ -14,7 +14,7 @@
 
 - name: Ensure toolbox is installed - containertoolbx.org
   ansible.builtin.package:
-    name: "{{ (ansible_facts.os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
+    name: "{{ podman_toolbox_package }}"
     state: "{{ podman_toolbox_enabled | ternary('present', 'absent') }}"
 
 - name: Change default podman graphroot?
@@ -78,16 +78,6 @@
     group: "root"
     mode: "0755"
 
-- name: Import podman-docker setup tasks
+- name: Import podman-docker tasks
   ansible.builtin.import_tasks:
     file: podman-docker.yml
-
-- name: Configure podman networks
-  containers.podman.podman_network:
-  args: "{{ item.value | combine({'name': item.key}) }}"
-  with_dict: "{{ podman_networks }}"
-
-- name: Manage podman images
-  containers.podman.podman_image:
-  args: "{{ item }}"
-  with_items: "{{ podman_images }}"

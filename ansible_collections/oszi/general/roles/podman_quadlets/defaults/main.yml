@@ -1,0 +1,17 @@
+---
+# Dicts of podman quadlets. Map keys to unit contents.
+# Keys: NAME.container / NAME.kube / NAME.pod / NAME.image / NAME.network / ...
+# https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
+podman_quadlets: {}  # noqa: var-naming[no-role-prefix]
+
+# Map keys of quadlets to lists of dicts of args for the builtin copy module.
+# Use this to copy configuration files before installing. (See examples/inventory)
+podman_quadlets_copy_files: {}
+
+# Map keys of quadlets to inline shell scripts that run once before installing.
+# Use this for first-time setup - run with the builtin shell module with -euo pipefail.
+podman_quadlets_init_scripts: {}
+
+# Map keys of quadlets to inline shell scripts that run after the systemd unit was changed.
+# Use this for post-install setup - run with the builtin shell module with -euo pipefail.
+podman_quadlets_post_install_scripts: {}

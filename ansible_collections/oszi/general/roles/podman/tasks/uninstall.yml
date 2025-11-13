@@ -2,6 +2,7 @@
 - name: Ensure podman is NOT installed
   ansible.builtin.package:
     name:
+      - "{{ podman_toolbox_package }}"
       - "podman"
       - "podman-compose"
       - "podman-docker"

@@ -5,8 +5,9 @@
 - name: Update podman images and containers
   tags: [podman]
   vars:
+    podman_executable: "podman"
     podman_image_list: >-
-      {{ podman_runtime }} image list
+      {{ podman_executable }} image list
       --format='{{ '{{.Repository}}#{{.Tag}}#{{.Id}}' }}'
       --filter=dangling=false
       | grep -v '<none>' | sort ||:
@@ -14,7 +15,7 @@
   block:
     - name: Dump podman info
       when: "ansible_verbosity > 1"
-      ansible.builtin.command: "{{ podman_runtime }} info"
+      ansible.builtin.command: "{{ podman_executable }} info"
       changed_when: false
       check_mode: false
 
@@ -33,7 +34,7 @@
       ansible.builtin.shell: |
         set -uo pipefail
         awk -F'#' '{print $1":"$2}' \
-          | xargs {{ podman_runtime }} pull --quiet >/dev/null
+          | xargs {{ podman_executable }} pull --quiet >/dev/null
         rc=$?
         {{ podman_image_list }}
         exit $rc
@@ -55,12 +56,12 @@
 
     - name: Auto update containers
       ansible.builtin.command: >-
-        {{ podman_runtime }} auto-update
+        {{ podman_executable }} auto-update
         --format="{{ '{{.Container}}#{{.Image}}#updated={{.Updated}}' }}"
       register: _podman_auto_update_result
       changed_when: "'#updated=true' in _podman_auto_update_result.stdout"
 
     - name: Prune dangling images
-      ansible.builtin.command: "{{ podman_runtime }} image prune --force"
+      ansible.builtin.command: "{{ podman_executable }} image prune --force"
       register: _podman_prune_result
       changed_when: "_podman_prune_result.stdout is truthy"

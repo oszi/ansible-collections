@@ -1,0 +1,6 @@
+---
+# Path to install quadlet system units
+podman_quadlets_systemd_path: "/etc/containers/systemd"
+
+# Path to the podman-system-generator executable
+podman_quadlets_system_generator_path: "/usr/lib/systemd/system-generators/podman-system-generator"

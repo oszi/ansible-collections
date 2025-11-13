@@ -1,0 +1,16 @@
+---
+- name: Podman-quadlets tasks
+  tags: [podman, podman-quadlets]
+  block:
+    - name: Install podman quadlets
+      when: not podman_disabled
+      ansible.builtin.include_tasks:
+        file: quadlet.yml
+      loop: "{{ podman_quadlets | dict2items }}"
+      loop_control:
+        loop_var: podman_quadlets_item
+
+    - name: Podman-quadlets role completed
+      ansible.builtin.debug:
+        msg: prevent-multiple-inclusions
+      no_log: true

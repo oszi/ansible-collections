@@ -7,27 +7,10 @@
       ansible.builtin.include_tasks:
         file: podman.yml
 
-    - name: Install podman quadlets
+    - name: Include podman deployment tasks
       when: not podman_disabled
       ansible.builtin.include_tasks:
-        file: quadlet.yml
-        apply:
-          tags: [quadlet]
-      loop: "{{ podman_quadlets | dict2items }}"
-      loop_control:
-        loop_var: podman_quadlet_item
-      tags: [quadlet]
-
-    - name: Install podman-kube pods
-      when: not podman_disabled
-      ansible.builtin.include_tasks:
-        file: kube-pod.yml
-        apply:
-          tags: [podman-kube]
-      loop: "{{ podman_kube_pods | dict2items }}"
-      loop_control:
-        loop_var: podman_kube_pod_item
-      tags: [podman-kube]
+        file: deploy.yml
 
     - name: Include podman uninstall tasks
       when: podman_disabled

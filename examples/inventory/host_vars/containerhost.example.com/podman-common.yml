@@ -33,56 +33,6 @@ podman_config_containers: |
 
 _certbot_uid0: 130000
 
-_quadlet_container_certbot: |
-  [Unit]
-  Description=LetsEncrypt with CloudFlare DNS
-
-  [Container]
-  Image=docker.io/certbot/dns-cloudflare
-  Exec=certonly --config /etc/letsencrypt/cli.ini
-  Volume={{ _containers_etc_path }}/%i/letsencrypt:/etc/letsencrypt:rw,U,Z
-
-  UIDMap=0:{{ _certbot_uid0 }}:65536
-  GIDMap=0:{{ _certbot_uid0 }}:65536
-  DropCapability=ALL
-  NoNewPrivileges=true
-  PodmanArgs=--memory=256M
-
-  [Service]
-  Type=oneshot
-  RemainAfterExit=false
-  Restart=on-failure
-  RestartSec=10
-
-  [Install]
-  WantedBy=multi-user.target
-
-_quadlet_container_toolbox_firewall: |
-  [Unit]
-  Description=Ad-hoc firewall rules for containers
-
-  [Container]
-  Image={{ containerhost_toolbox_container_image }}
-  Exec=/mnt/firewall_lockdown.sh
-  Volume={{ _containers_etc_path }}/%i/firewall_lockdown.sh:/mnt/firewall_lockdown.sh:ro,Z
-
-  Network=container:systemd-%i
-  {% if ansible_facts.virtualization_role == 'guest' %}
-  PodmanArgs=--privileged
-  {% else %}
-  DropCapability=ALL
-  AddCapability=NET_ADMIN
-  {% endif %}
-
-  [Service]
-  Type=oneshot
-  RemainAfterExit=false
-  Restart=on-failure
-  RestartSec=1
-
-  [Install]
-  WantedBy=multi-user.target
-
 _container_certbot_cli_ini: |
   agree-tos
   non-interactive

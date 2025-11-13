@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Deploy container services with podman."
+  description: "Deploy podman quadlets on Linux."
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.18.0"
@@ -16,14 +16,6 @@ galaxy_info:
       versions: [all]
 
   galaxy_tags:
-    - environments
+    - general
     - linux
     - containers
-
-dependencies:
-  - role: oszi.environments.baselinux
-  - role: oszi.general.podman
-    vars:
-      podman_config_toolbox: "{{ containerhost_podman_config_toolbox }}"
-  - role: oszi.general.podman_kube
-  - role: oszi.general.podman_quadlets
