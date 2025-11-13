@@ -13,3 +13,4 @@ Ansible collection for personal, high-level environment roles.
 - **toolbox** - Baselinux and DevOps tools (CLI). It can be built as a container image.
 - **workstation** - Baselinux, Gnome, Flatpak, etc, and workstation-specific tweaks.  
   The workstation playbook also includes **containerhost** and **toolbox**.
+- **rootless** - A playbook of roles that support rootless mode - from dotfiles to containers.
