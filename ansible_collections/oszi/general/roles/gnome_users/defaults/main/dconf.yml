@@ -9,18 +9,20 @@
 
 # Friendly format for setting custom keyboard shortcuts:
 # Do NOT set custom keybindings in gnome_users_dconf_vars!
-gnome_users_dconf_custom_keybindings: "{{ gnome_dconf_custom_keybindings }}"
-gnome_dconf_custom_keybindings:  # noqa: var-naming[no-role-prefix]
+gnome_users_dconf_custom_keybindings:
   custom0:
     binding: "'<Alt>Above_Tab'"
     command: "'env GDK_BACKEND=x11 tilix --quake'"
     name: "'Open Tilix'"
 
+# Use the gnome_users_item loop var for varying multi-user configurations...
+# With lookup tables: /org/gnome/...: "{{ user_dconf_vars[gnome_users_item]['/org/gnome/...'] }}"
+# or with jinja conditionals.
+
 # Dict of dconf settings. Set to override my personal defaults below...
 # Or combine them: {{ gnome_users_dconf_vars_default | combine(gnome_users_dconf_vars_extra) }}
-gnome_users_dconf_vars: "{{ gnome_dconf_vars | default(gnome_users_dconf_vars_default) }}"
-gnome_users_dconf_vars_default: "{{ gnome_dconf_vars_default }}"
-gnome_dconf_vars_default:  # noqa: var-naming[no-role-prefix]
+gnome_users_dconf_vars: "{{ gnome_users_dconf_vars_default }}"
+gnome_users_dconf_vars_default:
   # Apple Magick KB: Emulate PrintScrn, Numpad with dot, lv3:ralt_alt (Shift+R_Alt) is patched as Compose Key.
   /org/gnome/desktop/input-sources/xkb-options: ['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']
   /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"

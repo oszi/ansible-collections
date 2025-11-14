@@ -1,8 +1,7 @@
 ---
 # XDG user-dirs shell-escaped, homedir-relative paths:
 # * man xdg-user-dir
-gnome_users_xdg_user_dirs: "{{ workstation_xdg_user_dirs | default(gnome_users_xdg_user_dirs_default) }}"
-gnome_users_xdg_user_dirs_default:
+gnome_users_xdg_user_dirs:
   desktop: "$HOME/Desktop"
   download: "$HOME/Downloads"
   templates: "$HOME/Templates"
@@ -13,4 +12,4 @@ gnome_users_xdg_user_dirs_default:
   videos: "$HOME/Videos"
 
 # Contents of user-dirs.locale for directory naming
-gnome_users_xdg_user_dirs_locale: "{{ workstation_xdg_user_dirs_locale | default('en_US') }}"
+gnome_users_xdg_user_dirs_locale: "en_US"
