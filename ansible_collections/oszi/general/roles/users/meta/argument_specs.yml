@@ -1,0 +1,77 @@
+---
+argument_specs:
+  main:
+    short_description: User and group account management
+    description:
+      - Manages system users and groups with customizable properties
+      - Configures sudo permissions including passwordless sudo
+      - Supports UID/GID specification and group membership
+      - Allows password hash configuration for user authentication
+    author:
+      - oszi
+    options:
+      users_groups:
+        description:
+          - Dictionary of groups to create with optional properties
+          - Keys are group names, values are dicts with name, system, and gid options
+          - Use combine filter to build final groups from inventory parts
+        type: dict
+        required: false
+        default: {}
+        options:
+          system:
+            description: Whether this is a system group
+            type: bool
+            required: false
+          gid:
+            description: Specific group ID to use
+            type: int
+            required: false
+
+      users_users:
+        description:
+          - Dictionary of users to create with optional properties
+          - Keys are usernames, values are dicts with user configuration
+          - Use combine filter with list_merge='append_rp' for group list merging
+        type: dict
+        required: false
+        default: {}
+        options:
+          group:
+            description: Primary group name
+            type: str
+            required: false
+          groups:
+            description: List of supplementary groups
+            type: list
+            elements: str
+            required: false
+          password:
+            description: Password hash for user authentication
+            type: str
+            required: false
+          shell:
+            description: Login shell path
+            type: str
+            required: false
+          home:
+            description: Home directory path
+            type: str
+            required: false
+          system:
+            description: Whether this is a system user
+            type: bool
+            required: false
+          uid:
+            description: Specific user ID to use
+            type: int
+            required: false
+
+      users_sudo_nopasswd_groups:
+        description:
+          - List of group names that should have passwordless sudo access
+          - Members of these groups can run sudo commands without password prompt
+        type: list
+        elements: str
+        required: false
+        default: []

@@ -1,0 +1,30 @@
+---
+argument_specs:
+  main:
+    short_description: GNOME desktop environment packages and configuration
+    description:
+      - Manages GNOME desktop packages and extensions
+      - Removes unwanted GNOME applications and games
+      - Configures GNOME Shell extensions and tools
+      - Supports Fedora, Debian, and Ubuntu distributions
+    author:
+      - oszi
+    options:
+      gnome_packages:
+        description:
+          - Nested list of GNOME packages to install
+          - Includes distribution-specific packages for extensions and tools
+          - Contains GNOME Shell, control center, extensions, and utilities
+        type: list
+        elements: raw
+        required: false
+
+      gnome_blacklisted_packages:
+        description:
+          - List of GNOME packages to remove from workstations
+          - Includes unwanted applications like Boxes, Connections, Music, Photos
+          - Removes pre-installed games on Debian-based systems
+          - Contains Fedora-specific packages like chromium configs
+        type: list
+        elements: raw
+        required: false

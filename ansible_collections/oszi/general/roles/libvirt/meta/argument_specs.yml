@@ -1,0 +1,136 @@
+---
+argument_specs:
+  main:
+    short_description: Libvirt virtualization platform management
+    description:
+      - Manages libvirt/QEMU/KVM virtualization infrastructure
+      - Configures virtual machines, networks, and storage pools
+      - Installs virtualization packages including virt-manager and guestfs-tools
+      - Provides utility scripts for VM management
+    author:
+      - oszi
+    options:
+      libvirt_disabled:
+        description:
+          - Whether to skip libvirt setup and configuration
+          - Automatically disabled when host is a virtualization guest
+          - Set to false to enable nested virtualization
+        type: bool
+        required: false
+        default: "{{ ansible_facts.virtualization_role == 'guest' }}"
+
+      libvirt_local_bin_path:
+        description:
+          - Directory path for local libvirt utility scripts and executables
+        type: str
+        required: false
+        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+
+      libvirt_packages:
+        description:
+          - List of libvirt/QEMU packages and tools to install
+          - Distribution-specific packages for Fedora, Debian, and Ubuntu
+          - Includes GUI tools (virt-manager), guestfs utilities, and architecture support
+        type: list
+        elements: raw
+        required: false
+
+      libvirt_domains:
+        description:
+          - List of virtual machine (domain) configurations
+          - Each entry contains arguments for community.libvirt.virt module
+          - Warning - Most libvirt commands are not idempotent, use with caution
+        type: list
+        elements: dict
+        required: false
+        default: []
+        options:
+          command:
+            description: Libvirt domain command (define, create, destroy, etc.)
+            type: str
+            required: false
+          xml:
+            description: Domain XML definition (use virsh dumpxml --migratable domain)
+            type: str
+            required: false
+          state:
+            description: Desired state of the domain
+            type: str
+            required: false
+            choices: ['running', 'shutdown', 'destroyed', 'paused']
+          uri:
+            description: Libvirt connection URI
+            type: str
+            required: false
+          autostart:
+            description: Whether domain should autostart on host boot
+            type: bool
+            required: false
+
+      libvirt_networks:
+        description:
+          - List of virtual network configurations
+          - Each entry contains arguments for community.libvirt.virt_net module
+          - Warning - Most libvirt commands are not idempotent, use with caution
+        type: list
+        elements: dict
+        required: false
+        default: []
+        options:
+          command:
+            description: Libvirt network command
+            type: str
+            required: false
+          xml:
+            description: Network XML definition
+            type: str
+            required: false
+          state:
+            description: Desired state of the network
+            type: str
+            required: false
+            choices: ['active', 'inactive', 'present', 'absent']
+          uri:
+            description: Libvirt connection URI
+            type: str
+            required: false
+          autostart:
+            description: Whether network should autostart on host boot
+            type: bool
+            required: false
+
+      libvirt_pools:
+        description:
+          - List of storage pool configurations
+          - Each entry contains arguments for community.libvirt.virt_pool module
+          - Warning - Most libvirt commands are not idempotent, use with caution
+        type: list
+        elements: dict
+        required: false
+        default: []
+        options:
+          command:
+            description: Libvirt storage pool command
+            type: str
+            required: false
+          xml:
+            description: Storage pool XML definition
+            type: str
+            required: false
+          mode:
+            description: Filesystem mode for the pool directory
+            type: str
+            required: false
+          state:
+            description: Desired state of the storage pool
+            type: str
+            required: false
+            choices: ['active', 'inactive', 'present', 'absent']
+          uri:
+            description: Libvirt connection URI
+            type: str
+            required: false
+          autostart:
+            description: Whether pool should autostart on host boot
+            type: bool
+            required: false
