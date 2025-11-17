@@ -11,4 +11,4 @@ gnome_users: "{{ [ansible_user] if ansible_user | default('root') != 'root'
 # Override Gnome Screenshots and Screencasts directories by symlinking
 # gnome_users_screenshots_path to gnome_users_xdg_pictures_screenshots_path ($XDG_PICTURES_DIR)
 # and to gnome_users_xdg_videos_screencasts_path ($XDG_VIDEOS_DIR).
-gnome_users_screenshots_path: null
+gnome_users_screenshots_path: ""

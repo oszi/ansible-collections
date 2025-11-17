@@ -10,7 +10,7 @@ borgmatic_version: ">=1.9.10,<2.0.0"
 # Target directory or remote repository!
 borgmatic_repository: "/var/lib/borg-{{ inventory_hostname }}"
 # Passphrase for symmetric encryption!
-borgmatic_passphrase:
+borgmatic_passphrase: ""
 # List of directories to backup:
 borgmatic_sources: ["/etc", "/home", "/opt", "/root"]
 # Patterns to exclude from backups:

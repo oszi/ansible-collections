@@ -28,9 +28,9 @@ acme_reload_ignore_errors: false
 # Password to encrypt the account key (use vault):
 # WARNING: Changing the password here regenerates the account key!
 # Re-encrypt it manually if you want to rotate it.
-acme_account_key_passphrase: null
+acme_account_key_passphrase: ""
 # Optional account email to register:
-acme_account_email: null
+acme_account_email: ""
 # Path to the ACME account key - one per host:
 acme_account_key_path: "{{ '/etc/letsencrypt/account.pem' if ansible_facts.user_uid | int == 0
   else '~/.letsencrypt/account.pem' }}"
@@ -52,9 +52,9 @@ acme_api_version: 2
 acme_dns_provider: "cloudflare"
 
 # CloudFlare API token with DNS edit permission (use vault):
-acme_cloudflare_api_token: "{{ cloudflare_dns_api_token | default(None) }}"
+acme_cloudflare_api_token: "{{ cloudflare_dns_api_token | default('') }}"
 # Zone/domain for CloudFlare DNS records
-acme_cloudflare_zone: "{{ cloudflare_dns_zone | default(None) }}"
+acme_cloudflare_zone: "{{ cloudflare_dns_zone | default('') }}"
 
 # AWS Route53 hosted zone
-acme_route53_zone: null
+acme_route53_zone: ""

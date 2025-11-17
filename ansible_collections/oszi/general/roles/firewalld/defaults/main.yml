@@ -5,7 +5,7 @@ firewalld_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
 # Override the firewalld default zone?
 # Upstream default: public
 # Fedora: FedoraWorkstation / FedoraServer
-firewalld_default_zone: null
+firewalld_default_zone: ""
 
 # Accepted services for firewalld besides SSH
 # * May contain dicts with zone/service

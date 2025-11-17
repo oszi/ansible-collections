@@ -1,6 +1,6 @@
 ---
 - name: Set host public IPv4 and IPv6 records in CloudFlare
-  when: cloudflare_dns_host_record is not none
+  when: cloudflare_dns_host_record is truthy
   block:
     - name: Set cloudflare_dns_host_record_a_value
       when: cloudflare_dns_host_record_a_value is none
@@ -47,7 +47,7 @@
     type: "CNAME"
     zone: "{{ cloudflare_dns_zone }}"
     record: "{{ item.record if item is mapping else item }}"
-    value: "{{ item.value | default((cloudflare_dns_host_record + '.' if cloudflare_dns_host_record is not none
+    value: "{{ item.value | default((cloudflare_dns_host_record + '.' if cloudflare_dns_host_record is truthy
       else '') + cloudflare_dns_zone + '.') }}"
     proxied: "{{ item.proxied | default(cloudflare_dns_host_proxied) }}"
     ttl: "{{ item.ttl | default(omit) }}"

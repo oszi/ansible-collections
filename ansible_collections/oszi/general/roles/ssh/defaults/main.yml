@@ -15,7 +15,7 @@ ssh_authorized_keys_immutable: false
 # Override the distro sshd_config?
 ssh_server_config_overridable: true
 # Extra lines for sshd_config
-ssh_server_config_extra:
+ssh_server_config_extra: ""
 # List of SSH allowed users
 ssh_allow_users: []
 

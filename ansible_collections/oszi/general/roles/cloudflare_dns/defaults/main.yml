@@ -1,16 +1,16 @@
 ---
 # CloudFlare API token with DNS edit permission (use vault!)
-cloudflare_dns_api_token: "{{ undef('cloudflare_dns_api_token is undefined') }}"
+cloudflare_dns_api_token: ""
 # Zone/domain for CloudFlare DNS records
-cloudflare_dns_zone: "{{ undef('cloudflare_dns_zone is undefined') }}"
+cloudflare_dns_zone: ""
 
 # Automatic A/AAAA records from ansible_host or ansible_facts.default_ipv4/6.address
-cloudflare_dns_host_record: null  # e.g. "{{ inventory_hostname.split('.')[0] }}"
+cloudflare_dns_host_record: ""  # e.g. "{{ inventory_hostname.split('.')[0] }}"
 cloudflare_dns_host_proxied: false
 cloudflare_dns_host_solo: true
 # Set the values manually instead of inferring them automatically:
-cloudflare_dns_host_record_a_value: null
-cloudflare_dns_host_record_aaaa_value: null
+cloudflare_dns_host_record_a_value: ""
+cloudflare_dns_host_record_aaaa_value: ""
 
 # List of CNAMEs (default value: cloudflare_dns_host_record):
 # - {record: "@", value: "github.io", proxied: true}

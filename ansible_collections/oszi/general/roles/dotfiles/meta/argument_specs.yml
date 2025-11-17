@@ -106,7 +106,7 @@ argument_specs:
       dotfiles_gnupg_dirmngr_keyserver:
         description:
           - Keyserver URL for GnuPG dirmngr (socket activated user service)
-          - Set to hkp://localhost to disable keyserver, null for distribution default
+          - Set to hkp://localhost to disable keyservers, empty for distribution default
         type: str
         required: false
         default: "hkps://keys.openpgp.org"
