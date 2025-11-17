@@ -13,30 +13,36 @@
   block:
     - name: Set dconf custom keybindings - binding attr
       community.general.dconf:
-        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/{{ item.key }}/binding"
-        value: "{{ item.value['binding'] }}"
+        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/binding"
+        value: "{{ item['binding'] }}"
         state: "present"
-      with_dict: "{{ gnome_users_dconf_custom_keybindings }}"
+      loop: "{{ gnome_users_dconf_custom_keybindings }}"
+      loop_control:
+        index_var: index
 
     - name: Set dconf custom keybindings - command attr
       community.general.dconf:
-        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/{{ item.key }}/command"
-        value: "{{ item.value['command'] }}"
+        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/command"
+        value: "{{ item['command'] }}"
         state: "present"
-      with_dict: "{{ gnome_users_dconf_custom_keybindings }}"
+      loop: "{{ gnome_users_dconf_custom_keybindings }}"
+      loop_control:
+        index_var: index
 
     - name: Set dconf custom keybindings - name attr
       community.general.dconf:
-        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/{{ item.key }}/name"
-        value: "{{ item.value['name'] }}"
+        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/name"
+        value: "{{ item['name'] }}"
         state: "present"
-      with_dict: "{{ gnome_users_dconf_custom_keybindings }}"
+      loop: "{{ gnome_users_dconf_custom_keybindings }}"
+      loop_control:
+        index_var: index
 
     - name: Generate dconf custom keybindings key-map helper yaml
       ansible.builtin.set_fact:
         _gnome_users_dconf_custom_keybindings_key_map_yaml: |-
-          {% for key in gnome_users_dconf_custom_keybindings.keys() %}
-          - '{{ gnome_users_dconf_custom_keybindings_prefix }}/{{ key }}/'
+          {% for index in range(gnome_users_dconf_custom_keybindings | length) %}
+          - '{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/'
           {% endfor %}
 
     - name: Set dconf custom keybindings key-map helper

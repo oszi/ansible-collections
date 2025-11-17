@@ -18,7 +18,8 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: "{{ [ansible_user] if ansible_user | default('root') != 'root' and 'workstations' in group_names else [] }}"
+        default: "{{ [ansible_user] if ansible_user | default('root') != 'root'
+          and 'workstations' in group_names else [] }}"
 
       gnome_users_screenshots_path:
         description:
@@ -31,9 +32,25 @@ argument_specs:
         description:
           - List of dictionaries of custom keyboard shortcuts
           - Each value is a dict with binding, command, and name options
+          - String values must be quoted like "'myvalue'" due to GVariant syntax
           - Do not set custom keybindings in gnome_users_dconf_vars directly
-        type: dict
+        type: list
+        elements: dict
         required: false
+        options:
+          binding:
+            description: Key combination in GVariant string format (e.g., "'<Alt>Above_Tab'")
+            type: str
+            required: true
+          command:
+            description: Shell command to execute when shortcut is triggered in GVariant string format
+              (e.g., "'env GDK_BACKEND=x11 tilix --quake'")
+            type: str
+            required: true
+          name:
+            description: Human-readable name for the keyboard shortcut in GVariant string format
+            type: str
+            required: true
 
       gnome_users_dconf_vars:
         description:

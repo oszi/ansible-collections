@@ -4,8 +4,7 @@ gnome_users: ["david"]
 # Friendly format for setting custom keyboard shortcuts:
 # Do NOT set custom keybindings in gnome_users_dconf_vars!
 gnome_users_dconf_custom_keybindings:
-  custom0:
-    binding: "'<Alt>Above_Tab'"
+  - binding: "'<Alt>Above_Tab'"
     command: "'env GDK_BACKEND=x11 tilix --quake'"
     name: "'Open Tilix'"
 
