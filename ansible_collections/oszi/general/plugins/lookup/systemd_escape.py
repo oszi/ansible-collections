@@ -51,14 +51,14 @@ options:
            Like --escape, but only escape characters that are obviously not escaped yet, and possibly automatically
            append an appropriate unit type suffix to the string. May not be used in conjunction with --suffix=,
            --template= or --unescape.
-        type: string
+        type: boolean
         required: False
     instance:
         description: >-
             With --unescape, unescape and print only the instance part of an instantiated unit name template. Results
             in an error for an uninstantiated template like ssh@.service or a non-template name like ssh.service. Must
             be used in conjunction with --unescape and may not be used in conjunction with --template.
-        type: string
+        type: boolean
         required: False
 """
 
