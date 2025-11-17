@@ -1,0 +1,50 @@
+---
+argument_specs:
+  main:
+    short_description: Visual Studio Code installation from Microsoft
+    description:
+      - Manages Visual Studio Code installation from Microsoft's official repository
+      - Manages package sources for Debian and RPM-based systems
+      - Supports custom repository mirrors
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      vscode_enabled:
+        description:
+          - Whether to install Visual Studio Code or uninstall it
+          - Disabled by default
+        type: bool
+        required: false
+        default: false
+
+      vscode_rpm_baseurl:
+        description:
+          - Base URL for the Visual Studio Code RPM repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://packages.microsoft.com/yumrepos/vscode"
+
+      vscode_deb_baseurl:
+        description:
+          - Base URL for the Visual Studio Code Debian/Ubuntu repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://packages.microsoft.com/repos/code"
+
+      vscode_deb_arch:
+        description:
+          - Comma-separated list of Debian repository architectures to enable
+        type: str
+        required: false
+        default: "amd64"
+
+      vscode_microsoft_gpgkey_used_elsewhere:
+        description:
+          - Whether the Microsoft GPG key is used by other repositories
+          - When false and Visual Studio Code is disabled, the Microsoft GPG key will be removed
+          - Set to true if other Microsoft products are installed (e.g., Azure CLI, PowerShell)
+        type: bool
+        required: false
+        default: false

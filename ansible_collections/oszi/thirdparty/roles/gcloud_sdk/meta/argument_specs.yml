@@ -1,0 +1,102 @@
+---
+argument_specs:
+  main:
+    short_description: Google Cloud SDK installation
+    description:
+      - Manages Google Cloud SDK installation from official repositories
+      - Manages package sources for Debian and RPM-based systems
+      - Optionally installs App Engine components, emulators, kubectl and minikube
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      gcloud_sdk_enabled:
+        description:
+          - Whether to install or uninstall Google Cloud SDK
+          - Defaults to true only on Google Cloud Platform (detected by system_vendor)
+        type: bool
+        required: false
+        default: "{{ ansible_facts.system_vendor == 'Google' }}"
+
+      gcloud_sdk_app_engine_enabled:
+        description:
+          - Whether to install or uninstall Google Cloud SDK App Engine components
+          - Includes language-specific App Engine packages
+        type: bool
+        required: false
+        default: false
+
+      gcloud_sdk_emulators_enabled:
+        description:
+          - Whether to install or uninstall Google Cloud SDK emulator components
+          - Includes emulators for Bigtable, Datastore, Firestore, Pub/Sub, and Spanner
+        type: bool
+        required: false
+        default: false
+
+      gcloud_sdk_minikube_enabled:
+        description:
+          - Whether to install or uninstall minikube from Google Cloud
+        type: bool
+        required: false
+        default: false
+
+      gcloud_sdk_kubectl_enabled:
+        description:
+          - Whether to install kubectl from official repositories
+          - WARNING - Conflicts with distribution-provided kubectl packages
+        type: bool
+        required: false
+        default: false
+
+      gcloud_sdk_emulators_packages:
+        description:
+          - List of all available Google Cloud SDK emulator package names
+          - Installed when gcloud_sdk_emulators_enabled is true
+        type: list
+        elements: str
+        required: false
+
+      gcloud_sdk_app_engine_packages:
+        description:
+          - List of all available App Engine runtime package names
+          - Installed when gcloud_sdk_app_engine_enabled is true
+        type: list
+        elements: str
+        required: false
+
+      gcloud_sdk_rpm_baseurl:
+        description:
+          - Base URL for the Google Cloud SDK RPM repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://packages.cloud.google.com/yum/repos/cloud-sdk-el9-$basearch"
+
+      gcloud_sdk_deb_baseurl:
+        description:
+          - Base URL for the Google Cloud SDK Debian/Ubuntu repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://packages.cloud.google.com/apt"
+
+      gcloud_sdk_local_bin_path:
+        description:
+          - Directory path for local gcloud utility scripts
+        type: path
+        required: false
+        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+
+      gcloud_sdk_kubectl_bash_completion_path:
+        description:
+          - System path for kubectl bash completion script
+        type: path
+        required: false
+        default: "/etc/bash_completion.d/kubectl"
+
+      gcloud_sdk_kubectl_zsh_completion_path:
+        description:
+          - System path for kubectl zsh completion script
+        type: path
+        required: false
+        default: "/usr/local/share/zsh/site-functions/_kubectl"

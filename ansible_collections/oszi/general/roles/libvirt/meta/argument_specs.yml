@@ -1,0 +1,64 @@
+---
+argument_specs:
+  main:
+    short_description: Libvirt virtualization platform management for desktop
+    description:
+      - Installs virtualization packages including virt-manager and guestfs-tools
+      - Configures virtual machines, networks, and storage pools (use with caution)
+      - Provides utility scripts for VM management
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      libvirt_disabled:
+        description:
+          - Whether to skip libvirt setup and configuration
+          - Automatically disabled when host is a virtualization guest
+          - Set to false to enable nested virtualization
+        type: bool
+        required: false
+        default: "{{ ansible_facts.virtualization_role == 'guest' }}"
+
+      libvirt_local_bin_path:
+        description:
+          - Directory path for local libvirt utility scripts and executables
+        type: path
+        required: false
+        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+
+      libvirt_packages:
+        description:
+          - List of libvirt/QEMU packages and tools to install
+          - Includes GUI tools (virt-manager), guestfs utilities, and architecture support
+        type: list
+        elements: raw
+        required: false
+
+      libvirt_domains:
+        description:
+          - List of virtual machine (domain) configurations
+          - Each entry contains arguments for community.libvirt.virt
+          - WARNING - Most libvirt commands are not idempotent, use with caution
+        type: list
+        elements: dict
+        required: false
+        default: []
+
+      libvirt_networks:
+        description:
+          - List of virtual network configurations
+          - Each entry contains arguments for community.libvirt.virt_net
+          - WARNING - Most libvirt commands are not idempotent, use with caution
+        type: list
+        elements: dict
+        required: false
+        default: []
+
+      libvirt_pools:
+        description:
+          - List of storage pool configurations
+          - Each entry contains arguments for community.libvirt.virt_pool
+          - WARNING - Most libvirt commands are not idempotent, use with caution
+        type: list
+        elements: dict
+        required: false
+        default: []

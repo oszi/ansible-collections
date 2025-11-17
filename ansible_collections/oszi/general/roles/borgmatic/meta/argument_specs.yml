@@ -1,0 +1,191 @@
+---
+argument_specs:
+  main:
+    short_description: Borg backup with borgmatic [python]
+    description:
+      - Configures borg backup with borgmatic [python]
+      - Manages backup repositories, encryption, compression, and retention policies
+      - Sets up systemd timers for automated backup scheduling
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      borgmatic_enabled:
+        description:
+          - Whether to setup borg/borgmatic backup
+          - Set to false to skip all borgmatic configuration
+        type: bool
+        required: false
+        default: false
+
+      borgmatic_version:
+        description:
+          - Python3 pip package version constraint for borgmatic
+          - Requires python_disabled=false to install
+        type: str
+        required: false
+        default: ">=1.9.10,<2.0.0"
+
+      borgmatic_repository:
+        description:
+          - Target directory or remote repository URL for borg backups
+          - Can be local path or remote SSH location (user@host:path)
+        type: str
+        required: false
+        default: "/var/lib/borg-{{ inventory_hostname }}"
+
+      borgmatic_passphrase:
+        description:
+          - Passphrase for symmetric encryption of the backup repository
+          - Store in ansible-vault for security
+          - If not specified, the role only configures the borgmatic virtual environment
+        type: str
+        required: false
+
+      borgmatic_sources:
+        description:
+          - List of directory paths to include in backups
+          - All specified directories and their contents will be backed up
+        type: list
+        elements: path
+        required: false
+        default:
+          - /etc
+          - /home
+          - /opt
+          - /root
+
+      borgmatic_excludes:
+        description:
+          - Patterns to exclude from backups using glob-style matching
+          - Applied to all source directories to skip cache and temporary files
+        type: list
+        elements: str
+        required: false
+        default:
+          - "*/.cache/*"
+          - "*/cache/*"
+          - "*/temp/*"
+          - "*/tmp/*"
+
+      borgmatic_one_file_system:
+        description:
+          - Whether to stay on the same filesystem during backup
+          - When true, does not cross filesystem boundaries
+        type: bool
+        required: false
+        default: false
+
+      borgmatic_compression:
+        description:
+          - Type of compression algorithm to use for backups
+          - See https://borgbackup.readthedocs.org/en/stable/usage.html#borg-create
+        type: str
+        required: false
+        default: "lz4"
+
+      borgmatic_remote_path:
+        description:
+          - Alternate borg remote executable name (e.g., borg1 for rsync.net)
+          - Used when connecting to remote repositories with different borg executable names
+        type: str
+        required: false
+        default: "borg"
+
+      borgmatic_ssh_command:
+        description:
+          - Command to use instead of ssh for remote repository connections
+          - Allows customization of SSH parameters and alternatives
+        type: str
+        required: false
+        default: "ssh"
+
+      borgmatic_consistency:
+        description:
+          - Consistency check configuration for repository and archive validation
+          - See https://borgbackup.readthedocs.org/en/stable/usage.html#borg-check
+        type: dict
+        required: false
+        default:
+          checks:
+            - repository
+            - archives
+          check_last: 3
+        options:
+          checks:
+            description: List of check types to perform (repository, archives, data, extract)
+            type: list
+            elements: str
+            required: false
+          check_last:
+            description: Number of most recent archives to check
+            type: int
+            required: false
+
+      borgmatic_retention:
+        description:
+          - Retention policy for automatic backup pruning
+          - See https://borgbackup.readthedocs.org/en/stable/usage.html#borg-prune
+        type: dict
+        required: false
+        default:
+          keep_within: 3H
+          keep_hourly: 24
+          keep_daily: 7
+          keep_weekly: 4
+          keep_monthly: 6
+          keep_yearly: 1
+        options:
+          keep_within:
+            description: Keep all archives within this time interval
+            type: str
+            required: false
+          keep_hourly:
+            description: Number of hourly backups to keep
+            type: int
+            required: false
+          keep_daily:
+            description: Number of daily backups to keep
+            type: int
+            required: false
+          keep_weekly:
+            description: Number of weekly backups to keep
+            type: int
+            required: false
+          keep_monthly:
+            description: Number of monthly backups to keep
+            type: int
+            required: false
+          keep_yearly:
+            description: Number of yearly backups to keep
+            type: int
+            required: false
+
+      borgmatic_unit_options:
+        description:
+          - List of additional systemd service unit options for the borgmatic service
+          - Applied to the [Service] section of the systemd unit
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      borgmatic_timer_options:
+        description:
+          - List of systemd timer options for scheduling borgmatic backups
+          - Controls when and how often backups are triggered
+        type: list
+        elements: str
+        required: false
+        default:
+          - "OnCalendar=daily"
+          - "RandomizedDelaySec=3600"
+          - "Persistent=true"
+
+      borgmatic_hooks:
+        description:
+          - Shell commands or scripts to execute before/after backups or on error
+          - All commands run with borgmatic user permissions
+          - Keys can be before_backup, after_backup, or on_error with list values
+        type: dict
+        required: false
+        default: {}

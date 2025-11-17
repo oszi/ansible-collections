@@ -1,0 +1,43 @@
+---
+argument_specs:
+  main:
+    short_description: RPM Fusion repository configuration for RHEL and Fedora
+    description:
+      - Manages RPM Fusion free and non-free repositories on RedHat family distributions
+      - Supports --allowerasing for package replacements (e.g., ffmpeg-free to ffmpeg)
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      rpmfusion_enabled:
+        description:
+          - Whether to install or uninstall RPM Fusion repositories on RedHat family systems
+          - Disabled by default
+        type: bool
+        required: false
+        default: false
+
+      rpmfusion_dnf_allowerasing:
+        description:
+          - Whether to run dnf with --allowerasing flag
+          - Allows replacing packages like ffmpeg-free with full ffmpeg from RPM Fusion
+          - Use with caution as it can remove conflicting packages
+        type: bool
+        required: false
+        default: false
+
+      rpmfusion_packages:
+        description:
+          - Nested list of package names to install from RPM Fusion repositories
+          - Can include multimedia codecs, drivers, and proprietary software
+        type: list
+        elements: raw
+        required: false
+        default: []
+
+      rpmfusion_blacklisted_packages:
+        description:
+          - List of RPM Fusion package names to always uninstall
+        type: list
+        elements: str
+        required: false
+        default: []

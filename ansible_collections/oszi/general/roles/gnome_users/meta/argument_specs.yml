@@ -1,0 +1,77 @@
+---
+argument_specs:
+  main:
+    short_description: GNOME user-specific configuration management
+    description:
+      - Manages per-user GNOME settings via dconf database
+      - Configures XDG user directories (Documents, Downloads, Pictures, etc.)
+      - Sets up custom keyboard shortcuts and keybindings
+      - Manages GNOME desktop preferences including themes, and behavior
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      gnome_users:
+        description:
+          - List of usernames to configure GNOME settings for
+          - Uses become to switch user context if different from ansible_user
+          - Defaults to ansible_user for workstations (excludes root)
+        type: list
+        elements: str
+        required: false
+        default: "{{ [ansible_user] if ansible_user | default('root') != 'root' and 'workstations' in group_names else [] }}"
+
+      gnome_users_screenshots_path:
+        description:
+          - Override directories for GNOME Screenshots and Screencasts with symlinks
+          - When set, creates symlinks from default locations to here
+        type: path
+        required: false
+
+      gnome_users_dconf_custom_keybindings:
+        description:
+          - List of dictionaries of custom keyboard shortcuts
+          - Each value is a dict with binding, command, and name options
+          - Do not set custom keybindings in gnome_users_dconf_vars directly
+        type: dict
+        required: false
+
+      gnome_users_dconf_vars:
+        description:
+          - Dictionary of dconf settings to apply for each user
+          - Keys are dconf paths, values are dconf values in GVariant format
+          - String values must be quoted like "'myvalue'" due to GVariant syntax
+        type: dict
+        required: false
+        default: "{{ gnome_users_dconf_vars_default }}"
+
+      gnome_users_dconf_vars_default:
+        description:
+          - Default dconf configuration including GNOME keyboard shortcuts, themes, and various preferences
+          - Convenience variable, use gnome_users_dconf_vars
+        type: dict
+        required: false
+
+      gnome_users_xdg_user_dirs:
+        description:
+          - XDG user directories configuration (shell-escaped, homedir-relative paths)
+          - Defines standard directories like Desktop, Downloads, Documents, Pictures, Videos
+          - Values should be shell-escaped paths relative to $HOME
+        type: dict
+        required: false
+        default:
+          desktop: "$HOME/Desktop"
+          download: "$HOME/Downloads"
+          templates: "$HOME/Templates"
+          publicshare: "$HOME/Public"
+          documents: "$HOME/Documents"
+          music: "$HOME/Music"
+          pictures: "$HOME/Pictures"
+          videos: "$HOME/Videos"
+
+      gnome_users_xdg_user_dirs_locale:
+        description:
+          - Locale for XDG user directory naming
+          - Controls the language used for directory names
+        type: str
+        required: false
+        default: "en_US"

@@ -1,0 +1,80 @@
+---
+argument_specs:
+  main:
+    short_description: Systemd system services and network configuration management
+    description:
+      - Manages systemd service units, timers, and drop-in configurations
+      - Configures systemd-networkd for network management
+      - Sets up systemd-resolved for DNS resolution
+      - Manages systemd preset files for enable/disable defaults
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      systemd_disabled:
+        description:
+          - Whether to skip systemd setup tasks
+          - Automatically disabled for containers
+        type: bool
+        required: false
+        default: "{{ ansible_facts.virtualization_type == 'container' }}"
+
+      systemd_system_units:
+        description:
+          - Dictionary of systemd system service, timer and drop-in files
+          - Keys are filenames (name.service, name.timer, name.service.d/drop-in.conf)
+          - Values are the unit file contents
+        type: dict
+        required: false
+        default: {}
+
+      systemd_system_presets:
+        description:
+          - Dictionary of systemd system-preset files
+          - Keys are preset filenames (00-name.preset), values are preset file contents
+          - Controls default enable/disable state of services
+        type: dict
+        required: false
+        default: {}
+
+      systemd_networkd_enabled:
+        description:
+          - Whether to enable systemd-networkd setup
+          - Automatically enabled when network units are defined or resolved is enabled
+        type: bool
+        required: false
+        default: "{{ systemd_network_units | length > 0 or systemd_resolved_enabled }}"
+
+      systemd_network_units:
+        description:
+          - Dictionary of systemd-networkd unit files
+          - Keys are filenames (e.g., 10-eth0.network), values are unit contents
+          - Used for declarative network configuration
+        type: dict
+        required: false
+        default: {}
+
+      systemd_resolved_enabled:
+        description:
+          - Whether to enable systemd-resolved DNS resolver
+          - Automatically enabled when resolved options are configured
+        type: bool
+        required: false
+        default: "{{ systemd_resolved_options | length > 0 }}"
+
+      systemd_resolved_options:
+        description:
+          - Dictionary of options for systemd-resolved.conf
+          - Keys are option names, values are option values
+          - Configures DNS servers, fallback DNS, DNSSEC, etc.
+        type: dict
+        required: false
+        default: {}
+
+      systemd_network_manager_disabled:
+        description:
+          - Whether to disable NetworkManager in favor of systemd-networkd
+          - When true, NetworkManager is stopped and disabled
+          - Use with caution as this affects network connectivity management
+        type: bool
+        required: false
+        default: false

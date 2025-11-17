@@ -1,0 +1,190 @@
+---
+argument_specs:
+  main:
+    short_description: Base Linux system configuration
+    description:
+      - Configures fundamental Linux system settings including locale, timezone, networking, and package management
+      - Manages system configuration files such as /etc/hosts, sysctl, udev rules, and sudoers
+      - Handles system mounts, symlinks, and certificate authority trust anchors
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      baselinux_set_locale:
+        description:
+          - System locale settings in the format used by /etc/locale.conf
+          - Sets LANG, LANGUAGE, LC_* variables for system-wide locale configuration
+          - Defaults to en_US.UTF-8 for workstations, C.UTF-8 for other systems
+          - Set to an empty string to skip locale setting
+        type: str
+        required: false
+        default: >-
+          {% if 'workstations' in group_names %}
+          LANG=en_US.UTF-8
+          LANGUAGE=en_US
+          LC_COLLATE=C.UTF-8
+          LC_ADDRESS=en_IE.UTF-8
+          LC_IDENTIFICATION=en_IE.UTF-8
+          LC_MEASUREMENT=en_IE.UTF-8
+          LC_MESSAGES=en_IE.UTF-8
+          LC_MONETARY=en_IE.UTF-8
+          LC_NAME=en_IE.UTF-8
+          LC_NUMERIC=en_IE.UTF-8
+          LC_PAPER=en_IE.UTF-8
+          LC_TELEPHONE=en_IE.UTF-8
+          LC_TIME=en_IE.UTF-8
+          {% else %}
+          C.UTF-8
+          {% endif %}
+
+      baselinux_timezone:
+        description:
+          - System timezone identifier (e.g., UTC, Europe/London)
+          - Must be a valid timezone name from the IANA time zone database
+        type: str
+        required: false
+        default: "UTC"
+
+      baselinux_iptables_nft_alternatives:
+        description:
+          - Whether to install iptables-nft and configure the alternatives system
+          - Enables modern nftables-based iptables implementation
+        type: bool
+        required: false
+        default: true
+
+      baselinux_dhclient_resolvconf_disabled:
+        description:
+          - Whether to ignore DNS settings provided by DHCP client
+          - Useful to override cloud provider DNS settings
+        type: bool
+        required: false
+        default: false
+
+      baselinux_etc_hosts:
+        description:
+          - Dictionary of hostname to IP address mappings for /etc/hosts
+          - Prevents DNS hanging during hostname lookup by setting inventory_hostname to 127.0.0.1
+          - Each key is a hostname or hostnames separated by spaces and each value is the corresponding IP address
+        type: dict
+        required: false
+        default: "{{ {inventory_hostname: '127.0.0.1'} }}"
+
+      baselinux_sysctl_values:
+        description:
+          - Dictionary of custom sysctl kernel parameters to configure
+          - Each key is a sysctl parameter name and each value is the parameter value
+        type: dict
+        required: false
+        default: {}
+
+      baselinux_udev_rules:
+        description:
+          - Dictionary of udev rules to install under /etc/udev/rules.d/
+          - Each key becomes the filename (e.g., 'key.rules') and each value is the file content
+          - Used for device management and automatic actions on device events
+        type: dict
+        required: false
+        default: {}
+
+      baselinux_sudoers_rules:
+        description:
+          - Dictionary of sudoers rules to install under /etc/sudoers.d/
+          - Each key becomes the filename and each value is the sudoers file content
+          - Allows fine-grained sudo permission management per user or group
+        type: dict
+        required: false
+        default: {}
+
+      baselinux_extra_packages:
+        description:
+          - Nested list of additional package names to install on all Linux hosts
+        type: list
+        elements: raw
+        required: false
+        default: []
+
+      baselinux_blacklisted_packages:
+        description:
+          - Nested list of package names to remove from all Linux hosts
+          - Useful for removing unwanted or conflicting packages
+        type: list
+        elements: raw
+        required: false
+        default: []
+
+      baselinux_posix_mounts:
+        description:
+          - List of filesystem mounts to configure with ansible.posix.mount
+          - Each entry contains module parameters such as path, source, fstype, and state
+        type: list
+        elements: dict
+        required: false
+        default: []
+        options:
+          path:
+            description: Mount point path on the filesystem
+            type: path
+            required: true
+          src:
+            description: Device or remote filesystem source (UUID, device path, NFS share, etc.)
+            type: str
+            required: true
+          fstype:
+            description: Filesystem type (xfs, ext4, nfs, etc.)
+            type: str
+            required: true
+          state:
+            description: Desired mount state (present, mounted, unmounted, absent)
+            type: str
+            required: false
+            choices: ['present', 'mounted', 'unmounted', 'absent']
+          opts:
+            description: Mount options as comma-separated string
+            type: str
+            required: false
+          dump:
+            description: Dump field for /etc/fstab
+            type: str
+            required: false
+          passno:
+            description: Pass number for fsck
+            type: str
+            required: false
+
+      baselinux_absent_paths:
+        description:
+          - List of file or directory paths to always delete from the system
+          - Paths are removed recursively if they are directories
+        type: list
+        elements: path
+        required: false
+        default: []
+
+      baselinux_symlinks:
+        description:
+          - Dictionary of system symlinks to create
+          - Each key is the destination path and each value is the source path
+          - "Format is {'/path/to/dest': 'link/src'}"
+        type: dict
+        required: false
+        default: {}
+
+      baselinux_ca_trust_anchors:
+        description:
+          - List of controller-local paths to CA certificate files to install system-wide
+          - Certificates are added to the target system's trusted CA store
+          - Use the inventory_dir variable for relative source paths
+        type: list
+        elements: path
+        required: false
+        default: []
+
+      baselinux_ca_trust_anchors_blacklisted_paths:
+        description:
+          - List of absolute remote paths to CA certificates to remove from system trust
+          - Useful for removing untrusted or compromised certificate authorities
+          - Specify separate entries for Debian and RedHat distributions as needed
+        type: list
+        elements: path
+        required: false
+        default: []

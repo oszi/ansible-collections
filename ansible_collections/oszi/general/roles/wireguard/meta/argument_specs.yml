@@ -1,0 +1,44 @@
+---
+argument_specs:
+  main:
+    short_description: WireGuard VPN configuration management
+    description:
+      - Installs wireguard-tools and kernel packages if configured
+      - Manages WireGuard interface configurations using wg-quick
+      - As an alternative, systemd-networkd can also configure WireGuard interfaces
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      wireguard_disabled:
+        description:
+          - Whether to skip WireGuard setup
+        type: bool
+        required: false
+        default: false
+
+      wireguard_quick_configs:
+        description:
+          - Dictionary of WireGuard configuration files for wg-quick
+          - Keys are file names, values are wg-quick configuration file contents
+          - See https://git.zx2c4.com/WireGuard/about/src/tools/man/wg-quick.8
+        type: dict
+        required: false
+        default: {}
+
+      wireguard_quick_services:
+        description:
+          - List of interface names to enable wg-quick@%i.service for
+          - Automatically includes all keys from wireguard_quick_configs (except for containers)
+        type: list
+        elements: str
+        required: false
+        default: "{{ wireguard_quick_configs.keys() | list
+          if ansible_facts.virtualization_type != 'container' else [] }}"
+
+      wireguard_packages:
+        description:
+          - List of WireGuard packages to install (tools and kernel module for kernels <5.6)
+          - Package name differs between RedHat (wireguard-tools) and Debian (wireguard)
+        type: list
+        elements: str
+        required: false

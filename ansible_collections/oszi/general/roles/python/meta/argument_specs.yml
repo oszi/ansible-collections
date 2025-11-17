@@ -1,0 +1,44 @@
+---
+argument_specs:
+  main:
+    short_description: Python3 development environment setup
+    description:
+      - Manages distribution python packages and pip-installed packages
+      - Installs python3 development tools including pip, virtualenv, and setuptools
+      - Installs build dependencies for compiling python packages
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      python_disabled:
+        description:
+          - Whether to skip installation of python3 development tools
+        type: bool
+        required: false
+        default: false
+
+      python_pip3_packages:
+        description:
+          - List of python packages to install system-wide using pip3
+          - Always pin package versions for reproducibility
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      python_distro_packages:
+        description:
+          - Nested list of python distribution packages to install
+          - These packages must exist or redirect on both RedHat and Debian families
+          - Includes commonly needed packages like cryptography, jmespath, netaddr, psutil, requests, yaml
+        type: list
+        elements: raw
+        required: false
+
+      python_devel_distro_packages:
+        description:
+          - Nested list of distribution packages for python3 development
+          - These packages must exist or redirect on both RedHat and Debian families
+          - Includes python3-dev/devel, build tools (gcc, make), and virtual environment support
+        type: list
+        elements: raw
+        required: false

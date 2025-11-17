@@ -52,9 +52,9 @@ acme_api_version: 2
 acme_dns_provider: "cloudflare"
 
 # CloudFlare API token with DNS edit permission (use vault):
-acme_cloudflare_api_token: "{{ cloudflare_dns_api_token | default(undef('acme_cloudflare_api_token is undefined')) }}"
+acme_cloudflare_api_token: "{{ cloudflare_dns_api_token | default(None) }}"
 # Zone/domain for CloudFlare DNS records
-acme_cloudflare_zone: "{{ cloudflare_dns_zone | default(undef('acme_cloudflare_zone is undefined')) }}"
+acme_cloudflare_zone: "{{ cloudflare_dns_zone | default(None) }}"
 
 # AWS Route53 hosted zone
-acme_route53_zone: "{{ undef('acme_route53_zone is undefined') }}"
+acme_route53_zone: null

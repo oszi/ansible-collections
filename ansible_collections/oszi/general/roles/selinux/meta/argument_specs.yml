@@ -1,0 +1,26 @@
+---
+argument_specs:
+  main:
+    short_description: SELinux mandatory access control management
+    description:
+      - Manages SELinux installation and enforcement mode (enforcing or permissive)
+      - Automatically disabled for containers and non-RedHat distributions
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      selinux_disabled:
+        description:
+          - Whether to skip SELinux setup tasks
+          - Automatically disabled for containers and non-RedHat OS families
+        type: bool
+        required: false
+        default: "{{ ansible_facts.virtualization_type == 'container' or ansible_facts.os_family != 'RedHat' }}"
+
+      selinux_is_enforcing:
+        description:
+          - Whether to set SELinux mode to enforcing vs permissive
+          - When true, SELinux enforces security policies
+          - When false, SELinux logs policy violations but does not enforce them
+        type: bool
+        required: false
+        default: true

@@ -1,0 +1,36 @@
+---
+argument_specs:
+  main:
+    short_description: System user and group management
+    description:
+      - Manages system users and groups with configurable properties
+      - Configures sudo permissions for passwordless sudo if wanted
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      users_groups:
+        description:
+          - Dictionary of groups to create with optional properties
+          - Keys are group names, values are dicts with system, and gid options
+          - Use combine filter to build final groups from inventory parts
+        type: dict
+        required: false
+        default: {}
+
+      users_users:
+        description:
+          - Dictionary of users to create with optional properties
+          - Keys are usernames, values are dicts of arguments for ansible.builtin.user
+          - Use combine filter with list_merge='append_rp' for group list merging
+        type: dict
+        required: false
+        default: {}
+
+      users_sudo_nopasswd_groups:
+        description:
+          - List of group names that should have passwordless sudo access
+          - Members of these groups can run sudo commands without password prompt
+        type: list
+        elements: str
+        required: false
+        default: []

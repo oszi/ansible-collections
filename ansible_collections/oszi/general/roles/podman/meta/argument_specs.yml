@@ -1,0 +1,124 @@
+---
+argument_specs:
+  main:
+    short_description: Podman container engine configuration and management
+    description:
+      - Manages Podman container engine installation and configuration
+      - Configures podman-compose, toolbox, and docker emulation
+      - Provides configuration for storage, policy, and runtime settings
+      - Manages container networks, images, containers, and pods (consider podman_kube or podman_quadlets)
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      podman_disabled:
+        description:
+          - Whether to skip podman setup and uninstall podman packages
+        type: bool
+        required: false
+        default: false
+
+      podman_compose_enabled:
+        description:
+          - Whether to install podman-compose (rootless, daemonless docker-compose alternative)
+        type: bool
+        required: false
+        default: "{{ not podman_disabled }}"
+
+      podman_toolbox_enabled:
+        description:
+          - Whether to install toolbox from containertoolbx.org
+          - Requires flatpak to not be disabled
+        type: bool
+        required: false
+        default: "{{ not podman_disabled and not flatpak_disabled | default(false) }}"
+
+      podman_docker_enabled:
+        description:
+          - Whether to emulate docker using podman-docker package
+          - Provides docker CLI compatibility layer
+        type: bool
+        required: false
+        default: "{{ not podman_disabled }}"
+
+      podman_docker_compose_enabled:
+        description:
+          - Whether to install docker-compose to use with podman-docker (use with caution)
+          - For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
+          - Prefer using a virtual environment instead of the distro package
+        type: bool
+        required: false
+        default: false
+
+      podman_graphroot:
+        description:
+          - Override the graphroot storage path from the default /var/lib/containers/storage
+          - Specifies where container images and layers are stored
+        type: path
+        required: false
+
+      podman_config_policy:
+        description:
+          - Contents of policy.json in YAML/JSON format
+          - Defines container image signature verification and trust policies
+        type: dict
+        required: false
+        default: {}
+
+      podman_config_containers:
+        description:
+          - Contents of containers.conf configuration file
+          - Configures container runtime behavior, resource limits, and defaults
+        type: str
+        required: false
+
+      podman_config_toolbox:
+        description:
+          - Contents of toolbox.conf configuration file
+          - Configures toolbox container defaults
+        type: str
+        required: false
+
+      podman_networks:
+        description:
+          - Dictionary of podman networks to create and manage
+          - Keys are network names, values are arguments for containers.podman.podman_network
+          - Set recreate=true to force apply changes
+          - Consider using .network quadlet files instead
+        type: dict
+        required: false
+        default: {}
+
+      podman_images:
+        description:
+          - List of podman images to pull and manage
+          - Each entry contains arguments for containers.podman.podman_image
+          - Consider using .image quadlet files instead
+        type: list
+        elements: dict
+        required: false
+        default: []
+
+      podman_containers:
+        description:
+          - Dictionary of podman containers to create and manage
+          - Keys are container names, values are arguments for containers.podman.podman_container
+          - Consider using .container quadlet files instead
+        type: dict
+        required: false
+        default: {}
+
+      podman_pods:
+        description:
+          - Dictionary of podman pods to create and manage
+          - Keys are pod names, values are arguments for containers.podman.podman_pod
+          - Consider using .pod quadlets or podman-kube@.service instead
+        type: dict
+        required: false
+        default: {}
+
+      podman_local_bin_path:
+        description:
+          - Directory path for local podman utility scripts and executables
+        type: path
+        required: false
+        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"

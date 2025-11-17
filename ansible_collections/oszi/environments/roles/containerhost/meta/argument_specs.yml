@@ -1,0 +1,61 @@
+---
+argument_specs:
+  main:
+    short_description: Container host configuration for toolbox containers
+    description:
+      - Configures container host systems to support toolbox container workflows
+      - Manages toolbox container image settings and runtime configuration
+      - Sets up local executables and scripts for containerized development environments
+      - Includes all podman roles as dependencies
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      containerhost_toolbox_container_disabled:
+        description:
+          - Whether to disable toolbox-container scripts and functionality
+        type: bool
+        required: false
+        default: "{{ podman_disabled }}"
+
+      containerhost_toolbox_container_image:
+        description:
+          - The container image URL to use for toolbox containers by default
+          - Should be a fully qualified container image reference (registry/namespace/image:tag)
+        type: str
+        required: false
+        default: "quay.io/oszi/toolbox"
+
+      containerhost_toolbox_container_pull:
+        description:
+          - Whether to pre-pull the toolbox container image as root
+          - Ensures the image is available before users attempt to create toolbox containers
+        type: bool
+        required: false
+        default: false
+
+      containerhost_podman_config_toolbox:
+        description:
+          - Configuration content for podman toolbox settings
+          - Overrides podman_config_toolbox when podman_toolbox_enabled is true
+          - Contains the toolbox configuration in INI format specifying the image to use
+        type: str
+        required: false
+        default: |
+          [general]
+          image = "{{ containerhost_toolbox_container_image }}"
+
+      containerhost_runtime:
+        description:
+          - Path or name of the container runtime executable for toolbox containers
+          - Typically 'podman' but can be configured for alternative OCI-compatible runtimes
+        type: str
+        required: false
+        default: "podman"
+
+      containerhost_local_bin_path:
+        description:
+          - Directory path where local executables and toolbox-container scripts are installed
+          - Must be a directory in the system PATH for scripts to be accessible
+        type: path
+        required: false
+        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"

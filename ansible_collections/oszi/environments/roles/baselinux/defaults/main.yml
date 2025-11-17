@@ -34,14 +34,14 @@ baselinux_dhclient_resolvconf_disabled: false
 baselinux_etc_hosts: "{{ {inventory_hostname: '127.0.0.1'} }}"
 # Dict of custom sysctl values:
 baselinux_sysctl_values: {}
-# Dict of udev rules to install under /etc/udev/rules.d/{{ item.key }}.json
+# Dict of udev rules to install under /etc/udev/rules.d/{{ item.key }}.rules
 baselinux_udev_rules: {}
 # Dict of sudoers rules to install under /etc/sudoers.d/{{ item.key }}
 baselinux_sudoers_rules: {}
 
-# List of packages to install on all Linux hosts:
+# Nested list of packages to install on all Linux hosts:
 baselinux_extra_packages: []
-# List of packages to remove on all Linux hosts:
+# Nested list of packages to remove on all Linux hosts:
 baselinux_blacklisted_packages: []
 # List of dicts of options for ansible.posix.mount:
 # - {path: "/mnt/data", src: "UUID=...", fstype: "xfs", state: "present"}

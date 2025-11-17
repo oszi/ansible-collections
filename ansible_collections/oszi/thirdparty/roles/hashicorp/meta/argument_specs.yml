@@ -1,0 +1,53 @@
+---
+argument_specs:
+  main:
+    short_description: HashiCorp repository and package management
+    description:
+      - Manages installation of HashiCorp packages from official repositories
+      - Manages package sources for Debian and RPM-based systems
+      - Supports Terraform, Vault, Consul, Nomad, Packer, and other HashiCorp tools
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      hashicorp_enabled:
+        description:
+          - Whether to install or uninstall HashiCorp packages
+          - Disabled by default
+        type: bool
+        required: false
+        default: false
+
+      hashicorp_packages:
+        description:
+          - Nested list of HashiCorp package names to install (or uninstall)
+          - Available packages for RPM are restricted by hashicorp_includepkgs in hashicorp/vars/main.yml
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      hashicorp_blacklisted_packages:
+        description:
+          - Nested list of HashiCorp package names to always uninstall
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      hashicorp_rpm_baseurl:
+        description:
+          - Base URL for the HashiCorp RPM repository
+          - Automatically selects between Fedora and RHEL repositories
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://rpm.releases.hashicorp.com/{{
+          (ansible_facts.distribution == 'Fedora') | ternary('fedora', 'RHEL') }}/$releasever/$basearch"
+
+      hashicorp_deb_baseurl:
+        description:
+          - Base URL for the HashiCorp Debian/Ubuntu repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://apt.releases.hashicorp.com"

@@ -1,0 +1,68 @@
+---
+argument_specs:
+  main:
+    short_description: Tailscale VPN mesh installation
+    description:
+      - Installs Tailscale VPN mesh software
+      - Supports upstream repositories and distribution packages
+      - Supports tailscaled systemd service customization via drop-in overrides
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      tailscale_enabled:
+        description:
+          - Whether to install or uninstall Tailscale VPN software
+          - Disabled by default
+        type: bool
+        required: false
+        default: false
+
+      tailscale_upstream_enabled:
+        description:
+          - Whether to install the upstream/external deb/rpm repository
+          - Automatically enabled when tailscale_enabled is true except on Fedora
+          - Fedora has native tailscale package in its repositories
+        type: bool
+        required: false
+        default: "{{ tailscale_enabled and ansible_facts.distribution != 'Fedora' }}"
+
+      tailscale_rpm_baseurl:
+        description:
+          - Base URL for the Tailscale RPM repository
+          - Automatically adjusts path based on distribution (Fedora vs RHEL)
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower | replace('redhat', 'rhel')
+          }}/{{ (ansible_facts.distribution != 'Fedora') | ternary('$releasever/$basearch', '$basearch') }}"
+
+      tailscale_deb_baseurl:
+        description:
+          - Base URL for the Tailscale Debian/Ubuntu repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower }}"
+
+      tailscale_systemd_service_override:
+        description:
+          - Systemd service drop-in content for tailscaled daemon
+          - Use to set environment variables like PORT=443 or FLAGS (upstream)
+          - Clear EnvironmentFile= for cross-distribution compatibility
+          - /etc/default/tailscaled is not present on every system (e.g., Fedora)
+        type: str
+        required: false
+
+      tailscale_bash_completion_path:
+        description:
+          - System path for Tailscale bash completion script
+        type: path
+        required: false
+        default: "/etc/bash_completion.d/tailscale"
+
+      tailscale_zsh_completion_path:
+        description:
+          - System path for Tailscale zsh completion script
+        type: path
+        required: false
+        default: "/usr/local/share/zsh/site-functions/_tailscale"

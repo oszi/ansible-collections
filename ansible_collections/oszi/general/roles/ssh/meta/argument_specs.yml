@@ -1,0 +1,87 @@
+---
+argument_specs:
+  main:
+    short_description: OpenSSH server configuration and key management
+    description:
+      - Manages OpenSSH server installation and configuration
+      - Configures authorized keys for SSH access
+      - Supports SSH crypto hardening and host key selection
+      - Allows user-based access control and custom sshd_config settings
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      ssh_server_disabled:
+        description:
+          - Whether to disable and uninstall OpenSSH server
+          - Automatically disabled for containers
+        type: bool
+        required: false
+        default: "{{ ansible_facts.virtualization_type == 'container' }}"
+
+      ssh_authorized_keys:
+        description:
+          - Dictionary of authorized SSH keys by username
+          - Keys are usernames, values are SSH public keys (multiple keys can be separated by newlines)
+        type: dict
+        required: false
+        default: {}
+
+      ssh_authorized_keys_exclusive:
+        description:
+          - Whether to remove authorized keys that were not configured here
+          - When true, only keys specified in ssh_authorized_keys are allowed
+        type: bool
+        required: false
+        default: true
+
+      ssh_authorized_keys_immutable:
+        description:
+          - Whether to make authorized_keys files immutable to protect restrictions
+          - Note - Without making ~/.ssh append-only (+a) this can still be worked around
+          - Making ~/.ssh append-only breaks some legitimate use cases like cleaning up control sockets
+        type: bool
+        required: false
+        default: false
+
+      ssh_server_config_overridable:
+        description:
+          - Whether to override the distribution-provided sshd_config
+          - When true, role-managed configuration replaces distro defaults
+        type: bool
+        required: false
+        default: true
+
+      ssh_server_config_extra:
+        description:
+          - Extra configuration lines to append to sshd_config
+          - Use for additional SSH server settings not covered by role defaults
+        type: str
+        required: false
+
+      ssh_allow_users:
+        description:
+          - List of usernames allowed to connect via SSH
+          - When set, generates AllowUsers directive in sshd_config
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      ssh_harden_crypto:
+        description:
+          - Whether to harden SSH cryptographic settings
+          - Restricts to strong ciphers, MACs, and key exchange algorithms
+        type: bool
+        required: false
+        default: true
+
+      ssh_host_keys:
+        description:
+          - List of SSH host key file paths to configure
+          - Only listed host keys will be active on the server
+        type: list
+        elements: path
+        required: false
+        default:
+          - /etc/ssh/ssh_host_ed25519_key
+          - /etc/ssh/ssh_host_rsa_key

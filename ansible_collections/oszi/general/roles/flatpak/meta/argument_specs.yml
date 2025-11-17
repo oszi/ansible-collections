@@ -1,0 +1,63 @@
+---
+argument_specs:
+  main:
+    short_description: Flatpak package manager and application management
+    description:
+      - Manages Flatpak remotes (repositories) and applications
+      - Configures global and per-application sandboxing overrides
+      - Handles application installation, overrides, and removal
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      flatpak_disabled:
+        description:
+          - Whether to disable Flatpak package manager functionality
+        type: bool
+        required: false
+        default: false
+
+      flatpak_remotes:
+        description:
+          - Dictionary of Flatpak remotes to install
+          - Keys are remote names, values are flatpakrepo URLs or repository URLs
+          - "Example: {flathub: https://flathub.org/repo/flathub.flatpakrepo}"
+        type: dict
+        required: false
+        default: {}
+
+      flatpak_apps:
+        description:
+          - Dictionary mapping application IDs to remote names
+          - Keys are Flatpak application IDs, values are the remote name to install from
+          - "Example: {org.chromium.Chromium: flathub}"
+        type: dict
+        required: false
+        default: {}
+
+      flatpak_blacklisted_apps:
+        description:
+          - List of Flatpak application IDs to uninstall
+          - Applications are removed if present on the system
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      flatpak_global_overrides:
+        description:
+          - List of global Flatpak permission overrides applied to all applications
+          - Uses flatpak override syntax (e.g., --nofilesystem=host, --nofilesystem=home)
+          - Applied system-wide to restrict default Flatpak permissions
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      flatpak_app_overrides:
+        description:
+          - Dictionary of per-application permission overrides
+          - Keys are application IDs, values are lists of override arguments
+          - "Example: {com.example.App: [--nofilesystem=home, --filesystem=/mnt/data:ro]}"
+        type: dict
+        required: false
+        default: {}

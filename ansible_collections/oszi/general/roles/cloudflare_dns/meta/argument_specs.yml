@@ -1,0 +1,149 @@
+---
+argument_specs:
+  main:
+    short_description: CloudFlare DNS record management
+    description:
+      - Manages CloudFlare DNS records via API
+      - Supports automatic A/AAAA record creation from ansible_host or gathered facts
+      - Manages CNAME, MX, TXT, and additional A/AAAA records
+      - Supports CloudFlare proxy (CDN) configuration
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      cloudflare_dns_api_token:
+        description:
+          - CloudFlare API token with DNS edit permission
+          - Should be stored securely using ansible-vault
+        type: str
+        required: true
+
+      cloudflare_dns_zone:
+        description:
+          - CloudFlare zone/domain name for DNS record management
+        type: str
+        required: true
+
+      cloudflare_dns_host_record:
+        description:
+          - Hostname for automatic A/AAAA record creation
+          - When set, automatically creates records from ansible_host or detected IP addresses
+          - Example value could be the first part of inventory_hostname
+        type: str
+        required: false
+
+      cloudflare_dns_host_proxied:
+        description:
+          - Whether automatic host records should be proxied through CloudFlare CDN
+        type: bool
+        required: false
+        default: false
+
+      cloudflare_dns_host_solo:
+        description:
+          - Whether automatic host records should be the only records for that hostname
+          - When true, removes other A/AAAA records for the same hostname
+        type: bool
+        required: false
+        default: true
+
+      cloudflare_dns_host_record_a_value:
+        description:
+          - Manual IPv4 address for automatic A record instead of inferring from facts
+        type: str
+        required: false
+
+      cloudflare_dns_host_record_aaaa_value:
+        description:
+          - Manual IPv6 address for automatic AAAA record instead of inferring from facts
+        type: str
+        required: false
+
+      cloudflare_dns_cname_records:
+        description:
+          - List of CNAME records to create
+          - Can be simple strings (subdomain) or dicts with record, value, proxied, solo options
+          - Default record is cloudflare_dns_host_record
+        type: list
+        elements: raw
+        required: false
+        default: []
+
+      cloudflare_dns_mx_records:
+        description:
+          - List of MX (mail exchange) records to create
+          - Can be simple strings (mail server) or dicts with record, value, priority options
+          - Default record is cloudflare_dns_host_record
+        type: list
+        elements: raw
+        required: false
+        default: []
+
+      cloudflare_dns_txt_records:
+        description:
+          - List of TXT records to create for domain verification or SPF/DKIM/DMARC
+          - Can be simple strings (txt value) or dicts with record, value, solo options
+          - Default record is cloudflare_dns_host_record
+        type: list
+        elements: raw
+        required: false
+        default: []
+
+      cloudflare_dns_extra_a_records:
+        description:
+          - List of additional A records with no default values
+          - Each entry must be a dict with record, value, and optional proxied, solo fields
+        type: list
+        elements: dict
+        required: false
+        default: []
+        options:
+          record:
+            description: DNS record name (subdomain or @)
+            type: str
+            required: true
+          value:
+            description: IPv4 address
+            type: str
+            required: true
+          proxied:
+            description: Whether to proxy through CloudFlare CDN
+            type: bool
+            required: false
+          solo:
+            description: Whether this should be the only A record for this name
+            type: bool
+            required: false
+          ttl:
+            description: Time To Live value in seconds
+            type: int
+            required: false
+
+      cloudflare_dns_extra_aaaa_records:
+        description:
+          - List of additional AAAA records with no default values
+          - Each entry must be a dict with record, value, and optional proxied, solo fields
+        type: list
+        elements: dict
+        required: false
+        default: []
+        options:
+          record:
+            description: DNS record name (subdomain or @)
+            type: str
+            required: true
+          value:
+            description: IPv6 address
+            type: str
+            required: true
+          proxied:
+            description: Whether to proxy through CloudFlare CDN
+            type: bool
+            required: false
+          solo:
+            description: Whether this should be the only AAAA record for this name
+            type: bool
+            required: false
+          ttl:
+            description: Time To Live value in seconds
+            type: int
+            required: false

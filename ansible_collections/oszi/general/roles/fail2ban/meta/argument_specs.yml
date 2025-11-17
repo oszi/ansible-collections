@@ -1,0 +1,45 @@
+---
+argument_specs:
+  main:
+    short_description: Fail2ban intrusion prevention configuration
+    description:
+      - Configures Fail2ban to protect SSH server and other services from brute force attacks
+      - Manages jail and filter configurations
+      - Automatically disabled for containers and non-Fedora RHEL systems
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      fail2ban_disabled:
+        description:
+          - Whether to disable fail2ban service and configuration
+          - Automatically disabled when SSH server is disabled or on RHEL (non-Fedora)
+        type: bool
+        required: false
+        default: "{{ ssh_server_disabled or (ansible_facts.os_family == 'RedHat' and ansible_facts.distribution != 'Fedora') }}"
+
+      fail2ban_local:
+        description:
+          - Content for fail2ban.local configuration file
+          - Contains global Fail2ban settings including log target
+        type: str
+        required: false
+        default: |
+          [DEFAULT]
+          logtarget = STDERR
+
+      fail2ban_jail_local:
+        description:
+          - Content for jail.local configuration file
+          - Configures jails for different services including ban times and thresholds
+          - Default enables sshd jail with 24h ban time
+        type: str
+        required: false
+        default: |
+          [DEFAULT]
+          bantime  = 86400
+          findtime = 3600
+          maxretry = 5
+
+          [sshd]
+          enabled = true
+          port = {{ ssh_port }}

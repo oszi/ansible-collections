@@ -1,0 +1,56 @@
+---
+argument_specs:
+  main:
+    short_description: Bootstrap role for initial connection and fact gathering
+    description:
+      - Performs initial host bootstrap including SSH port detection and fallback
+      - Gathers system facts with configurable subset filtering
+      - Validates system requirements with assertions
+      - Updates the package manager cache for apt by default
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      bootstrap_ssh_port_fallback:
+        description:
+          - Fallback SSH port to try if ansible_port is unreachable
+          - Set to zero (or ansible_port) to disable SSH port fallback
+          - Should be used with persistent fact caching disabled initially
+        type: int
+        required: false
+        default: 22
+
+      bootstrap_facts_gather_subset:
+        description:
+          - List of fact subsets to gather with ansible.builtin.setup
+          - Controls which system information is collected during bootstrapping
+        type: list
+        elements: str
+        required: false
+        default:
+          - all
+
+      bootstrap_assert_that:
+        description:
+          - List of assertion rules for ansible.builtin.assert to validate system requirements
+          - Should contain literal strings without interpolation
+        type: list
+        elements: str
+        required: false
+        default:
+          - "ansible_facts.os_family in ['Debian', 'RedHat']"
+
+      bootstrap_package_update_cache:
+        description:
+          - Whether to update the default package manager cache after fact gathering
+          - Useful to avoid having to specify cache_valid_time in apt package tasks
+        type: raw
+        required: false
+        default: "{{ ansible_facts.pkg_mgr | default('dnf') == 'apt'
+          and ansible_facts.user_uid | default(0) | int == 0 }}"
+
+      bootstrap_apt_cache_valid_time:
+        description:
+          - Cache validity time in seconds for apt (defaults to 1 day)
+        type: int
+        required: false
+        default: 86400

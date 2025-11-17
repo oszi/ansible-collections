@@ -1,0 +1,198 @@
+---
+argument_specs:
+  main:
+    short_description: User dotfiles management
+    description:
+      - Manages user dotfiles and configuration files for multiple users
+      - Provides built-in templates for GnuPG and Git
+      - Supports custom dotfile templates
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      dotfiles_disabled:
+        description:
+          - Whether to skip all dotfiles setup tasks
+          - Useful for read-only systems or when dotfiles are managed elsewhere
+        type: bool
+        required: false
+        default: false
+
+      dotfiles_users:
+        description:
+          - List of usernames to install dotfiles for
+          - Defaults to root and ansible_user when running as root, or current user otherwise
+          - Role works without privilege escalation for single user
+        type: list
+        elements: str
+        required: false
+        default: "{{ ['root', ansible_user | default('root')] | unique
+          if ansible_facts.user_uid | int == 0
+          else [ansible_facts.user_id] }}"
+
+      dotfiles_files:
+        description:
+          - Dictionary mapping dotfile names (relative to home directory) to file contents
+          - Use lookup plugins and jinja templating for dynamic content
+          - Role-local template variables dotfiles_user_item and dotfiles_user_info are available
+          - Specify file lookup paths relative to inventory_dir
+          - |-
+            Example:
+            .ssh/config: |
+              # Ansible managed
+              {% if dotfiles_gnupg_sshcontrol_keygrips %}
+              IdentityAgent /run/user/{{ dotfiles_user_info.uid }}/gnupg/S.gpg-agent.ssh
+
+              {% endif %}
+              ControlPath ~/.ssh/S.%r@%h:%p
+              ControlMaster auto
+              ControlPersist 7200s
+
+              Host 192.168.88.1
+                Port 22
+                User admin
+        type: dict
+        required: false
+        default: {}
+
+      dotfiles_gnupg_enabled:
+        description:
+          - Whether to enable built-in GnuPG dotfiles templates
+          - Defaults to true for workstations
+        type: bool
+        required: false
+        default: "{{ 'workstations' in group_names }}"
+
+      dotfiles_git_enabled:
+        description:
+          - Whether to enable built-in Git configuration templates
+          - Defaults to true for non-root workstation users
+        type: bool
+        required: false
+        default: "{{ 'workstations' in group_names and dotfiles_user_item != 'root' }}"
+
+      dotfiles_gnupg_default_key:
+        description:
+          - Default GnuPG key ID or fingerprint for signing and encryption
+          - Used in gpg.conf default-key setting
+        type: str
+        required: false
+
+      dotfiles_gnupg_extra_options:
+        description:
+          - Additional configuration lines for GnuPG gpg.conf
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      dotfiles_gnupg_agent_options:
+        description:
+          - Configuration options for GnuPG gpg-agent
+          - Controls caching timeouts, PIN entry program, SSH support, etc.
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      dotfiles_gnupg_sshcontrol_keygrips:
+        description:
+          - List of GnuPG key grips to enable for SSH authentication
+          - Keys listed here can be used via gpg-agent's SSH socket
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      dotfiles_gnupg_dirmngr_keyserver:
+        description:
+          - Keyserver URL for GnuPG dirmngr (socket activated user service)
+          - Set to hkp://localhost to disable keyserver, null for distribution default
+        type: str
+        required: false
+        default: "hkps://keys.openpgp.org"
+
+      dotfiles_gnupg_dirmngr_hkp_cacerts:
+        description:
+          - List of CA certificate paths for HKPS keyserver validation
+        type: list
+        elements: path
+        required: false
+        default: []
+
+      dotfiles_gnupg_dirmngr_extra_options:
+        description:
+          - Additional configuration lines for GnuPG dirmngr
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      dotfiles_gnupg_scdaemon_reader_port:
+        description:
+          - Smartcard reader port/name for GnuPG scdaemon (e.g., Yubico Yubi)
+          - Useful when multiple readers are present
+        type: str
+        required: false
+
+      dotfiles_gnupg_scdaemon_disable_ccid:
+        description:
+          - Disable CCID driver for non-exclusive access with pcscd/pcsc-lite
+          - Recommended setting for compatibility with other smartcard applications
+        type: bool
+        required: false
+        default: true
+
+      dotfiles_gnupg_scdaemon_pcsc_shared:
+        description:
+          - Enable shared mode without caching for smartcard access
+          - Requires disable_ccid to be true
+        type: bool
+        required: false
+        default: false
+
+      dotfiles_gnupg_scdaemon_extra_options:
+        description:
+          - Additional configuration lines for GnuPG scdaemon
+        type: list
+        elements: str
+        required: false
+        default: []
+
+      dotfiles_git_user_name:
+        description:
+          - Git user.name configuration value
+          - Defaults to the system user name
+        type: str
+        required: false
+        default: "{{ dotfiles_user_info.name }}"
+
+      dotfiles_git_user_email:
+        description:
+          - Git user.email configuration value
+          - Defaults to username@inventory_hostname
+        type: str
+        required: false
+        default: "{{ dotfiles_user_info.name }}@{{ inventory_hostname }}"
+
+      dotfiles_git_user_signingkey:
+        description:
+          - GnuPG key ID for commit and tag signing
+          - Defaults to dotfiles_gnupg_default_key
+        type: str
+        required: false
+        default: "{{ dotfiles_gnupg_default_key }}"
+
+      dotfiles_git_editor:
+        description:
+          - Editor command for Git operations
+          - Defaults to $EDITOR environment variable (see oszi.general.shell)
+        type: str
+        required: false
+
+      dotfiles_git_config_extra:
+        description:
+          - Additional content appended to .gitconfig file
+          - Use for custom Git configuration sections
+        type: str
+        required: false
+        default: ""

@@ -1,0 +1,49 @@
+---
+argument_specs:
+  main:
+    short_description: Kubernetes-style pods with podman-kube@.service
+    description:
+      - Manages Kubernetes-style pods using the podman-kube@.service systemd template
+      - Deploys pods from Kubernetes YAML specifications
+      - Supports configuration file copying and initialization scripts
+      - Alternative to quadlets when quadlets are unavailable or undesirable
+      - Supports rootless mode with systemd user scope
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      podman_kube_pods:
+        description:
+          - Dictionary of Kubernetes pods for podman-kube@.service
+          - Keys are relative paths to podman_kube_pods_base_path or absolute paths
+          - Values are YAML strings containing PodSpec (not native YAML objects)
+          - Multiple YAML documents (e.g., PodSpec + ConfigMap) are separated by ---
+        type: dict
+        required: false
+        default: {}
+
+      podman_kube_copy_files:
+        description:
+          - Dictionary mapping pod keys to lists of file copy operations
+          - Each pod key maps to a list of dicts with ansible.builtin.copy module arguments
+          - Use this to copy configuration files before pod installation
+        type: dict
+        required: false
+        default: {}
+
+      podman_kube_init_scripts:
+        description:
+          - Dictionary mapping pod keys to inline shell initialization scripts
+          - Scripts run once before installing with ansible.builtin.shell and -euo pipefail
+          - Use for first-time setup tasks like creating directories or initial configuration
+        type: dict
+        required: false
+        default: {}
+
+      podman_kube_post_install_scripts:
+        description:
+          - Dictionary mapping pod keys to inline shell post-installation scripts
+          - Scripts run after the systemd unit was changed with ansible.builtin.shell and -euo pipefail
+          - Use for post-install setup tasks that depend on the service being configured
+        type: dict
+        required: false
+        default: {}

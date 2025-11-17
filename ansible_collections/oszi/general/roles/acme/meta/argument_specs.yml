@@ -1,0 +1,170 @@
+---
+argument_specs:
+  main:
+    short_description: ACME certificate management with DNS-01 validation
+    description:
+      - Manages ACME certificates using Let's Encrypt or other ACME providers
+      - Supports DNS-01 validation via CloudFlare or AWS Route53
+      - Handles certificate lifecycle including generation, renewal, and revocation
+      - Configures post-hook scripts and reload commands for certificate updates
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      acme_certificates:
+        description:
+          - List of ACME certificates to manage with their configuration
+          - Each certificate item includes common name, SANs, paths, and lifecycle hooks
+        type: list
+        elements: dict
+        required: false
+        default: []
+        options:
+          common_name:
+            description: Common name (CN) for the certificate
+            type: str
+            required: true
+          subject_alt_name:
+            description: Subject Alternative Names in the format DNS:name1,DNS:name2
+            type: str
+            required: false
+          select_chain:
+            description: Criteria for selecting a specific certificate chain from the ACME server
+            type: dict
+            required: false
+          live_path:
+            description: Directory path where certificate files will be stored (privkey.pem, cert.pem, fullchain.pem, req.csr)
+            type: path
+            required: true
+          remaining_days:
+            description: Days before expiration to trigger certificate renewal
+            type: int
+            required: false
+            default: 60
+          post_hook:
+            description: Shell commands to execute after certificate issuance/renewal (e.g., convert to PKCS12)
+            type: str
+            required: false
+          reload_cmd:
+            description: Command to execute to reload services using the certificate (e.g., systemctl try-restart service)
+            type: str
+            required: false
+          owner:
+            description: Unix user ID or name for certificate file ownership
+            type: raw
+            required: false
+          group:
+            description: Unix group ID or name for certificate file ownership
+            type: raw
+            required: false
+
+      acme_revoke_paths:
+        description:
+          - List of certificate live_paths to revoke
+          - Certificates should be removed from acme_certificates before revoking
+        type: list
+        elements: path
+        required: false
+        default: []
+
+      acme_reload:
+        description:
+          - Whether to execute reload commands for certificate updates
+          - Set to false for first-time setup, true for ongoing renewals (e.g., from the update playbook)
+        type: bool
+        required: false
+        default: false
+
+      acme_reload_ignore_errors:
+        description:
+          - Whether to ignore errors when executing reload commands
+          - Useful when services may not be running during initial setup
+        type: bool
+        required: false
+        default: false
+
+      acme_account_key_passphrase:
+        description:
+          - Password to encrypt the ACME account private key (should use ansible-vault)
+          - Changing this password regenerates the account key
+        type: str
+        required: false
+
+      acme_account_email:
+        description:
+          - Optional email address to register with the ACME provider
+          - Used for account notifications and recovery
+        type: str
+        required: false
+
+      acme_account_key_path:
+        description:
+          - Filesystem path where the ACME account key is stored
+          - One account key per host, location depends on running as root or regular user
+        type: path
+        required: false
+        default: "{{ '/etc/letsencrypt/account.pem' if ansible_facts.user_uid | int == 0
+          else '~/.letsencrypt/account.pem' }}"
+
+      acme_install_python3_cryptography:
+        description:
+          - Whether to ensure python3-cryptography package is installed
+          - Disable when running in a virtual environment or without root privileges
+        type: bool
+        required: false
+        default: "{{ ansible_facts.user_uid | int == 0 }}"
+
+      acme_remaining_days_default:
+        description:
+          - Default days before expiration to renew certificates out of usually 90 days of validity
+          - Set to maximum (usually 90) to force immediate renewal
+        type: int
+        required: false
+        default: 60
+
+      acme_directory_url:
+        description:
+          - ACME API directory URL for the certificate authority
+          - Defaults to Let's Encrypt production API
+        type: str
+        required: false
+        default: "https://acme-v02.api.letsencrypt.org/directory"
+
+      acme_api_version:
+        description:
+          - ACME protocol API version to use
+        type: int
+        required: false
+        default: 2
+
+      acme_dns_provider:
+        description:
+          - DNS provider for DNS-01 challenge validation
+        type: str
+        required: false
+        default: "cloudflare"
+        choices:
+          - cloudflare
+          - route53
+
+      acme_cloudflare_api_token:
+        description:
+          - CloudFlare API token with DNS edit permission (use ansible-vault)
+          - Required when acme_dns_provider is cloudflare
+        type: str
+        required: false
+        default: "{{ cloudflare_dns_api_token | default(None) }}"
+
+      acme_cloudflare_zone:
+        description:
+          - CloudFlare DNS zone/domain for DNS-01 validation records
+          - Required when acme_dns_provider is cloudflare
+        type: str
+        required: false
+        default: "{{ cloudflare_dns_zone | default(None) }}"
+
+      acme_route53_zone:
+        description:
+          - AWS Route53 hosted zone for DNS-01 validation records
+          - Required when acme_dns_provider is route53
+        type: str
+        required: false

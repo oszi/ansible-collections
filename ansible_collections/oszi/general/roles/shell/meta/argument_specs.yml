@@ -1,0 +1,88 @@
+---
+argument_specs:
+  main:
+    short_description: Shell environment configuration for Linux
+    description:
+      - Configures system-wide shell environment for Bash, ZSH and POSIX shells
+      - Manages aliases, completions, prompts, history, environment variables, PATH and more
+      - Installs essential shell tools and utilities
+      - Enforces skeleton files for consistent user shell environments
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      shell_disabled:
+        description:
+          - Whether to skip all shell configuration tasks
+          - Useful for read-only systems or immutable environments
+        type: bool
+        required: false
+        default: false
+
+      shell_histsize:
+        description:
+          - Number of commands to keep in shell history per session in memory
+        type: int
+        required: false
+        default: 10000
+
+      shell_histfilesize:
+        description:
+          - Number of commands to keep in shell history on disk
+        type: int
+        required: false
+        default: 10000
+
+      shell_environment:
+        description:
+          - Dictionary of environment variables to set system-wide
+          - If EDITOR or VISUAL is vi, ZSH switches to vi key-bindings
+        type: dict
+        required: false
+        default:
+          ENV: /etc/shrc
+          EDITOR: nano
+
+      shell_search_paths:
+        description:
+          - List of additional paths to add to $PATH in .profile
+          - Paths should be escaped for shells (e.g., '"$HOME"/.local/bin')
+        type: list
+        elements: str
+        required: false
+        default:
+          - '"$HOME"/.local/bin'
+          - '"$HOME"/bin'
+
+      shell_skeleton_enforced_users:
+        description:
+          - List of usernames to enforce /etc/skel/.bashrc and other skeleton files for
+          - Ensures consistent shell configuration across specified users
+        type: list
+        elements: str
+        required: false
+        default: "{{ (['root', ansible_user | default('root')]
+          + (users_users.keys() | list if users_users is defined else [])) | unique }}"
+
+      shell_packages:
+        description:
+          - Nested list of shell and essential utility packages to install
+          - Includes bash, zsh, bash-completion, and common CLI tools
+        type: list
+        elements: raw
+        required: false
+
+      shell_local_bin_path:
+        description:
+          - Directory path for local shell scripts and executables
+        type: path
+        required: false
+        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+
+      shell_bash_completions_for_zsh:
+        description:
+          - Dictionary of ZSH-compatible bash completion files to pre-load
+          - Keys are command names, values are paths or lists of paths to completion files
+          - Sourced when native ZSH completion (_key) does not exist
+          - Most bash completions are not ZSH-compatible, use selectively
+        type: dict
+        required: false

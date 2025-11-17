@@ -1,0 +1,35 @@
+---
+argument_specs:
+  main:
+    short_description: Snap package manager configuration
+    description:
+      - Manages Snap package installations and removals
+      - Supports channel selection and classic confinement
+      - Automatically disabled on non-Debian systems unless packages are specified
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      snap_disabled:
+        description:
+          - Whether to disable Snap package manager
+          - Automatically disabled on non-Debian systems unless snap_packages is set
+        type: bool
+        required: false
+        default: "{{ ansible_facts.os_family != 'Debian' and snap_packages | length == 0 }}"
+
+      snap_packages:
+        description:
+          - List of snap packages to install with optional configuration
+          - Can be simple strings (package names) or dicts with name, channel, classic options
+        type: list
+        elements: raw
+        required: false
+        default: []
+
+      snap_blacklisted_packages:
+        description:
+          - List of snap package names to always remove
+        type: list
+        elements: str
+        required: false
+        default: []

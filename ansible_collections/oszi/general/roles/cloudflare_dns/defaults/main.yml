@@ -28,6 +28,6 @@ cloudflare_dns_mx_records: []
 cloudflare_dns_txt_records: []
 
 # List of extra A/AAAA records (no default values):
-# - {record: "subdomain", value: "127.0.0.1", proxied: true, solo: false}
+# - {record: "subdomain", value: "127.0.0.1", proxied: true, solo: false, ttl: 3600}
 cloudflare_dns_extra_a_records: []
 cloudflare_dns_extra_aaaa_records: []

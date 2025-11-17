@@ -1,0 +1,41 @@
+---
+argument_specs:
+  main:
+    short_description: Google Chrome browser installation
+    description:
+      - Manages Google Chrome installation from Google's official repositories
+      - Manages package sources for Debian and RPM-based systems
+      - Supports custom repository mirrors
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      google_chrome_enabled:
+        description:
+          - Whether to install or uninstall Google Chrome
+          - Disabled by default
+        type: bool
+        required: false
+        default: false
+
+      google_chrome_rpm_baseurl:
+        description:
+          - Base URL for the Google Chrome RPM repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://dl-ssl.google.com/linux/chrome/rpm/stable/$basearch"
+
+      google_chrome_deb_baseurl:
+        description:
+          - Base URL for the Google Chrome Debian/Ubuntu repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+        default: "https://dl-ssl.google.com/linux/chrome/deb"
+
+      google_chrome_deb_arch:
+        description:
+          - Comma-separated list of Debian repository architectures to enable
+        type: str
+        required: false
+        default: "amd64"

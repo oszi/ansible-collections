@@ -1,1 +1,13 @@
 ---
+# Placeholder values for loop variables to pass argument specs validation.
+# Loop vars will take precedence over this.
+dotfiles_user_item: "placeholder"
+dotfiles_user_info:
+  name: "placeholder"
+  home: "placeholder"
+  password: "placeholder"
+  shell: "placeholder"
+  system: false
+  uid: 0
+  group: 0
+  groups: []
