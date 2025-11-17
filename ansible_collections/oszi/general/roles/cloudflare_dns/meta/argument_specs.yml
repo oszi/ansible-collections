@@ -61,7 +61,7 @@ argument_specs:
       cloudflare_dns_cname_records:
         description:
           - List of CNAME records to create
-          - Can be simple strings (subdomain) or dicts with record, value, proxied, solo options
+          - Can be simple strings (subdomain) or dicts with record, value, proxied, solo, state options
           - Default record is cloudflare_dns_host_record
         type: list
         elements: raw
@@ -71,7 +71,7 @@ argument_specs:
       cloudflare_dns_mx_records:
         description:
           - List of MX (mail exchange) records to create
-          - Can be simple strings (mail server) or dicts with record, value, priority options
+          - Can be simple strings (mail server) or dicts with record, value, priority, state options
           - Default record is cloudflare_dns_host_record
         type: list
         elements: raw
@@ -81,7 +81,7 @@ argument_specs:
       cloudflare_dns_txt_records:
         description:
           - List of TXT records to create for domain verification or SPF/DKIM/DMARC
-          - Can be simple strings (txt value) or dicts with record, value, solo options
+          - Can be simple strings (txt value) or dicts with record, value, solo, state options
           - Default record is cloudflare_dns_host_record
         type: list
         elements: raw
@@ -91,7 +91,7 @@ argument_specs:
       cloudflare_dns_extra_a_records:
         description:
           - List of additional A records with no default values
-          - Each entry must be a dict with record, value, and optional proxied, solo fields
+          - Each entry must be a dict with record, value, and optional proxied, solo, state options
         type: list
         elements: dict
         required: false
@@ -117,11 +117,16 @@ argument_specs:
             description: Time To Live value in seconds
             type: int
             required: false
+          state:
+            description: Desired state (defaults to present)
+            type: str
+            required: false
+            choices: ['present', 'absent']
 
       cloudflare_dns_extra_aaaa_records:
         description:
           - List of additional AAAA records with no default values
-          - Each entry must be a dict with record, value, and optional proxied, solo fields
+          - Each entry must be a dict with record, value, and optional proxied, solo, state options
         type: list
         elements: dict
         required: false
@@ -147,3 +152,8 @@ argument_specs:
             description: Time To Live value in seconds
             type: int
             required: false
+          state:
+            description: Desired state (defaults to present)
+            type: str
+            required: false
+            choices: ['present', 'absent']
