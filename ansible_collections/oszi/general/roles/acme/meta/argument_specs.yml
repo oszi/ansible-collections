@@ -84,8 +84,8 @@ argument_specs:
 
       acme_account_key_passphrase:
         description:
-          - Password to encrypt the ACME account private key (should use ansible-vault)
-          - Changing this password regenerates the account key
+          - Password to encrypt the ACME account private key (use ansible-vault)
+          - WARNING - Changing this password regenerates the account key
         type: str
         required: false
 
@@ -139,6 +139,7 @@ argument_specs:
       acme_dns_provider:
         description:
           - DNS provider for DNS-01 challenge validation
+          - Support for more providers can be implemented in acme/tasks/providers/
         type: str
         required: false
         default: "cloudflare"

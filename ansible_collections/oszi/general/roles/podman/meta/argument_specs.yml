@@ -4,15 +4,15 @@ argument_specs:
     short_description: Podman container engine configuration and management
     description:
       - Manages Podman container engine installation and configuration
-      - Configures podman-compose, toolbox, and docker emulation
-      - Provides configuration for storage, policy, and runtime settings
+      - Installs podman-compose, podman-toolbox, and podman-docker emulation
+      - Configures podman storage, policy, and runtime settings
       - Manages container networks, images, containers, and pods (consider podman_kube or podman_quadlets)
     author:
       - "David O. (oszi.dev)"
     options:
       podman_disabled:
         description:
-          - Whether to skip podman setup and uninstall podman packages
+          - Whether to skip podman configuration and uninstall podman packages
         type: bool
         required: false
         default: false

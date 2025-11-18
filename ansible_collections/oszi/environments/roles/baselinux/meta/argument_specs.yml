@@ -163,7 +163,7 @@ argument_specs:
       baselinux_symlinks:
         description:
           - Dictionary of system symlinks to create
-          - Each key is the destination path and each value is the source path
+          - Each key is the destination path and each value is the link source path
           - "Format is {'/path/to/dest': 'link/src'}"
         type: dict
         required: false
@@ -171,8 +171,8 @@ argument_specs:
 
       baselinux_ca_trust_anchors:
         description:
-          - List of controller-local paths to CA certificate files to install system-wide
-          - Certificates are added to the target system's trusted CA store
+          - List of controller-local paths to CA certificate files to add to system trust
+          - Handles differences between Debian and RedHat distributions automatically
           - Use the inventory_dir variable for relative source paths
         type: list
         elements: path

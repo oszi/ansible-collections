@@ -19,12 +19,30 @@ argument_specs:
 
       snap_packages:
         description:
-          - List of snap packages to install with optional configuration
-          - Can be simple strings (package names) or dicts with name, channel, classic options
+          - List of snap packages to install with optional options
+          - "Example: {name: 'aws-cli', channel: 'v1/stable', classic: true}"
         type: list
-        elements: raw
+        elements: dict
         required: false
         default: []
+        options:
+          name:
+            description: Name of the snap to be installed
+            type: str
+            required: true
+          channel:
+            description: Define which release of a snap is installed and tracked for updates. See https://snapcraft.io/docs/channels
+            type: str
+            required: false
+          classic:
+            description: Enable classic confinement for granting full system access
+            type: bool
+            required: false
+          dangerous:
+            description: Install in dangerous mode, without validating assertions and signatures
+            type: bool
+            required: false
+
 
       snap_blacklisted_packages:
         description:

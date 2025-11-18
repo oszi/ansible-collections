@@ -72,18 +72,9 @@ argument_specs:
         description:
           - XDG user directories configuration (shell-escaped, homedir-relative paths)
           - Defines standard directories like Desktop, Downloads, Documents, Pictures, Videos
-          - Values should be shell-escaped paths relative to $HOME
+          - Values should be shell-escaped paths relative to $HOME like "$HOME/Downloads"
         type: dict
         required: false
-        default:
-          desktop: "$HOME/Desktop"
-          download: "$HOME/Downloads"
-          templates: "$HOME/Templates"
-          publicshare: "$HOME/Public"
-          documents: "$HOME/Documents"
-          music: "$HOME/Music"
-          pictures: "$HOME/Pictures"
-          videos: "$HOME/Videos"
 
       gnome_users_xdg_user_dirs_locale:
         description:

@@ -11,7 +11,7 @@ argument_specs:
     options:
       python_disabled:
         description:
-          - Whether to skip installation of python3 development tools
+          - Whether to skip installation of python3 development tools and packages
         type: bool
         required: false
         default: false
@@ -28,7 +28,7 @@ argument_specs:
       python_distro_packages:
         description:
           - Nested list of python distribution packages to install
-          - These packages must exist or redirect on both RedHat and Debian families
+          - These packages must exist or redirect on both RedHat and Debian family distributions
           - Includes commonly needed packages like cryptography, jmespath, netaddr, psutil, requests, yaml
         type: list
         elements: raw
@@ -37,7 +37,7 @@ argument_specs:
       python_devel_distro_packages:
         description:
           - Nested list of distribution packages for python3 development
-          - These packages must exist or redirect on both RedHat and Debian families
+          - These packages must exist or redirect on both RedHat and Debian family distributions
           - Includes python3-dev/devel, build tools (gcc, make), and virtual environment support
         type: list
         elements: raw

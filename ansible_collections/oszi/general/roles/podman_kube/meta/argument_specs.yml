@@ -4,8 +4,7 @@ argument_specs:
     short_description: Kubernetes-style pods with podman-kube@.service
     description:
       - Manages Kubernetes-style pods using the podman-kube@.service systemd template
-      - Deploys pods from Kubernetes YAML specifications
-      - Supports configuration file copying and initialization scripts
+      - Provides lifecycle hooks for initialization and post-installation scripts
       - Alternative to quadlets when quadlets are unavailable or undesirable
       - Supports rootless mode with systemd user scope
     author:

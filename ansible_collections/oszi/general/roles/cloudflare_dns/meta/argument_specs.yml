@@ -13,13 +13,13 @@ argument_specs:
       cloudflare_dns_api_token:
         description:
           - CloudFlare API token with DNS edit permission
-          - Should be stored securely using ansible-vault
+          - Store securely using ansible-vault
         type: str
         required: true
 
       cloudflare_dns_zone:
         description:
-          - CloudFlare zone/domain name for DNS record management
+          - CloudFlare zone/domain name for DNS records
         type: str
         required: true
 

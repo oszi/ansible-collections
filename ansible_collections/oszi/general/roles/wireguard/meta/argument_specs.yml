@@ -3,7 +3,7 @@ argument_specs:
   main:
     short_description: WireGuard VPN configuration management
     description:
-      - Installs wireguard-tools and kernel packages if configured
+      - Installs wireguard-tools, and kernel packages if configured manually
       - Manages WireGuard interface configurations using wg-quick
       - As an alternative, systemd-networkd can also configure WireGuard interfaces
     author:
@@ -19,7 +19,7 @@ argument_specs:
       wireguard_quick_configs:
         description:
           - Dictionary of WireGuard configuration files for wg-quick
-          - Keys are file names, values are wg-quick configuration file contents
+          - Keys are file names (without .conf), values are wg-quick config file contents
           - See https://git.zx2c4.com/WireGuard/about/src/tools/man/wg-quick.8
         type: dict
         required: false

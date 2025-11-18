@@ -10,9 +10,9 @@ argument_specs:
     options:
       toolbox_packages:
         description:
-          - Nested list of package names to install in toolbox containers
-          - Supports platform-specific package selection based on distribution
-          - Includes development tools, network utilities, monitoring tools, and build dependencies
+          - Nested list of package names to install for toolboxes
+          - Supports platform-specific package selection based on distribution with the defaults
+          - Includes development tools, network utilities, monitoring tools, and common build dependencies
         type: list
         elements: raw
         required: false
@@ -20,29 +20,25 @@ argument_specs:
 
       toolbox_packages_pt_default:
         description:
-          - Default platform-specific package list for toolbox containers
-          - Contains distribution-specific packages for Debian/Ubuntu vs Fedora/RedHat systems
+          - Default platform-specific package list for toolboxes
           - Includes comprehensive development tools like ansible, compilers, network utilities, debugging tools
-          - First sublist contains OS-family-specific packages, followed by common packages for all distributions
+          - Contains distribution-specific packages for Debian/Ubuntu vs Fedora/RedHat systems
         type: list
         elements: raw
         required: false
 
       toolbox_blacklisted_packages:
         description:
-          - List of package names to remove from toolbox containers
+          - List of package names to remove from toolboxes
           - Used to remove unused or unwanted tools from the toolbox environment
         type: list
-        elements: str
+        elements: raw
         required: false
-        default:
-          - mc
-          - sshuttle
 
       toolbox_local_bin_path:
         description:
-          - Directory path for local executable scripts in toolbox containers
-          - Must be in the container PATH for scripts to be accessible
+          - Directory path for local executable scripts for toolboxes
+          - Must be in the system PATH for scripts to be accessible
         type: path
         required: false
         default: "{{ local_bin_path | default('/usr/local/bin', true) }}"

@@ -11,7 +11,7 @@ argument_specs:
     options:
       flatpak_disabled:
         description:
-          - Whether to disable Flatpak package manager functionality
+          - Whether to disable Flatpak package manager
         type: bool
         required: false
         default: false
@@ -20,7 +20,7 @@ argument_specs:
         description:
           - Dictionary of Flatpak remotes to install
           - Keys are remote names, values are flatpakrepo URLs or repository URLs
-          - "Example: {flathub: https://flathub.org/repo/flathub.flatpakrepo}"
+          - "Example: {flathub: 'https://flathub.org/repo/flathub.flatpakrepo'}"
         type: dict
         required: false
         default: {}
@@ -28,7 +28,7 @@ argument_specs:
       flatpak_apps:
         description:
           - Dictionary mapping application IDs to remote names
-          - Keys are Flatpak application IDs, values are the remote name to install from
+          - Keys are Flatpak application IDs, values are the remote to install from
           - "Example: {org.chromium.Chromium: flathub}"
         type: dict
         required: false
@@ -57,7 +57,7 @@ argument_specs:
         description:
           - Dictionary of per-application permission overrides
           - Keys are application IDs, values are lists of override arguments
-          - "Example: {com.example.App: [--nofilesystem=home, --filesystem=/mnt/data:ro]}"
+          - "Example: {com.example.App: ['--nofilesystem=home', '--filesystem=/mnt/data:ro']}"
         type: dict
         required: false
         default: {}

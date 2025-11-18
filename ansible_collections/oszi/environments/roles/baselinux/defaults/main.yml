@@ -30,7 +30,7 @@ baselinux_dhclient_resolvconf_disabled: false
 
 # Dict of hosts for /etc/hosts:
 # Set inventory_hostname to avoid DNS hanging during hostname lookup.
-# * {hostname.exaple.com hostname: IP_ADDRESS}
+# * {hostname.example.com hostname: IP_ADDRESS}
 baselinux_etc_hosts: "{{ {inventory_hostname: '127.0.0.1'} }}"
 # Dict of custom sysctl values:
 baselinux_sysctl_values: {}

@@ -10,7 +10,7 @@ argument_specs:
     options:
       gnome_packages:
         description:
-          - Nested list of GNOME packages to install
+          - Nested list of GNOME packages to install for workstations
           - Includes distribution-specific packages for extensions and tools
         type: list
         elements: raw
@@ -18,7 +18,7 @@ argument_specs:
 
       gnome_blacklisted_packages:
         description:
-          - List of GNOME packages to remove from workstations
+          - Nested list of GNOME packages to remove from workstations
           - Includes unwanted applications like Boxes, Connections, Music, Photos
           - Removes pre-installed games on Debian-based systems
         type: list

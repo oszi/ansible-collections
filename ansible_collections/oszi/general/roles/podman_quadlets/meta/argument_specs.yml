@@ -6,7 +6,6 @@ argument_specs:
       - Manages Podman quadlet files for systemd-based container orchestration
       - Supports .container, .kube, .pod, .image, .network, and other quadlet types
       - Provides lifecycle hooks for initialization and post-installation scripts
-      - Generates systemd units from quadlet specifications
       - Supports rootless mode with systemd user scope
     author:
       - "David O. (oszi.dev)"

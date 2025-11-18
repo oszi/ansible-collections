@@ -184,7 +184,7 @@ argument_specs:
       borgmatic_hooks:
         description:
           - Shell commands or scripts to execute before/after backups or on error
-          - All commands run with borgmatic user permissions
+          - All commands run with borgmatic user permissions (root)
           - Keys can be before_backup, after_backup, or on_error with list values
         type: dict
         required: false

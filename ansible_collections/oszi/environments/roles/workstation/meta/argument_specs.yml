@@ -3,7 +3,7 @@ argument_specs:
   main:
     short_description: Workstation desktop system configuration and package management
     description:
-      - Configures packages and settings for desktop workstation systems
+      - Configures packages and settings for workstation desktop systems
       - Manages desktop applications, security tools, and hardware-specific configurations
       - The supported desktop environment is Gnome Shell
     author:
@@ -44,7 +44,7 @@ argument_specs:
 
       workstation_blacklisted_packages_pt_to_sandbox:
         description:
-          - Packages to remove that should run in sandboxed environments (flatpak/snap)
+          - Packages to remove that should run in sandboxed environments (flatpak/snap/VMs)
           - Includes browsers (firefox, chromium) and other desktop apps
           - Removes apport to protect kernel.core_pattern on Debian/Ubuntu systems
         type: list
@@ -55,7 +55,7 @@ argument_specs:
         description:
           - Office and productivity suite packages to remove from workstations
           - Includes LibreOffice, Evolution email client, and Evince document viewer
-          - These applications are typically better installed via flatpak with sandboxing or in guest VMs
+          - These applications are typically better installed via flatpak or in VMs
         type: list
         elements: raw
         required: false
@@ -71,7 +71,7 @@ argument_specs:
 
       workstation_local_bin_path:
         description:
-          - Directory path for local executable scripts on workstation systems
+          - Directory path for local executable scripts for workstations
           - Must be in the system PATH for scripts to be accessible
         type: path
         required: false
@@ -91,6 +91,7 @@ argument_specs:
             description:
               - Function key mode for Apple keyboards
               - 0=disabled, 1=fkeyslast (Fn+F* for F keys), 2=fkeysfirst (F* for F keys, Fn+F* for special)
+              - For Keychron keyboards in Windows mode fkeyslast vs fkeysfirst could be reversed
             type: int
             required: false
             choices: [0, 1, 2]

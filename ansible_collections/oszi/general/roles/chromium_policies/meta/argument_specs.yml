@@ -1,12 +1,11 @@
 ---
 argument_specs:
   main:
-    short_description: Chromium browser enterprise policy management
+    short_description: Chromium enterprise policy management
     description:
       - Manages Chromium and Google Chrome enterprise policies system-wide
       - Configures mandatory and recommended browser policies via JSON files
-      - Supports multiple Chromium variants (upstream, snap, flatpak, Google Chrome)
-      - Enforces security, privacy, and extension management policies
+      - Supports most Chromium variants with the defaults (upstream, Flatpak, Snap, Google Chrome)
     author:
       - "David O. (oszi.dev)"
     options:

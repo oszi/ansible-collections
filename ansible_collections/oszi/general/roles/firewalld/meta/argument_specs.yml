@@ -12,7 +12,7 @@ argument_specs:
     options:
       firewalld_disabled:
         description:
-          - Whether to disable firewalld service
+          - Whether to disable firewalld firewall management
           - Automatically disabled for containers
         type: bool
         required: false
@@ -21,7 +21,7 @@ argument_specs:
       firewalld_default_zone:
         description:
           - Override the firewalld default zone
-          - Upstream default is public, Fedora uses FedoraWorkstation or FedoraServer
+          - Upstream default is "public", Fedora uses FedoraWorkstation or FedoraServer
         type: str
         required: false
 

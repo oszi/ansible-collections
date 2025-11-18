@@ -11,7 +11,7 @@ argument_specs:
     options:
       dotfiles_disabled:
         description:
-          - Whether to skip all dotfiles setup tasks
+          - Whether to skip all dotfiles management tasks
           - Useful for read-only systems or when dotfiles are managed elsewhere
         type: bool
         required: false
@@ -21,7 +21,7 @@ argument_specs:
         description:
           - List of usernames to install dotfiles for
           - Defaults to root and ansible_user when running as root, or current user otherwise
-          - Role works without privilege escalation for single user
+          - Role works without privilege escalation for a single user
         type: list
         elements: str
         required: false
@@ -37,6 +37,7 @@ argument_specs:
           - Specify file lookup paths relative to inventory_dir
           - |-
             Example:
+            ```
             .ssh/config: |
               # Ansible managed
               {% if dotfiles_gnupg_sshcontrol_keygrips %}
@@ -50,6 +51,7 @@ argument_specs:
               Host 192.168.88.1
                 Port 22
                 User admin
+            ```
         type: dict
         required: false
         default: {}
@@ -96,8 +98,9 @@ argument_specs:
 
       dotfiles_gnupg_sshcontrol_keygrips:
         description:
-          - List of GnuPG key grips to enable for SSH authentication
-          - Keys listed here can be used via gpg-agent's SSH socket
+          - List of authentication [A] keygrips to enable for SSH authentication via gpg-agent's SSH socket
+          - Lines start with the keygrip given as 40 hex digits, optionally followed by a caching TTL in seconds,
+            and another optional field for arbitrary flags. Prepend the keygrip with an '!' mark to disable it.
         type: list
         elements: str
         required: false
@@ -130,7 +133,7 @@ argument_specs:
       dotfiles_gnupg_scdaemon_reader_port:
         description:
           - Smartcard reader port/name for GnuPG scdaemon (e.g., Yubico Yubi)
-          - Useful when multiple readers are present
+          - Useful when multiple smartcards are present
         type: str
         required: false
 
@@ -176,7 +179,8 @@ argument_specs:
 
       dotfiles_git_user_signingkey:
         description:
-          - GnuPG key ID for commit and tag signing
+          - GnuPG key ID for automatic commit and tag signing
+          - Supports SSH keys for signing in public key (ssh-...) or path formats (.ssh/)
           - Defaults to dotfiles_gnupg_default_key
         type: str
         required: false

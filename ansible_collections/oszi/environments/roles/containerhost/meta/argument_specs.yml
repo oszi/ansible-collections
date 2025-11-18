@@ -1,12 +1,10 @@
 ---
 argument_specs:
   main:
-    short_description: Container host configuration for toolbox containers
+    short_description: Container host configuration with podman and toolbox containers
     description:
+      - Includes all podman roles as dependencies - podman, podman_kube, podman_quadlets
       - Configures container host systems to support toolbox container workflows
-      - Manages toolbox container image settings and runtime configuration
-      - Sets up local executables and scripts for containerized development environments
-      - Includes all podman roles as dependencies
     author:
       - "David O. (oszi.dev)"
     options:
@@ -19,7 +17,7 @@ argument_specs:
 
       containerhost_toolbox_container_image:
         description:
-          - The container image URL to use for toolbox containers by default
+          - The container image URL to use for toolbox containers
           - Should be a fully qualified container image reference (registry/namespace/image:tag)
         type: str
         required: false
@@ -35,8 +33,7 @@ argument_specs:
 
       containerhost_podman_config_toolbox:
         description:
-          - Configuration content for podman toolbox settings
-          - Overrides podman_config_toolbox when podman_toolbox_enabled is true
+          - Configuration content for podman toolbox settings - overrides podman_config_toolbox
           - Contains the toolbox configuration in INI format specifying the image to use
         type: str
         required: false
@@ -55,7 +52,7 @@ argument_specs:
       containerhost_local_bin_path:
         description:
           - Directory path where local executables and toolbox-container scripts are installed
-          - Must be a directory in the system PATH for scripts to be accessible
+          - Must be in the system PATH for scripts to be accessible
         type: path
         required: false
         default: "{{ local_bin_path | default('/usr/local/bin', true) }}"

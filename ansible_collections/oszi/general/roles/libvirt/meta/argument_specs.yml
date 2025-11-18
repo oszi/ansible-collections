@@ -1,7 +1,7 @@
 ---
 argument_specs:
   main:
-    short_description: Libvirt virtualization platform management for desktop
+    short_description: Libvirt virtualization platform management for workstations
     description:
       - Installs virtualization packages including virt-manager and guestfs-tools
       - Configures virtual machines, networks, and storage pools (use with caution)
@@ -27,7 +27,7 @@ argument_specs:
 
       libvirt_packages:
         description:
-          - List of libvirt/QEMU packages and tools to install
+          - Nested list of libvirt/QEMU packages and tools to install
           - Includes GUI tools (virt-manager), guestfs utilities, and architecture support
         type: list
         elements: raw
