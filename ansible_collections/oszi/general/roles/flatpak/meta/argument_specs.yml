@@ -6,6 +6,7 @@ argument_specs:
       - Manages Flatpak remotes (repositories) and applications
       - Configures global and per-application sandboxing overrides
       - Handles application installation, overrides, and removal
+      - Supports rootless mode with Flatpak user method
     author:
       - "David O. (oszi.dev)"
     options:

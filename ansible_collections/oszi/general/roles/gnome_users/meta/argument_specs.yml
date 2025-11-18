@@ -7,6 +7,7 @@ argument_specs:
       - Configures XDG user directories (Documents, Downloads, Pictures, etc.)
       - Sets up custom keyboard shortcuts and keybindings
       - Manages GNOME desktop preferences including themes, and behavior
+      - Supports rootless mode for a single user, or multiple users with become_user
     author:
       - "David O. (oszi.dev)"
     options:

@@ -7,6 +7,7 @@ argument_specs:
       - Supports DNS-01 validation via CloudFlare or AWS Route53
       - Handles certificate lifecycle including generation, renewal, and revocation
       - Configures post-hook scripts and reload commands for certificate updates
+      - Supports rootless mode depending on paths used and file ownerships
     author:
       - "David O. (oszi.dev)"
     options:

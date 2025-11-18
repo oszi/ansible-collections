@@ -6,7 +6,7 @@ argument_specs:
       - Manages CloudFlare DNS records via API
       - Supports automatic A/AAAA record creation from ansible_host or gathered facts
       - Manages CNAME, MX, TXT, and additional A/AAAA records
-      - Supports CloudFlare proxy (CDN) configuration
+      - Supports rootless mode, and runs on the controller
     author:
       - "David O. (oszi.dev)"
     options:

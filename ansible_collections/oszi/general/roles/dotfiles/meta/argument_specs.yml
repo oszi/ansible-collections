@@ -4,8 +4,8 @@ argument_specs:
     short_description: User dotfiles management
     description:
       - Manages user dotfiles and configuration files for multiple users
-      - Provides built-in templates for GnuPG and Git
-      - Supports custom dotfile templates
+      - Provides built-in templates for GnuPG and Git, and supports custom dotfile templates
+      - Supports rootless mode for a single user, or multiple users with root privileges
     author:
       - "David O. (oszi.dev)"
     options:
