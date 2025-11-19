@@ -11,19 +11,18 @@ argument_specs:
     options:
       libvirt_disabled:
         description:
-          - Whether to skip libvirt setup and configuration
-          - Automatically disabled when host is a virtualization guest
+          - Whether to skip libvirt installation and configuration
+          - Disabled by default when the host is a virtualization guest
           - Set to false to enable nested virtualization
         type: bool
         required: false
-        default: "{{ ansible_facts.virtualization_role == 'guest' }}"
 
       libvirt_local_bin_path:
         description:
-          - Directory path for local libvirt utility scripts and executables
+          - Directory path where libvirt utility scripts are installed
+          - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false
-        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
       libvirt_packages:
         description:
@@ -41,7 +40,6 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []
 
       libvirt_networks:
         description:
@@ -51,7 +49,6 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []
 
       libvirt_pools:
         description:
@@ -61,4 +58,3 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []

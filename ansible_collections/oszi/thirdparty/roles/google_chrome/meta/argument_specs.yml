@@ -23,7 +23,6 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://dl-ssl.google.com/linux/chrome/rpm/stable/$basearch"
 
       google_chrome_deb_baseurl:
         description:
@@ -31,11 +30,9 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://dl-ssl.google.com/linux/chrome/deb"
 
       google_chrome_deb_arch:
         description:
           - Comma-separated list of Debian repository architectures to enable
         type: str
         required: false
-        default: "amd64"

@@ -23,7 +23,6 @@ argument_specs:
           - Requires python_disabled=false to install
         type: str
         required: false
-        default: ">=1.9.10,<2.0.0"
 
       borgmatic_repository:
         description:
@@ -31,7 +30,6 @@ argument_specs:
           - Can be local path or remote SSH location (user@host:path)
         type: str
         required: false
-        default: "/var/lib/borg-{{ inventory_hostname }}"
 
       borgmatic_passphrase:
         description:
@@ -48,11 +46,6 @@ argument_specs:
         type: list
         elements: path
         required: false
-        default:
-          - /etc
-          - /home
-          - /opt
-          - /root
 
       borgmatic_excludes:
         description:
@@ -61,11 +54,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default:
-          - "*/.cache/*"
-          - "*/cache/*"
-          - "*/temp/*"
-          - "*/tmp/*"
 
       borgmatic_one_file_system:
         description:
@@ -77,11 +65,10 @@ argument_specs:
 
       borgmatic_compression:
         description:
-          - Type of compression algorithm to use for backups
+          - Type of compression algorithm to use for backups (defaults to lz4)
           - See https://borgbackup.readthedocs.org/en/stable/usage.html#borg-create
         type: str
         required: false
-        default: "lz4"
 
       borgmatic_remote_path:
         description:
@@ -89,7 +76,6 @@ argument_specs:
           - Used when connecting to remote repositories with different borg executable names
         type: str
         required: false
-        default: "borg"
 
       borgmatic_ssh_command:
         description:
@@ -97,19 +83,13 @@ argument_specs:
           - Allows customization of SSH parameters and alternatives
         type: str
         required: false
-        default: "ssh"
 
       borgmatic_consistency:
         description:
-          - Consistency check configuration for repository and archive validation
+          - Consistency check configuration for repository and archive validation (defaults to repository and archives)
           - See https://borgbackup.readthedocs.org/en/stable/usage.html#borg-check
         type: dict
         required: false
-        default:
-          checks:
-            - repository
-            - archives
-          check_last: 3
         options:
           checks:
             description: List of check types to perform (repository, archives, data, extract)
@@ -127,13 +107,6 @@ argument_specs:
           - See https://borgbackup.readthedocs.org/en/stable/usage.html#borg-prune
         type: dict
         required: false
-        default:
-          keep_within: 3H
-          keep_hourly: 24
-          keep_daily: 7
-          keep_weekly: 4
-          keep_monthly: 6
-          keep_yearly: 1
         options:
           keep_within:
             description: Keep all archives within this time interval
@@ -167,19 +140,14 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       borgmatic_timer_options:
         description:
           - List of systemd timer options for scheduling borgmatic backups
-          - Controls when and how often backups are triggered
+          - Controls when and how often backups are triggered (defaults to daily)
         type: list
         elements: str
         required: false
-        default:
-          - "OnCalendar=daily"
-          - "RandomizedDelaySec=3600"
-          - "Persistent=true"
 
       borgmatic_hooks:
         description:
@@ -188,4 +156,3 @@ argument_specs:
           - Keys can be before_backup, after_backup, or on_error with list values
         type: dict
         required: false
-        default: {}

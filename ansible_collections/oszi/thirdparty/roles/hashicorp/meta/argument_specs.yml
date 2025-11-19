@@ -24,7 +24,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       hashicorp_blacklisted_packages:
         description:
@@ -32,17 +31,13 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       hashicorp_rpm_baseurl:
         description:
           - Base URL for the HashiCorp RPM repository
-          - Automatically selects between Fedora and RHEL repositories
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://rpm.releases.hashicorp.com/{{
-          (ansible_facts.distribution == 'Fedora') | ternary('fedora', 'RHEL') }}/$releasever/$basearch"
 
       hashicorp_deb_baseurl:
         description:
@@ -50,4 +45,3 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://apt.releases.hashicorp.com"

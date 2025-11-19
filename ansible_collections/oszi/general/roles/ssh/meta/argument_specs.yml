@@ -13,10 +13,9 @@ argument_specs:
       ssh_server_disabled:
         description:
           - Whether to disable and uninstall OpenSSH server
-          - Automatically disabled for containers
+          - Disabled by default for containers
         type: bool
         required: false
-        default: "{{ ansible_facts.virtualization_type == 'container' }}"
 
       ssh_authorized_keys:
         description:
@@ -24,7 +23,6 @@ argument_specs:
           - Keys are usernames, values are SSH public keys (multiple keys can be separated by newlines)
         type: dict
         required: false
-        default: {}
 
       ssh_authorized_keys_exclusive:
         description:
@@ -65,7 +63,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       ssh_harden_crypto:
         description:
@@ -77,11 +74,8 @@ argument_specs:
 
       ssh_host_keys:
         description:
-          - List of SSH host key file paths to configure
+          - List of SSH host key file paths to configure (defaults to Ed25519 and RSA)
           - Only listed host keys will be active on the server
         type: list
         elements: path
         required: false
-        default:
-          - /etc/ssh/ssh_host_ed25519_key
-          - /etc/ssh/ssh_host_rsa_key

@@ -6,17 +6,15 @@ argument_specs:
       - Manages firewalld configuration including zones, services, ports, and rules
       - Supports rich rules and direct iptables/nftables rules
       - Configures backend (nftables or iptables) and default zone
-      - Automatically disabled for containers
     author:
       - "David O. (oszi.dev)"
     options:
       firewalld_disabled:
         description:
           - Whether to disable firewalld firewall management
-          - Automatically disabled for containers
+          - Disabled by default for containers
         type: bool
         required: false
-        default: "{{ ansible_facts.virtualization_type == 'container' }}"
 
       firewalld_default_zone:
         description:
@@ -32,7 +30,6 @@ argument_specs:
         type: list
         elements: raw
         required: false
-        default: []
 
       firewalld_ports:
         description:
@@ -41,7 +38,6 @@ argument_specs:
         type: list
         elements: raw
         required: false
-        default: []
 
       firewalld_rich_rules:
         description:
@@ -50,7 +46,6 @@ argument_specs:
         type: list
         elements: raw
         required: false
-        default: []
 
       firewalld_direct_rules:
         description:
@@ -59,7 +54,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       firewalld_zones:
         description:
@@ -68,7 +62,6 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []
         options:
           interface:
             description: Network interface to bind to zone

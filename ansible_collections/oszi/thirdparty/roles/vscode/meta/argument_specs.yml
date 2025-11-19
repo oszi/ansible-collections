@@ -11,7 +11,7 @@ argument_specs:
     options:
       vscode_enabled:
         description:
-          - Whether to install Visual Studio Code or uninstall it
+          - Whether to install or uninstall Visual Studio Code
           - Disabled by default
         type: bool
         required: false
@@ -23,7 +23,6 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://packages.microsoft.com/yumrepos/vscode"
 
       vscode_deb_baseurl:
         description:
@@ -31,14 +30,12 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://packages.microsoft.com/repos/code"
 
       vscode_deb_arch:
         description:
           - Comma-separated list of Debian repository architectures to enable
         type: str
         required: false
-        default: "amd64"
 
       vscode_microsoft_gpgkey_used_elsewhere:
         description:
@@ -47,4 +44,3 @@ argument_specs:
           - Set to true if other Microsoft products are installed (e.g., Azure CLI, PowerShell)
         type: bool
         required: false
-        default: false

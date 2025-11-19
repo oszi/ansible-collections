@@ -13,10 +13,9 @@ argument_specs:
       systemd_disabled:
         description:
           - Whether to skip systemd setup tasks
-          - Automatically disabled for containers
+          - Disabled by default for containers
         type: bool
         required: false
-        default: "{{ ansible_facts.virtualization_type == 'container' }}"
 
       systemd_system_units:
         description:
@@ -25,7 +24,6 @@ argument_specs:
           - Values are the unit file contents
         type: dict
         required: false
-        default: {}
 
       systemd_system_presets:
         description:
@@ -34,15 +32,13 @@ argument_specs:
           - Controls default enable/disable state of services
         type: dict
         required: false
-        default: {}
 
       systemd_networkd_enabled:
         description:
           - Whether to enable systemd-networkd setup
-          - Automatically enabled when network units are defined or resolved is enabled
+          - Enabled by default when network units are defined or resolved is enabled
         type: bool
         required: false
-        default: "{{ systemd_network_units | length > 0 or systemd_resolved_enabled }}"
 
       systemd_network_units:
         description:
@@ -51,15 +47,13 @@ argument_specs:
           - Used for declarative network configuration
         type: dict
         required: false
-        default: {}
 
       systemd_resolved_enabled:
         description:
           - Whether to enable systemd-resolved DNS resolver
-          - Automatically enabled when resolved options are configured
+          - Enabled by default when resolved options are configured
         type: bool
         required: false
-        default: "{{ systemd_resolved_options | length > 0 }}"
 
       systemd_resolved_options:
         description:
@@ -68,7 +62,6 @@ argument_specs:
           - Configures DNS servers, fallback DNS, DNSSEC, etc.
         type: dict
         required: false
-        default: {}
 
       systemd_network_manager_disabled:
         description:

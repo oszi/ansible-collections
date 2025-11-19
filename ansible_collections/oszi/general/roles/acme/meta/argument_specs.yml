@@ -18,7 +18,6 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []
         options:
           common_name:
             description: Common name (CN) for the certificate
@@ -37,10 +36,9 @@ argument_specs:
             type: path
             required: true
           remaining_days:
-            description: Days before expiration to trigger certificate renewal
+            description: Days before expiration to trigger certificate renewal (defaults to acme_remaining_days_default)
             type: int
             required: false
-            default: 60
           post_hook:
             description: Shell commands to execute after certificate issuance/renewal (e.g., convert to PKCS12)
             type: str
@@ -50,11 +48,11 @@ argument_specs:
             type: str
             required: false
           owner:
-            description: Unix user ID or name for certificate file ownership
+            description: Unix user ID or name for file ownerships (omit in rootless mode)
             type: raw
             required: false
           group:
-            description: Unix group ID or name for certificate file ownership
+            description: Unix group ID or name for file ownerships (omit in rootless mode)
             type: raw
             required: false
 
@@ -65,7 +63,6 @@ argument_specs:
         type: list
         elements: path
         required: false
-        default: []
 
       acme_reload:
         description:
@@ -103,8 +100,6 @@ argument_specs:
           - One account key per host, location depends on running as root or regular user
         type: path
         required: false
-        default: "{{ '/etc/letsencrypt/account.pem' if ansible_facts.user_uid | int == 0
-          else '~/.letsencrypt/account.pem' }}"
 
       acme_install_python3_cryptography:
         description:
@@ -112,15 +107,13 @@ argument_specs:
           - Disable when running in a virtual environment or without root privileges
         type: bool
         required: false
-        default: "{{ ansible_facts.user_uid | int == 0 }}"
 
       acme_remaining_days_default:
         description:
           - Default days before expiration to renew certificates out of usually 90 days of validity
-          - Set to maximum (usually 90) to force immediate renewal
+          - Set to the maximum validity to trigger immediate renewals
         type: int
         required: false
-        default: 60
 
       acme_directory_url:
         description:
@@ -128,14 +121,12 @@ argument_specs:
           - Defaults to Let's Encrypt production API
         type: str
         required: false
-        default: "https://acme-v02.api.letsencrypt.org/directory"
 
       acme_api_version:
         description:
-          - ACME protocol API version to use
+          - ACME protocol API version to use (defaults to 2)
         type: int
         required: false
-        default: 2
 
       acme_dns_provider:
         description:
@@ -151,18 +142,16 @@ argument_specs:
       acme_cloudflare_api_token:
         description:
           - CloudFlare API token with DNS edit permission (use ansible-vault)
-          - Required when acme_dns_provider is cloudflare
+          - Required when acme_dns_provider is cloudflare (defaults to cloudflare_dns_api_token)
         type: str
         required: false
-        default: "{{ cloudflare_dns_api_token | default(None) }}"
 
       acme_cloudflare_zone:
         description:
           - CloudFlare DNS zone/domain for DNS-01 validation records
-          - Required when acme_dns_provider is cloudflare
+          - Required when acme_dns_provider is cloudflare (defaults to cloudflare_dns_zone)
         type: str
         required: false
-        default: "{{ cloudflare_dns_zone | default(None) }}"
 
       acme_route53_zone:
         description:

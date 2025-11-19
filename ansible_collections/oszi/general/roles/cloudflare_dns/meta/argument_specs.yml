@@ -66,7 +66,6 @@ argument_specs:
         type: list
         elements: raw
         required: false
-        default: []
 
       cloudflare_dns_mx_records:
         description:
@@ -76,7 +75,6 @@ argument_specs:
         type: list
         elements: raw
         required: false
-        default: []
 
       cloudflare_dns_txt_records:
         description:
@@ -86,7 +84,6 @@ argument_specs:
         type: list
         elements: raw
         required: false
-        default: []
 
       cloudflare_dns_extra_a_records:
         description:
@@ -95,7 +92,6 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []
         options:
           record:
             description: DNS record name (subdomain or @)
@@ -130,7 +126,6 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []
         options:
           record:
             description: DNS record name (subdomain or @)

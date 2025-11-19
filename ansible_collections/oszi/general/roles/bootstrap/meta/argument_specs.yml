@@ -1,12 +1,13 @@
 ---
 argument_specs:
   main:
-    short_description: Bootstrap role for initial connection and fact gathering
+    short_description: Role for SSH connection bootstrap and fact gathering
     description:
-      - Performs initial host bootstrap including SSH port detection and fallback
+      - Automatic fact gathering should be turned off in playbooks using this role
+      - Performs initial SSH connection bootstrap with optional port fallback
       - Gathers system facts with configurable subset filtering
       - Validates system requirements with assertions
-      - Updates the package manager cache for apt by default
+      - Updates the default package manager cache if necessary
     author:
       - "David O. (oszi.dev)"
     options:
@@ -26,8 +27,7 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default:
-          - all
+        default: ["all"]
 
       bootstrap_assert_that:
         description:
@@ -36,21 +36,16 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default:
-          - "ansible_facts.os_family in ['Debian', 'RedHat']"
 
       bootstrap_package_update_cache:
         description:
-          - Whether to update the default package manager cache after fact gathering
-          - Useful to avoid having to specify cache_valid_time in apt package tasks
-        type: raw
+          - Whether to update the default package manager cache after fact gathering (not in rootless mode)
+          - Enabled for apt to avoid having to specify cache_valid_time in package tasks
+        type: bool
         required: false
-        default: "{{ ansible_facts.pkg_mgr | default('dnf') == 'apt'
-          and ansible_facts.user_uid | default(0) | int == 0 }}"
 
       bootstrap_apt_cache_valid_time:
         description:
-          - Cache validity time in seconds for apt (defaults to 1 day)
+          - Cache validity time in seconds for apt (defaults to 24h)
         type: int
         required: false
-        default: 86400

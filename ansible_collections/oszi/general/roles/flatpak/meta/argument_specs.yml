@@ -24,7 +24,6 @@ argument_specs:
           - "Example: {flathub: 'https://flathub.org/repo/flathub.flatpakrepo'}"
         type: dict
         required: false
-        default: {}
 
       flatpak_apps:
         description:
@@ -33,7 +32,6 @@ argument_specs:
           - "Example: {org.chromium.Chromium: flathub}"
         type: dict
         required: false
-        default: {}
 
       flatpak_blacklisted_apps:
         description:
@@ -42,7 +40,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       flatpak_global_overrides:
         description:
@@ -52,7 +49,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       flatpak_app_overrides:
         description:
@@ -61,4 +57,3 @@ argument_specs:
           - "Example: {com.example.App: ['--nofilesystem=home', '--filesystem=/mnt/data:ro']}"
         type: dict
         required: false
-        default: {}

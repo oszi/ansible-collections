@@ -12,10 +12,9 @@ argument_specs:
       snap_disabled:
         description:
           - Whether to disable Snap package manager
-          - Automatically disabled on non-Debian systems unless snap_packages is set
+          - Disabled by default on non-Debian systems unless snap_packages is set
         type: bool
         required: false
-        default: "{{ ansible_facts.os_family != 'Debian' and snap_packages | length == 0 }}"
 
       snap_packages:
         description:
@@ -24,7 +23,6 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []
         options:
           name:
             description: Name of the snap to be installed
@@ -50,4 +48,3 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []

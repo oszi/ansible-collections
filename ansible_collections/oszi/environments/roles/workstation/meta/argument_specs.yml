@@ -11,17 +11,15 @@ argument_specs:
     options:
       workstation_packages:
         description:
-          - Nested list of package names to install on workstation systems
-          - Includes desktop applications and hardware utilities (see the toolbox role for development tools)
-          - Supports platform-specific package selection based on distribution and virtualization role with the defaults
+          - Nested list of package names to install on workstations
+          - Defaults to workstation_packages_pt_default, combine with lists from the inventory
         type: list
         elements: raw
         required: false
-        default: "{{ workstation_packages_pt_default }}"
 
       workstation_packages_pt_default:
         description:
-          - Default platform-specific package list for workstation systems
+          - Default platform-specific package list for workstations [avoid directly using this variable]
           - Contains language support (hunspell), smartcard tools (pcscd, pcsc-lite)
           - Includes hardware utilities only for physical machines (ddccontrol, i2c-tools, ltunify, piper)
           - Desktop applications (firewall-config, gparted, keepassxc, remmina, wireshark, etc.)
@@ -31,20 +29,15 @@ argument_specs:
 
       workstation_blacklisted_packages:
         description:
-          - Nested list of package names to remove from workstation systems
-          - Combines packages for sandboxing, office suites, and installer components
-          - Removes browsers, containers, and apps better run in flatpak/snap for security
+          - Nested list of package names to remove from workstations
+          - Defaults to workstation_blacklisted_packages_pt_*, combine with lists from the inventory
         type: list
         elements: raw
         required: false
-        default:
-          - "{{ workstation_blacklisted_packages_pt_to_sandbox }}"
-          - "{{ workstation_blacklisted_packages_pt_office }}"
-          - "{{ workstation_blacklisted_packages_pt_anaconda if (ansible_facts.os_family == 'RedHat') else [] }}"
 
       workstation_blacklisted_packages_pt_to_sandbox:
         description:
-          - Packages to remove that should run in sandboxed environments (flatpak/snap/VMs)
+          - Packages to remove that should be sandboxed with Flatpak/Snap/VMs [avoid directly using this variable]
           - Includes browsers (firefox, chromium) and other desktop apps
           - Removes apport to protect kernel.core_pattern on Debian/Ubuntu systems
         type: list
@@ -53,29 +46,27 @@ argument_specs:
 
       workstation_blacklisted_packages_pt_office:
         description:
-          - Office and productivity suite packages to remove from workstations
+          - Office packages to remove from workstations [avoid directly using this variable]
           - Includes LibreOffice, Evolution email client, and Evince document viewer
-          - These applications are typically better installed via flatpak or in VMs
+          - These applications are typically better installed via Flatpak, Snap or in VMs
         type: list
         elements: raw
         required: false
 
       workstation_blacklisted_packages_pt_anaconda:
         description:
-          - RedHat/Fedora installer (anaconda) components to remove from installed systems
+          - RedHat/Fedora installer components to remove [avoid directly using this variable]
           - Unnecessary on most systems after installation is complete
-          - Only applies to RedHat family distributions
         type: list
         elements: raw
         required: false
 
       workstation_local_bin_path:
         description:
-          - Directory path for local executable scripts for workstations
-          - Must be in the system PATH for scripts to be accessible
+          - Directory path where scripts for workstations are installed
+          - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false
-        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
       workstation_hid_apple_options:
         description:
@@ -96,20 +87,17 @@ argument_specs:
             required: false
             choices: [0, 1, 2]
           iso_layout:
-            description:
-              - Whether to use ISO keyboard layout
+            description: Whether to use ISO keyboard layout
             type: int
             required: false
             choices: [0, 1]
           swap_opt_cmd:
-            description:
-              - Whether to swap Option and Command keys
+            description: Whether to swap Option and Command keys
             type: int
             required: false
             choices: [0, 1]
           swap_fn_leftctrl:
-            description:
-              - Whether to swap Fn and left Control keys
+            description: Whether to swap Fn and left Control keys
             type: int
             required: false
             choices: [0, 1]

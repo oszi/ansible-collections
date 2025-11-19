@@ -18,7 +18,6 @@ argument_specs:
           - See https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
         type: dict
         required: false
-        default: {}
 
       podman_quadlets_copy_files:
         description:
@@ -27,7 +26,6 @@ argument_specs:
           - Use this to copy configuration files before quadlet installation
         type: dict
         required: false
-        default: {}
 
       podman_quadlets_init_scripts:
         description:
@@ -36,7 +34,6 @@ argument_specs:
           - Use for first-time setup tasks like volume creation or initial configuration
         type: dict
         required: false
-        default: {}
 
       podman_quadlets_post_install_scripts:
         description:
@@ -45,4 +42,3 @@ argument_specs:
           - Use for post-install setup tasks that depend on the quadlet being active
         type: dict
         required: false
-        default: {}

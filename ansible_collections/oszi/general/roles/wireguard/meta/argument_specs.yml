@@ -23,7 +23,6 @@ argument_specs:
           - See https://git.zx2c4.com/WireGuard/about/src/tools/man/wg-quick.8
         type: dict
         required: false
-        default: {}
 
       wireguard_quick_services:
         description:
@@ -32,8 +31,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: "{{ wireguard_quick_configs.keys() | list
-          if ansible_facts.virtualization_type != 'container' else [] }}"
 
       wireguard_packages:
         description:

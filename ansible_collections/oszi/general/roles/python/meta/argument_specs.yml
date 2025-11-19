@@ -23,7 +23,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       python_distro_packages:
         description:

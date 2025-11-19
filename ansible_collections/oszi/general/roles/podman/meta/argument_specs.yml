@@ -22,7 +22,6 @@ argument_specs:
           - Whether to install podman-compose (rootless, daemonless docker-compose alternative)
         type: bool
         required: false
-        default: "{{ not podman_disabled }}"
 
       podman_toolbox_enabled:
         description:
@@ -30,7 +29,6 @@ argument_specs:
           - Requires flatpak to not be disabled
         type: bool
         required: false
-        default: "{{ not podman_disabled and not flatpak_disabled | default(false) }}"
 
       podman_docker_enabled:
         description:
@@ -38,11 +36,10 @@ argument_specs:
           - Provides docker CLI compatibility layer
         type: bool
         required: false
-        default: "{{ not podman_disabled }}"
 
       podman_docker_compose_enabled:
         description:
-          - Whether to install docker-compose to use with podman-docker (use with caution)
+          - Whether to install docker-compose to use with podman (use with caution)
           - For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
           - Prefer using a virtual environment instead of the distro package
         type: bool
@@ -62,7 +59,6 @@ argument_specs:
           - Defines container image signature verification and trust policies
         type: dict
         required: false
-        default: {}
 
       podman_config_containers:
         description:
@@ -86,7 +82,6 @@ argument_specs:
           - Consider using .network quadlet files instead
         type: dict
         required: false
-        default: {}
 
       podman_images:
         description:
@@ -96,7 +91,6 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        default: []
 
       podman_containers:
         description:
@@ -105,7 +99,6 @@ argument_specs:
           - Consider using .container quadlet files instead
         type: dict
         required: false
-        default: {}
 
       podman_pods:
         description:
@@ -114,11 +107,10 @@ argument_specs:
           - Consider using .pod quadlets or podman-kube@.service instead
         type: dict
         required: false
-        default: {}
 
       podman_local_bin_path:
         description:
-          - Directory path for local podman utility scripts and executables
+          - Directory path where podman utility scripts are installed
+          - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false
-        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"

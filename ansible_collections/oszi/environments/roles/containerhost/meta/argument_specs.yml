@@ -11,9 +11,9 @@ argument_specs:
       containerhost_toolbox_container_disabled:
         description:
           - Whether to disable toolbox-container scripts and functionality
+          - Defaults to podman_disabled
         type: bool
         required: false
-        default: "{{ podman_disabled }}"
 
       containerhost_toolbox_container_image:
         description:
@@ -37,9 +37,6 @@ argument_specs:
           - Contains the toolbox configuration in INI format specifying the image to use
         type: str
         required: false
-        default: |
-          [general]
-          image = "{{ containerhost_toolbox_container_image }}"
 
       containerhost_runtime:
         description:
@@ -47,12 +44,10 @@ argument_specs:
           - Typically 'podman' but can be configured for alternative OCI-compatible runtimes
         type: str
         required: false
-        default: "podman"
 
       containerhost_local_bin_path:
         description:
-          - Directory path where local executables and toolbox-container scripts are installed
-          - Must be in the system PATH for scripts to be accessible
+          - Directory path where toolbox-container scripts are installed
+          - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false
-        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"

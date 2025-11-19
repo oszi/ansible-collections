@@ -18,7 +18,6 @@ argument_specs:
           - Multiple YAML documents (e.g., PodSpec + ConfigMap) are separated by ---
         type: dict
         required: false
-        default: {}
 
       podman_kube_copy_files:
         description:
@@ -27,7 +26,6 @@ argument_specs:
           - Use this to copy configuration files before pod installation
         type: dict
         required: false
-        default: {}
 
       podman_kube_init_scripts:
         description:
@@ -36,7 +34,6 @@ argument_specs:
           - Use for first-time setup tasks like creating directories or initial configuration
         type: dict
         required: false
-        default: {}
 
       podman_kube_post_install_scripts:
         description:
@@ -45,4 +42,3 @@ argument_specs:
           - Use for post-install setup tasks that depend on the service being configured
         type: dict
         required: false
-        default: {}

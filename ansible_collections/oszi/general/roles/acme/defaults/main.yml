@@ -33,7 +33,7 @@ acme_account_key_passphrase: ""
 acme_account_email: ""
 # Path to the ACME account key - one per host:
 acme_account_key_path: "{{ '/etc/letsencrypt/account.pem' if ansible_facts.user_uid | int == 0
-  else '~/.letsencrypt/account.pem' }}"
+  else ansible_facts.user_dir + '/.letsencrypt/account.pem' }}"
 
 # Ensure python3-cryptography is installed?
 # Disable for a virtual environment or for running without root.

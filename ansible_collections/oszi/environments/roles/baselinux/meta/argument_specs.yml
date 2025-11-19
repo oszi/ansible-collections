@@ -17,24 +17,6 @@ argument_specs:
           - Set to an empty string to skip locale setting
         type: str
         required: false
-        default: >-
-          {% if 'workstations' in group_names %}
-          LANG=en_US.UTF-8
-          LANGUAGE=en_US
-          LC_COLLATE=C.UTF-8
-          LC_ADDRESS=en_IE.UTF-8
-          LC_IDENTIFICATION=en_IE.UTF-8
-          LC_MEASUREMENT=en_IE.UTF-8
-          LC_MESSAGES=en_IE.UTF-8
-          LC_MONETARY=en_IE.UTF-8
-          LC_NAME=en_IE.UTF-8
-          LC_NUMERIC=en_IE.UTF-8
-          LC_PAPER=en_IE.UTF-8
-          LC_TELEPHONE=en_IE.UTF-8
-          LC_TIME=en_IE.UTF-8
-          {% else %}
-          C.UTF-8
-          {% endif %}
 
       baselinux_timezone:
         description:
@@ -63,11 +45,10 @@ argument_specs:
       baselinux_etc_hosts:
         description:
           - Dictionary of hostname to IP address mappings for /etc/hosts
-          - Prevents DNS hanging during hostname lookup by setting inventory_hostname to 127.0.0.1
           - Each key is a hostname or hostnames separated by spaces and each value is the corresponding IP address
+          - Prevent DNS hanging during hostname lookup by setting inventory_hostname to 127.0.0.1 or a local IP address
         type: dict
         required: false
-        default: "{{ {inventory_hostname: '127.0.0.1'} }}"
 
       baselinux_sysctl_values:
         description:
@@ -75,7 +56,6 @@ argument_specs:
           - Each key is a sysctl parameter name and each value is the parameter value
         type: dict
         required: false
-        default: {}
 
       baselinux_udev_rules:
         description:
@@ -84,7 +64,6 @@ argument_specs:
           - Used for device management and automatic actions on device events
         type: dict
         required: false
-        default: {}
 
       baselinux_sudoers_rules:
         description:
@@ -93,7 +72,6 @@ argument_specs:
           - Allows fine-grained sudo permission management per user or group
         type: dict
         required: false
-        default: {}
 
       baselinux_extra_packages:
         description:
@@ -101,7 +79,6 @@ argument_specs:
         type: list
         elements: raw
         required: false
-        default: []
 
       baselinux_blacklisted_packages:
         description:
@@ -110,16 +87,14 @@ argument_specs:
         type: list
         elements: raw
         required: false
-        default: []
 
       baselinux_posix_mounts:
         description:
           - List of filesystem mounts to configure with ansible.posix.mount
-          - Each entry contains module parameters such as path, source, fstype, and state
+          - Each entry contains module parameters such as path, src, fstype, and state
         type: list
         elements: dict
         required: false
-        default: []
         options:
           path:
             description: Mount point path on the filesystem
@@ -128,26 +103,30 @@ argument_specs:
           src:
             description: Device or remote filesystem source (UUID, device path, NFS share, etc.)
             type: str
-            required: true
+            required: false
           fstype:
             description: Filesystem type (xfs, ext4, nfs, etc.)
             type: str
-            required: true
-          state:
-            description: Desired mount state (present, mounted, unmounted, absent)
-            type: str
             required: false
-            choices: ['present', 'mounted', 'unmounted', 'absent']
+          state:
+            description: Desired mount state (mounted, unmounted, remounted, present, absent, ephemeral)
+            type: str
+            required: true
+            choices: ['absent', 'absent_from_fstab', 'present', 'mounted', 'unmounted', 'remounted', 'ephemeral']
           opts:
             description: Mount options as comma-separated string
             type: str
             required: false
+          boot:
+            description: Determines if the filesystem should be mounted on boot (default true)
+            type: bool
+            required: false
           dump:
-            description: Dump field for /etc/fstab
+            description: Dump field for /etc/fstab (default '0')
             type: str
             required: false
           passno:
-            description: Pass number for fsck
+            description: Pass number for fsck (default '0')
             type: str
             required: false
 
@@ -158,7 +137,6 @@ argument_specs:
         type: list
         elements: path
         required: false
-        default: []
 
       baselinux_symlinks:
         description:
@@ -167,7 +145,6 @@ argument_specs:
           - "Format is {'/path/to/dest': 'link/src'}"
         type: dict
         required: false
-        default: {}
 
       baselinux_ca_trust_anchors:
         description:
@@ -177,7 +154,6 @@ argument_specs:
         type: list
         elements: path
         required: false
-        default: []
 
       baselinux_ca_trust_anchors_blacklisted_paths:
         description:
@@ -187,4 +163,3 @@ argument_specs:
         type: list
         elements: path
         required: false
-        default: []

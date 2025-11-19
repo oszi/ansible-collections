@@ -3,7 +3,7 @@ argument_specs:
   main:
     short_description: OpenTofu installation - a Terraform alternative
     description:
-      - Managed OpenTofu installation, an open-source Terraform alternative
+      - Manages OpenTofu installation, an open-source Terraform alternative
       - Supports upstream repositories and distribution packages
       - Configures package sources for Debian and RPM-based systems
     author:
@@ -12,8 +12,7 @@ argument_specs:
       opentofu_enabled:
         description:
           - Whether to install or uninstall OpenTofu
-          - When upstream is enabled, installs 'tofu' package
-          - When upstream is disabled, installs 'opentofu' from the distribution (e.g., Fedora)
+          - Disabled by default
         type: bool
         required: false
         default: false
@@ -21,11 +20,10 @@ argument_specs:
       opentofu_upstream_enabled:
         description:
           - Whether to install the upstream/external deb/rpm repository
-          - Automatically enabled when opentofu_enabled is true except on Fedora
-          - Fedora has native opentofu package in its repositories
+          - When upstream is enabled, installs 'tofu' package
+          - When upstream is disabled, installs 'opentofu' from the distribution (e.g., Fedora)
         type: bool
         required: false
-        default: "{{ opentofu_enabled and ansible_facts.distribution != 'Fedora' }}"
 
       opentofu_rpm_baseurl:
         description:
@@ -33,7 +31,6 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://packages.opentofu.org/opentofu/tofu/rpm_any/rpm_any/$basearch"
 
       opentofu_deb_baseurl:
         description:
@@ -41,4 +38,3 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://packages.opentofu.org/opentofu/tofu/any/"

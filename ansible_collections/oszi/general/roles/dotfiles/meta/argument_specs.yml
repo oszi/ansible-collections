@@ -25,9 +25,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: "{{ ['root', ansible_user | default('root')] | unique
-          if ansible_facts.user_uid | int == 0
-          else [ansible_facts.user_id] }}"
 
       dotfiles_files:
         description:
@@ -54,7 +51,6 @@ argument_specs:
             ```
         type: dict
         required: false
-        default: {}
 
       dotfiles_gnupg_enabled:
         description:
@@ -62,7 +58,6 @@ argument_specs:
           - Defaults to true for workstations
         type: bool
         required: false
-        default: "{{ 'workstations' in group_names }}"
 
       dotfiles_git_enabled:
         description:
@@ -70,7 +65,6 @@ argument_specs:
           - Defaults to true for non-root workstation users
         type: bool
         required: false
-        default: "{{ 'workstations' in group_names and dotfiles_user_item != 'root' }}"
 
       dotfiles_gnupg_default_key:
         description:
@@ -85,7 +79,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       dotfiles_gnupg_agent_options:
         description:
@@ -94,17 +87,16 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       dotfiles_gnupg_sshcontrol_keygrips:
         description:
           - List of authentication [A] keygrips to enable for SSH authentication via gpg-agent's SSH socket
           - Lines start with the keygrip given as 40 hex digits, optionally followed by a caching TTL in seconds,
-            and another optional field for arbitrary flags. Prepend the keygrip with an '!' mark to disable it.
+            and another optional field for arbitrary flags
+          - Prepend the keygrip with an '!' mark to disable it
         type: list
         elements: str
         required: false
-        default: []
 
       dotfiles_gnupg_dirmngr_keyserver:
         description:
@@ -120,7 +112,6 @@ argument_specs:
         type: list
         elements: path
         required: false
-        default: []
 
       dotfiles_gnupg_dirmngr_extra_options:
         description:
@@ -128,7 +119,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       dotfiles_gnupg_scdaemon_reader_port:
         description:
@@ -159,7 +149,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: []
 
       dotfiles_git_user_name:
         description:
@@ -167,7 +156,6 @@ argument_specs:
           - Defaults to the system user name
         type: str
         required: false
-        default: "{{ dotfiles_user_info.name }}"
 
       dotfiles_git_user_email:
         description:
@@ -175,7 +163,6 @@ argument_specs:
           - Defaults to username@inventory_hostname
         type: str
         required: false
-        default: "{{ dotfiles_user_info.name }}@{{ inventory_hostname }}"
 
       dotfiles_git_user_signingkey:
         description:
@@ -184,7 +171,6 @@ argument_specs:
           - Defaults to dotfiles_gnupg_default_key
         type: str
         required: false
-        default: "{{ dotfiles_gnupg_default_key }}"
 
       dotfiles_git_editor:
         description:
@@ -199,4 +185,3 @@ argument_specs:
           - Use for custom Git configuration sections
         type: str
         required: false
-        default: ""

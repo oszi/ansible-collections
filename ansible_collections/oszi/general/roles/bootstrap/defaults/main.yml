@@ -20,5 +20,5 @@ bootstrap_assert_that:
 bootstrap_package_update_cache: "{{ ansible_facts.pkg_mgr | default('dnf') == 'apt'
   and ansible_facts.user_uid | default(0) | int == 0 }}"
 
-# Cache validity time in seconds for apt (defaults to 1 day)
+# Cache validity time in seconds for apt (defaults to 24h)
 bootstrap_apt_cache_valid_time: 86400

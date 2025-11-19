@@ -23,14 +23,12 @@ argument_specs:
           - Number of commands to keep in shell history per session in memory
         type: int
         required: false
-        default: 10000
 
       shell_histfilesize:
         description:
           - Number of commands to keep in shell history on disk
         type: int
         required: false
-        default: 10000
 
       shell_environment:
         description:
@@ -38,9 +36,6 @@ argument_specs:
           - If EDITOR or VISUAL is vi, ZSH switches to vi key-bindings
         type: dict
         required: false
-        default:
-          ENV: /etc/shrc
-          EDITOR: nano
 
       shell_search_paths:
         description:
@@ -49,9 +44,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default:
-          - '"$HOME"/.local/bin'
-          - '"$HOME"/bin'
 
       shell_skeleton_enforced_users:
         description:
@@ -60,8 +52,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: "{{ (['root', ansible_user | default('root')]
-          + (users_users.keys() | list if users_users is defined else [])) | unique }}"
 
       shell_packages:
         description:
@@ -73,10 +63,10 @@ argument_specs:
 
       shell_local_bin_path:
         description:
-          - Directory path for local shell scripts and executables
+          - Directory path where shell scripts and local binaries are installed
+          - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false
-        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
       shell_bash_completions_for_zsh:
         description:

@@ -11,16 +11,14 @@ argument_specs:
       toolbox_packages:
         description:
           - Nested list of package names to install for toolboxes
-          - Supports platform-specific package selection based on distribution with the defaults
-          - Includes development tools, network utilities, monitoring tools, and common build dependencies
+          - Defaults to toolbox_packages_pt_default, combine with lists from the inventory
         type: list
         elements: raw
         required: false
-        default: "{{ toolbox_packages_pt_default }}"
 
       toolbox_packages_pt_default:
         description:
-          - Default platform-specific package list for toolboxes
+          - Default platform-specific package list for toolboxes [avoid directly using this variable]
           - Includes comprehensive development tools like ansible, compilers, network utilities, debugging tools
           - Contains distribution-specific packages for Debian/Ubuntu vs Fedora/RedHat systems
         type: list
@@ -29,7 +27,7 @@ argument_specs:
 
       toolbox_blacklisted_packages:
         description:
-          - List of package names to remove from toolboxes
+          - Nested list of package names to remove from toolboxes
           - Used to remove unused or unwanted tools from the toolbox environment
         type: list
         elements: raw
@@ -37,8 +35,7 @@ argument_specs:
 
       toolbox_local_bin_path:
         description:
-          - Directory path for local executable scripts for toolboxes
-          - Must be in the system PATH for scripts to be accessible
+          - Directory path where scripts for toolboxes are installed
+          - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false
-        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"

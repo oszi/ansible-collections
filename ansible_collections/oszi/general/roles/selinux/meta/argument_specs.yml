@@ -11,10 +11,9 @@ argument_specs:
       selinux_disabled:
         description:
           - Whether to skip SELinux setup tasks
-          - Automatically disabled for containers and non-RedHat distributions
+          - Disabled by default for containers and non-RedHat distributions
         type: bool
         required: false
-        default: "{{ ansible_facts.virtualization_type == 'container' or ansible_facts.os_family != 'RedHat' }}"
 
       selinux_is_enforcing:
         description:

@@ -20,34 +20,32 @@ argument_specs:
       chromium_policies_managed:
         description:
           - Mandatory Chromium policies installed under managed/ subdirectories
-          - Each key becomes a JSON filename, value is the policy object
-          - Policies cannot be overridden by users
+          - Each key becomes a key.json file, each value is the policy object
+          - Includes chromium_policies_managed_pt_default, combine with dictionaries from the inventory
         type: dict
         required: false
-        default:
-          default: "{{ chromium_policies_managed_pt_default }}"
 
       chromium_policies_managed_pt_default:
         description:
           - Default mandatory policies including HTTPS-only mode, autofill disabling, and uBlock Origin Lite
           - Forces installation of uBlock Origin Lite MV3 extension, removes uBlock Origin MV2
+          - Avoid directly using this variable, use chromium_policies_managed
         type: dict
         required: false
 
       chromium_policies_recommended:
         description:
           - Recommended Chromium policies installed under recommended/ subdirectories
-          - Each key becomes a JSON filename, value is the policy object
-          - Policies can be overridden by users
+          - Each key becomes a key.json file, each value is the policy object
+          - Includes chromium_policies_recommended_pt_default and chromium_policies_recommended_pt_privacy,
+            combine with dictionaries from the inventory
         type: dict
         required: false
-        default:
-          default: "{{ chromium_policies_recommended_pt_default }}"
-          privacy: "{{ chromium_policies_recommended_pt_privacy }}"
 
       chromium_policies_recommended_pt_default:
         description:
           - Default recommended policies including session restore, background mode, and password manager settings
+          - Avoid directly using this variable, use chromium_policies_recommended
         type: dict
         required: false
 
@@ -55,21 +53,17 @@ argument_specs:
         description:
           - Privacy-focused recommended policies including third-party cookie blocking and telemetry disabling
           - Disables Safe Browsing, metrics reporting, search suggestions, spellcheck service, and translation
+          - Avoid directly using this variable, use chromium_policies_recommended
         type: dict
         required: false
 
       chromium_policies_paths:
         description:
           - List of base paths for managed and recommended Chromium policy directories
-          - Includes paths for Chromium upstream, Google Chrome, Flatpak, and Snap variants
+          - Includes paths for Chromium upstream, Google Chrome, Flatpak, and Snap variants by default
         type: list
         elements: path
         required: false
-        default: "{{ ['/etc/chromium/policies']
-          + (['/etc/chromium-browser/policies'] if ansible_facts.os_family == 'Debian' else [])
-          + (['/var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies'] if not flatpak_disabled | default(false) else [])
-          + (['/var/snap/chromium/current/policies'] if not snap_disabled | default(false) else [])
-          + (['/etc/opt/chrome/policies'] if google_chrome_enabled | default(false) else []) }}"
 
       chromium_policies_use_hard_links:
         description:

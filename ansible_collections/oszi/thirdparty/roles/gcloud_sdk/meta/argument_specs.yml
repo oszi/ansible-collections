@@ -15,7 +15,6 @@ argument_specs:
           - Defaults to true only on Google Cloud Platform (detected by system_vendor)
         type: bool
         required: false
-        default: "{{ ansible_facts.system_vendor == 'Google' }}"
 
       gcloud_sdk_app_engine_enabled:
         description:
@@ -70,7 +69,6 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://packages.cloud.google.com/yum/repos/cloud-sdk-el9-$basearch"
 
       gcloud_sdk_deb_baseurl:
         description:
@@ -78,25 +76,22 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
-        default: "https://packages.cloud.google.com/apt"
 
       gcloud_sdk_local_bin_path:
         description:
-          - Directory path for local gcloud utility scripts
+          - Directory path where gcloud utility scripts are installed
+          - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false
-        default: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
       gcloud_sdk_kubectl_bash_completion_path:
         description:
           - System path for kubectl bash completion script
         type: path
         required: false
-        default: "/etc/bash_completion.d/kubectl"
 
       gcloud_sdk_kubectl_zsh_completion_path:
         description:
           - System path for kubectl zsh completion script
         type: path
         required: false
-        default: "/usr/local/share/zsh/site-functions/_kubectl"

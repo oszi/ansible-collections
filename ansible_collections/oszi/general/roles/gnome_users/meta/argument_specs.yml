@@ -19,8 +19,6 @@ argument_specs:
         type: list
         elements: str
         required: false
-        default: "{{ [ansible_user] if ansible_user | default('root') != 'root'
-          and 'workstations' in group_names else [] }}"
 
       gnome_users_screenshots_path:
         description:
@@ -58,14 +56,14 @@ argument_specs:
           - Dictionary of dconf settings to apply for each user
           - Keys are dconf paths, values are dconf values in GVariant format
           - String values must be quoted like "'myvalue'" due to GVariant syntax
+          - Defaults to gnome_users_dconf_vars_default, combine with dictionaries from the inventory
         type: dict
         required: false
-        default: "{{ gnome_users_dconf_vars_default }}"
 
       gnome_users_dconf_vars_default:
         description:
           - Default dconf configuration including GNOME keyboard shortcuts, themes, and various preferences
-          - Convenience variable, use gnome_users_dconf_vars
+          - Avoid directly using this variable, use gnome_users_dconf_vars
         type: dict
         required: false
 
@@ -83,4 +81,3 @@ argument_specs:
           - Controls the language used for directory names
         type: str
         required: false
-        default: "en_US"
