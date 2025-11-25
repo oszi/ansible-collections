@@ -2,8 +2,9 @@
 sudoers_group: "{{ 'sudo' if ansible_facts.os_family == 'Debian' else 'wheel' }}"
 users_sudo_nopasswd_groups: []
 
-users_groups: "{{ users_groups_pt_workstations }}"
-users_groups_pt_workstations:
+# Use with ... | combine(..., recursive=true, list_merge='append_rp')
+users_groups_list: "{{ inventory_users_groups_workstations | oszi.general.nested_dict_to_list('name') }}"
+inventory_users_groups_workstations:
   david: {}
   libvirt:
     system: true
@@ -14,10 +15,11 @@ users_groups_pt_workstations:
   wireshark:
     system: true
 
-users_users: "{{ users_users_pt_workstations }}"
-users_users_pt_workstations:  # use with combine(..., recursive=true, list_merge='append_rp')
+# Use with ... | combine(..., recursive=true, list_merge='append_rp')
+users_list: "{{ inventory_users_workstations | oszi.general.nested_dict_to_list('name') }}"
+inventory_users_workstations:
   david:
     group: "david"
-    groups: "{{ [sudoers_group] + users_groups_pt_workstations.keys() | list }}"
+    groups: "{{ [sudoers_group] + inventory_users_groups_workstations.keys() | list }}"
   root:
     password: "!!"

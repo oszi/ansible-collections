@@ -1,13 +1,14 @@
 ---
-# Dict of groups with optional items: name*, system (bool), gid
-# Use combine to build the final users_groups from parts in the inventory:
-# {{ users_groups | combine(users_groups_pt_..., ...) }}
-users_groups: {}
+# List of groups as dictionaries for ansible.builtin.group
+# Combine variables in the inventory to build the final list of groups:
+# {{ inventory_groups_all | combine(inventory_groups_..., ...) | oszi.general.nested_dict_to_list('name') }}
+users_groups_list: "{{ users_groups | default({}) | oszi.general.nested_dict_to_list('name') }}"
 
-# Dict of users with optional items: name*, group, groups (list), password (hash), shell, home, system (bool), uid
-# Use combine to build the final users_users from parts in the inventory (groups fields are lists):
-# {{ users_users | combine(users_users_pt_..., ..., list_merge='append_rp', recursive=true) }}
-users_users: {}
+# List of groups as dicts for ansible.builtin.user
+# Combine variables in the inventory to build the final list of users:
+# {{ inventory_users_all | combine(inventory_users_..., ..., list_merge='append_rp', recursive=true)
+# | oszi.general.nested_dict_to_list('name') }}
+users_list: "{{ users_users | default({}) | oszi.general.nested_dict_to_list('name') }}"
 
 # Allow passwordless sudo for these groups (list):
 users_sudo_nopasswd_groups: []

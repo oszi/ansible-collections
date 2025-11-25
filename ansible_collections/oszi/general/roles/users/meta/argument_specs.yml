@@ -8,21 +8,138 @@ argument_specs:
     author:
       - "David O. (oszi.dev)"
     options:
-      users_groups:
+      users_groups_list:
         description:
-          - Dictionary of groups to create with optional properties
-          - Keys are group names, values are dicts with system, and gid options
-          - Use combine filter to build final groups from inventory parts
-        type: dict
+          - List of groups as dictionaries for ansible.builtin.group
+          - |-
+            Combine variables in the inventory to build the final list of groups:
+            ```
+            inventory_groups_all | combine(inventory_groups_..., ...)
+              | oszi.general.nested_dict_to_list('name')
+            ```
+        type: list
+        elements: dict
         required: false
+        options:
+          gid:
+            description: Optional GID to set for the group
+            type: int
+            required: false
+          name:
+            description: Name of the group to create, remove or modify
+            type: str
+            required: true
+          state:
+            description: Whether the group should be present or not on the remote host
+            type: str
+            required: false
+            choices: [absent, present]
+            default: present
+          system:
+            description: If set to true, indicates that the group created is a system group
+            type: bool
+            required: false
+            default: false
 
-      users_users:
+      users_list:
         description:
-          - Dictionary of users to create with optional properties
-          - Keys are usernames, values are dicts of arguments for ansible.builtin.user
-          - Use combine filter with list_merge='append_rp' for group list merging
-        type: dict
+          - List of users as dictionaries for ansible.builtin.user
+          - |-
+            Combine variables in the inventory to build the final list of users:
+            ```
+            inventory_users_all | combine(inventory_users_..., ..., list_merge='append_rp', recursive=true)
+              | oszi.general.nested_dict_to_list('name')
+            ```
+        type: list
+        elements: dict
         required: false
+        options:
+          append:
+            description:
+              - If true, add the user to the groups specified in groups
+              - If false, user will only be added to the groups specified in groups, removing them from all other groups
+            type: bool
+            required: false
+            default: false
+          comment:
+            description: Optionally sets the description (aka GECOS) of user account
+            type: str
+            required: false
+          create_home:
+            description: Unless set to false, a home directory will be made for the user when the account is created
+            type: bool
+            required: false
+            default: true
+          expires:
+            description: An expiry time for the user in epoch, it will be ignored on platforms that do not support this
+            type: float
+            required: false
+          force:
+            description:
+              - This only affects `state=absent`, it forces removal of the user and associated directories on supported platforms
+              - The behavior is the same as `userdel --force`
+            type: bool
+            required: false
+            default: false
+          group:
+            description: Optionally sets the user's primary group (takes a group name)
+            type: str
+            required: false
+          groups:
+            description:
+              - A list of supplementary groups which the user is also a member of
+              - By default, the user is removed from all other groups, configure `append` to modify this
+            type: list
+            elements: str
+            required: false
+          home:
+            description: Optionally set the user's home directory
+            type: path
+            required: false
+          move_home:
+            description: If set to true when used with `home`, attempt to move the user's old home directory
+            type: bool
+            required: false
+            default: false
+          name:
+            description: Name of the user to create, remove or modify
+            type: str
+            required: true
+          password:
+            description: If provided, set the user's password to the provided encrypted hash (Linux) or plain text password
+            type: str
+            required: false
+          password_lock:
+            description: Lock the password (`usermod -L`, `usermod -U`, `pw lock`)
+            type: bool
+            required: false
+            default: null
+          remove:
+            description:
+              - This only affects `state=absent`, it attempts to remove directories associated with the user
+              - The behavior is the same as `userdel --remove`
+            type: bool
+            required: false
+            default: false
+          shell:
+            description: Optionally set the user's shell
+            type: path
+            required: false
+          state:
+            description: Whether the account should exist or not, taking action if the state is different from what is stated
+            type: str
+            required: false
+            choices: [absent, present]
+            default: present
+          system:
+            description: When creating an account, setting this to true makes the user a system account
+            type: bool
+            required: false
+            default: false
+          uid:
+            description: Optionally sets the UID of the user
+            type: int
+            required: false
 
       users_sudo_nopasswd_groups:
         description:

@@ -1,11 +1,13 @@
 ---
 - name: Configure unix groups
   ansible.builtin.group:
-    name: "{{ item.key }}"
-    system: "{{ item.value.system | default(omit) }}"
-    gid: "{{ item.value.gid | default(omit) }}"
-    state: "{{ item.value.state | default('present') }}"
-  with_dict: "{{ users_groups }}"
+  args: "{{ item }}"
+  with_items: "{{ users_groups_list }}"
+
+- name: Configure unix users
+  ansible.builtin.user:
+  args: "{{ item }}"
+  with_items: "{{ users_list }}"
 
 - name: Allow passwordless sudo for the specified groups
   when: "users_sudo_nopasswd_groups | length > 0"
@@ -18,16 +20,3 @@
     owner: "root"
     mode: "0440"
     validate: "visudo -csf %s"
-
-- name: Configure unix users
-  ansible.builtin.user:
-    name: "{{ item.key }}"
-    group: "{{ item.value.group | default(omit) }}"
-    groups: "{{ item.value.groups | default(omit) }}"
-    password: "{{ item.value.password | default(omit) }}"
-    shell: "{{ item.value.shell | default(omit) }}"
-    home: "{{ item.value.home | default(omit) }}"
-    system: "{{ item.value.system | default(omit) }}"
-    uid: "{{ item.value.uid | default(omit) }}"
-    state: "{{ item.value.state | default('present') }}"
-  with_dict: "{{ users_users }}"
