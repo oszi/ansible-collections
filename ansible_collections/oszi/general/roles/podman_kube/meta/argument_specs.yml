@@ -6,7 +6,7 @@ argument_specs:
       - Manages Kubernetes-style pods using the podman-kube@.service systemd template
       - Provides lifecycle hooks for initialization and post-installation scripts
       - Alternative to quadlets when quadlets are unavailable or undesirable
-      - Supports rootless mode with systemd user scope
+      - Supports rootless mode with systemd user scope (requires lingering)
     author:
       - "David O. (oszi.dev)"
     options:
@@ -19,7 +19,7 @@ argument_specs:
           path:
             description:
               - Relative path to podman_kube_pods_base_path or absolute path
-              - Base path is /etc/containers/systemd, or ~/.config/containers/systemd for rootless mode
+              - Base path is /etc/containers/kube, or ~/.config/containers/kube for rootless mode
             type: path
             required: true
           pod_spec:
@@ -48,7 +48,7 @@ argument_specs:
               directory_mode:
                 description:
                   - Set the access permissions of newly created directories to the given mode
-                  - Permissions on existing directories do not change
+                  - Permissions on existing directories do not change, including parents of `src`
                 type: raw
                 required: false
               follow:

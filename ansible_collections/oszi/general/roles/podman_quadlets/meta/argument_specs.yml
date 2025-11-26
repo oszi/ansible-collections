@@ -47,7 +47,7 @@ argument_specs:
               directory_mode:
                 description:
                   - Set the access permissions of newly created directories to the given mode
-                  - Permissions on existing directories do not change
+                  - Permissions on existing directories do not change, including parents of `src`
                 type: raw
                 required: false
               follow:

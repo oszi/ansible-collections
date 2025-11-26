@@ -14,7 +14,7 @@ argument_specs:
           - |-
             Combine variables in the inventory to build the final list of groups:
             ```
-            inventory_groups_all | combine(inventory_groups_..., ...)
+            inventory_groups_all | combine(inventory_groups_..., ..., recursive=true)
               | oszi.general.nested_dict_to_list('name')
             ```
         type: list
@@ -56,8 +56,8 @@ argument_specs:
         options:
           append:
             description:
-              - If true, add the user to the groups specified in groups
-              - If false, user will only be added to the groups specified in groups, removing them from all other groups
+              - If true, add the user to the groups specified in `groups`
+              - If false, user will only be added to the groups specified in `groups`, removing them from all other groups
             type: bool
             required: false
             default: false
