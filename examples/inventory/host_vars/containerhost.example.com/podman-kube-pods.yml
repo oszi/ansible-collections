@@ -7,72 +7,73 @@ _podman_kube_common_annotations: |-
   io.podman.annotations.privileged/CONTAINER_NAME: "FALSE"
   io.podman.annotations.publish-all/CONTAINER_NAME: "FALSE"
 
-podman_kube_pods:
-  proxy.yml: |
-    ---
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      annotations:
-        {{ _podman_kube_common_annotations | replace('CONTAINER_NAME', 'proxy') | indent(4) }}
-      labels:
-        app: proxy-pod
-      name: proxy-pod
-    spec:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
-      hostNetwork: true
-      # hostUsers: false
-      containers:
-        - name: proxy
-          image: quay.io/oszi/dante:latest
-          env:
-            - name: SOCKD_INTERNAL
-              value: tailscale0
-            - name: SOCKD_EXTERNAL
-              value: {{ ansible_facts.default_ipv4.interface | quote }}
-          resources:
-            limits:
-              memory: 512Mi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              add:
-                - CAP_SETUID
-                - CAP_SETGID
-              drop:
-                - ALL
-            readOnlyRootFilesystem: true
-          volumeMounts:
-            - mountPath: /tmp
-              name: tmpfs-tmp
-            - mountPath: /var/tmp
-              name: tmpfs-var-tmp
-            - mountPath: /run
-              name: tmpfs-run
-      volumes:
-        - hostPath:
-            type: DirectoryOrCreate
-            path: tmpfs
-          name: tmpfs-tmp
-        - hostPath:
-            type: DirectoryOrCreate
-            path: tmpfs
-          name: tmpfs-var-tmp
-        - hostPath:
-            type: DirectoryOrCreate
-            path: tmpfs
-          name: tmpfs-run
+podman_kube_list:
+  - path: proxy.yml
+    pod_spec:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        annotations: "{{ _podman_kube_common_annotations | replace('CONTAINER_NAME', 'proxy') | from_yaml }}"
+        labels:
+          app: proxy-pod
+        name: proxy-pod
+      spec:
+        automountServiceAccountToken: false
+        enableServiceLinks: false
+        hostNetwork: true
+        # hostUsers: false
+        containers:
+          - name: proxy
+            image: quay.io/oszi/dante:latest
+            env:
+              - name: SOCKD_INTERNAL
+                value: tailscale0
+              - name: SOCKD_EXTERNAL
+                value: "{{ ansible_facts.default_ipv4.interface }}"
+            resources:
+              limits:
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                add:
+                  - CAP_SETUID
+                  - CAP_SETGID
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+              - mountPath: /tmp
+                name: tmpfs-tmp
+              - mountPath: /var/tmp
+                name: tmpfs-var-tmp
+              - mountPath: /run
+                name: tmpfs-run
+        volumes:
+          - hostPath:
+              type: DirectoryOrCreate
+              path: tmpfs
+            name: tmpfs-tmp
+          - hostPath:
+              type: DirectoryOrCreate
+              path: tmpfs
+            name: tmpfs-var-tmp
+          - hostPath:
+              type: DirectoryOrCreate
+              path: tmpfs
+            name: tmpfs-run
 
-# podman_kube_init_scripts:
-#   proxy.yml: |
-#     mkdir ...
+    files:
+      - dest: "{{ _containers_etc_path }}/proxy/config"
+        content: |
+          # ...
+        owner: root
+        group: root
+        mode: "0600"
 
-# podman_kube_copy_files:
-#   proxy.yml:
-#     - dest: "{{ _containers_etc_path }}/proxy/config"
-#       content: |
-#         ...
-#       owner: 0
-#       group: 0
-#       mode: "0600"
+    init_script: |
+      # mkdir -p ...
+      # chown -R ...
+
+    post_install_script: |
+      # curl ...

@@ -1,18 +1,14 @@
 ---
-# Dict of kubernetes pods for podman-kube@.service. Map keys to PodSpec contents.
-# Keys must be relative paths to podman_kube_pods_base_path or absolute paths.
-# Values must be strings, not native yaml. Multiple yaml files (to include a ConfigMap) are separated by ---
-# Use podman-kube when quadlets are not available or undesirable.
+# List of podman-kube pods as dictionaries.
+# See the argument spec for detailed documentation.
+podman_kube_list: "{{ {} | oszi.general.update_nested_dict(podman_kube_pods, 'pod_spec')
+  | oszi.general.update_nested_dict(podman_kube_copy_files, 'files')
+  | oszi.general.update_nested_dict(podman_kube_init_scripts, 'init_script')
+  | oszi.general.update_nested_dict(podman_kube_post_install_scripts, 'post_install_script')
+  | oszi.general.nested_dict_to_list('path') }}"
+
+# XXX: Deprecated, backwards-compatible variables.
 podman_kube_pods: {}
-
-# Map keys of podman-kube pods to lists of dicts of args for the builtin copy module.
-# Use this to copy configuration files before installing. (See examples/inventory)
 podman_kube_copy_files: {}
-
-# Map keys of podman-kube pods to inline shell scripts that run once before installing.
-# Use this for first-time setup - run with the builtin shell module with -euo pipefail.
 podman_kube_init_scripts: {}
-
-# Map keys of podman-kube pods to inline shell scripts that run after the systemd unit was changed.
-# Use this for post-install setup - run with the builtin shell module with -euo pipefail.
 podman_kube_post_install_scripts: {}

@@ -1,17 +1,14 @@
 ---
-# Dicts of podman quadlets. Map keys to unit contents.
-# Keys: NAME.container / NAME.kube / NAME.pod / NAME.image / NAME.network / ...
-# https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
+# List of podman quadlets as dictionaries.
+# See the argument spec for detailed documentation.
+podman_quadlets_list: "{{ {} | oszi.general.update_nested_dict(podman_quadlets, 'quadlet')
+  | oszi.general.update_nested_dict(podman_quadlets_copy_files, 'files')
+  | oszi.general.update_nested_dict(podman_quadlets_init_scripts, 'init_script')
+  | oszi.general.update_nested_dict(podman_quadlets_post_install_scripts, 'post_install_script')
+  | oszi.general.nested_dict_to_list('name') }}"
+
+# XXX: Deprecated, backwards-compatible variables.
 podman_quadlets: {}  # noqa: var-naming[no-role-prefix]
-
-# Map keys of quadlets to lists of dicts of args for the builtin copy module.
-# Use this to copy configuration files before installing. (See examples/inventory)
 podman_quadlets_copy_files: {}
-
-# Map keys of quadlets to inline shell scripts that run once before installing.
-# Use this for first-time setup - run with the builtin shell module with -euo pipefail.
 podman_quadlets_init_scripts: {}
-
-# Map keys of quadlets to inline shell scripts that run after the systemd unit was changed.
-# Use this for post-install setup - run with the builtin shell module with -euo pipefail.
 podman_quadlets_post_install_scripts: {}

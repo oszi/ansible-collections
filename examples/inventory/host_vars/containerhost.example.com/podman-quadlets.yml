@@ -2,165 +2,171 @@
 _jupyter_uid: 280000
 _jupyter_ipv4: "{{ _containers_ip_range | ansible.utils.ipaddr('2') }}"
 
-podman_quadlets:
-  certbot@.container: |
-    [Unit]
-    Description=LetsEncrypt with CloudFlare DNS
+podman_quadlets_list:
+  - name: certbot@.container
+    quadlet: |
+      [Unit]
+      Description=LetsEncrypt with CloudFlare DNS
 
-    [Container]
-    Image=docker.io/certbot/dns-cloudflare
-    Exec=certonly --config /etc/letsencrypt/cli.ini
-    Volume={{ _containers_etc_path }}/%i/letsencrypt:/etc/letsencrypt:rw,U,Z
+      [Container]
+      Image=docker.io/certbot/dns-cloudflare
+      Exec=certonly --config /etc/letsencrypt/cli.ini
+      Volume={{ _containers_etc_path }}/%i/letsencrypt:/etc/letsencrypt:rw,U,Z
 
-    UIDMap=0:{{ _certbot_uid0 }}:65536
-    GIDMap=0:{{ _certbot_uid0 }}:65536
-    DropCapability=ALL
-    NoNewPrivileges=true
-    PodmanArgs=--memory=256M
+      UIDMap=0:{{ _certbot_uid0 }}:65536
+      GIDMap=0:{{ _certbot_uid0 }}:65536
+      DropCapability=ALL
+      NoNewPrivileges=true
+      PodmanArgs=--memory=256M
 
-    [Service]
-    Type=oneshot
-    RemainAfterExit=false
-    Restart=on-failure
-    RestartSec=10
+      [Service]
+      Type=oneshot
+      RemainAfterExit=false
+      Restart=on-failure
+      RestartSec=10
 
-    [Install]
-    WantedBy=multi-user.target
+      [Install]
+      WantedBy=multi-user.target
 
-  toolbox-firewall@.container: |
-    [Unit]
-    Description=Ad-hoc firewall rules for containers
+  - name: toolbox-firewall@.container
+    quadlet: |
+      [Unit]
+      Description=Ad-hoc firewall rules for containers
 
-    [Container]
-    Image={{ containerhost_toolbox_container_image }}
-    Exec=/mnt/firewall_lockdown.sh
-    Volume={{ _containers_etc_path }}/%i/firewall_lockdown.sh:/mnt/firewall_lockdown.sh:ro,Z
+      [Container]
+      Image={{ containerhost_toolbox_container_image }}
+      Exec=/mnt/firewall_lockdown.sh
+      Volume={{ _containers_etc_path }}/%i/firewall_lockdown.sh:/mnt/firewall_lockdown.sh:ro,Z
 
-    Network=container:systemd-%i
-    {% if ansible_facts.virtualization_role == 'guest' %}
-    PodmanArgs=--privileged
-    {% else %}
-    DropCapability=ALL
-    AddCapability=NET_ADMIN
-    {% endif %}
+      Network=container:systemd-%i
+      {% if ansible_facts.virtualization_role == 'guest' %}
+      PodmanArgs=--privileged
+      {% else %}
+      DropCapability=ALL
+      AddCapability=NET_ADMIN
+      {% endif %}
 
-    [Service]
-    Type=oneshot
-    RemainAfterExit=false
-    Restart=on-failure
-    RestartSec=1
+      [Service]
+      Type=oneshot
+      RemainAfterExit=false
+      Restart=on-failure
+      RestartSec=1
 
-    [Install]
-    WantedBy=multi-user.target
+      [Install]
+      WantedBy=multi-user.target
 
-  jupyter.container: |
-    [Unit]
-    Description=Jupyter Notebook
-    Requires=certbot@%N.service
-    After=certbot@%N.service
-    Requires=toolbox-firewall@%N.service
-    Before=toolbox-firewall@%N.service
+  - name: jupyter.container
+    quadlet: |
+      [Unit]
+      Description=Jupyter Notebook
+      Requires=certbot@%N.service
+      After=certbot@%N.service
+      Requires=toolbox-firewall@%N.service
+      Before=toolbox-firewall@%N.service
 
-    [Container]
-    Image=docker.io/jupyter/datascience-notebook
-    Environment=JUPYTER_PORT=443
-    Environment=NB_UID=1000
-    Environment=NB_GID=100
+      [Container]
+      Image=docker.io/jupyter/datascience-notebook
+      Environment=JUPYTER_PORT=443
+      Environment=NB_UID=1000
+      Environment=NB_GID=100
 
-    User=1000:100
-    UIDMap=0:{{ _jupyter_uid }}:65536
-    GIDMap=0:{{ _jupyter_uid }}:65536
-    HostName=jupyter.{{ cloudflare_dns_zone }}
-    Network=vmbridge-containers
-    IP={{ _jupyter_ipv4 }}
-    PodmanArgs=--memory=8G
+      User=1000:100
+      UIDMap=0:{{ _jupyter_uid }}:65536
+      GIDMap=0:{{ _jupyter_uid }}:65536
+      HostName=jupyter.{{ cloudflare_dns_zone }}
+      Network=vmbridge-containers
+      IP={{ _jupyter_ipv4 }}
+      PodmanArgs=--memory=8G
 
-    Volume={{ _containers_var_path }}/%N:/home/jovyan:rw,Z
-    Volume={{ _containers_etc_path }}/%N/letsencrypt/archive:/etc/letsencrypt/archive:ro,U,Z
-    Volume={{ _containers_etc_path }}/%N/letsencrypt/live:/etc/letsencrypt/live:ro,U,Z
+      Volume={{ _containers_var_path }}/%N:/home/jovyan:rw,Z
+      Volume={{ _containers_etc_path }}/%N/letsencrypt/archive:/etc/letsencrypt/archive:ro,U,Z
+      Volume={{ _containers_etc_path }}/%N/letsencrypt/live:/etc/letsencrypt/live:ro,U,Z
 
-    Exec=start-notebook.py \
-    --ServerApp.certfile=/etc/letsencrypt/live/jupyter/fullchain.pem \
-    --ServerApp.keyfile=/etc/letsencrypt/live/jupyter/privkey.pem \
-    --PasswordIdentityProvider.hashed_password={{ vault_jupyter_password_hash | quote }}
+      Exec=start-notebook.py \
+      --ServerApp.certfile=/etc/letsencrypt/live/jupyter/fullchain.pem \
+      --ServerApp.keyfile=/etc/letsencrypt/live/jupyter/privkey.pem \
+      --PasswordIdentityProvider.hashed_password={{ vault_jupyter_password_hash | quote }}
 
-    DropCapability=ALL
-    AddCapability=CHOWN KILL NET_BIND_SERVICE
-    NoNewPrivileges=true
-    ReadOnly=true
-    ReadOnlyTmpfs=true
-    Tmpfs=/run:exec
-    AutoUpdate=local
+      DropCapability=ALL
+      AddCapability=CHOWN KILL NET_BIND_SERVICE
+      NoNewPrivileges=true
+      ReadOnly=true
+      ReadOnlyTmpfs=true
+      Tmpfs=/run:exec
+      AutoUpdate=local
 
-    [Service]
-    Restart=on-failure
-    RestartSec=10
+      [Service]
+      Restart=on-failure
+      RestartSec=10
 
-    [Install]
-    WantedBy=multi-user.target
+      [Install]
+      WantedBy=multi-user.target
 
-  kube-test.network: |
-    [Network]
-    Subnet=192.168.30.0/24
-    Gateway=192.168.30.1
-    Label=app=kube-test
+    files:
+      - dest: "{{ _containers_etc_path }}/jupyter/letsencrypt/cli.ini"
+        content: |
+          {{ _container_certbot_cli_ini }}
+          cert-name jupyter
+          domains jupyter.{{ cloudflare_dns_zone }}
+        owner: "{{ _certbot_uid0 }}"
+        group: "{{ _certbot_uid0 }}"
+        mode: "0600"
 
-  kube-test.kube: |
-    [Unit]
-    Description=Kube Test Example
+      - dest: "{{ _containers_etc_path }}/jupyter/letsencrypt/cloudflare.ini"
+        content: "{{ _container_certbot_cloudflare_ini }}"
+        owner: "{{ _certbot_uid0 }}"
+        group: "{{ _certbot_uid0 }}"
+        mode: "0600"
 
-    [Kube]
-    Yaml=kube-test-pod.yml
-    ConfigMap=kube-test-configmap.yml
-    Network=kube-test.network
-    PublishPort=1080:1080
+      - dest: "{{ _containers_etc_path }}/jupyter/firewall_lockdown.sh"
+        content: "{{ _container_firewall_lockdown_script_template }}"
+        owner: "root"
+        group: "root"
+        mode: "0700"
 
-    [Install]
-    WantedBy=default.target
+    init_script: |
+        HOST_USER={{ _jupyter_uid + 1000 }}:{{ _jupyter_uid + 100 }}
+        HOST_DATADIR={{ _containers_var_path | quote }}/jupyter
 
-podman_quadlets_init_scripts:
-  jupyter.container: |
-    HOST_USER={{ _jupyter_uid + 1000 }}:{{ _jupyter_uid + 100 }}
-    HOST_DATADIR={{ _containers_var_path | quote }}/jupyter
+        /usr/bin/mkdir -p -m 0750 ${HOST_DATADIR}
+        /usr/bin/chown -R ${HOST_USER} ${HOST_DATADIR}
 
-    /usr/bin/mkdir -p -m 0750 ${HOST_DATADIR}
-    /usr/bin/chown -R ${HOST_USER} ${HOST_DATADIR}
+  - name: kube-test.network
+    quadlet: |
+      [Network]
+      Subnet=192.168.30.0/24
+      Gateway=192.168.30.1
+      Label=app=kube-test
 
-podman_quadlets_copy_files:
-  jupyter.container:
-    - dest: "{{ _containers_etc_path }}/jupyter/letsencrypt/cli.ini"
-      content: |
-        {{ _container_certbot_cli_ini }}
-        cert-name jupyter
-        domains jupyter.{{ cloudflare_dns_zone }}
-      owner: "{{ _certbot_uid0 }}"
-      mode: "0600"
+  - name: kube-test.kube
+    quadlet: |
+      [Unit]
+      Description=Kube Test Example
 
-    - dest: "{{ _containers_etc_path }}/jupyter/letsencrypt/cloudflare.ini"
-      content: "{{ _container_certbot_cloudflare_ini }}"
-      owner: "{{ _certbot_uid0 }}"
-      mode: "0600"
+      [Kube]
+      Yaml=kube-test-pod.yml
+      ConfigMap=kube-test-configmap.yml
+      Network=kube-test.network
+      PublishPort=1080:1080
 
-    - dest: "{{ _containers_etc_path }}/jupyter/firewall_lockdown.sh"
-      content: "{{ _container_firewall_lockdown_script_template }}"
-      owner: "root"
-      mode: "0700"
+      [Install]
+      WantedBy=default.target
 
-  kube-test.kube:
-    - dest: "{{ podman_quadlets_systemd_path }}/kube-test-pod.yml"
-      content: |
-        ---
-        apiVersion: v1
-        kind: Pod
-        ...
-      owner: "root"
-      mode: "0644"
+    files:
+      - dest: "{{ podman_quadlets_systemd_path }}/kube-test-pod.yml"
+        content: |
+          ---
+          apiVersion: v1
+          kind: Pod
+          ...
+        owner: "root"
+        mode: "0644"
 
-    - dest: "{{ podman_quadlets_systemd_path }}/kube-test-configmap.yml"
-      content: |
-        ---
-        apiVersion: v1
-        kind: ConfigMap
-        ...
-      owner: "root"
-      mode: "0644"
+      - dest: "{{ podman_quadlets_systemd_path }}/kube-test-configmap.yml"
+        content: |
+          ---
+          apiVersion: v1
+          kind: ConfigMap
+          ...
+        owner: "root"
+        mode: "0644"

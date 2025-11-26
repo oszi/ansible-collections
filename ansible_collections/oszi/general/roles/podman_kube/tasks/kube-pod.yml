@@ -1,57 +1,52 @@
 ---
-- name: Set podman-kube pod loop vars
+- name: Set podman-kube item loop vars
   ansible.builtin.set_fact:
-    _podman_kube_pod_path: "{{ [podman_kube_pods_base_path, podman_kube_pod_item.key] | path_join }}"
+    _podman_kube_pod_path: "{{ [podman_kube_pods_base_path, podman_kube_item.path] | path_join }}"
     _podman_kube_copy_results: null  # Reset previous iteration.
 
-- name: Copy static files for the kube
-  when: podman_kube_pod_item.key in podman_kube_copy_files
+- name: Copy static files for the kube item
+  when: podman_kube_item.files is defined
   block:
     # Do not set permissions as they could be changed by the service.
-    - name: "Ensure directories exist for podman-kube pod {{ podman_kube_pod_item.key }}"
+    - name: "Ensure directories exist for podman-kube {{ podman_kube_item.path }}"
       ansible.builtin.file:  # noqa: risky-file-permissions
         path: "{{ item }}"
         state: "directory"
-      with_items: "{{ podman_kube_copy_files[podman_kube_pod_item.key]
-        | map(attribute='dest') | map('dirname') | unique }}"
+      with_items: "{{ podman_kube_item.files | map(attribute='dest') | map('dirname') | unique }}"
 
-    - name: "Copy static files for podman-kube pod {{ podman_kube_pod_item.key }}"
+    - name: "Copy static files for podman-kube {{ podman_kube_item.path }}"
       ansible.builtin.copy:
-        dest: "{{ item.dest }}"
-        content: "{{ item.content | default(omit) }}"
-        src: "{{ item.src | default(omit) }}"
-        owner: "{{ item.owner | default(omit) }}"
-        group: "{{ item.group | default(item.owner | default(omit)) }}"
-        mode: "{{ item.mode | default(omit) }}"
-      with_items: "{{ podman_kube_copy_files[podman_kube_pod_item.key] }}"
+      args: "{{ item }}"
+      with_items: "{{ podman_kube_item.files }}"
       register: _podman_kube_copy_results
 
-- name: "Run init script for podman-kube pod {{ podman_kube_pod_item.key }}"
-  when: podman_kube_pod_item.key in podman_kube_init_scripts
+- name: "Run init script for podman-kube {{ podman_kube_item.path }}"
+  when: podman_kube_item.init_script is defined
   ansible.builtin.shell: |
     set -euxo pipefail
-    {{ podman_kube_init_scripts[podman_kube_pod_item.key] }}
+    {{ podman_kube_item.init_script }}
   args:
     # White lie to only execute once before installing.
     creates: "{{ _podman_kube_pod_path }}"
     executable: "/bin/bash"
 
-- name: "Ensure directory for podman-kube PodSpec {{ podman_kube_pod_item.key }}"
+- name: "Ensure directory for podman-kube PodSpec {{ podman_kube_item.path }}"
   ansible.builtin.file:
     path: "{{ _podman_kube_pod_path | dirname }}"
     state: "directory"
     # owner: ansible_user or root
     mode: "0755"
 
-- name: "Install podman-kube PodSpec {{ podman_kube_pod_item.key }}"
+- name: "Install podman-kube PodSpec {{ podman_kube_item.path }}"
   ansible.builtin.copy:
-    content: "{{ podman_kube_pod_item.value }}"
+    content: "{{ podman_kube_item.pod_spec if podman_kube_item.pod_spec is string
+      else podman_kube_item.pod_spec | to_nice_yaml }}"
     dest: "{{ _podman_kube_pod_path }}"
     # owner: ansible_user or root
     mode: "0644"
   register: _podman_kube_pod_result
 
-- name: "Restart podman-kube pod {{ podman_kube_pod_item.key }}"
+- name: "Restart podman-kube {{ podman_kube_item.path }}"
   ansible.builtin.systemd:
     name: "{{ lookup('oszi.general.systemd_escape', _podman_kube_pod_path, template=podman_kube_template_service) }}"
     scope: "{{ podman_kube_systemd_scope }}"
@@ -62,11 +57,11 @@
     _podman_kube_changed: "{{ _podman_kube_pod_result.changed
       or _podman_kube_copy_results is not none and _podman_kube_copy_results.changed }}"
 
-- name: "Run post-install script for podman-kube pod {{ podman_kube_pod_item.key }}"
-  when: _podman_kube_pod_result.changed and podman_kube_pod_item.key in podman_kube_post_install_scripts
+- name: "Run post-install script for podman-kube {{ podman_kube_item.path }}"
+  when: _podman_kube_pod_result.changed and podman_kube_item.post_install_script is defined
   ansible.builtin.shell: |
     set -euxo pipefail
-    {{ podman_kube_post_install_scripts[podman_kube_pod_item.key] }}
+    {{ podman_kube_item.post_install_script }}
   args:
     executable: "/bin/bash"
   changed_when: true

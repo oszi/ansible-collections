@@ -10,35 +10,98 @@ argument_specs:
     author:
       - "David O. (oszi.dev)"
     options:
-      podman_kube_pods:
-        description:
-          - Dictionary of Kubernetes pods for podman-kube@.service
-          - Keys are relative paths to podman_kube_pods_base_path or absolute paths
-          - Values are YAML strings containing PodSpec (not native YAML objects)
-          - Multiple YAML documents (e.g., PodSpec + ConfigMap) are separated by ---
-        type: dict
+      podman_kube_list:
+        description: List of Kubernetes pods for podman-kube@.service
+        type: list
+        elements: dict
         required: false
-
-      podman_kube_copy_files:
-        description:
-          - Dictionary mapping pod keys to lists of file copy operations
-          - Each pod key maps to a list of dicts with ansible.builtin.copy module arguments
-          - Use this to copy configuration files before pod installation
-        type: dict
-        required: false
-
-      podman_kube_init_scripts:
-        description:
-          - Dictionary mapping pod keys to inline shell initialization scripts
-          - Scripts run once before installing with ansible.builtin.shell and -euo pipefail
-          - Use for first-time setup tasks like creating directories or initial configuration
-        type: dict
-        required: false
-
-      podman_kube_post_install_scripts:
-        description:
-          - Dictionary mapping pod keys to inline shell post-installation scripts
-          - Scripts run after the systemd unit was changed with ansible.builtin.shell and -euo pipefail
-          - Use for post-install setup tasks that depend on the service being configured
-        type: dict
-        required: false
+        options:
+          path:
+            description:
+              - Relative path to podman_kube_pods_base_path or absolute path
+              - Base path is /etc/containers/systemd, or ~/.config/containers/systemd for rootless mode
+            type: path
+            required: true
+          pod_spec:
+            description:
+              - Dictionary or YAML string containing a Kubernetes PodSpec
+              - Multiple YAML string documents (e.g., PodSpec + ConfigMap) are separated by ---
+              - WARNING - Jinja forces strings out of numbers in the final output
+            type: raw
+            required: true
+          files:
+            description: Copy files or directories before installation
+            type: list
+            elements: dict
+            required: false
+            options:
+              content:
+                description: When used instead of `src`, sets the contents of a file directly to the specified value
+                type: str
+                required: false
+              dest:
+                description:
+                  - Remote absolute path where the file or directory should be copied to
+                  - Trailing slash behavior is similar to that of rsync
+                type: path
+                required: true
+              directory_mode:
+                description:
+                  - Set the access permissions of newly created directories to the given mode
+                  - Permissions on existing directories do not change
+                type: raw
+                required: false
+              follow:
+                description: This flag indicates that filesystem links in the destination, if they exist, should be followed
+                type: bool
+                required: false
+                default: false
+              force:
+                description:
+                  - Influence whether the remote file must always be replaced
+                  - If true, the remote file will be replaced when contents are different from the source
+                  - If false, the file will only be transferred if the destination does not exist
+                type: bool
+                required: false
+                default: true
+              group:
+                description: Name or GID of the group that should own the filesystem object, as would be fed to `chown`
+                type: raw
+                required: false
+              mode:
+                description: Permissions of the destination file or directory, as would be fed to `chmod`
+                type: raw
+                required: false
+              owner:
+                description: Name or UID of the user that should own the filesystem object, as would be fed to `chown`
+                type: raw
+                required: false
+              remote_src:
+                description: Influence whether `src` needs to be transferred or already is present remotely
+                type: bool
+                required: false
+                default: false
+              src:
+                description:
+                  - Local path to a file or directory to copy to the remote server, absolute or relative
+                  - Trailing slash behavior is similar to that of rsync
+                type: path
+                required: false
+              validate:
+                description:
+                  - Validation command to run before copying the updated file into the final destination
+                  - A temporary file path is used to validate, passed in through `%s` which must be present
+                type: str
+                required: false
+          init_script:
+            description:
+              - Script run once before installation with bash -euo pipefail
+              - Use for first-time setup tasks like volume creation or initial configuration
+            type: str
+            required: false
+          post_install_script:
+            description:
+              - Script run after the service has changed with bash -euo pipefail
+              - Use for post-install setup tasks that depend on the service being active
+            type: str
+            required: false

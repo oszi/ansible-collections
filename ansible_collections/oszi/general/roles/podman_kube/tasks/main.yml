@@ -6,9 +6,9 @@
       when: "not podman_disabled | default(false)"
       ansible.builtin.include_tasks:
         file: kube-pod.yml
-      loop: "{{ podman_kube_pods | dict2items }}"
+      loop: "{{ podman_kube_list }}"
       loop_control:
-        loop_var: podman_kube_pod_item
+        loop_var: podman_kube_item
 
     - name: Podman-kube role completed
       ansible.builtin.debug:

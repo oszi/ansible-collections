@@ -6,7 +6,7 @@
       when: "not podman_disabled | default(false)"
       ansible.builtin.include_tasks:
         file: quadlet.yml
-      loop: "{{ podman_quadlets | dict2items }}"
+      loop: "{{ podman_quadlets_list }}"
       loop_control:
         loop_var: podman_quadlets_item
 
