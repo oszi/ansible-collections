@@ -17,9 +17,7 @@ argument_specs:
         required: false
         options:
           path:
-            description:
-              - Relative path to podman_kube_pods_base_path or absolute path
-              - Base path is /etc/containers/kube, or ~/.config/containers/kube for rootless mode
+            description: Relative path to `podman_kube_pods_base_path`, or an absolute path
             type: path
             required: true
           pod_spec:
@@ -105,3 +103,11 @@ argument_specs:
               - Use for post-install setup tasks that depend on the service being active
             type: str
             required: false
+
+      podman_kube_pods_base_path:
+        description:
+          - Base path to install PodSpec files to
+          - Overridable with absolute paths in podman_kube_list[].path
+          - Default is /etc/containers/kube, or ~/.config/containers/kube for rootless mode
+        type: path
+        required: false

@@ -2,9 +2,5 @@
 # Systemd template unit of the upstream podman-kube service
 podman_kube_template_service: "podman-kube@.service"
 
-# Base path to install PodSpec files to - overridable with absolute paths
-podman_kube_pods_base_path: "{{ '/etc/containers/kube' if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/containers/kube' }}"
-
 # Systemd scope for systemd module calls (one of system, user, global)
 podman_kube_systemd_scope: "{{ 'system' if ansible_facts.user_uid | int == 0 else 'user' }}"
