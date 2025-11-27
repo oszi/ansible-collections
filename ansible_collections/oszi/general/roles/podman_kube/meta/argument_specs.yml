@@ -23,8 +23,9 @@ argument_specs:
           pod_spec:
             description:
               - Dictionary or YAML string containing a Kubernetes PodSpec
+              - WARNING - Jinja templated numbers and booleans in a PodSpec dictionary are strings in the final output
+              - Use YAML string documents to template port numbers, user and group IDs, dictionary keys, etc
               - Multiple YAML string documents (e.g., PodSpec + ConfigMap) are separated by ---
-              - WARNING - Jinja forces strings out of numbers in the final output
             type: raw
             required: true
           files:

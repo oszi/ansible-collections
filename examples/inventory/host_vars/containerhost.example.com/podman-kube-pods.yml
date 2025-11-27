@@ -1,11 +1,14 @@
 ---
+# WARNING: Jinja templated numbers and booleans in a PodSpec dictionary are strings in the final output!
+# Use YAML string documents to template port numbers, user and group IDs, dictionary keys, etc.
+
 _podman_kube_common_annotations: |-
-  io.containers.autoupdate/CONTAINER_NAME: image
-  io.kubernetes.cri-o.TTY/CONTAINER_NAME: "false"
-  io.podman.annotations.autoremove/CONTAINER_NAME: "FALSE"
-  io.podman.annotations.init/CONTAINER_NAME: "TRUE"
-  io.podman.annotations.privileged/CONTAINER_NAME: "FALSE"
-  io.podman.annotations.publish-all/CONTAINER_NAME: "FALSE"
+  io.containers.autoupdate/${CONTAINER_NAME}: image
+  io.kubernetes.cri-o.TTY/${CONTAINER_NAME}: "false"
+  io.podman.annotations.autoremove/${CONTAINER_NAME}: "FALSE"
+  io.podman.annotations.init/${CONTAINER_NAME}: "TRUE"
+  io.podman.annotations.privileged/${CONTAINER_NAME}: "FALSE"
+  io.podman.annotations.publish-all/${CONTAINER_NAME}: "FALSE"
 
 podman_kube_list:
   - path: proxy.yml
@@ -13,7 +16,7 @@ podman_kube_list:
       apiVersion: v1
       kind: Pod
       metadata:
-        annotations: "{{ _podman_kube_common_annotations | replace('CONTAINER_NAME', 'proxy') | from_yaml }}"
+        annotations: "{{ _podman_kube_common_annotations | replace('${CONTAINER_NAME}', 'proxy') | from_yaml }}"
         labels:
           app: proxy-pod
         name: proxy-pod
