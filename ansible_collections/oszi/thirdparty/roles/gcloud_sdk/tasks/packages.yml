@@ -1,7 +1,7 @@
 ---
 - name: Google Cloud SDK is present or absent
   ansible.builtin.package:
-    name: "google-cloud-sdk"
+    name: "google-cloud-cli"
     state: "{{ gcloud_sdk_enabled | ternary('present', 'absent') }}"
 
 - name: Google Cloud SDK Emulators are present or absent
