@@ -10,7 +10,8 @@ argument_specs:
     options:
       rpmfusion_enabled:
         description:
-          - Whether to install or uninstall RPM Fusion repositories on RedHat family distributions
+          - Whether to install or uninstall RPM Fusion repositories and packages on RedHat family distributions
+          - If disabled, also removes Fedora's pre-installed RPM Fusion subset repositories
           - Disabled by default
         type: bool
         required: false
@@ -37,5 +38,5 @@ argument_specs:
         description:
           - Nested list of RPM Fusion package names to always uninstall
         type: list
-        elements: str
+        elements: raw
         required: false
