@@ -2,5 +2,4 @@
 podman container list \
 --all \
 --format='table {{.Names}} {{.Image}} {{.Ports}} {{.Status}}' \
---sort=names \
 "$@"
