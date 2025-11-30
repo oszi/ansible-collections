@@ -2,6 +2,11 @@
 # WARNING: Jinja templated numbers and booleans in a PodSpec dictionary are strings in the final output!
 # Use YAML string documents to template port numbers, user and group IDs, dictionary keys, etc.
 
+# Workarounds for containers bundled with S6:
+# - Combine annotations with init set to FALSE to run S6 as PID 1.
+# - Run as root as /run is owned by root (fs ownerships are not supported for tmpfs in PodSpec).
+# - Keep podman init and set a command to skip S6 init altogether.
+
 _podman_kube_common_annotations: |-
   io.containers.autoupdate/${CONTAINER_NAME}: image
   io.kubernetes.cri-o.TTY/${CONTAINER_NAME}: "false"
@@ -11,22 +16,26 @@ _podman_kube_common_annotations: |-
   io.podman.annotations.publish-all/${CONTAINER_NAME}: "FALSE"
 
 podman_kube_list:
-  - path: proxy.yml
+  - path: socks-proxy.yml
     pod_spec:
       apiVersion: v1
       kind: Pod
       metadata:
-        annotations: "{{ _podman_kube_common_annotations | replace('${CONTAINER_NAME}', 'proxy') | from_yaml }}"
+        name: socks-proxy-pod
+        annotations: "{{ _podman_kube_common_annotations | replace('${CONTAINER_NAME}', 'dante') | from_yaml }}"
         labels:
-          app: proxy-pod
-        name: proxy-pod
+          app: socks-proxy
       spec:
         automountServiceAccountToken: false
         enableServiceLinks: false
         hostNetwork: true
         # hostUsers: false
+        # securityContext:
+        #   runAsUser: 0
+        #   runAsGroup: 0
+        #   fsGroup: 0
         containers:
-          - name: proxy
+          - name: dante
             image: quay.io/oszi/dante:latest
             env:
               - name: SOCKD_INTERNAL
@@ -37,38 +46,39 @@ podman_kube_list:
               limits:
                 memory: 512Mi
             securityContext:
-              allowPrivilegeEscalation: false
               capabilities:
                 add:
                   - CAP_SETUID
                   - CAP_SETGID
                 drop:
                   - ALL
+              allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
             volumeMounts:
-              - mountPath: /tmp
-                name: tmpfs-tmp
-              - mountPath: /var/tmp
-                name: tmpfs-var-tmp
-              - mountPath: /run
-                name: tmpfs-run
+              - name: tmpfs-tmp
+                mountPath: /tmp
+              - name: tmpfs-var-tmp
+                mountPath: /var/tmp
+              - name: tmpfs-run
+                mountPath: /run
         volumes:
-          - hostPath:
-              type: DirectoryOrCreate
-              path: tmpfs
-            name: tmpfs-tmp
-          - hostPath:
-              type: DirectoryOrCreate
-              path: tmpfs
-            name: tmpfs-var-tmp
-          - hostPath:
-              type: DirectoryOrCreate
-              path: tmpfs
-            name: tmpfs-run
+          - name: tmpfs-tmp
+            emptyDir:
+              medium: Memory
+          - name: tmpfs-var-tmp
+            emptyDir:
+              medium: Memory
+          - name: tmpfs-run
+            emptyDir:
+              medium: Memory
 
     files:
-      - dest: "{{ _containers_etc_path }}/proxy/config"
+      # Add hostPath volumes for files or directories.
+      # This is just for an example, the above image has an envsubst config.
+      - dest: "{{ _containers_etc_path }}/socks-proxy/sockd.conf"
         content: |
+          internal: tailscale0 port = 1080
+          external: eth0
           # ...
         owner: root
         group: root

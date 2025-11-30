@@ -128,8 +128,8 @@ podman_quadlets_list:
         HOST_USER={{ _jupyter_uid + 1000 }}:{{ _jupyter_uid + 100 }}
         HOST_DATADIR={{ _containers_var_path | quote }}/jupyter
 
-        /usr/bin/mkdir -p -m 0750 ${HOST_DATADIR}
-        /usr/bin/chown -R ${HOST_USER} ${HOST_DATADIR}
+        /usr/bin/mkdir -p -m 0750 "${HOST_DATADIR}"
+        /usr/bin/chown -R "${HOST_USER}" "${HOST_DATADIR}"
 
   - name: kube-test.network
     quadlet: |
