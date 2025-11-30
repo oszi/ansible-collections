@@ -74,43 +74,42 @@ argument_specs:
         type: str
         required: false
 
-      podman_networks:
-        description:
-          - Dictionary of podman networks to create and manage
-          - Keys are network names, values are arguments for containers.podman.podman_network
-          - Set recreate=true to force apply changes
-          - Consider using .network quadlet files instead
-        type: dict
-        required: false
-
-      podman_images:
-        description:
-          - List of podman images to pull and manage
-          - Each entry contains arguments for containers.podman.podman_image
-          - Consider using .image quadlet files instead
-        type: list
-        elements: dict
-        required: false
-
-      podman_containers:
-        description:
-          - Dictionary of podman containers to create and manage
-          - Keys are container names, values are arguments for containers.podman.podman_container
-          - Consider using .container quadlet files instead
-        type: dict
-        required: false
-
-      podman_pods:
-        description:
-          - Dictionary of podman pods to create and manage
-          - Keys are pod names, values are arguments for containers.podman.podman_pod
-          - Consider using .pod quadlets or podman-kube@.service instead
-        type: dict
-        required: false
-
       podman_local_bin_path:
         description:
           - Directory path where podman utility scripts are installed
           - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
+        required: false
+
+      podman_networks_list:
+        description:
+          - List of podman networks as arguments for M(containers.podman.podman_network)
+          - Set recreate=true to force apply changes
+          - Consider using .network quadlets instead
+        type: list
+        elements: dict
+        required: false
+
+      podman_images_list:
+        description:
+          - List of podman images as arguments for M(containers.podman.podman_image)
+          - Consider using .image quadlets instead
+        type: list
+        elements: dict
+        required: false
+
+      podman_containers_list:
+        description:
+          - List of podman containers as arguments for M(containers.podman.podman_container)
+          - Consider using .container quadlets instead
+        type: list
+        elements: dict
+        required: false
+
+      podman_pods_list:
+        description:
+          - List of podman pods as arguments for M(containers.podman.podman_pod)
+          - Consider using .pod quadlets or podman-kube@.service instead
+        type: list
+        elements: dict
         required: false

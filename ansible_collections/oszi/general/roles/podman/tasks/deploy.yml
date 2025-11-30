@@ -1,20 +1,22 @@
 ---
+# include_role: name=oszi.general.podman tasks_from=deploy
+
 - name: Deploy podman networks
   containers.podman.podman_network:
-  args: "{{ {'name': item.key} | combine(item.value) }}"
-  with_dict: "{{ podman_networks }}"
+  args: "{{ item }}"
+  with_items: "{{ podman_networks_list }}"
 
 - name: Deploy podman images
   containers.podman.podman_image:
   args: "{{ item }}"
-  with_items: "{{ podman_images }}"
+  with_items: "{{ podman_images_list }}"
 
 - name: Deploy podman containers
   containers.podman.podman_container:
-  args: "{{ {'name': item.key} | combine(item.value) }}"
-  with_dict: "{{ podman_containers }}"
+  args: "{{ item }}"
+  with_items: "{{ podman_containers_list }}"
 
 - name: Deploy podman pods
   containers.podman.podman_pod:
-  args: "{{ {'name': item.key} | combine(item.value) }}"
-  with_dict: "{{ podman_pods }}"
+  args: "{{ item }}"
+  with_items: "{{ podman_pods_list }}"
