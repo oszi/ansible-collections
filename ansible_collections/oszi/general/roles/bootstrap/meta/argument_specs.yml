@@ -22,7 +22,7 @@ argument_specs:
 
       bootstrap_facts_gather_subset:
         description:
-          - List of fact subsets to gather with ansible.builtin.setup
+          - List of fact subsets to gather with M(ansible.builtin.setup)
           - Controls which system information is collected during bootstrapping
         type: list
         elements: str
@@ -31,7 +31,7 @@ argument_specs:
 
       bootstrap_assert_that:
         description:
-          - List of assertion rules for ansible.builtin.assert to validate system requirements
+          - List of assertion rules for M(ansible.builtin.assert) to validate system requirements
           - Should contain literal strings without interpolation
         type: list
         elements: str

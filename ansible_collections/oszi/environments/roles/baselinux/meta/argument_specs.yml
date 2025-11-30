@@ -90,7 +90,7 @@ argument_specs:
 
       baselinux_posix_mounts:
         description:
-          - List of filesystem mounts to configure with ansible.posix.mount
+          - List of filesystem mounts to configure with M(ansible.posix.mount)
           - Each entry contains module parameters such as path, src, fstype, and state
         type: list
         elements: dict

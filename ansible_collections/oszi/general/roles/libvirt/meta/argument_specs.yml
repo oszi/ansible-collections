@@ -35,7 +35,7 @@ argument_specs:
       libvirt_domains:
         description:
           - List of virtual machine (domain) configurations
-          - Each entry contains arguments for community.libvirt.virt
+          - Each entry contains arguments for M(community.libvirt.virt)
           - WARNING - Most libvirt commands are not idempotent, use with caution
         type: list
         elements: dict
@@ -44,7 +44,7 @@ argument_specs:
       libvirt_networks:
         description:
           - List of virtual network configurations
-          - Each entry contains arguments for community.libvirt.virt_net
+          - Each entry contains arguments for M(community.libvirt.virt_net)
           - WARNING - Most libvirt commands are not idempotent, use with caution
         type: list
         elements: dict
@@ -53,7 +53,7 @@ argument_specs:
       libvirt_pools:
         description:
           - List of storage pool configurations
-          - Each entry contains arguments for community.libvirt.virt_pool
+          - Each entry contains arguments for M(community.libvirt.virt_pool)
           - WARNING - Most libvirt commands are not idempotent, use with caution
         type: list
         elements: dict

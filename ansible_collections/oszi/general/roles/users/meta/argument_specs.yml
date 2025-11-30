@@ -10,7 +10,7 @@ argument_specs:
     options:
       users_groups_list:
         description:
-          - List of groups as dictionaries for ansible.builtin.group
+          - List of groups as dictionaries for M(ansible.builtin.group)
           - |-
             Combine variables in the inventory to build the final list of groups:
             ```
@@ -43,7 +43,7 @@ argument_specs:
 
       users_list:
         description:
-          - List of users as dictionaries for ansible.builtin.user
+          - List of users as dictionaries for M(ansible.builtin.user)
           - |-
             Combine variables in the inventory to build the final list of users:
             ```
