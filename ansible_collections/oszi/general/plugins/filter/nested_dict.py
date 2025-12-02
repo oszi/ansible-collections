@@ -61,6 +61,8 @@ def update_nested_dict(input_dict: NestedDict, new_values: Dict[_KeyT, Any], new
             result[element_key] = {}
         elif not isinstance(result[element_key], dict):
             raise TypeError("Input variable element is not a dictionary")
+        else:
+            result[element_key] = result[element_key].copy()
 
         result[element_key][new_attribute] = value
     return result
