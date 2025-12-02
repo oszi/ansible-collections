@@ -1,11 +1,12 @@
 ---
 - name: "Validate quadlet name {{ podman_quadlets_item.name }}"
   ansible.builtin.assert:
-    that: "podman_quadlets_item.name | regex_search('^[\\w._-]+@?\\.\\w+$')"
+    that: "podman_quadlets_item.name | regex_search(podman_quadlets_name_regex)"
 
 - name: Set podman quadlet item loop vars
   ansible.builtin.set_fact:
     _podman_quadlets_item_path: "{{ [podman_quadlets_systemd_path, podman_quadlets_item.name] | path_join }}"
+    _podman_quadlets_item_name: "{{ podman_quadlets_item.name.split('.')[:-1] | join('.') }}"
     _podman_quadlets_item_type: "{{ podman_quadlets_item.name.split('.')[-1] }}"
     _podman_quadlets_copy_results: null  # Reset previous iteration.
 
@@ -63,14 +64,14 @@
     daemon_reload: true
 
 - name: "Enable or restart quadlet {{ podman_quadlets_item.name }}"
-  when: "'@' not in podman_quadlets_item.name"
+  when: "not _podman_quadlets_item_name.endswith('@')"  # Not a template.
   ansible.builtin.systemd:
     name: "{{ _podman_quadlets_service }}"
     scope: "{{ podman_quadlets_systemd_scope }}"
     state: "{{ 'restarted' if _podman_quadlets_changed else 'started' }}"
     enabled: true
   vars:
-    _podman_quadlets_service: "{{ podman_quadlets_item.name.split('.')[:-1] | join('.') }}{%
+    _podman_quadlets_service: "{{ _podman_quadlets_item_name }}{%
       if _podman_quadlets_item_type not in ['container', 'kube']
       %}-{{ _podman_quadlets_item_type }}{% endif %}.service"
     _podman_quadlets_changed: "{{ _podman_quadlets_unit_result.changed

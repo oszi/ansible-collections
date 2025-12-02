@@ -9,3 +9,17 @@ podman_quadlets_system_generator_dryrun: "/usr/lib/systemd/system-generators/pod
 
 # Systemd scope for systemd module calls (one of system, user, global)
 podman_quadlets_systemd_scope: "{{ 'system' if ansible_facts.user_uid | int == 0 else 'user' }}"
+
+# Supported quadlet types (extensions)
+podman_quadlets_types:
+  - artifact
+  - build
+  - container
+  - image
+  - kube
+  - network
+  - pod
+  - volume
+
+# Regex for fully-qualified quadlet names: NAME[@].TYPE
+podman_quadlets_name_regex: "^\\w[\\w_-]*@?\\.(?:{{ '|'.join(podman_quadlets_types | map('regex_escape')) }})$"
