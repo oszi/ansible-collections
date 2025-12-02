@@ -17,14 +17,14 @@ argument_specs:
         required: false
         options:
           path:
-            description: Relative path to `podman_kube_pods_base_path`, or an absolute path
+            description: Relative path to `podman_kube_base_path`, or an absolute path
             type: path
             required: true
-          pod_spec:
+          spec:
             description:
-              - Dictionary or YAML string containing a Kubernetes PodSpec
-              - WARNING - Jinja templated numbers and booleans in a PodSpec dictionary are strings in the final output
-              - Use YAML string documents to template port numbers, user and group IDs, dictionary keys, etc
+              - Dictionary or YAML string containing Kubernetes Pods, Deployments, DaemonSets, Jobs, and PersistentVolumeClaims
+              - WARNING - Jinja templated numbers and booleans in a spec dictionary are strings in the final output of to_nice_yaml
+              - Use YAML string documents to template port numbers, user and group IDs, complex structures, etc
               - Multiple YAML string documents (e.g., PodSpec + ConfigMap) are separated by ---
             type: raw
             required: true
@@ -105,9 +105,9 @@ argument_specs:
             type: str
             required: false
 
-      podman_kube_pods_base_path:
+      podman_kube_base_path:
         description:
-          - Base path to install PodSpec files to
+          - Base path to install Kubernetes spec files to
           - Overridable with absolute paths in podman_kube_list[].path
           - Default is /etc/containers/kube, or ~/.config/containers/kube for rootless mode
         type: path

@@ -2,10 +2,10 @@
 - name: Podman-kube tasks
   tags: [podman, podman-kube]
   block:
-    - name: Install podman-kube pods
+    - name: Install podman-kube services
       when: "not podman_disabled | default(false)"
       ansible.builtin.include_tasks:
-        file: kube-pod.yml
+        file: kube.yml
       loop: "{{ podman_kube_list }}"
       loop_control:
         loop_var: podman_kube_item

@@ -1,6 +1,6 @@
 ---
-# WARNING: Jinja templated numbers and booleans in a PodSpec dictionary are strings in the final output!
-# Use YAML string documents to template port numbers, user and group IDs, dictionary keys, etc.
+# WARNING: Jinja templated numbers and booleans in a spec dictionary are strings in the final output of to_nice_yaml!
+# Use YAML string documents to template port numbers, user and group IDs, complex structures, etc.
 
 # Workarounds for containers bundled with S6:
 # - Combine annotations with init set to FALSE to run S6 as PID 1.
@@ -17,7 +17,7 @@ _podman_kube_common_annotations: |-
 
 podman_kube_list:
   - path: socks-proxy.yml
-    pod_spec:
+    spec:
       apiVersion: v1
       kind: Pod
       metadata:

@@ -1,7 +1,7 @@
 ---
 - name: Set podman-kube item loop vars
   ansible.builtin.set_fact:
-    _podman_kube_pod_path: "{{ [podman_kube_pods_base_path, podman_kube_item.path] | path_join }}"
+    _podman_kube_file_path: "{{ [podman_kube_base_path, podman_kube_item.path] | path_join }}"
     _podman_kube_copy_results: null  # Reset previous iteration.
 
 - name: Copy static files for the kube item
@@ -27,38 +27,38 @@
     {{ podman_kube_item.init_script }}
   args:
     # White lie to only execute once before installing.
-    creates: "{{ _podman_kube_pod_path }}"
+    creates: "{{ _podman_kube_file_path }}"
     executable: "/bin/bash"
 
-- name: "Ensure directory for podman-kube PodSpec {{ podman_kube_item.path }}"
+- name: "Ensure directory for podman-kube spec {{ podman_kube_item.path }}"
   ansible.builtin.file:
-    path: "{{ _podman_kube_pod_path | dirname }}"
+    path: "{{ _podman_kube_file_path | dirname }}"
     state: "directory"
     # owner: ansible_user or root
     mode: "0755"
 
-- name: "Install podman-kube PodSpec {{ podman_kube_item.path }}"
+- name: "Install podman-kube spec {{ podman_kube_item.path }}"
   ansible.builtin.copy:
-    content: "{{ podman_kube_item.pod_spec if podman_kube_item.pod_spec is string
-      else podman_kube_item.pod_spec | to_nice_yaml }}"
-    dest: "{{ _podman_kube_pod_path }}"
+    content: "{{ podman_kube_item.spec if podman_kube_item.spec is string
+      else podman_kube_item.spec | to_nice_yaml }}"
+    dest: "{{ _podman_kube_file_path }}"
     # owner: ansible_user or root
     mode: "0644"
-  register: _podman_kube_pod_result
+  register: _podman_kube_spec_result
 
 - name: "Restart podman-kube {{ podman_kube_item.path }}"
   ansible.builtin.systemd:
-    name: "{{ lookup('oszi.general.systemd_escape', _podman_kube_pod_path, template=podman_kube_template_service) }}"
+    name: "{{ lookup('oszi.general.systemd_escape', _podman_kube_file_path, template=podman_kube_template_service) }}"
     scope: "{{ podman_kube_systemd_scope }}"
     daemon_reload: "{{ _podman_kube_changed }}"
     state: "{{ 'restarted' if _podman_kube_changed else 'started' }}"
     enabled: true
   vars:
-    _podman_kube_changed: "{{ _podman_kube_pod_result.changed
+    _podman_kube_changed: "{{ _podman_kube_spec_result.changed
       or _podman_kube_copy_results is not none and _podman_kube_copy_results.changed }}"
 
 - name: "Run post-install script for podman-kube {{ podman_kube_item.path }}"
-  when: _podman_kube_pod_result.changed and podman_kube_item.post_install_script is defined
+  when: _podman_kube_spec_result.changed and podman_kube_item.post_install_script is defined
   ansible.builtin.shell: |
     set -euxo pipefail
     {{ podman_kube_item.post_install_script }}

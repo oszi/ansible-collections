@@ -1,7 +1,7 @@
 ---
 # List of podman-kube pods as dictionaries.
 # See the argument spec for detailed documentation.
-podman_kube_list: "{{ {} | oszi.general.update_nested_dict(podman_kube_pods, 'pod_spec')
+podman_kube_list: "{{ {} | oszi.general.update_nested_dict(podman_kube_pods, 'spec')
   | oszi.general.update_nested_dict(podman_kube_copy_files, 'files')
   | oszi.general.update_nested_dict(podman_kube_init_scripts, 'init_script')
   | oszi.general.update_nested_dict(podman_kube_post_install_scripts, 'post_install_script')
@@ -9,7 +9,7 @@ podman_kube_list: "{{ {} | oszi.general.update_nested_dict(podman_kube_pods, 'po
 
 # Base path to install PodSpec files to.
 # Overridable with absolute paths in podman_kube_list[].path
-podman_kube_pods_base_path: "{{ '/etc/containers/kube' if ansible_facts.user_uid | int == 0
+podman_kube_base_path: "{{ '/etc/containers/kube' if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.config/containers/kube' }}"
 
 # XXX: Deprecated, backwards-compatible variables.
