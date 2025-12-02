@@ -2,7 +2,7 @@
 
 Personal collections of Ansible roles and playbooks for Linux workstations and containers.  
 Supported distributions are the latest stable Fedora, Debian and Ubuntu.  
-See the examples and role defaults for basic documentation.
+See the examples and role argument_specs for basic documentation.
 
 ## Collections
 
