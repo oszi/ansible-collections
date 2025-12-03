@@ -1,9 +1,9 @@
 ---
 argument_specs:
   main:
-    short_description: Kubernetes-style pods with podman-kube@.service
+    short_description: Kubernetes-spec services with podman-kube@.service
     description:
-      - Manages Kubernetes-style pods using the podman-kube@.service systemd template
+      - Manages Kubernetes-spec services using the podman-kube@.service systemd template
       - Provides lifecycle hooks for initialization and post-installation scripts
       - Alternative to quadlets when quadlets are unavailable or undesirable
       - Supports rootless mode with systemd user scope (requires lingering)
@@ -11,7 +11,7 @@ argument_specs:
       - "David O. (oszi.dev)"
     options:
       podman_kube_list:
-        description: List of Kubernetes pods for podman-kube@.service
+        description: List of Kubernetes specs for podman-kube@.service
         type: list
         elements: dict
         required: false

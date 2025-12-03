@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Deploy podman-kube@.service pods on Linux."
+  description: "Deploy Kubernetes-spec services with podman-kube@.service"
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.18.0"

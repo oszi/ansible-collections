@@ -1,10 +1,10 @@
 ---
 argument_specs:
   main:
-    short_description: Podman quadlet systemd-generator unit management
+    short_description: Podman quadlet unit management
     description:
       - Manages podman quadlet files for systemd-based container orchestration
-      - Supports .container, .kube, .pod, .image, .network, and other quadlet types
+      - Supports .container, .kube, .pod, .network, .volume, .image, .build, .artifact quadlet types
       - Provides lifecycle hooks for initialization and post-installation scripts
       - Supports rootless mode with systemd user scope (requires lingering)
     author:
@@ -18,7 +18,8 @@ argument_specs:
         options:
           name:
             description:
-              - Name of the quadlet (NAME.container, NAME.kube, NAME.pod, NAME.image, NAME.network)
+              - Name of the quadlet (e.g., name.container or template@.container)
+              - Supports .container, .kube, .pod, .network, .volume, .image, .build, .artifact quadlet types
               - Base path is /etc/containers/systemd, or ~/.config/containers/systemd for rootless mode
             type: str
             required: true
