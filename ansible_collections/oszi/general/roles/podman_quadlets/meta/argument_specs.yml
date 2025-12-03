@@ -22,6 +22,15 @@ argument_specs:
               - Base path is /etc/containers/systemd, or ~/.config/containers/systemd for rootless mode
             type: str
             required: true
+          state:
+            description:
+              - Whether the service should be present, present_disabled, or absent
+              - If present_disabled, the service is installed, including files and init_script, but not started
+              - If absent, the service and all role-managed files will be irrevocably removed
+            type: str
+            required: false
+            choices: [absent, present_disabled, present]
+            default: present
           quadlet:
             description:
               - Contents of the quadlet systemd unit

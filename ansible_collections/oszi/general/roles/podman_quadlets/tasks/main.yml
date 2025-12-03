@@ -2,7 +2,7 @@
 - name: Podman-quadlets tasks
   tags: [podman, podman-quadlets]
   block:
-    - name: Install podman quadlets
+    - name: Include podman quadlets
       when: "not podman_disabled | default(false)"
       ansible.builtin.include_tasks:
         file: quadlet.yml

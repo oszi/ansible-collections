@@ -1,0 +1,27 @@
+---
+- name: "Disable systemd service for quadlet {{ podman_quadlets_item.name }}"
+  when: not _podman_quadlets_service_is_template
+  ansible.builtin.systemd:
+    name: "{{ _podman_quadlets_service }}"
+    scope: "{{ podman_quadlets_systemd_scope }}"
+    state: "stopped"
+    enabled: false
+
+- name: "Remove quadlet {{ podman_quadlets_item.name }}"
+  ansible.builtin.file:
+    path: "{{ _podman_quadlets_item_path }}"
+    state: "absent"
+  register: _podman_quadlets_unit_result
+
+- name: "Reload systemd for quadlet {{ podman_quadlets_item.name }}"
+  when: _podman_quadlets_unit_result.changed  # Regardless of being a template.
+  ansible.builtin.systemd:
+    scope: "{{ podman_quadlets_systemd_scope }}"
+    daemon_reload: true
+
+- name: "Remove static files for quadlet {{ podman_quadlets_item.name }}"
+  when: podman_quadlets_item.files is defined
+  ansible.builtin.file:
+    path: "{{ item.dest }}"
+    state: "absent"
+  with_items: "{{ podman_quadlets_item.files }}"

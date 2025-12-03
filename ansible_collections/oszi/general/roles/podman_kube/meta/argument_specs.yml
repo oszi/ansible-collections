@@ -20,6 +20,15 @@ argument_specs:
             description: Relative path to `podman_kube_base_path`, or an absolute path
             type: path
             required: true
+          state:
+            description:
+              - Whether the service should be present, present_disabled, or absent
+              - If present_disabled, the service is installed, including files and init_script, but not started
+              - If absent, the service and all role-managed files will be irrevocably removed
+            type: str
+            required: false
+            choices: [absent, present_disabled, present]
+            default: present
           spec:
             description:
               - Dictionary or YAML string containing Kubernetes Pods, Deployments, DaemonSets, Jobs, and PersistentVolumeClaims

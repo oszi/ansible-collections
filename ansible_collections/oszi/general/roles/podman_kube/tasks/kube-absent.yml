@@ -1,0 +1,19 @@
+---
+- name: "Disable systemd service for podman-kube {{ podman_kube_item.path }}"
+  ansible.builtin.systemd:
+    name: "{{ _podman_kube_service }}"
+    scope: "{{ podman_kube_systemd_scope }}"
+    state: "stopped"
+    enabled: false
+
+- name: "Remove podman-kube spec {{ podman_kube_item.path }}"
+  ansible.builtin.file:
+    path: "{{ _podman_kube_file_path }}"
+    state: "absent"
+
+- name: "Remove static files for podman-kube {{ podman_kube_item.path }}"
+  when: podman_kube_item.files is defined
+  ansible.builtin.file:
+    path: "{{ item.dest }}"
+    state: "absent"
+  with_items: "{{ podman_kube_item.files }}"

@@ -2,7 +2,7 @@
 - name: Podman-kube tasks
   tags: [podman, podman-kube]
   block:
-    - name: Install podman-kube services
+    - name: Include podman-kube services
       when: "not podman_disabled | default(false)"
       ansible.builtin.include_tasks:
         file: kube.yml
