@@ -26,12 +26,12 @@
     {{ podman_kube_item.init_script }}
   args:
     # White lie to only execute once before installing.
-    creates: "{{ podman_kube_file_path }}"
+    creates: "{{ podman_kube_spec_path }}"
     executable: "/bin/bash"
 
 - name: "Ensure directory for podman-kube spec {{ podman_kube_item.path }}"
   ansible.builtin.file:
-    path: "{{ podman_kube_file_path | dirname }}"
+    path: "{{ podman_kube_spec_path | dirname }}"
     state: "directory"
     # owner: ansible_user or root
     mode: "0755"
@@ -40,7 +40,7 @@
   ansible.builtin.copy:
     content: "{{ podman_kube_item.spec if podman_kube_item.spec is string
       else podman_kube_item.spec | to_nice_yaml }}"
-    dest: "{{ podman_kube_file_path }}"
+    dest: "{{ podman_kube_spec_path }}"
     # owner: ansible_user or root
     mode: "0644"
   register: _podman_kube_spec_result

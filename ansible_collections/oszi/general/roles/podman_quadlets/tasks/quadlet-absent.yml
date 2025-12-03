@@ -3,35 +3,40 @@
   ansible.builtin.assert:
     that: "podman_quadlets_item.name | regex_search(podman_quadlets_name_regex)"
 
-- name: "Remove quadlet {{ podman_quadlets_item.name }}"
-  ansible.builtin.file:
+- name: "Check quadlet {{ podman_quadlets_item.name }}"
+  ansible.builtin.stat:
     path: "{{ podman_quadlets_item_path }}"
-    state: "absent"
   register: _podman_quadlets_unit_result
 
-# Requires the generated service to still exist, before daemon-reload.
-- name: "Disable systemd service for quadlet {{ podman_quadlets_item.name }}"
-  when: _podman_quadlets_unit_result.changed and not podman_quadlets_service_is_template
-  ansible.builtin.systemd:
-    name: "{{ podman_quadlets_service }}"
-    scope: "{{ podman_quadlets_systemd_scope }}"
-    state: "stopped"
-    enabled: false
+- name: Uninstall quadlet item
+  when: _podman_quadlets_unit_result.stat.exists
+  block:
+    - name: "Disable systemd service for quadlet {{ podman_quadlets_item.name }}"
+      when: not podman_quadlets_service_is_template
+      ansible.builtin.systemd:
+        name: "{{ podman_quadlets_service }}"
+        scope: "{{ podman_quadlets_systemd_scope }}"
+        state: "stopped"
+        enabled: false
 
-- name: "Reload systemd for quadlet {{ podman_quadlets_item.name }}"
-  when: _podman_quadlets_unit_result.changed  # Regardless of being a template.
-  ansible.builtin.systemd:
-    scope: "{{ podman_quadlets_systemd_scope }}"
-    daemon_reload: true
+    - name: "Run uninstall script for quadlet {{ podman_quadlets_item.name }}"
+      when: podman_quadlets_item.uninstall_script is defined
+      ansible.builtin.shell: |
+        set -euxo pipefail
+        {{ podman_quadlets_item.uninstall_script }}
+      args:
+        executable: "/bin/bash"
+      changed_when: true
 
-- name: "Run uninstall script for quadlet {{ podman_quadlets_item.name }}"
-  when: _podman_quadlets_unit_result.changed and podman_quadlets_item.uninstall_script is defined
-  ansible.builtin.shell: |
-    set -euxo pipefail
-    {{ podman_quadlets_item.uninstall_script }}
-  args:
-    executable: "/bin/bash"
-  changed_when: true
+    - name: "Remove quadlet {{ podman_quadlets_item.name }}"
+      ansible.builtin.file:
+        path: "{{ podman_quadlets_item_path }}"
+        state: "absent"
+
+    - name: "Reload systemd for quadlet {{ podman_quadlets_item.name }}"
+      ansible.builtin.systemd:
+        scope: "{{ podman_quadlets_systemd_scope }}"
+        daemon_reload: true
 
 - name: "Remove static files for quadlet {{ podman_quadlets_item.name }}"
   when: podman_quadlets_item.files is defined

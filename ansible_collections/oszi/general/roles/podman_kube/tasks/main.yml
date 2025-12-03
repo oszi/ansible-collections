@@ -8,8 +8,8 @@
         file: "kube-{{ 'absent' if podman_kube_item.state | default('present') == 'absent'
           else 'present' }}.yml"  # present / present_disabled
       vars:
-        podman_kube_file_path: "{{ [podman_kube_base_path, podman_kube_item.path] | path_join }}"
-        podman_kube_service: "{{ lookup('oszi.general.systemd_escape', podman_kube_file_path,
+        podman_kube_spec_path: "{{ [podman_kube_base_path, podman_kube_item.path] | path_join }}"
+        podman_kube_service: "{{ lookup('oszi.general.systemd_escape', podman_kube_spec_path,
           template=podman_kube_template_service) }}"
         podman_kube_service_enabled: "{{ podman_kube_item.state | default('present') == 'present' }}"
       loop: "{{ podman_kube_list }}"
