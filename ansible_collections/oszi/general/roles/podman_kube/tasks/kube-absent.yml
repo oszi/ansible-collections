@@ -1,4 +1,5 @@
 ---
+# Requires _podman_kube_file_path to still exist.
 - name: "Disable systemd service for podman-kube {{ podman_kube_item.path }}"
   ansible.builtin.systemd:
     name: "{{ _podman_kube_service }}"
@@ -10,6 +11,16 @@
   ansible.builtin.file:
     path: "{{ _podman_kube_file_path }}"
     state: "absent"
+  register: _podman_kube_spec_result
+
+- name: "Run uninstall script for podman-kube {{ podman_kube_item.path }}"
+  when: _podman_kube_spec_result.changed and podman_kube_item.uninstall_script is defined
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    {{ podman_kube_item.uninstall_script }}
+  args:
+    executable: "/bin/bash"
+  changed_when: true
 
 - name: "Remove static files for podman-kube {{ podman_kube_item.path }}"
   when: podman_kube_item.files is defined

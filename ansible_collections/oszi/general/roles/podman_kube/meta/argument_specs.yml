@@ -113,6 +113,12 @@ argument_specs:
               - Use for post-install setup tasks that depend on the service being active
             type: str
             required: false
+          uninstall_script:
+            description:
+              - Script run after the service is uninstalled with bash -euo pipefail
+              - Use for cleanup with state=absent
+            type: str
+            required: false
 
       podman_kube_base_path:
         description:
