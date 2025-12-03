@@ -1,4 +1,12 @@
 ---
+- name: "Validate quadlet name {{ podman_quadlets_item.name }}"
+  ansible.builtin.assert:
+    that: "podman_quadlets_item.name | regex_search(podman_quadlets_name_regex)"
+
+- name: Reset quadlet loop vars
+  ansible.builtin.set_fact:
+    _podman_quadlets_copy_results: null
+
 - name: Copy static files for the quadlet item
   when: podman_quadlets_item.files is defined
   block:
@@ -22,12 +30,12 @@
     {{ podman_quadlets_item.init_script }}
   args:
     # White lie to only execute once before installing.
-    creates: "{{ _podman_quadlets_item_path }}"
+    creates: "{{ podman_quadlets_item_path }}"
     executable: "/bin/bash"
 
 - name: "Ensure systemd directory exists for quadlet {{ podman_quadlets_item.name }}"
   ansible.builtin.file:
-    dest: "{{ _podman_quadlets_item_path | dirname }}"
+    dest: "{{ podman_quadlets_item_path | dirname }}"
     state: "directory"
     # owner: ansible_user or root
     mode: "0755"
@@ -35,7 +43,7 @@
 - name: "Install quadlet {{ podman_quadlets_item.name }}"
   ansible.builtin.copy:
     content: "{{ podman_quadlets_item.quadlet }}"
-    dest: "{{ _podman_quadlets_item_path }}"
+    dest: "{{ podman_quadlets_item_path }}"
     # owner: ansible_user or root
     mode: "0644"
   register: _podman_quadlets_unit_result
@@ -53,19 +61,19 @@
     daemon_reload: true
 
 - name: "Manage systemd service for quadlet {{ podman_quadlets_item.name }}"
-  when: not _podman_quadlets_service_is_template
+  when: not podman_quadlets_service_is_template
   ansible.builtin.systemd:
-    name: "{{ _podman_quadlets_service }}"
+    name: "{{ podman_quadlets_service }}"
     scope: "{{ podman_quadlets_systemd_scope }}"
-    state: "{{ 'stopped' if not _podman_quadlets_service_enabled
+    state: "{{ 'stopped' if not podman_quadlets_service_enabled
       else 'restarted' if _podman_quadlets_changed else 'started' }}"
-    enabled: "{{ _podman_quadlets_service_enabled }}"
+    enabled: "{{ podman_quadlets_service_enabled }}"
   vars:
     _podman_quadlets_changed: "{{ _podman_quadlets_unit_result.changed
       or _podman_quadlets_copy_results is not none and _podman_quadlets_copy_results.changed }}"
 
 - name: "Run post-install script for quadlet {{ podman_quadlets_item.name }}"
-  when: _podman_quadlets_unit_result.changed and _podman_quadlets_service_enabled
+  when: _podman_quadlets_unit_result.changed and podman_quadlets_service_enabled
     and podman_quadlets_item.post_install_script is defined
   ansible.builtin.shell: |
     set -euxo pipefail

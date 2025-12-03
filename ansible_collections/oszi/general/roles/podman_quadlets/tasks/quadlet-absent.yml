@@ -1,15 +1,19 @@
 ---
+- name: "Validate quadlet name {{ podman_quadlets_item.name }}"
+  ansible.builtin.assert:
+    that: "podman_quadlets_item.name | regex_search(podman_quadlets_name_regex)"
+
 - name: "Remove quadlet {{ podman_quadlets_item.name }}"
   ansible.builtin.file:
-    path: "{{ _podman_quadlets_item_path }}"
+    path: "{{ podman_quadlets_item_path }}"
     state: "absent"
   register: _podman_quadlets_unit_result
 
 # Requires the generated service to still exist, before daemon-reload.
 - name: "Disable systemd service for quadlet {{ podman_quadlets_item.name }}"
-  when: _podman_quadlets_unit_result.changed and not _podman_quadlets_service_is_template
+  when: _podman_quadlets_unit_result.changed and not podman_quadlets_service_is_template
   ansible.builtin.systemd:
-    name: "{{ _podman_quadlets_service }}"
+    name: "{{ podman_quadlets_service }}"
     scope: "{{ podman_quadlets_systemd_scope }}"
     state: "stopped"
     enabled: false

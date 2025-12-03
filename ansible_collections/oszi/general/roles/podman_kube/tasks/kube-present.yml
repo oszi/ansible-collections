@@ -1,4 +1,8 @@
 ---
+- name: Reset podman-kube loop vars
+  ansible.builtin.set_fact:
+    _podman_kube_copy_results: null
+
 - name: Copy static files for the kube item
   when: podman_kube_item.files is defined
   block:
@@ -22,12 +26,12 @@
     {{ podman_kube_item.init_script }}
   args:
     # White lie to only execute once before installing.
-    creates: "{{ _podman_kube_file_path }}"
+    creates: "{{ podman_kube_file_path }}"
     executable: "/bin/bash"
 
 - name: "Ensure directory for podman-kube spec {{ podman_kube_item.path }}"
   ansible.builtin.file:
-    path: "{{ _podman_kube_file_path | dirname }}"
+    path: "{{ podman_kube_file_path | dirname }}"
     state: "directory"
     # owner: ansible_user or root
     mode: "0755"
@@ -36,25 +40,25 @@
   ansible.builtin.copy:
     content: "{{ podman_kube_item.spec if podman_kube_item.spec is string
       else podman_kube_item.spec | to_nice_yaml }}"
-    dest: "{{ _podman_kube_file_path }}"
+    dest: "{{ podman_kube_file_path }}"
     # owner: ansible_user or root
     mode: "0644"
   register: _podman_kube_spec_result
 
 - name: "Manage systemd service for podman-kube {{ podman_kube_item.path }}"
   ansible.builtin.systemd:
-    name: "{{ _podman_kube_service }}"
+    name: "{{ podman_kube_service }}"
     scope: "{{ podman_kube_systemd_scope }}"
     daemon_reload: "{{ _podman_kube_changed }}"
-    state: "{{ 'stopped' if not _podman_kube_service_enabled
+    state: "{{ 'stopped' if not podman_kube_service_enabled
       else 'restarted' if _podman_kube_changed else 'started' }}"
-    enabled: "{{ _podman_kube_service_enabled }}"
+    enabled: "{{ podman_kube_service_enabled }}"
   vars:
     _podman_kube_changed: "{{ _podman_kube_spec_result.changed
       or _podman_kube_copy_results is not none and _podman_kube_copy_results.changed }}"
 
 - name: "Run post-install script for podman-kube {{ podman_kube_item.path }}"
-  when: _podman_kube_spec_result.changed and _podman_kube_service_enabled
+  when: _podman_kube_spec_result.changed and podman_kube_service_enabled
     and podman_kube_item.post_install_script is defined
   ansible.builtin.shell: |
     set -euxo pipefail

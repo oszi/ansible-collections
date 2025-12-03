@@ -5,7 +5,17 @@
     - name: Include podman quadlets
       when: "not podman_disabled | default(false)"
       ansible.builtin.include_tasks:
-        file: quadlet.yml
+        file: "quadlet-{{ 'absent' if podman_quadlets_item.state | default('present') == 'absent'
+          else 'present' }}.yml"  # present / present_disabled
+      vars:
+        podman_quadlets_item_path: "{{ [podman_quadlets_systemd_path, podman_quadlets_item.name] | path_join }}"
+        podman_quadlets_item_basename: "{{ podman_quadlets_item.name.split('.')[:-1] | join('.') }}"
+        podman_quadlets_item_type: "{{ podman_quadlets_item.name.split('.')[-1] }}"
+        podman_quadlets_service: "{{ podman_quadlets_item_basename }}{%
+          if podman_quadlets_item_type not in ['container', 'kube']
+          %}-{{ podman_quadlets_item_type }}{% endif %}.service"
+        podman_quadlets_service_enabled: "{{ podman_quadlets_item.state | default('present') == 'present' }}"
+        podman_quadlets_service_is_template: "{{ podman_quadlets_item_basename.endswith('@') }}"
       loop: "{{ podman_quadlets_list }}"
       loop_control:
         loop_var: podman_quadlets_item
