@@ -62,6 +62,15 @@
     scope: "{{ podman_quadlets_systemd_scope }}"
     daemon_reload: true
 
+# XXX: Setting enabled to false is not immutable with quadlets.
+- name: "Disable systemd service for present_disabled quadlet {{ podman_quadlets_item.name }}"
+  when: not podman_quadlets_service_is_template and not podman_quadlets_service_enabled
+  ansible.builtin.systemd:
+    name: "{{ podman_quadlets_service }}"
+    scope: "{{ podman_quadlets_systemd_scope }}"
+    enabled: false
+  changed_when: false
+
 - name: "Manage systemd service for quadlet {{ podman_quadlets_item.name }}"
   when: not podman_quadlets_service_is_template
   ansible.builtin.systemd:
@@ -69,7 +78,7 @@
     scope: "{{ podman_quadlets_systemd_scope }}"
     state: "{{ 'stopped' if not podman_quadlets_service_enabled
       else 'restarted' if _podman_quadlets_changed else 'started' }}"
-    enabled: "{{ podman_quadlets_service_enabled }}"
+    enabled: "{{ podman_quadlets_service_enabled or omit }}"  # XXX: See previous task.
   vars:
     _podman_quadlets_changed: "{{ _podman_quadlets_unit_result.changed
       or _podman_quadlets_copy_results is not none and _podman_quadlets_copy_results.changed }}"
