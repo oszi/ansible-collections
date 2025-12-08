@@ -36,8 +36,9 @@ argument_specs:
             description:
               - Contents of the quadlet systemd unit
               - See https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
+              - Required unless state=absent
             type: str
-            required: true
+            required: false
           files:
             description: Copy files or directories before installation
             type: list

@@ -35,8 +35,9 @@ argument_specs:
               - WARNING - Jinja templated numbers and booleans in a spec dictionary are strings in the final output of to_nice_yaml
               - Use YAML string documents to template port numbers, user and group IDs, complex structures, etc
               - Multiple YAML string documents (e.g., PodSpec + ConfigMap) are separated by ---
+              - Required unless state=absent
             type: raw
-            required: true
+            required: false
           files:
             description: Copy files or directories before installation
             type: list
