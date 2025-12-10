@@ -1,13 +1,16 @@
 ---
-# Placeholder values for loop variables to pass argument specs validation.
-# Loop vars will take precedence over this.
-dotfiles_user_item: "placeholder"
+# Placeholders for loop and task variables to pass argument_specs validation.
+# Wrapping loop_var prevents "loop variable is already in use" warnings.
+# Task variables take precedence over vars/main.
+dotfiles_user_item: "{{ _dotfiles_user_item_var | default('__PLACEHOLDER__') }}"
 dotfiles_user_info:
-  name: "placeholder"
-  home: "placeholder"
-  password: "placeholder"
-  shell: "placeholder"
+  name: "__PLACEHOLDER__"
+  comment: "__PLACEHOLDER__"
+  home: "__PLACEHOLDER__"
+  password: "__PLACEHOLDER__"
+  shell: "__PLACEHOLDER__"
   system: false
   uid: 0
   group: 0
   groups: []
+  changed: false

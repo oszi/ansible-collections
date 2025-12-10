@@ -8,7 +8,7 @@
         file: dotfiles-user.yml
       loop: "{{ dotfiles_users | unique }}"
       loop_control:
-        loop_var: dotfiles_user_item
+        loop_var: _dotfiles_user_item_var  # use as dotfiles_user_item
 
     - name: Dotfiles role completed
       ansible.builtin.debug:

@@ -10,7 +10,7 @@
           become_user: "{{ gnome_users_item }}"
       loop: "{{ gnome_users | unique }}"
       loop_control:
-        loop_var: gnome_users_item
+        loop_var: _gnome_users_item_var  # use as gnome_users_item
 
     - name: Gnome-users role completed
       ansible.builtin.debug:
