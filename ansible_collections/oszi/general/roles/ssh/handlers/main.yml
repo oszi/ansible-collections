@@ -8,7 +8,7 @@
 
 - name: Ensure the configured SSH port is used
   ansible.builtin.set_fact:
-    ansible_port: "{{ ssh_port }}"
+    ansible_port: "{{ ssh_port }}"  # noqa: var-naming[no-role-prefix]
   listen: "Set ansible_port to ssh_port"
 
 - name: Check connectivity

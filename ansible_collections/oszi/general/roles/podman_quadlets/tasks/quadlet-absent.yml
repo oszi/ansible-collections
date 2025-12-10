@@ -2,7 +2,7 @@
 - name: "Validate parameters for absent quadlet {{ podman_quadlets_item.name }}"
   ansible.builtin.assert:
     that:
-      - "podman_quadlets_item.name | regex_search(podman_quadlets_name_regex)"
+      - "podman_quadlets_item.name | regex_search(podman_quadlets_name_regex) is not none"
 
 - name: "Check quadlet {{ podman_quadlets_item.name }}"
   ansible.builtin.stat:
