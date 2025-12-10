@@ -6,7 +6,7 @@
   tags: [podman]
   vars:
     podman_executable: "podman"
-    podman_image_list: >-
+    podman_images_command: >-
       {{ podman_executable }} image list
       --format='{{ '{{.Repository}}#{{.Tag}}#{{.Id}}' }}'
       --filter=dangling=false
@@ -22,7 +22,7 @@
     - name: List podman images
       ansible.builtin.shell: |
         set -euo pipefail
-        {{ podman_image_list }}
+        {{ podman_images_command }}
       args:
         executable: "/bin/bash"
       register: _podman_images_result
@@ -36,7 +36,7 @@
         awk -F'#' '{print $1":"$2}' \
           | xargs {{ podman_executable }} pull --quiet >/dev/null
         rc=$?
-        {{ podman_image_list }}
+        {{ podman_images_command }}
         exit $rc
       args:
         stdin: "{{ _podman_images_result.stdout }}"

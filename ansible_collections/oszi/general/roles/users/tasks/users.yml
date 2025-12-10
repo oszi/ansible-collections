@@ -2,12 +2,12 @@
 - name: Configure unix groups
   ansible.builtin.group:
   args: "{{ item }}"
-  with_items: "{{ users_groups_list }}"
+  with_items: "{{ users_groups_list | oszi.general.unique_nested_list('name') }}"
 
 - name: Configure unix users
   ansible.builtin.user:
   args: "{{ item }}"
-  with_items: "{{ users_list }}"
+  with_items: "{{ users_list | oszi.general.unique_nested_list('name') }}"
 
 - name: Allow passwordless sudo for the specified groups
   when: "users_sudo_nopasswd_groups | length > 0"

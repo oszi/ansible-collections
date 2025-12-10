@@ -16,7 +16,8 @@
           %}-{{ podman_quadlets_item_type }}{% endif %}.service"
         podman_quadlets_service_enabled: "{{ podman_quadlets_item.state | default('present') == 'present' }}"
         podman_quadlets_service_is_template: "{{ podman_quadlets_item_basename.endswith('@') }}"
-      loop: "{{ podman_quadlets_list }}"
+
+      loop: "{{ podman_quadlets_list | oszi.general.unique_nested_list('name') }}"
       loop_control:
         loop_var: podman_quadlets_item
 

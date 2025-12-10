@@ -24,7 +24,7 @@
 - name: Include ACME certificate tasks
   ansible.builtin.include_tasks:
     file: acme-certificate.yml
-  loop: "{{ acme_certificates }}"
+  loop: "{{ acme_certificates | oszi.general.unique_nested_list('live_path') }}"
   loop_control:
     loop_var: acme_certificate_item
 
