@@ -70,9 +70,17 @@ argument_specs:
 
       shell_bash_completions_for_zsh:
         description:
-          - Dictionary of ZSH-compatible bash completion files to pre-load
-          - Keys are command names, values are paths or lists of paths to completion files
-          - Sourced when native ZSH completion (_key) does not exist
-          - Most bash completions are not ZSH-compatible, use selectively
-        type: dict
+          - List of ZSH-compatible bash-completion files to pre-load when native completion does not exist
+          - Most bash-completion files are not ZSH-compatible, use selectively
+        type: list
+        elements: dict
         required: false
+        options:
+          command:
+            description: Command to load completions for if `_command` does not exist
+            type: str
+            required: true
+          path:
+            description: Path to a ZSH-compatible bash-completion file
+            type: path
+            required: true

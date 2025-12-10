@@ -54,8 +54,9 @@ shell_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 # native completion function (_key). When given a list, files are tried in order.
 # Most bash completion files are NOT ZSH-compatible, use them on a case-by-case basis.
 shell_bash_completions_for_zsh:
-  gcloud:
+  - command: gcloud
     # completion.zsh.inc is still bash in part and does not work with auto-loading.
-    - "/usr/{{ (ansible_facts.os_family == 'Debian') | ternary('lib', 'lib64') }}/google-cloud-sdk/completion.zsh.inc"
-    - "/etc/bash_completion.d/gcloud"
-  wg: "/usr/share/bash-completion/completions/wg"
+    # Use /etc/bash_completion.d/gcloud for older versions.
+    path: "/usr/{{ (ansible_facts.os_family == 'Debian') | ternary('lib', 'lib64') }}/google-cloud-sdk/completion.zsh.inc"
+  - command: wg
+    path: "/usr/share/bash-completion/completions/wg"
