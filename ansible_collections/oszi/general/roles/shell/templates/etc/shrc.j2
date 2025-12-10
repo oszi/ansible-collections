@@ -1,5 +1,6 @@
 #!/bin/sh
-# Ansible managed shrc for POSIX-compatible shells
+# {{ ansible_managed }}
+# shrc for POSIX-compatible shells
 # shellcheck shell=sh disable=SC1090 # non-constant source
 # shellcheck disable=SC3009 # in POSIX brace expansion is undefined
 
@@ -26,15 +27,14 @@ source_glob_sort() {
     source_glob "$@"
 }
 
-if [ -n "${BASH_VERSION-}" ]; then
-    if [ -z "${POSIXLY_CORRECT-}" ]; then
-        source_glob_sort /etc/shrc.d/*.{sh,bash}
-        return
-    fi
-
-elif [ -n "${ZSH_VERSION-}" ] && [ "$(emulate)" = "zsh" ]; then
-    source_glob_sort /etc/shrc.d/*.{sh,zsh}
+if [ -n "${BASH_VERSION-}" ] && [ -z "${POSIXLY_CORRECT-}" ]; then
+    source_glob_sort {{ shell_shrc_d_quoted_path }}/*.{sh,bash}
     return
 fi
 
-source_glob /etc/shrc.d/*.sh
+if [ -n "${ZSH_VERSION-}" ] && [ "$(emulate)" = "zsh" ]; then
+    source_glob_sort {{ shell_shrc_d_quoted_path }}/*.{sh,zsh}
+    return
+fi
+
+source_glob {{ shell_shrc_d_quoted_path }}/*.sh

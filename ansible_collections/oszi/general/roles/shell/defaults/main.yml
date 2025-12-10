@@ -9,7 +9,7 @@ shell_histfilesize: 10000
 # Dict of environment variables:
 # * If EDITOR or VISUAL is vi, ZSH switches to vi key-bindings.
 shell_environment:
-  ENV: /etc/shrc
+  ENV: "{{ shell_etc_path }}/shrc"
   EDITOR: nano
 
 # List of extra paths to add to $PATH:
@@ -18,11 +18,12 @@ shell_search_paths:
   - '"$HOME"/.local/bin'
   - '"$HOME"/bin'
 
-# List of users to enforce /etc/skel/.bashrc and co.:
+# List of users to enforce etc/skel templates for:
 shell_skeleton_enforced_users: "{{ (['root', ansible_user | default('root')]
-  + (users_users.keys() | list if users_users is defined else [])) | unique }}"
+  + (users_list | map(attribute='name') | list if users_list is defined else [])) | unique }}"
 
 # Nested list of shell packages to install (RedHat/Debian):
+# Set to empty list on immutable systems.
 shell_packages:
   - bash
   - bash-completion
@@ -46,6 +47,10 @@ shell_packages:
   - tar
   - tmux
   - util-linux
+
+# Path where shrc, shrc.d and skel are installed
+# Override if /etc is not writeable (e.g., /usr/local/etc)
+shell_etc_path: "/etc"
 
 # Path for local executables
 shell_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"

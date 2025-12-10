@@ -13,42 +13,50 @@
   ansible.builtin.include_tasks:
     file: bat-batcat.yml
 
-- name: Copy shell config directories
+- name: Copy shrc.d directory
   ansible.builtin.copy:
-    src: "etc/{{ item }}/"
-    dest: "/etc/{{ item }}/"
+    src: "etc/shrc.d/"
+    dest: "{{ shell_etc_path }}/shrc.d/"
     owner: "root"
     group: "root"
-    mode: "0644"
-  with_items:
-    - shrc.d
-    - skel
-
-- name: Copy /etc/shrc entrypoint
-  ansible.builtin.copy:
-    src: "etc/shrc"
-    dest: "/etc/shrc"
-    owner: "root"
-    group: "root"
+    directory_mode: "0755"
     mode: "0644"
 
 - name: Install shrc.d templates
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "/etc/shrc.d/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    dest: "{{ shell_etc_path }}/shrc.d/{{ item | basename | regex_replace('\\.j2$', '') }}"
     owner: "root"
     group: "root"
     mode: "0644"
   with_fileglob:
     - "templates/etc/shrc.d/*.j2"
 
-- name: Install .profile skel template
+- name: Install shrc entrypoint
   ansible.builtin.template:
-    src: "etc/skel/.profile.j2"
-    dest: "/etc/skel/.profile"
+    src: "etc/shrc.j2"
+    dest: "{{ shell_etc_path }}/shrc"
     owner: "root"
     group: "root"
     mode: "0644"
+
+- name: Ensure skel directory exists
+  ansible.builtin.file:
+    path: "{{ shell_etc_path }}/skel"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Install skel templates
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ shell_etc_path }}/skel/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_fileglob:
+    - "templates/etc/skel/.*.j2"
 
 - name: Remove obsolete shell config files
   ansible.builtin.file:

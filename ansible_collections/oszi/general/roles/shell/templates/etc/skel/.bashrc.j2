@@ -1,4 +1,4 @@
-# Ansible managed skel
+# {{ ansible_managed }}
 # shellcheck shell=sh disable=SC1090,SC1091 # non-constant source
 
 case $- in
@@ -12,7 +12,7 @@ elif [ -f /etc/bash.bashrc ]; then
     . /etc/bash.bashrc
 fi
 
-. /etc/shrc
+. {{ shell_shrc_quoted_path }}
 
 if [ -z "${POSIXLY_CORRECT-}" ]; then
     source_glob ~/.bashrc.d/* ~/.bash_aliases

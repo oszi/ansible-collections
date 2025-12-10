@@ -47,8 +47,9 @@ argument_specs:
 
       shell_skeleton_enforced_users:
         description:
-          - List of usernames to enforce /etc/skel/.bashrc and other skeleton files for
-          - Ensures consistent shell configuration across specified users
+          - List of usernames to enforce role-managed `skel` files for
+          - Ensures consistent shell configuration for all specified users
+          - Defaults to users_list + ansible_user + root
         type: list
         elements: str
         required: false
@@ -57,8 +58,16 @@ argument_specs:
         description:
           - Nested list of shell and essential utility packages to install
           - Includes bash, zsh, bash-completion, and common CLI tools
+          - Set to empty list on immutable systems
         type: list
         elements: raw
+        required: false
+
+      shell_etc_path:
+        description:
+          - Path where `shrc` entrypoint, `shrc.d` and `skel` are installed
+          - Override if /etc is not writeable (e.g., /usr/local/etc)
+        type: path
         required: false
 
       shell_local_bin_path:

@@ -2,6 +2,10 @@
 # Obsolete / superseded files to remove:
 shell_obsolete_config_files: []
 
+# Path variables for shell templates:
+shell_shrc_quoted_path: "{{ [shell_etc_path, 'shrc'] | path_join | quote }}"
+shell_shrc_d_quoted_path: "{{ [shell_etc_path, 'shrc.d'] | path_join | quote }}"
+
 # Placeholders for loop and task variables to pass argument_specs validation.
 # Wrapping loop_var prevents "loop variable is already in use" warnings.
 # Task variables take precedence over vars/main.

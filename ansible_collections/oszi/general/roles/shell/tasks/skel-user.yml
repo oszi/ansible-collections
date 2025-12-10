@@ -7,24 +7,16 @@
   register: shell_user_info
   check_mode: true
 
-- name: "Enforce /etc/skel for user:{{ shell_user_item }}"
+- name: "Enforce skel templates for user:{{ shell_user_item }}"
   when: >-
     not shell_user_info.changed
     and not shell_user_info.shell.endswith('/nologin')
     and shell_user_info.home != '/'
-  block:
-    - name: "Enforce /etc/skel for user:{{ shell_user_item }}"
-      ansible.builtin.copy:
-        src: "etc/skel/"
-        dest: "{{ shell_user_info.home }}/"
-        owner: "{{ shell_user_item }}"
-        group: "{{ shell_user_info.group }}"
-        mode: "0640"
-
-    - name: "Enforce .profile template for user:{{ shell_user_item }}"
-      ansible.builtin.template:
-        src: "etc/skel/.profile.j2"
-        dest: "{{ shell_user_info.home }}/.profile"
-        owner: "{{ shell_user_item }}"
-        group: "{{ shell_user_info.group }}"
-        mode: "0640"
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ shell_user_info.home }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: "{{ shell_user_info.uid }}"
+    group: "{{ shell_user_info.group }}"
+    mode: "0640"
+  with_fileglob:
+    - "templates/etc/skel/.*.j2"
