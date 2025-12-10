@@ -49,6 +49,12 @@ def list_to_nested_dict(input_list: NestedList, key_attribute: _KeyT, remove_key
     return result
 
 
+def unique_nested_list(input_list: NestedList, key_attribute: _KeyT) -> NestedList:
+    # Ensure uniqueness by converting to a dictionary
+    nested_dict = list_to_nested_dict(input_list, key_attribute, remove_key=False)
+    return list(nested_dict.values())
+
+
 def update_nested_dict(input_dict: NestedDict, new_values: Dict[_KeyT, Any], new_attribute: _KeyT) -> NestedDict:
     if not isinstance(input_dict, dict):
         raise TypeError("Input variable is not a dictionary")
@@ -74,5 +80,6 @@ class FilterModule:
         return {
             "nested_dict_to_list": nested_dict_to_list,
             "list_to_nested_dict": list_to_nested_dict,
+            "unique_nested_list": unique_nested_list,
             "update_nested_dict": update_nested_dict,
         }
