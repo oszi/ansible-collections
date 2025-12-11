@@ -65,10 +65,12 @@ argument_specs:
 
       shell_etc_path:
         description:
-          - Path where `shrc` entrypoint, `shrc.d` and `skel` are installed
+          - Directory path where shrc entrypoint, shrc.d, and skel are installed
+          - Used in role vars `shell_shrc_d_path`, `shell_shrc_path`, and `shell_skel_path`
           - Override if /etc is not writeable (e.g., /usr/local/etc)
         type: path
         required: false
+        default: /etc
 
       shell_local_bin_path:
         description:

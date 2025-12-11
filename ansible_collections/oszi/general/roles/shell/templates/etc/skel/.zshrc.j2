@@ -4,7 +4,7 @@
 # See also /etc/{zsh/,}zshrc from the distribution.
 # Sequence: zshenv > zprofile* > zshrc* > zlogin > zlogout
 
-. {{ shell_shrc_quoted_path }}
+. {{ shell_shrc_path | quote }}
 
 if [ -d ~/.zshrc.d ]; then
     source_glob ~/.zshrc.d/*

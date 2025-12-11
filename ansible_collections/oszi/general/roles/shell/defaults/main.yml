@@ -9,7 +9,7 @@ shell_histfilesize: 10000
 # Dict of environment variables:
 # * If EDITOR or VISUAL is vi, ZSH switches to vi key-bindings.
 shell_environment:
-  ENV: "{{ shell_etc_path }}/shrc"
+  ENV: "{{ shell_shrc_path }}"
   EDITOR: nano
 
 # List of extra paths to add to $PATH:
@@ -48,11 +48,12 @@ shell_packages:
   - tmux
   - util-linux
 
-# Path where shrc, shrc.d and skel are installed
-# Override if /etc is not writeable (e.g., /usr/local/etc)
+# Path for shrc, shrc.d, and skel (override if /etc is not writeable).
+# Used in role vars shell_shrc_d_path, shell_shrc_path, and shell_skel_path.
+# Do not use shell_etc_path directly in tasks and templates!
 shell_etc_path: "/etc"
 
-# Path for local executables
+# Path for local executables.
 shell_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
 # Dict of ZSH-compatible bash completion files (values) to pre-load if there is no

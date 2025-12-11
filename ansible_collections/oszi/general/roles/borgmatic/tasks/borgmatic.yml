@@ -33,16 +33,12 @@
     virtualenv_site_packages: true
     state: "present"
 
-- name: Check whether /etc/shrc.d exists
-  ansible.builtin.stat:
-    path: "/etc/shrc.d"
-  register: _borgmatic_etc_shrcd_result
-
+# When oszi.general.shell is also included alongside of this role.
 - name: Copy shell aliases for Borgmatic
-  when: _borgmatic_etc_shrcd_result.stat.exists
+  when: shell_disabled is defined and not shell_disabled
   ansible.builtin.copy:
     src: "etc/shrc.d/borgmatic.sh"
-    dest: "/etc/shrc.d/borgmatic.sh"
+    dest: "{{ shell_shrc_d_path }}/borgmatic.sh"
     owner: "root"
     group: "root"
     mode: "0644"

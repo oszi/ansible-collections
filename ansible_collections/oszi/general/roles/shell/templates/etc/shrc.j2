@@ -28,13 +28,13 @@ source_glob_sort() {
 }
 
 if [ -n "${BASH_VERSION-}" ] && [ -z "${POSIXLY_CORRECT-}" ]; then
-    source_glob_sort {{ shell_shrc_d_quoted_path }}/*.{sh,bash}
+    source_glob_sort {{ shell_shrc_d_path | quote }}/*.{sh,bash}
     return
 fi
 
 if [ -n "${ZSH_VERSION-}" ] && [ "$(emulate)" = "zsh" ]; then
-    source_glob_sort {{ shell_shrc_d_quoted_path }}/*.{sh,zsh}
+    source_glob_sort {{ shell_shrc_d_path | quote }}/*.{sh,zsh}
     return
 fi
 
-source_glob {{ shell_shrc_d_quoted_path }}/*.sh
+source_glob {{ shell_shrc_d_path | quote }}/*.sh
