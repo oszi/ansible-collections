@@ -2,6 +2,12 @@
 _jupyter_uid: 280000
 _jupyter_ipv4: "{{ _containers_ip_range | ansible.utils.ipaddr('2') }}"
 
+## GPU support with AMD VAAPI on Fedora:
+# getsebool container_use_dri_devices # --> on
+# AddDevice=/dev/dri/renderD128
+# GIDMap=+g39:@39
+# GroupAdd=video
+
 podman_quadlets_list:
   - name: certbot@.container
     quadlet: |
@@ -56,6 +62,7 @@ podman_quadlets_list:
       WantedBy=multi-user.target
 
   - name: jupyter.container
+    # state: present_disabled
     quadlet: |
       [Unit]
       Description=Jupyter Notebook

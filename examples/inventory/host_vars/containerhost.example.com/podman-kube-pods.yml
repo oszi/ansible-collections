@@ -17,6 +17,7 @@ _podman_kube_common_annotations: |-
 
 podman_kube_list:
   - path: socks-proxy.yml
+    # state: present_disabled
     spec:
       apiVersion: v1
       kind: Pod
