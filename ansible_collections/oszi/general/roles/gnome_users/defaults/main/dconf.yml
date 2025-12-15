@@ -163,6 +163,15 @@ gnome_users_dconf_vars_default:
   /org/gnome/shell/keybindings/shift-overview-down: "@as []"
   /org/gnome/shell/keybindings/shift-overview-up: "@as []"
 
+  # Gnome-Text-Editor settings
+  /org/gnome/TextEditor/discover-settings: "true"  # .editorconfig
+  /org/gnome/TextEditor/highlight-current-line: "true"
+  /org/gnome/TextEditor/indent-style: "'space'"
+  /org/gnome/TextEditor/indent-width: "-1"  # -1 = tab-width
+  /org/gnome/TextEditor/tab-width: "uint32 4"
+  /org/gnome/TextEditor/show-line-numbers: "true"
+  /org/gnome/TextEditor/show-map: "true"
+
   # Tilix terminal settings
   /com/gexperts/Tilix/auto-hide-mouse: "true"
   /com/gexperts/Tilix/prompt-on-close: "true"
