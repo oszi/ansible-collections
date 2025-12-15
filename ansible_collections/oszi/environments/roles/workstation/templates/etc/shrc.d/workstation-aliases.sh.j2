@@ -23,6 +23,10 @@ if command -v chromium >/dev/null 2>&1; then
     alias chromium-x11='chromium --ozone-platform=x11'
 fi
 
+if ! command -v gedit >/dev/null 2>&1 && command -v gnome-text-editor >/dev/null 2>&1; then
+    alias gedit='gnome-text-editor'
+fi
+
 if command -v xclip >/dev/null 2>&1; then
     alias clip='xclip -i -selection clipboard'
 fi

@@ -24,6 +24,7 @@ gnome_packages:
   - gnome-screenshot
   - gnome-shell
   - gnome-shell-extension-appindicator
+  - gnome-text-editor
   - gnome-tweaks
   - seahorse
   - tilix
@@ -41,6 +42,8 @@ gnome_blacklisted_packages:
     if (ansible_facts.distribution == 'Fedora') else [] }}"
   # Unwanted common Gnome packages
   - chrome-gnome-shell
+  - gedit
+  - gedit-common
   - gnome-boxes
   - gnome-browser-connector
   - gnome-connections
