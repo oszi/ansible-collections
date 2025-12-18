@@ -6,8 +6,9 @@
   gather_facts: false
   roles:
     - oszi.general.bootstrap
-    - oszi.general.cloudflare_dns
+    - oszi.general.python
     - oszi.general.dotfiles
+    - oszi.general.cloudflare_dns
     - oszi.general.acme
     - oszi.general.podman_kube
     - oszi.general.podman_quadlets

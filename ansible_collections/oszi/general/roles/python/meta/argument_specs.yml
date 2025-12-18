@@ -5,6 +5,7 @@ argument_specs:
     description:
       - Manages distribution python packages and pip-installed packages
       - Installs python3 development tools, pip, pipx, and virtualenv support
+      - Supports rootless mode without distribution packages
     author:
       - "David O. (oszi.dev)"
     options:
