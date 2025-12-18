@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Basic Python 3 environment setup."
+  description: "Manage python packages from the distribution, and with pip or pipx"
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.18.0"

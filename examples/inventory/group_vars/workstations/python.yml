@@ -1,0 +1,28 @@
+---
+# These exist/redirect on RedHat and Debian too.
+python_distro_packages:
+  - ipython3
+  - pylint
+  - python3-boto3
+  - python3-cryptography
+  - python3-jmespath
+  - python3-kubernetes
+  - python3-libcloud
+  - python3-netaddr
+  - python3-notebook
+  - python3-psutil
+  - python3-requests
+  - python3-rope
+  - python3-virtualenvwrapper
+  - python3-yaml
+
+# When you don't want the distribution version of pipx
+# present in python_devel_distro_packages...
+# python_pip_list:
+#    - name: [pipx]
+#      virtualenv: /opt/pipx
+
+python_pipx_list:
+  - name: uv
+    global: true
+    # executable: /opt/pipx/bin/pipx

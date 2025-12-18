@@ -4,8 +4,7 @@ argument_specs:
     short_description: Python3 development environment setup
     description:
       - Manages distribution python packages and pip-installed packages
-      - Installs python3 development tools including pip, virtualenv, and setuptools
-      - Installs build dependencies for compiling python packages
+      - Installs python3 development tools, pip, pipx, and virtualenv support
     author:
       - "David O. (oszi.dev)"
     options:
@@ -16,19 +15,190 @@ argument_specs:
         required: false
         default: false
 
-      python_pip3_packages:
+      python_pip_list:
         description:
-          - List of python packages to install system-wide using pip3
-          - Always pin package versions for reproducibility
+          - List of arguments to manage python packages with M(ansible.builtin.pip)
+          - Pip should be present in O(python_devel_distro_packages)
         type: list
-        elements: str
+        elements: dict
         required: false
+        # Unsupported ansible.builtin.pip parameters:
+        # requirements: No file copy support
+        # version: Use specifiers in names
+        options:
+          name:
+            description:
+              - PyPI packages or URLs of remote packages
+              - Names can and should contain version specifiers
+            type: list
+            elements: str
+            required: true
+          break_system_packages:
+            description: Allow pip to modify an externally-managed Python installation as defined by PEP 668
+            type: bool
+            required: false
+            default: false
+          chdir:
+            description: Change into this directory before running the command
+            type: path
+            required: false
+          editable:
+            description: Pass the editable flag
+            type: bool
+            required: false
+            default: false
+          executable:
+            description:
+              - Explicit path for the `pip` executable, if different from the ansible python interpreter
+              - Mutually exclusive with O(virtualenv)
+            type: path
+            required: false
+          extra_args:
+            description: Extra arguments passed to `pip`
+            type: str
+            required: false
+          state:
+            description: Desired state for the packages
+            type: str
+            required: false
+            choices: [absent, forcereinstall, latest, present]
+            default: present
+          umask:
+            description: System umask to apply (octal string), for systems that have a very restrictive umask by default
+            type: str
+            required: false
+          virtualenv:
+            description:
+              - Optional path to a virtualenv directory to install into
+              - Mutually exclusive with O(executable)
+            type: path
+            required: false
+          virtualenv_command:
+            description:
+              - Command or a pathname to the command to create the virtual environment with
+              - For example, `pyvenv`, `virtualenv`, `/usr/local/bin/virtualenv`
+            type: path
+            required: false
+          virtualenv_python:
+            description:
+              - Python executable used for creating the virtual environment
+              - Default is the ansible python interpreter
+            type: path
+            required: false
+          virtualenv_site_packages:
+            description: Whether the virtual environment will inherit packages from the global `site-packages` directory
+            type: bool
+            required: false
+            default: false
+
+      python_pipx_list:
+        description:
+          - List of arguments to manage python packages with M(community.general.pipx)
+          - Pipx should be present in O(python_devel_distro_packages)
+        type: list
+        elements: dict
+        required: false
+        # Unsupported community.general.pipx parameters:
+        # spec_metadata: No file copy support
+        options:
+          name:
+            description:
+              - Name of the application and also the name of the PyPI package being installed
+              - Can contain version specifiers since community.general>=10.7.0
+            type: str
+            required: true
+          editable:
+            description: Pass the editable flag
+            type: bool
+            required: false
+            default: false
+          executable:
+            description:
+              - Explicit path for the `pipx` executable
+              - If not specified, the module uses `python -m pipx`, using the same interpreter as ansible itself
+            type: path
+            required: false
+          force:
+            description:
+              - Force modification of the application's virtual environment
+              - Only used when `state=install|upgrade|upgrade_all|latest|inject`
+            type: bool
+            required: false
+            default: false
+          global:
+            description: Pass the `--global` argument to `pipx`, to execute actions in global scope
+            type: bool
+            required: false
+            default: false
+          include_injected:
+            description:
+              - Upgrade the injected packages along with the application
+              - Only used when `state=upgrade|upgrade_all|latest`
+            type: bool
+            required: false
+            default: false
+          index_url:
+            description: Base URL of Python Package Index
+            type: str
+            required: false
+          inject_packages:
+            description:
+              - Packages to be injected into an existing virtual environment
+              - Only used when `state=inject`
+            type: list
+            elements: str
+            required: false
+          install_apps:
+            description:
+              - Add apps from the injected packages
+              - Only used when `state=inject`
+            type: bool
+            required: false
+            default: false
+          install_deps:
+            description:
+              - Include applications of dependent packages
+              - Only used when `state=install|latest|inject`
+            type: bool
+            required: false
+            default: false
+          pip_args:
+            description: Arbitrary arguments to pass directly to `pip`
+            type: str
+            required: false
+          python:
+            description: Python version to be used when creating the application virtual environment
+            type: str
+            required: false
+          source:
+            description:
+              - Source for the package, for installing with a version specifier, or from a local path or VCS URL
+              - The module is not idempotent when using `source`
+              - Only used when `state=install|latest`
+            type: str
+            required: false
+          state:
+            description: Desired state for the application
+            type: str
+            required: false
+            choices: [present, absent, install, install_all, uninstall, uninstall_all, inject, uninject, upgrade,
+              upgrade_shared, upgrade_all, reinstall, reinstall_all, latest, pin, unpin]  # noqa: yaml[indentation]
+            default: present
+          suffix:
+            description: Optional suffix for virtual environment and executable names (experimental)
+            type: str
+            required: false
+          system_site_packages:
+            description: Give application virtual environment access to the system `site-packages` directory
+            type: bool
+            required: false
+            default: false
 
       python_distro_packages:
         description:
-          - Nested list of python distribution packages to install
+          - Nested list of distribution python packages to install
+          - Default includes common requirements like cryptography, jmespath, netaddr, psutil, requests, yaml
           - These packages must exist or redirect on both RedHat and Debian family distributions
-          - Includes commonly needed packages like cryptography, jmespath, netaddr, psutil, requests, yaml
         type: list
         elements: raw
         required: false
@@ -36,8 +206,8 @@ argument_specs:
       python_devel_distro_packages:
         description:
           - Nested list of distribution packages for python3 development
+          - Default includes python3-dev/devel, pip, pipx, build essentials, and virtual environment support
           - These packages must exist or redirect on both RedHat and Debian family distributions
-          - Includes python3-dev/devel, build tools (gcc, make), and virtual environment support
         type: list
         elements: raw
         required: false

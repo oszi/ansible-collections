@@ -1,10 +1,14 @@
 ---
-# Skip setup of python3-devel, setuptools, pip and virtualenv?
+# Skip setup of python3-devel, setuptools, pip, pipx, and virtualenv?
 python_disabled: false
 
-# Lists of packages to install via pip on the host:
-# * Always pin package versions!
-python_pip3_packages: []
+# List of arguments to manage python packages with ansible.builtin.pip:
+# Pip should be present in python_devel_distro_packages.
+python_pip_list: []
+
+# List of arguments to manage python packages with community.general.pipx:
+# Pipx should be present in python_devel_distro_packages.
+python_pipx_list: []
 
 # Nested list of python distro packages to install:
 # * These defaults must exist/redirect on RedHat and Debian too.
@@ -18,6 +22,7 @@ python_distro_packages:
   - python3-yaml
 
 # Nested list of distro packages for python3 development:
+# Avoid overriding from the inventory.
 python_devel_distro_packages:
   - "{{ [
       'python3-devel',
@@ -34,5 +39,6 @@ python_devel_distro_packages:
       'build-essential',
     ]
     if (ansible_facts.os_family == 'Debian') else [] }}"
+  - "pipx"
   - "python3-setuptools"
   - "python3-virtualenv"
