@@ -2,66 +2,55 @@
 # include_role: name=oszi.general.podman tasks_from=update
 # See oszi/general/playbooks/update.yml
 
-- name: Update podman images and containers
-  tags: [podman]
-  vars:
-    podman_executable: "podman"
-    podman_images_command: >-
-      {{ podman_executable }} image list
-      --format='{{ '{{.Repository}}#{{.Tag}}#{{.Id}}' }}'
-      --filter=dangling=false
-      | grep -v '<none>' | sort ||:
+- name: Dump podman info
+  when: "ansible_verbosity > 1"
+  ansible.builtin.command: "podman info"
+  changed_when: false
+  check_mode: false
 
-  block:
-    - name: Dump podman info
-      when: "ansible_verbosity > 1"
-      ansible.builtin.command: "{{ podman_executable }} info"
-      changed_when: false
-      check_mode: false
+- name: List podman images
+  ansible.builtin.shell: |
+    set -euo pipefail
+    {{ podman_updatable_images_command }} ||:
+  args:
+    executable: "/bin/bash"
+  register: _podman_images_result
+  changed_when: false
+  check_mode: false
 
-    - name: List podman images
-      ansible.builtin.shell: |
-        set -euo pipefail
-        {{ podman_images_command }}
-      args:
-        executable: "/bin/bash"
-      register: _podman_images_result
-      changed_when: false
-      check_mode: false
+- name: Pull podman images
+  when: "_podman_images_result.stdout is truthy"
+  ansible.builtin.shell: |
+    set -uo pipefail
+    awk -F'#' '{print $1":"$2}' \
+      | xargs podman pull --quiet >/dev/null
+    rc=$?
+    {{ podman_updatable_images_command }} ||:
+    exit $rc
+  args:
+    stdin: "{{ _podman_images_result.stdout }}"
+    executable: "/bin/bash"
+  register: _podman_pull_result
+  changed_when: "_podman_images_result.stdout != _podman_pull_result.stdout"
+  failed_when: >-
+      _podman_pull_result.rc != 0
+      and _podman_pull_result.stderr != ''
+      and 'Error: initializing source' not in _podman_pull_result.stderr
 
-    - name: Pull podman images
-      when: "_podman_images_result.stdout is truthy"
-      ansible.builtin.shell: |
-        set -uo pipefail
-        awk -F'#' '{print $1":"$2}' \
-          | xargs {{ podman_executable }} pull --quiet >/dev/null
-        rc=$?
-        {{ podman_images_command }}
-        exit $rc
-      args:
-        stdin: "{{ _podman_images_result.stdout }}"
-        executable: "/bin/bash"
-      register: _podman_pull_result
-      changed_when: "_podman_images_result.stdout != _podman_pull_result.stdout"
-      failed_when: >-
-          _podman_pull_result.rc != 0
-          and _podman_pull_result.stderr != ''
-          and 'Error: initializing source' not in _podman_pull_result.stderr
+- name: List updated podman images
+  when: "_podman_images_result.stdout is truthy and _podman_pull_result.changed"
+  ansible.builtin.debug:
+    msg: "{{ _podman_images_result.stdout_lines
+      | difference(_podman_pull_result.stdout_lines) }}"
 
-    - name: List updated podman images
-      when: "_podman_images_result.stdout is truthy and _podman_pull_result.changed"
-      ansible.builtin.debug:
-        msg: "{{ _podman_images_result.stdout_lines
-          | difference(_podman_pull_result.stdout_lines) }}"
+- name: Auto update containers
+  ansible.builtin.command: >-
+    podman auto-update
+    --format="{{ '{{.Container}}#{{.Image}}#updated={{.Updated}}' }}"
+  register: _podman_auto_update_result
+  changed_when: "'#updated=true' in _podman_auto_update_result.stdout"
 
-    - name: Auto update containers
-      ansible.builtin.command: >-
-        {{ podman_executable }} auto-update
-        --format="{{ '{{.Container}}#{{.Image}}#updated={{.Updated}}' }}"
-      register: _podman_auto_update_result
-      changed_when: "'#updated=true' in _podman_auto_update_result.stdout"
-
-    - name: Prune dangling images
-      ansible.builtin.command: "{{ podman_executable }} image prune --force"
-      register: _podman_prune_result
-      changed_when: "_podman_prune_result.stdout is truthy"
+- name: Prune dangling images
+  ansible.builtin.command: "podman image prune --force"
+  register: _podman_prune_result
+  changed_when: "_podman_prune_result.stdout is truthy"

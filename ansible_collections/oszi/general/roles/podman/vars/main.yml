@@ -6,3 +6,12 @@ podman_config_toolbox_path: "/etc/containers/toolbox.conf"
 
 # Podman toolbox package - containertoolbx.org
 podman_toolbox_package: "{{ (ansible_facts.os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
+
+# Shell command to list all updatable podman images
+podman_updatable_images_command: >-
+  podman image list
+  --format='{{ '{{.Repository}}#{{.Tag}}#{{.Id}}' }}'
+  --filter=dangling=false
+  | grep -v '<none>'
+  | grep -Ev '^localhost/'
+  | sort
