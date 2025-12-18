@@ -31,12 +31,12 @@
         autoremove: true
       tags: [package]
 
-    - name: Update pip3 packages from inventory
-      when: "python_pip3_packages is defined and python_pip3_packages | length > 0"
-      ansible.builtin.pip:
-        name: "{{ python_pip3_packages }}"
-        executable: "pip3"
-        state: "latest"  # noqa: package-latest
+    - name: Update python packages
+      ansible.builtin.include_role:
+        name: oszi.general.python
+        tasks_from: update
+        apply:
+          tags: [python]
       tags: [python]
 
     - name: Update flatpak packages
