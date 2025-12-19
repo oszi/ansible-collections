@@ -32,6 +32,7 @@
       tags: [package]
 
     - name: Update python packages
+      when: "not python_disabled | default(false)"
       ansible.builtin.include_role:
         name: oszi.general.python
         tasks_from: update
@@ -40,29 +41,21 @@
       tags: [python]
 
     - name: Update flatpak packages
-      ansible.builtin.shell: |
-        set -euo pipefail
-        if flatpak --version >/dev/null 2>&1; then
-          flatpak update --assumeyes --noninteractive
-        else
-          echo "Nothing to do - flatpak missing"
-        fi
-      args:
-        executable: "/bin/bash"
-      register: _flatpak_update_result
-      changed_when: "'Nothing to do' not in _flatpak_update_result.stdout"
+      when: "not flatpak_disabled | default(false)"
+      ansible.builtin.include_role:
+        name: oszi.general.flatpak
+        tasks_from: update
+        apply:
+          tags: [flatpak]
       tags: [flatpak]
 
     - name: Update snap packages
-      ansible.builtin.shell: |
-        set -euo pipefail
-        if snap --version >/dev/null 2>&1; then
-          snap refresh
-        fi
-      args:
-        executable: "/bin/bash"
-      register: _snap_refresh_result
-      changed_when: "'refreshed' in _snap_refresh_result.stdout"
+      when: "not snap_disabled | default(false)"
+      ansible.builtin.include_role:
+        name: oszi.general.snap
+        tasks_from: update
+        apply:
+          tags: [snap]
       tags: [snap]
 
     - name: Refresh ACME certificates
