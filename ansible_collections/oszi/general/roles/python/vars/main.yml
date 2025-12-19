@@ -2,16 +2,23 @@
 # Skip distribution packages in rootless mode.
 python_install_distribution_packages: "{{ ansible_facts.user_uid | int == 0 }}"
 
-# States to update pip packages:
+# Accepted states to update pip packages:
 python_pip_update_states:
   - present
   - latest
 
-# States to update pipx packages:
+# Update arguments for ansible.builtin.pip:
+python_pip_update_args:
+  state: latest
+
+# Accepted states to update pipx packages:
 python_pipx_update_states:
-  - present
-  - latest
+  - present  # install
+  - latest   # install + upgrade
   - install
-  - install_all
   - upgrade
-  - upgrade_all
+
+# Update arguments for community.general.pipx:
+python_pipx_update_args:
+  state: upgrade
+  include_injected: true
