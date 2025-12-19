@@ -3,41 +3,13 @@
 # and general/roles/shell/default/main.yml
 
 # Nested list of packages to install on toolboxes:
-toolbox_packages: "{{ toolbox_packages_pt_default }}"
+toolbox_packages:
+  - "{{ toolbox_packages_pt_default }}"
+  - "{{ toolbox_packages_pt_ansible }}"
 
 # Fedora/Debian/Ubuntu defaults to include in toolbox_packages:
 toolbox_packages_pt_default:
   - "{{ [
-      'ansible-lint',
-      'apache2-utils',
-      'bind9-utils',
-      'build-essential',
-      'g++',
-      'gddrescue',
-      'iproute2',
-      'iptables',
-      'iputils-*',
-      'libc6-dev',
-      'libimage-exiftool-perl',
-      'libstdc++-*-dev',
-      'lm-sensors',
-      'netcat-openbsd',
-      'procps',
-      'sqlite3',
-      'sshfs',
-      'vim',
-      'xz-utils',
-    ]
-    if (ansible_facts.os_family == 'Debian')
-    else [
-      'ansible-collection-ansible-netcommon',
-      'ansible-collection-ansible-posix',
-      'ansible-collection-ansible-utils',
-      'ansible-collection-community-crypto',
-      'ansible-collection-community-general',
-      'ansible-collection-community-libvirt',
-      'ansible-collection-containers-podman',
-      'ansible-core-doc',
       'bind-utils',
       'ddrescue',
       'device-mapper',
@@ -59,7 +31,6 @@ toolbox_packages_pt_default:
       'nmap-ncat',
       'perl-Image-ExifTool',
       'procps-ng',
-      'python3-ansible-lint',
       'python3-dnf-plugin-system-upgrade',
       'redhat-rpm-config',
       'shyaml',
@@ -68,9 +39,30 @@ toolbox_packages_pt_default:
       'vim-minimal',
       'which',
       'xz',
-    ] }}"
+    ]
+    if (ansible_facts.os_family == 'RedHat') else [] }}"
+  - "{{ [
+      'apache2-utils',
+      'bind9-utils',
+      'build-essential',
+      'g++',
+      'gddrescue',
+      'iproute2',
+      'iptables',
+      'iputils-*',
+      'libc6-dev',
+      'libimage-exiftool-perl',
+      'libstdc++-*-dev',
+      'lm-sensors',
+      'netcat-openbsd',
+      'procps',
+      'sqlite3',
+      'sshfs',
+      'vim',
+      'xz-utils',
+    ]
+    if (ansible_facts.os_family == 'Debian') else [] }}"
   # [All distributions]
-  - ansible
   - atop
   - autoconf
   - automake
@@ -161,8 +153,30 @@ toolbox_packages_pt_default:
   - xfsprogs
   - zip
 
+# Fedora/Debian/Ubuntu ansible packages to include in toolbox_packages
+# or toolbox_blacklisted_packages to remove distribution packaged ansible:
+toolbox_packages_pt_ansible:
+  - "{{ [
+      'ansible-collection-ansible-netcommon',
+      'ansible-collection-ansible-posix',
+      'ansible-collection-ansible-utils',
+      'ansible-collection-community-crypto',
+      'ansible-collection-community-general',
+      'ansible-collection-community-libvirt',
+      'ansible-collection-containers-podman',
+    ]
+    if (ansible_facts.distribution == 'Fedora') else [] }}"
+  - "{{ [
+      'ansible-core-doc',
+      'python3-ansible-lint',
+    ]
+    if (ansible_facts.os_family == 'RedHat')
+    else [
+      'ansible-lint',
+    ] }}"
+  - ansible
+  - ansible-core
+  - python3-ansible-compat
+
 # Packages to remove from toolboxes (Fedora/Debian/Ubuntu)
-toolbox_blacklisted_packages:
-  # Unused tools
-  - mc
-  - sshuttle
+toolbox_blacklisted_packages: []

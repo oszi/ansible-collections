@@ -11,7 +11,7 @@ argument_specs:
       toolbox_packages:
         description:
           - Nested list of package names to install for toolboxes
-          - Defaults to toolbox_packages_pt_default, combine with lists from the inventory
+          - Defaults to toolbox_packages_pt_default + toolbox_packages_pt_ansible, combine with lists from the inventory
         type: list
         elements: raw
         required: false
@@ -19,8 +19,17 @@ argument_specs:
       toolbox_packages_pt_default:
         description:
           - Default platform-specific package list for toolboxes [avoid directly using this variable]
-          - Includes comprehensive development tools like ansible, compilers, network utilities, debugging tools
+          - Includes comprehensive development tools like compilers, network utilities, debugging tools
           - Contains distribution-specific packages for Debian/Ubuntu vs Fedora/RedHat systems
+        type: list
+        elements: raw
+        required: false
+
+      toolbox_packages_pt_ansible:
+        description:
+          - Default platform-specific package list for ansible packages [avoid directly using this variable]
+          - Includes ansible, ansible-lint, and common ansible collections on RedHat/Fedora
+          - Remove from toolbox_packages and include in toolbox_blacklisted_packages to install ansible in other ways
         type: list
         elements: raw
         required: false
