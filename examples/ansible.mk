@@ -21,8 +21,16 @@ update versions: FORCE
 oszi.% playbooks/%: FORCE
 	$(ANSIBLE_PLAYBOOK) $(ANSIBLE_ARGS) $@
 
-# FORCE: collections/.git
-# collections/.git:
-# 	../_scripts/git-init.sh
+venv: collections/.git
+	python3 -m venv venv && . venv/bin/activate \
+	&& pip install -r collections/requirements.txt \
+	&& ansible-galaxy collection install -r collections/requirements.yml
+
+FORCE: collections/.git
+collections/.git:
+	../_scripts/git-init.sh
+
+clean: FORCE
+	../_scripts/git-reset.sh --force
 
 .PHONY: FORCE

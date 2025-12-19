@@ -23,7 +23,7 @@
 __pycache__/
 *.py[cod]
 *.venv/
-/venv/
+venv/
 
 ### Editors ###
 *.sw[op]

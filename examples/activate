@@ -7,8 +7,15 @@ if [ -d ansible/inventory ]; then
     cd ansible || false
 fi
 
-# Customize based on the actual inventory structure.
-if [ -d inventory ]; then
+if [ -f venv/bin/activate ]; then
+    . venv/bin/activate
+fi
+
+if [ -n "${ANSIBLE_INVENTORY-}" ]; then
+    echo "WARNING: Inventory already set!" >&2
+    echo "ANSIBLE_INVENTORY=${ANSIBLE_INVENTORY}" >&2
+
+elif [ -d inventory ]; then
     _ansible_inventories_found=$(
         find inventory -maxdepth 1 -type f -print0 \
             | xargs -0 -r grep --files-with-matches -- "$(hostname -f)" \
@@ -22,6 +29,7 @@ if [ -d inventory ]; then
         echo "Host not found in the inventory!" >&2
         false
     fi
+
 else
     echo "inventory directory not found!" >&2
     false
