@@ -26,3 +26,24 @@ python_pipx_list:
   - name: uv
     global: true
     # executable: /opt/pipx/bin/pipx
+
+  - name: ansible
+    install_deps: true
+    system_site_packages: true
+    global: true
+    # executable: /opt/pipx/bin/pipx
+
+  - name: ansible
+    inject_packages:
+      - ansible-lint
+    state: inject
+    install_apps: true
+    install_deps: true
+    global: true
+    # executable: /opt/pipx/bin/pipx
+
+# Remove distribution ansible packages in favor of pipx managed ansible...
+# toolbox_packages:
+#   - "{{ toolbox_packages_pt_default }}"
+# toolbox_blacklisted_packages:
+#   - "{{ toolbox_packages_pt_ansible }}"
