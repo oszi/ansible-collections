@@ -8,11 +8,9 @@
 # to the parameter variable can avoid potential conversion problems.
 
 # Friendly format for setting custom keyboard shortcuts:
+# List of dicts with binding, command and name attributes in GVariant string format.
 # Do NOT set custom keybindings in gnome_users_dconf_vars!
-gnome_users_dconf_custom_keybindings:
-  - binding: "'<Alt>Above_Tab'"
-    command: "'env GDK_BACKEND=x11 tilix --quake'"
-    name: "'Open Tilix'"
+gnome_users_dconf_custom_keybindings: []
 
 # Use the gnome_users_item loop var for varying multi-user configurations...
 # With lookup tables: /org/gnome/...: "{{ user_dconf_vars[gnome_users_item]['/org/gnome/...'] }}"
@@ -171,36 +169,3 @@ gnome_users_dconf_vars_default:
   /org/gnome/TextEditor/tab-width: "uint32 4"
   /org/gnome/TextEditor/show-line-numbers: "true"
   /org/gnome/TextEditor/show-map: "true"
-
-  # Tilix terminal settings
-  /com/gexperts/Tilix/auto-hide-mouse: "true"
-  /com/gexperts/Tilix/prompt-on-close: "true"
-  /com/gexperts/Tilix/quake-height-percent: "40"
-  /com/gexperts/Tilix/quake-hide-headerbar: "true"
-  /com/gexperts/Tilix/keybindings/app-new-session: "'<Super>t'"
-  /com/gexperts/Tilix/keybindings/app-new-window: "'<Super>n'"
-  /com/gexperts/Tilix/keybindings/nautilus-open: "'disabled'"
-  /com/gexperts/Tilix/keybindings/session-add-auto: "'<Control><Shift><Super>d'"
-  /com/gexperts/Tilix/keybindings/session-add-down: "'<Shift><Super>d'"
-  /com/gexperts/Tilix/keybindings/session-add-right: "'<Super>d'"
-  /com/gexperts/Tilix/keybindings/session-close: "'<Super>q'"
-  /com/gexperts/Tilix/keybindings/session-open: "'disabled'"
-  /com/gexperts/Tilix/keybindings/session-save: "'disabled'"
-  /com/gexperts/Tilix/keybindings/session-switch-to-terminal-down: "'<Alt>Down'"
-  /com/gexperts/Tilix/keybindings/session-switch-to-terminal-left: "'<Alt>Left'"
-  /com/gexperts/Tilix/keybindings/session-switch-to-terminal-right: "'<Alt>Right'"
-  /com/gexperts/Tilix/keybindings/session-switch-to-terminal-up: "'<Alt>Up'"
-  /com/gexperts/Tilix/keybindings/terminal-close: "'<Control><Shift>w'"
-  /com/gexperts/Tilix/keybindings/terminal-copy: "'<Control><Shift>c'"
-  /com/gexperts/Tilix/keybindings/terminal-find: "'<Control><Shift>f'"
-  /com/gexperts/Tilix/keybindings/terminal-find-next: "'<Control><Shift>g'"
-  /com/gexperts/Tilix/keybindings/terminal-find-previous: "'<Control><Shift>h'"
-  /com/gexperts/Tilix/keybindings/terminal-layout: "'disabled'"
-  /com/gexperts/Tilix/keybindings/terminal-maximize: "'disabled'"
-  /com/gexperts/Tilix/keybindings/terminal-paste: "'<Control><Shift>v'"
-  /com/gexperts/Tilix/keybindings/terminal-select-all: "'<Control><Shift>a'"
-  /com/gexperts/Tilix/keybindings/terminal-select-bookmark: "'<Control><Shift>b'"
-  /com/gexperts/Tilix/keybindings/terminal-toggle-margin: "'disabled'"
-  /com/gexperts/Tilix/keybindings/win-switch-to-next-session: "'<Control>Page_Up'"
-  /com/gexperts/Tilix/keybindings/win-switch-to-previous-session: "'<Control>Page_Down'"
-  /com/gexperts/Tilix/keybindings/win-view-sidebar: "'F12'"

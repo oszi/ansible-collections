@@ -19,6 +19,15 @@ gnome_packages:
       'gnome-shell-extensions',
     ]
     if (ansible_facts.os_family == 'Debian') else [] }}"
+  - "{{ [
+      'ptyxis',
+    ]
+    if (gnome_terminal_is_ptyxis)
+    else [
+      'gnome-terminal',
+      'gnome-terminal-nautilus' if (ansible_facts.os_family == 'RedHat')
+      else 'nautilus-extension-gnome-terminal',
+    ] }}"
   - dconf-editor
   - gnome-control-center
   - gnome-screenshot
@@ -27,7 +36,6 @@ gnome_packages:
   - gnome-text-editor
   - gnome-tweaks
   - seahorse
-  - tilix
   - xdg-desktop-portal-gnome
 
 # Packages to remove from Gnome workstations (Fedora/Debian/Ubuntu):
@@ -40,6 +48,12 @@ gnome_blacklisted_packages:
       'fedora-chromium-config-gssapi',
     ]
     if (ansible_facts.distribution == 'Fedora') else [] }}"
+  - "{{ [
+      'gnome-terminal',
+      'gnome-terminal-nautilus' if (ansible_facts.os_family == 'RedHat')
+      else 'nautilus-extension-gnome-terminal',
+    ]
+    if (gnome_terminal_is_ptyxis) else [] }}"
   # Unwanted common Gnome packages
   - chrome-gnome-shell
   - gedit
@@ -59,6 +73,7 @@ gnome_blacklisted_packages:
   - seahorse-nautilus  # (deprecated)
   - shotwell
   - shotwell-common
+  - tilix  # (obsolete)
   - totem
   - totem-common
   - vinagre

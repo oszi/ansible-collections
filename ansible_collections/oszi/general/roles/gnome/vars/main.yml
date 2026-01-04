@@ -1,1 +1,5 @@
 ---
+# Whether gnome-terminal should be replaced with ptyxis?
+gnome_terminal_is_ptyxis: "{{ ((ansible_facts.distribution == 'Fedora' and ansible_facts.distribution_major_version | int >= 41)
+  or (ansible_facts.distribution == 'Debian' and ansible_facts.distribution_major_version | int >= 13)
+  or (ansible_facts.distribution == 'Ubuntu' and ansible_facts.distribution_major_version | int >= 25)) }}"
