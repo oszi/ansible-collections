@@ -2,6 +2,15 @@
 # Prefix for custom keyboard shortcuts - the root key contains the list of subkeys.
 gnome_users_dconf_custom_keybindings_prefix: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
 
+# Dconf path and prefix for the default profile of Ptyxis:
+gnome_users_dconf_ptyxis_terminal_default_profile_path: "/org/gnome/Ptyxis/default-profile-uuid"
+gnome_users_dconf_ptyxis_terminal_profiles_prefix: "/org/gnome/Ptyxis/Profiles/"
+
+# Dconf path and prefix for the default profile of legacy Gnome-Terminal:
+# * dconf read .../profiles:/default returns nothing if default.
+gnome_users_dconf_legacy_terminal_default_profile_gsettings_schema: "org.gnome.Terminal.ProfilesList default"
+gnome_users_dconf_legacy_terminal_profiles_prefix: "/org/gnome/terminal/legacy/profiles:/:"
+
 # Default Gnome Screenshots and Screencasts paths relative to $HOME.
 # * Tasks from gnome-user.yml are run as gnome_users_item!
 gnome_users_xdg_pictures_screenshots_path: "{{ gnome_users_info.home }}/Pictures/Screenshots"

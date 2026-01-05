@@ -50,3 +50,40 @@
         key: "{{ gnome_users_dconf_custom_keybindings_prefix }}"
         value: "{{ _gnome_users_dconf_custom_keybindings_key_map_yaml | from_yaml | string }}"
         state: "present"
+
+- name: Set dconf vars for Ptyxis default profile
+  when: "gnome_users_dconf_ptyxis_terminal_default_profile_vars | length > 0"
+  block:
+    - name: Read default profile UUID for Ptyxis
+      community.general.dconf:
+        key: "{{ gnome_users_dconf_ptyxis_terminal_default_profile_path }}"
+        state: "read"
+      register: _dconf_ptyxis_default_profile_uuid
+
+    - name: Set dconf vars for Ptyxis default profile
+      when: _dconf_ptyxis_default_profile_uuid.value is not none
+      community.general.dconf:
+        key: "{{ gnome_users_dconf_ptyxis_terminal_profiles_prefix
+          + _dconf_ptyxis_default_profile_uuid.value.strip(\"'\") }}/{{ item.key }}"
+        value: "{{ item.value }}"
+        state: "present"
+      with_dict: "{{ gnome_users_dconf_ptyxis_terminal_default_profile_vars }}"
+
+- name: Set dconf vars for legacy Gnome-Terminal default profile
+  when: "gnome_users_dconf_legacy_terminal_default_profile_vars | length > 0"
+  block:
+    - name: Read default profile UUID for legacy Gnome-Terminal
+      ansible.builtin.command: "gsettings get {{ gnome_users_dconf_legacy_terminal_default_profile_gsettings_schema }}"
+      check_mode: false
+      changed_when: false
+      failed_when: false
+      register: _dconf_legacy_default_profile_uuid
+
+    - name: Set dconf vars for legacy Gnome-Terminal default profile
+      when: "_dconf_legacy_default_profile_uuid.rc == 0 and _dconf_legacy_default_profile_uuid.stdout is truthy"
+      community.general.dconf:
+        key: "{{ gnome_users_dconf_legacy_terminal_profiles_prefix
+          + _dconf_legacy_default_profile_uuid.stdout.strip(\"'\") }}/{{ item.key }}"
+        value: "{{ item.value }}"
+        state: "present"
+      with_dict: "{{ gnome_users_dconf_legacy_terminal_default_profile_vars }}"

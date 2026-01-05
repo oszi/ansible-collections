@@ -51,6 +51,22 @@ argument_specs:
             type: str
             required: true
 
+      gnome_users_dconf_ptyxis_terminal_default_profile_vars:
+        description:
+          - Dictionary of dconf settings to apply for the default profile of Ptyxis (if it exists)
+          - Keys are relative dconf paths, values are dconf values in GVariant format
+          - Use to set custom-command, use-custom-command, scrollback-lines, palette, etc
+        type: dict
+        required: false
+
+      gnome_users_dconf_legacy_terminal_default_profile_vars:
+        description:
+          - Dictionary of dconf settings to apply for the default profile of legacy Gnome-Terminal (if it exists)
+          - Keys are relative dconf paths, values are dconf values in GVariant format
+          - Use to set custom-command, use-custom-command, scrollback-lines, palette, etc
+        type: dict
+        required: false
+
       gnome_users_dconf_vars:
         description:
           - Dictionary of dconf settings to apply for each user

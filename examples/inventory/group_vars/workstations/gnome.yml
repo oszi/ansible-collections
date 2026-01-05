@@ -4,10 +4,20 @@ gnome_users: ["david"]
 # Friendly format for setting custom keyboard shortcuts:
 # Do NOT set custom keybindings in gnome_users_dconf_vars!
 gnome_users_dconf_custom_keybindings:
-  # TIP: Set the user's shell to /usr/bin/tmux
   - binding: "'<Alt>Above_Tab'"
     command: "'{{ 'ptyxis' if gnome_terminal_is_ptyxis else 'gnome-terminal' }}'"
     name: "'Open Terminal'"
+
+# TIP: As an alternative, set the user's shell to /usr/bin/tmux
+# Use tmux in desktop terminals:
+gnome_users_dconf_ptyxis_terminal_default_profile_vars:
+  custom-command: "'tmux'"
+  use-custom-command: "true"
+
+# Nothing will be written if the legacy profile does not exists.
+gnome_users_dconf_legacy_terminal_default_profile_vars:
+  custom-command: "'tmux'"
+  use-custom-command: "true"
 
 # See the defaults in oszi/general/roles/gnome/defaults/main/gnome-user.yml
 gnome_users_dconf_vars: "{{ gnome_users_dconf_vars_default | combine(gnome_users_dconf_vars_extra) }}"
