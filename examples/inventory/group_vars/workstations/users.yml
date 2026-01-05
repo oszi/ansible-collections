@@ -18,8 +18,10 @@ inventory_users_groups_workstations:
 # Use with ... | combine(..., recursive=true, list_merge='append_rp')
 users_list: "{{ inventory_users_workstations | oszi.general.nested_dict_to_list('name') }}"
 inventory_users_workstations:
+  root:
+    shell: "/bin/bash"   # Leave bash as the default for root! [sudo -i zsh]
+    password_lock: true  # Or, set a password (hash) for recovery access.
   david:
     group: "david"
     groups: "{{ [sudoers_group] + inventory_users_groups_workstations.keys() | list }}"
-  root:
-    password: "!!"
+    shell: "/bin/zsh"
