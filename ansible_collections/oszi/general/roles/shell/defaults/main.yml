@@ -5,6 +5,8 @@ shell_disabled: false
 # Basic system-wide shell customizations:
 shell_histsize: 10000
 shell_histfilesize: 10000
+shell_tmux_history_limit: 100000
+shell_tmux_conf_extra: ""  # Appended to .tmux.conf
 
 # Dict of environment variables:
 # * If EDITOR or VISUAL is vi, ZSH switches to vi key-bindings.

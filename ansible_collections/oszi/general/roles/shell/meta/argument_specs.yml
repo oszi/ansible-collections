@@ -30,6 +30,19 @@ argument_specs:
         type: int
         required: false
 
+      shell_tmux_history_limit:
+        description:
+          - Number of scrollback lines to keep in tmux
+        type: int
+        required: false
+
+      shell_tmux_conf_extra:
+        description:
+          - Additional content appended to .tmux.conf file
+          - Use for custom tmux configuration
+        type: str
+        required: false
+
       shell_environment:
         description:
           - Dictionary of environment variables to set system-wide

@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+set-window-option -g automatic-rename on
+set-option -g set-titles on
+set -g history-limit {{ shell_tmux_history_limit | int }}
+set -g mouse on
+
+bind -n M-Left select-pane -L
+bind -n M-Right select-pane -R
+bind -n M-Up select-pane -U
+bind -n M-Down select-pane -D
+bind -n M-| split-window -h
+bind -n M-\\ split-window -v
+
+bind E setw synchronize-panes
+bind R source-file ~/.tmux.conf \; display "~/.tmux.conf reloaded"
+{% if shell_tmux_conf_extra %}
+
+{{ shell_tmux_conf_extra -}}
+{% endif %}
