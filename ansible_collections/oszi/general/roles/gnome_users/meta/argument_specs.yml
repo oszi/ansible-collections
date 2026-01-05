@@ -43,7 +43,7 @@ argument_specs:
             required: true
           command:
             description: Shell command to execute when shortcut is triggered in GVariant string format
-              (e.g., "'gnome-terminal --command=tmux --tab'")
+              (e.g., "'gnome-terminal --command=tmux'")
             type: str
             required: true
           name:
