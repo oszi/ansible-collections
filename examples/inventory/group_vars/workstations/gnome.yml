@@ -8,16 +8,23 @@ gnome_users_dconf_custom_keybindings:
     command: "'{{ 'ptyxis' if gnome_terminal_is_ptyxis else 'gnome-terminal' }}'"
     name: "'Open Terminal'"
 
+# Use tmux in desktop terminals...
 # TIP: As an alternative, set the user's shell to /usr/bin/tmux
-# Use tmux in desktop terminals:
 gnome_users_dconf_ptyxis_terminal_default_profile_vars:
   custom-command: "'tmux'"
   use-custom-command: "true"
+  scrollback-lines: 100000
+  limit-scrollback: "true"
+  palette: "'gnome'"
 
 # Nothing will be written if the legacy profile does not exists.
 gnome_users_dconf_legacy_terminal_default_profile_vars:
   custom-command: "'tmux'"
   use-custom-command: "true"
+  scrollback-lines: 100000
+  scrollback-unlimited: "false"
+  default-size-columns: 100
+  default-size-rows: 25
 
 # See the defaults in oszi/general/roles/gnome/defaults/main/gnome-user.yml
 gnome_users_dconf_vars: "{{ gnome_users_dconf_vars_default | combine(gnome_users_dconf_vars_extra) }}"
@@ -25,6 +32,10 @@ gnome_users_dconf_vars_extra:
   # Apple Magick KB: Emulate PrintScrn, Numpad with dot, lv3:ralt_alt (Shift+R_Alt) is patched as Compose Key.
   /org/gnome/desktop/input-sources/xkb-options: ['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']
   /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"
+  # Ptyxis terminal settings
+  /org/gnome/Ptyxis/restore-window-size: "false"
+  /org/gnome/Ptyxis/default-columns: "uint32 100"
+  /org/gnome/Ptyxis/default-rows: "uint32 25"
 
 # XDG user-dirs shell-escaped, homedir-relative paths:
 # * man xdg-user-dir
