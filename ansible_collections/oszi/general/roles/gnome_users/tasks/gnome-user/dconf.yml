@@ -1,67 +1,26 @@
 ---
-- name: Set dconf settings for the Gnome user
+- name: "Set dconf settings for user:{{ gnome_users_item }}"
   community.general.dconf:
     key: "{{ item.key }}"
     value: "{{ item.value | string }}"
     state: "present"
   with_dict: "{{ gnome_users_dconf_vars }}"
-  tags: [dconf]
 
-- name: Set custom keyboard shortcuts
+- name: "Include dconf custom keybindings tasks for user:{{ gnome_users_item }}"
   when: "gnome_users_dconf_custom_keybindings | length > 0"
-  tags: [dconf]
-  block:
-    - name: Set dconf custom keybindings - binding attr
-      community.general.dconf:
-        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/binding"
-        value: "{{ item['binding'] }}"
-        state: "present"
-      loop: "{{ gnome_users_dconf_custom_keybindings }}"
-      loop_control:
-        index_var: index
-
-    - name: Set dconf custom keybindings - command attr
-      community.general.dconf:
-        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/command"
-        value: "{{ item['command'] }}"
-        state: "present"
-      loop: "{{ gnome_users_dconf_custom_keybindings }}"
-      loop_control:
-        index_var: index
-
-    - name: Set dconf custom keybindings - name attr
-      community.general.dconf:
-        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/name"
-        value: "{{ item['name'] }}"
-        state: "present"
-      loop: "{{ gnome_users_dconf_custom_keybindings }}"
-      loop_control:
-        index_var: index
-
-    - name: Generate dconf custom keybindings key-map helper yaml
-      ansible.builtin.set_fact:
-        _gnome_users_dconf_custom_keybindings_key_map_yaml: |-
-          {% for index in range(gnome_users_dconf_custom_keybindings | length) %}
-          - '{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/'
-          {% endfor %}
-
-    - name: Set dconf custom keybindings key-map helper
-      community.general.dconf:
-        key: "{{ gnome_users_dconf_custom_keybindings_prefix }}"
-        value: "{{ _gnome_users_dconf_custom_keybindings_key_map_yaml | from_yaml | string }}"
-        state: "present"
+  ansible.builtin.include_tasks:
+    file: gnome-user/dconf-custom-keybindings.yml
 
 - name: Set dconf vars for Ptyxis default profile
   when: "gnome_users_dconf_ptyxis_terminal_default_profile_vars | length > 0"
-  tags: [dconf]
   block:
-    - name: Read default profile UUID for Ptyxis
+    - name: "Read Ptyxis default profile UUID for user:{{ gnome_users_item }}"
       community.general.dconf:
         key: "{{ gnome_users_dconf_ptyxis_terminal_default_profile_path }}"
         state: "read"
       register: _gnome_users_dconf_ptyxis_default_profile_uuid
 
-    - name: Set dconf vars for Ptyxis default profile
+    - name: "Set dconf vars for Ptyxis default profile for user:{{ gnome_users_item }}"
       when: _gnome_users_dconf_ptyxis_default_profile_uuid.value is not none
       community.general.dconf:
         key: "{{ gnome_users_dconf_ptyxis_terminal_profiles_prefix
@@ -72,16 +31,15 @@
 
 - name: Set dconf vars for legacy Gnome-Terminal default profile
   when: "gnome_users_dconf_legacy_terminal_default_profile_vars | length > 0"
-  tags: [dconf]
   block:
-    - name: Read default profile UUID for legacy Gnome-Terminal
+    - name: "Read legacy Gnome-Terminal default profile UUID for user:{{ gnome_users_item }}"
       ansible.builtin.command: "gsettings get {{ gnome_users_dconf_legacy_terminal_default_profile_gsettings_schema }}"
       check_mode: false
       changed_when: false
       failed_when: false
       register: _gnome_users_dconf_legacy_default_profile_uuid
 
-    - name: Set dconf vars for legacy Gnome-Terminal default profile
+    - name: "Set dconf vars for legacy Gnome-Terminal default profile for user:{{ gnome_users_item }}"
       when: "_gnome_users_dconf_legacy_default_profile_uuid.rc == 0
         and _gnome_users_dconf_legacy_default_profile_uuid.stdout is truthy"
       community.general.dconf:

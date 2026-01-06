@@ -1,0 +1,34 @@
+---
+- name: Set dconf custom keybindings - binding attr
+  community.general.dconf:
+    key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/binding"
+    value: "{{ item['binding'] }}"
+    state: "present"
+  loop: "{{ gnome_users_dconf_custom_keybindings }}"
+  loop_control:
+    index_var: index
+
+- name: Set dconf custom keybindings - command attr
+  community.general.dconf:
+    key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/command"
+    value: "{{ item['command'] }}"
+    state: "present"
+  loop: "{{ gnome_users_dconf_custom_keybindings }}"
+  loop_control:
+    index_var: index
+
+- name: Set dconf custom keybindings - name attr
+  community.general.dconf:
+    key: "{{ gnome_users_dconf_custom_keybindings_prefix }}/custom{{ index }}/name"
+    value: "{{ item['name'] }}"
+    state: "present"
+  loop: "{{ gnome_users_dconf_custom_keybindings }}"
+  loop_control:
+    index_var: index
+
+- name: Set dconf custom keybindings key-map helper
+  community.general.dconf:
+    key: "{{ gnome_users_dconf_custom_keybindings_prefix }}"
+    value: "{{ range(gnome_users_dconf_custom_keybindings | length) | map('string')
+      | map('regex_replace', '^(.*)$', gnome_users_dconf_custom_keybindings_prefix + '/custom\\1/') | list }}"
+    state: "present"

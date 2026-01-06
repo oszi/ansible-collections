@@ -12,10 +12,9 @@
 # Do NOT set custom keybindings in gnome_users_dconf_vars!
 gnome_users_dconf_custom_keybindings: []
 
-# Default profile settings for Ptyxis terminal (if it exists):
+# Ptyxis default profile dconf settings (if it exists):
 gnome_users_dconf_ptyxis_terminal_default_profile_vars: {}
-
-# Default profile settings for legacy Gnome-Terminal (if it exists):
+# Legacy Gnome-Terminal default profile dconf settings (if it exists):
 gnome_users_dconf_legacy_terminal_default_profile_vars: {}
 
 # Use the gnome_users_item loop var for varying multi-user configurations...

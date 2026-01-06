@@ -20,15 +20,15 @@
     group: "{{ gnome_users_info.group }}"
     mode: "0644"
 
-- name: Include Gnome dconf settings tasks
-  ansible.builtin.include_tasks:
+- name: Import dconf settings tasks
+  ansible.builtin.import_tasks:
     file: gnome-user/dconf.yml
 
-- name: Include Gnome Screenshots and Screencasts linking tasks
+- name: "Include Screenshots tasks for user:{{ gnome_users_item }}"
   when: gnome_users_screenshots_path is truthy
   ansible.builtin.include_tasks:
     file: gnome-user/screenshots.yml
 
-- name: Include Gnome XDG user-dirs tasks
-  ansible.builtin.include_tasks:
+- name: Import XDG user-dirs tasks
+  ansible.builtin.import_tasks:
     file: gnome-user/xdg.yml
