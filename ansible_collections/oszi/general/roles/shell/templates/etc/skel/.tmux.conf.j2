@@ -1,5 +1,6 @@
 # {{ ansible_managed }}
 set -g history-limit {{ shell_tmux_history_limit | int }}
+set -gw aggressive-resize on
 set -gw automatic-rename on
 set -g set-titles on
 set -g mouse on
@@ -8,24 +9,28 @@ set -g mouse on
 set -g status-right "\"#{=56:pane_title}\" %H:%M "
 set -g status-right-length 65
 
-# Alt+Arrows and Alt+\| to switch panes
+# Alt+Arrows to switch panes
 bind -n M-Left select-pane -L
 bind -n M-Right select-pane -R
 bind -n M-Up select-pane -U
 bind -n M-Down select-pane -D
-bind -n M-| split-window -h
-bind -n M-\\ split-window -v
 
 # Use both prefix commands
-set-option -g prefix C-b
-set-option -g prefix2 C-a
+set -g prefix C-b
+set -g prefix2 C-a
 
 # Prefixed custom commands
-bind C-e setw synchronize-panes
+bind C-e set -w synchronize-panes
 bind C-r source-file ~/.tmux.conf \; display "~/.tmux.conf reloaded"
+bind | split-window -h -c "#{pane_current_path}"
+bind \\ split-window -v -c "#{pane_current_path}"
 {% if 'workstations' in group_names %}
 bind C-x run "tmux save-buffer - | xclip -i -selection clipboard >/dev/null" \; display "saved buffer to xclip"
 {% endif %}
+
+# Stay in copy-mode after text selection
+bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe
+bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe
 {% if shell_tmux_conf_extra %}
 
 {{ shell_tmux_conf_extra -}}
