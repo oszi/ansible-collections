@@ -25,12 +25,14 @@ bind C-r source-file ~/.tmux.conf \; display "~/.tmux.conf reloaded"
 bind | split-window -h -c "#{pane_current_path}"
 bind \\ split-window -v -c "#{pane_current_path}"
 {% if 'workstations' in group_names %}
-bind C-x run "tmux save-buffer - | xclip -i -selection clipboard >/dev/null" \; display "saved buffer to xclip"
-{% endif %}
 
-# Stay in copy-mode after text selection
-bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe
-bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe
+# Use wl-clipboard, stay in copy-mode after selection
+if-shell -b '[ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1' {
+  set -s copy-command "wl-copy"
+  bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe "wl-copy"
+  bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe "wl-copy"
+}
+{% endif %}
 {% if shell_tmux_conf_extra %}
 
 {{ shell_tmux_conf_extra -}}

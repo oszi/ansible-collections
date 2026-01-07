@@ -38,7 +38,7 @@ workstation_packages_pt_default:
   - powertop
   - remmina
   - wireshark
-  - xclip
+  - wl-clipboard
   - yubikey-manager
 
 # Packages to remove from workstations (Fedora/Debian/Ubuntu):
@@ -63,6 +63,7 @@ workstation_blacklisted_packages_pt_to_sandbox:
   - gimp
   - steam
   - wine
+  - xclip  # wl-clipboard
 
 workstation_blacklisted_packages_pt_office:
   - evince
