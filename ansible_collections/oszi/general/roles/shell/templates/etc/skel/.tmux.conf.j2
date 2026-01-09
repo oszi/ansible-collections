@@ -15,6 +15,12 @@ bind -n M-Right select-pane -R
 bind -n M-Up select-pane -U
 bind -n M-Down select-pane -D
 
+# Fix Alt+Up/Down conflicts
+unbind -T copy-mode M-Up
+unbind -T copy-mode M-Down
+bind -T copy-mode S-PPage send-keys -X halfpage-up
+bind -T copy-mode S-NPage send-keys -X halfpage-down
+
 # Add secondary prefix
 set -g prefix2 C-a
 bind C-a send-prefix
