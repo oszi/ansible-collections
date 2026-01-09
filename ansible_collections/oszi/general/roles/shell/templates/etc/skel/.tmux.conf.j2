@@ -15,9 +15,9 @@ bind -n M-Right select-pane -R
 bind -n M-Up select-pane -U
 bind -n M-Down select-pane -D
 
-# Use both prefix commands
-set -g prefix C-b
+# Add secondary prefix
 set -g prefix2 C-a
+bind C-a send-prefix
 
 # Prefixed custom commands
 bind C-e set -w synchronize-panes
