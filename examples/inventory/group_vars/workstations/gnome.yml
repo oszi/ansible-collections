@@ -3,12 +3,19 @@ gnome_users: ["david"]
 
 # Friendly format for setting custom keyboard shortcuts:
 # Do NOT set custom keybindings in gnome_users_dconf_vars!
-gnome_users_dconf_custom_keybindings:
+gnome_users_dconf_custom_keybindings: "{{ gnome_users_dconf_custom_keybindings_workstations }}"
+gnome_users_dconf_custom_keybindings_workstations:
   - binding: "'<Alt>Above_Tab'"
     command: "'{{ 'ptyxis' if gnome_terminal_is_ptyxis else 'gnome-terminal' }}'"
     name: "'Open Terminal'"
+  - binding: "'<Shift><Alt>Above_Tab'"
+    command: "'{{ 'ptyxis -x zsh' if gnome_terminal_is_ptyxis else 'gnome-terminal -e zsh' }}'"
+    name: "'Open Terminal'"
+  - binding: "'<Super>Insert'"
+    command: "'keepassxc'"
+    name: "'KeePassXC'"
 
-# Use tmux in desktop terminals...
+# Use tmux in desktop terminals by default...
 # TIP: As an alternative, set the user's shell to /usr/bin/tmux
 gnome_users_dconf_ptyxis_terminal_default_profile_vars:
   custom-command: "'tmux'"
