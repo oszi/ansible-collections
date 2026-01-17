@@ -12,6 +12,14 @@ shell_skel_path: "{{ [shell_etc_path, 'skel'] | path_join }}"
 # Pointless in rootless mode, or with custom /etc path.
 shell_skel_path_enabled: "{{ shell_skel_path.endswith('/etc/skel') }}"
 
+# Shell-escaped, homedir-relative shrc[.d] paths:
+shell_shrc_d_safe_path: "{{ shell_shrc_d_path | regex_replace('^' + ansible_facts.user_dir | regex_escape + '/', '~/')
+  if ansible_facts.user_uid | int != 0 and shell_shrc_d_path == shell_shrc_d_path | quote
+  else shell_shrc_d_path | quote }}"
+shell_shrc_safe_path: "{{ shell_shrc_path | regex_replace('^' + ansible_facts.user_dir | regex_escape + '/', '~/')
+  if ansible_facts.user_uid | int != 0 and shell_shrc_path == shell_shrc_path | quote
+  else shell_shrc_path | quote }}"
+
 # Placeholders for loop and task variables to pass argument_specs validation.
 # Wrapping loop_var prevents "loop variable is already in use" warnings.
 # Task variables take precedence over vars/main.

@@ -12,7 +12,7 @@ elif [ -f /etc/bash.bashrc ]; then
     . /etc/bash.bashrc
 fi
 
-. {{ shell_shrc_path | quote }}
+. {{ shell_shrc_safe_path }}
 
 if [ -z "${POSIXLY_CORRECT-}" ]; then
     source_glob ~/.bashrc.d/* ~/.bash_aliases
