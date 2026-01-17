@@ -59,8 +59,8 @@ if command -v terraform >/dev/null 2>&1; then
             fi
         }
     else
-        alias tf='terraform'
+        tf() { terraform "$@"; }
     fi
 elif command -v tofu >/dev/null 2>&1; then
-    alias tf='tofu'
+    tf() { tofu "$@"; }
 fi
