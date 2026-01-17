@@ -7,6 +7,7 @@
   roles:
     - oszi.general.bootstrap
     - oszi.general.python
+    - oszi.general.shell
     - oszi.general.dotfiles
     - oszi.general.cloudflare_dns
     - oszi.general.acme

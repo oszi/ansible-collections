@@ -1,9 +1,12 @@
 ---
+# Do not set owner/group to use ansible_user or root!
+
 - name: Flatten package list variables
   ansible.builtin.set_fact:
     shell_packages: "{{ shell_packages | flatten }}"
 
 - name: Ensure shell packages are installed
+  when: shell_install_packages
   ansible.builtin.package:
     name: "{{ shell_packages }}"
     state: "present"
@@ -17,8 +20,6 @@
   ansible.builtin.copy:
     src: "etc/shrc.d/"
     dest: "{{ shell_shrc_d_path }}/"
-    owner: "root"
-    group: "root"
     directory_mode: "0755"
     mode: "0644"
 
@@ -26,8 +27,6 @@
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ [shell_shrc_d_path, item | basename | regex_replace('\\.j2$', '')] | path_join }}"
-    owner: "root"
-    group: "root"
     mode: "0644"
   with_fileglob:
     - "templates/etc/shrc.d/*.j2"
@@ -36,24 +35,20 @@
   ansible.builtin.template:
     src: "etc/shrc.j2"
     dest: "{{ shell_shrc_path }}"
-    owner: "root"
-    group: "root"
     mode: "0644"
 
-- name: Ensure skel directory exists
+- name: Ensure system skel directory exists
+  when: shell_skel_path_enabled
   ansible.builtin.file:
     path: "{{ shell_skel_path }}"
     state: "directory"
-    owner: "root"
-    group: "root"
     mode: "0755"
 
-- name: Install skel templates
+- name: Install system skel templates
+  when: shell_skel_path_enabled
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ [shell_skel_path, item | basename | regex_replace('\\.j2$', '')] | path_join }}"
-    owner: "root"
-    group: "root"
     mode: "0644"
   with_fileglob:
     - "templates/etc/skel/.*.j2"

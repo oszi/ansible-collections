@@ -7,6 +7,7 @@ argument_specs:
       - Manages aliases, completions, prompts, history, environment variables, PATH and more
       - Installs essential shell tools and utilities
       - Enforces skeleton files for consistent user shell environments
+      - Supports rootless mode for a single user, without packages
     author:
       - "David O. (oszi.dev)"
     options:
@@ -62,16 +63,22 @@ argument_specs:
         description:
           - List of usernames to enforce role-managed `skel` files for
           - Ensures consistent shell configuration for all specified users
-          - Defaults to users_list + ansible_user + root
+          - Default is users_list + ansible_user + root, or user_id in rootless mode
         type: list
         elements: str
         required: false
 
+      shell_install_packages:
+        description:
+          - Whether to install packages in O(shell_packages)
+          - Enabled when running as root, disable on immutable systems
+        type: bool
+        required: false
+
       shell_packages:
         description:
-          - Nested list of shell and essential utility packages to install
+          - Nested list of shell and essential utility packages to install when O(shell_install_packages)
           - Includes bash, zsh, bash-completion, and common CLI tools
-          - Set to empty list on immutable systems
         type: list
         elements: raw
         required: false
@@ -81,6 +88,7 @@ argument_specs:
           - Directory path where shrc entrypoint, shrc.d, and skel are installed
           - Used in role vars `shell_shrc_d_path`, `shell_shrc_path`, and `shell_skel_path`
           - Override if /etc is not writeable (e.g., /usr/local/etc)
+          - Default is /etc, or ~/.config (using ansible_facts.user_dir) in rootless mode
         type: path
         required: false
         default: /etc
@@ -88,7 +96,8 @@ argument_specs:
       shell_local_bin_path:
         description:
           - Directory path where shell scripts and local binaries are installed
-          - Defaults to `local_bin_path` if set (should be in system PATH)
+          - Defaults to `local_bin_path` if set (should be in system PATH),
+            or ~/.local/bin (using ansible_facts.user_dir) in rootless mode
         type: path
         required: false
 

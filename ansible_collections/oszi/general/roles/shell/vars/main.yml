@@ -1,11 +1,16 @@
 ---
 # Obsolete / superseded files to remove:
+# Prefix with the path vars below!
 shell_obsolete_config_files: []
 
 # Path variables to use everywhere:
 shell_shrc_d_path: "{{ [shell_etc_path, 'shrc.d'] | path_join }}"
 shell_shrc_path: "{{ [shell_etc_path, 'shrc'] | path_join }}"
 shell_skel_path: "{{ [shell_etc_path, 'skel'] | path_join }}"
+
+# Whether to install system skel path?
+# Pointless in rootless mode, or with custom /etc path.
+shell_skel_path_enabled: "{{ shell_skel_path.endswith('/etc/skel') }}"
 
 # Placeholders for loop and task variables to pass argument_specs validation.
 # Wrapping loop_var prevents "loop variable is already in use" warnings.

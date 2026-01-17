@@ -1,4 +1,9 @@
 ---
+- name: Ensure shell_local_bin_path exists
+  ansible.builtin.file:  # noqa: risky-file-permissions
+    path: "{{ shell_local_bin_path }}"
+    state: "directory"
+
 - name: Check traditional bat path
   ansible.builtin.stat:
     path: "/usr/bin/bat"

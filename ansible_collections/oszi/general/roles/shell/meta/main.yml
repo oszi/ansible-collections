@@ -19,3 +19,4 @@ galaxy_info:
     - general
     - linux
     - baselinux
+    - rootless

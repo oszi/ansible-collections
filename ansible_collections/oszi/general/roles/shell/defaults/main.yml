@@ -20,12 +20,18 @@ shell_search_paths:
   - '"$HOME"/.local/bin'
   - '"$HOME"/bin'
 
-# List of users to enforce etc/skel templates for:
+# List of users to enforce skel templates for:
 shell_skeleton_enforced_users: "{{ (['root', ansible_user | default('root')]
-  + (users_list | map(attribute='name') | list if users_list is defined else [])) | unique }}"
+  + (users_list | map(attribute='name') | list if users_list is defined else [])) | unique
+  if ansible_facts.user_uid | int == 0
+  else [ansible_facts.user_id] }}"
+
+# Ensure shell_packages are installed?
+# Disable for running on immutable systems, or without root.
+shell_install_packages: "{{ ansible_facts.user_uid | int == 0 }}"
 
 # Nested list of shell packages to install (RedHat/Debian):
-# Set to empty list on immutable systems.
+# When shell_install_packages is true.
 shell_packages:
   - bash
   - bash-completion
@@ -53,10 +59,14 @@ shell_packages:
 # Path for shrc, shrc.d, and skel (override if /etc is not writeable).
 # Used in role vars shell_shrc_d_path, shell_shrc_path, and shell_skel_path.
 # Do not use shell_etc_path directly in tasks and templates!
-shell_etc_path: "/etc"
+# Paths are quoted in shrc, no shell expansion!
+shell_etc_path: "{{ '/etc' if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.config' }}"
 
 # Path for local executables.
-shell_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+shell_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
+  if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.local/bin' }}"
 
 # Dict of ZSH-compatible bash completion files (values) to pre-load if there is no
 # native completion function (_key). When given a list, files are tried in order.
