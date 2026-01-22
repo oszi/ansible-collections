@@ -13,6 +13,9 @@ Script to use as "vault id" for GPG encrypted vault passwords.
 * [galaxy-release.sh](galaxy-release.sh)  
 Update the galaxy versions for a new release.
 
+* [galaxy-tags.py](galaxy-tags.py)  
+List ansible roles grouped by galaxy tags.
+
 * [git-init.sh](git-init.sh)  
 Initialize git hooks and git submodules after cloning.
 
