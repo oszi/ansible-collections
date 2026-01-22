@@ -37,6 +37,7 @@
     mode: "0640"
   notify: "Restart systemd-networkd"
   with_dict: "{{ systemd_network_units }}"
+  no_log: true
 
 - name: Set systemd-resolved options
   when: systemd_resolved_enabled

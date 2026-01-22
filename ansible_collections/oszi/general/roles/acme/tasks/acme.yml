@@ -1,4 +1,6 @@
 ---
+# Do not set owner/group to use ansible_user or root!
+
 - name: Ensure python3-cryptography is present
   when: acme_install_python3_cryptography
   ansible.builtin.package:
@@ -9,16 +11,15 @@
   ansible.builtin.file:
     path: "{{ acme_account_key_path | dirname }}"
     state: "directory"
-    # owner: ansible_user or root
     mode: "0755"
 
+# Private keys are never logged, no need for no_log: true.
 - name: Create ACME account key
   community.crypto.openssl_privatekey:
     select_crypto_backend: "cryptography"
     path: "{{ acme_account_key_path }}"
     passphrase: "{{ acme_account_key_passphrase }}"
     cipher: "auto"
-    # owner: ansible_user or root
     mode: "0640"
 
 - name: Include ACME certificate tasks

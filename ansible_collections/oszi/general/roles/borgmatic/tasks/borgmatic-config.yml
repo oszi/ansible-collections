@@ -26,6 +26,7 @@
     owner: "root"
     group: "root"
     mode: "0600"
+  no_log: true
 
 - name: Initialize the local Borg repository
   when: "borgmatic_repository[0] == '/'"

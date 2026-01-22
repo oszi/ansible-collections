@@ -19,6 +19,7 @@
     mode: "0600"
   notify: "Restart wireguard services"
   with_dict: "{{ wireguard_quick_configs }}"
+  no_log: true
 
 - name: Run handlers immediately
   ansible.builtin.meta: flush_handlers
