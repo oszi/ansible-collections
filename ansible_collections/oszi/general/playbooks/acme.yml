@@ -4,5 +4,5 @@
   become: true
   gather_facts: false
   roles:
-    - oszi.general.bootstrap
+    - oszi.utils.bootstrap
     - oszi.general.acme

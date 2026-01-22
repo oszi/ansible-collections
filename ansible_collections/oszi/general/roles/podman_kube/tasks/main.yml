@@ -9,11 +9,11 @@
           else 'present' }}.yml"  # present / present_disabled
       vars:
         podman_kube_spec_path: "{{ [podman_kube_base_path, podman_kube_item.path] | path_join }}"
-        podman_kube_service: "{{ lookup('oszi.general.systemd_escape', podman_kube_spec_path,
+        podman_kube_service: "{{ lookup('oszi.utils.systemd_escape', podman_kube_spec_path,
           template=podman_kube_template_service) }}"
         podman_kube_service_enabled: "{{ podman_kube_item.state | default('present') == 'present' }}"
 
-      loop: "{{ podman_kube_list | oszi.general.unique_nested_list('path') }}"
+      loop: "{{ podman_kube_list | oszi.utils.unique_nested_list('path') }}"
       loop_control:
         loop_var: podman_kube_item
 

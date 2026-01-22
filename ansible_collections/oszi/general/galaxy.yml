@@ -16,6 +16,7 @@ license:
 
 # See also: requirements.yml (project root)
 dependencies:
+  "oszi.utils": "==0.0.0"
   "ansible.netcommon": ">=7.0"
   "ansible.posix": ">=1.6"
   "ansible.utils": ">=5.0"

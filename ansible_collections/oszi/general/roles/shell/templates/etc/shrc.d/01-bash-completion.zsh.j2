@@ -20,7 +20,7 @@ function source_bash_completion() {
     fi
     source "$1"
 }
-{% for item in shell_bash_completions_for_zsh | oszi.general.unique_nested_list('command') %}
+{% for item in shell_bash_completions_for_zsh | oszi.utils.unique_nested_list('command') %}
 
 if whence {{ item.command | quote }} >/dev/null 2>&1 && ! whence {{ ('_' + item.command) | quote }} >/dev/null 2>&1; then
     if [ -r {{ item.path | quote }} ]; then

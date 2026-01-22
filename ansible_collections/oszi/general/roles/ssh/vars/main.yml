@@ -1,5 +1,5 @@
 ---
-# Use ansible_port to automatically control the SSH port with the help of oszi.general.bootstrap.
+# Use ansible_port to automatically control the SSH port with the help of oszi.utils.bootstrap.
 # SSH port is persisted in the bootstrap role with dynamic fallback to the default port.
 # This role also works without bootstrap as long as we have a working connection.
 ssh_port: "{{ bootstrap_ssh_port | default(ansible_port | default(22)) | int }}"

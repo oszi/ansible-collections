@@ -1,2 +1,37 @@
 ---
 requires_ansible: '>=2.18.0'
+
+# XXX: Remove plugin routing in 5.0.0
+plugin_routing:
+  filter:
+    nested_dict_to_list:
+      redirect: oszi.utils.nested_dict_to_list
+      deprecation:
+        removal_version: "5.0.0"
+        warning_text: "Plugins have moved to oszi.utils."
+    list_to_nested_dict:
+      redirect: oszi.utils.list_to_nested_dict
+      deprecation:
+        removal_version: "5.0.0"
+        warning_text: "Plugins have moved to oszi.utils."
+    unique_nested_list:
+      redirect: oszi.utils.unique_nested_list
+      deprecation:
+        removal_version: "5.0.0"
+        warning_text: "Plugins have moved to oszi.utils."
+    update_nested_dict:
+      redirect: oszi.utils.update_nested_dict
+      deprecation:
+        removal_version: "5.0.0"
+        warning_text: "Plugins have moved to oszi.utils."
+  lookup:
+    systemd_escape:
+      redirect: oszi.utils.systemd_escape
+      deprecation:
+        removal_version: "5.0.0"
+        warning_text: "Plugins have moved to oszi.utils."
+    wg_pubkey:
+      redirect: oszi.utils.wg_pubkey
+      deprecation:
+        removal_version: "5.0.0"
+        warning_text: "Plugins have moved to oszi.utils."

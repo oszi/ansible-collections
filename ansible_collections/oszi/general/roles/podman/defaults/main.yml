@@ -30,13 +30,13 @@ podman_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
 # List of podman networks as dictionaries for containers.podman.podman_network:
 # Set recreate: true to force apply changes.
-podman_networks_list: "{{ podman_networks | oszi.general.nested_dict_to_list('name') }}"
+podman_networks_list: "{{ podman_networks | oszi.utils.nested_dict_to_list('name') }}"
 # List of podman images as dictionaries for containers.podman.podman_image:
 podman_images_list: "{{ podman_images }}"
 # List of podman containers as dictionaries for containers.podman.podman_container:
-podman_containers_list: "{{ podman_containers | oszi.general.nested_dict_to_list('name') }}"
+podman_containers_list: "{{ podman_containers | oszi.utils.nested_dict_to_list('name') }}"
 # List of podman pods as dictionaries for containers.podman.podman_pod:
-podman_pods_list: "{{ podman_pods | oszi.general.nested_dict_to_list('name') }}"
+podman_pods_list: "{{ podman_pods | oszi.utils.nested_dict_to_list('name') }}"
 
 # XXX: Deprecated, backwards-compatible variables.
 podman_networks: {}

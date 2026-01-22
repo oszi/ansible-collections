@@ -21,7 +21,7 @@ galaxy_info:
     - baselinux
 
 dependencies:
-  - role: oszi.general.bootstrap
+  - role: oszi.utils.bootstrap
   - role: oszi.general.python
   - role: oszi.general.shell
   - role: oszi.general.users

@@ -1,11 +1,11 @@
 ---
 # List of podman quadlets as dictionaries.
 # See the argument spec for detailed documentation.
-podman_quadlets_list: "{{ {} | oszi.general.update_nested_dict(podman_quadlets, 'quadlet')
-  | oszi.general.update_nested_dict(podman_quadlets_copy_files, 'files')
-  | oszi.general.update_nested_dict(podman_quadlets_init_scripts, 'init_script')
-  | oszi.general.update_nested_dict(podman_quadlets_post_install_scripts, 'post_install_script')
-  | oszi.general.nested_dict_to_list('name') }}"
+podman_quadlets_list: "{{ {} | oszi.utils.update_nested_dict(podman_quadlets, 'quadlet')
+  | oszi.utils.update_nested_dict(podman_quadlets_copy_files, 'files')
+  | oszi.utils.update_nested_dict(podman_quadlets_init_scripts, 'init_script')
+  | oszi.utils.update_nested_dict(podman_quadlets_post_install_scripts, 'post_install_script')
+  | oszi.utils.nested_dict_to_list('name') }}"
 
 # XXX: Deprecated, backwards-compatible variables.
 podman_quadlets: {}  # noqa: var-naming[no-role-prefix]

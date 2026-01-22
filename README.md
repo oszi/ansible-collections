@@ -12,6 +12,8 @@ High-level environment roles.
 General, bite-sized, single-purpose roles.
 * [oszi.thirdparty](ansible_collections/oszi/thirdparty) -
 Software from third-party sources.
+* [oszi.utils](ansible_collections/oszi/utils) -
+Ansible plugins and utility roles.
 
 ## First-time setup
 

@@ -1,0 +1,19 @@
+---
+namespace: oszi
+name: utils
+
+# Versioned by _scripts/galaxy-release.sh
+version: "0.0.0"
+
+description: "Ansible collection for ansible plugins and utility roles."
+repository: "https://github.com/oszi/ansible-collections.git"
+readme: README.md
+
+authors:
+  - "David O. (oszi.dev)"
+license:
+  - "BSD-3-Clause"
+
+tags:
+  - utils
+  - linux

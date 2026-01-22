@@ -6,7 +6,7 @@
   pre_tasks:
     - name: Import bootstrap tasks
       ansible.builtin.import_role:
-        name: oszi.general.bootstrap
+        name: oszi.utils.bootstrap
         tasks_from: bootstrap
       tags: [always]
 

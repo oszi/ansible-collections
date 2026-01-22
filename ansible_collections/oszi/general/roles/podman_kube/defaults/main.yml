@@ -1,11 +1,11 @@
 ---
 # List of podman-kube pods as dictionaries.
 # See the argument spec for detailed documentation.
-podman_kube_list: "{{ {} | oszi.general.update_nested_dict(podman_kube_pods, 'spec')
-  | oszi.general.update_nested_dict(podman_kube_copy_files, 'files')
-  | oszi.general.update_nested_dict(podman_kube_init_scripts, 'init_script')
-  | oszi.general.update_nested_dict(podman_kube_post_install_scripts, 'post_install_script')
-  | oszi.general.nested_dict_to_list('path') }}"
+podman_kube_list: "{{ {} | oszi.utils.update_nested_dict(podman_kube_pods, 'spec')
+  | oszi.utils.update_nested_dict(podman_kube_copy_files, 'files')
+  | oszi.utils.update_nested_dict(podman_kube_init_scripts, 'init_script')
+  | oszi.utils.update_nested_dict(podman_kube_post_install_scripts, 'post_install_script')
+  | oszi.utils.nested_dict_to_list('path') }}"
 
 # Base path to install PodSpec files to.
 # Overridable with absolute paths in podman_kube_list[].path

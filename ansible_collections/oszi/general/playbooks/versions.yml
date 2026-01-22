@@ -19,6 +19,7 @@
       - oszi.environments
       - oszi.general
       - oszi.thirdparty
+      - oszi.utils
 
   tasks:
     - name: Print ansible version

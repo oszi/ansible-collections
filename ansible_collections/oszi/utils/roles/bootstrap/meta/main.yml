@@ -18,7 +18,7 @@ galaxy_info:
       versions: [all]
 
   galaxy_tags:
-    - general
+    - utils
     - rootless
     - linux
     - baselinux
