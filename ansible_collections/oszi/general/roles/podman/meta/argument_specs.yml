@@ -7,6 +7,7 @@ argument_specs:
       - Installs podman-compose, podman-toolbox, and podman-docker emulation
       - Configures podman storage, policy, and runtime settings
       - Manages container networks, images, containers, and pods (consider podman_kube or podman_quadlets)
+      - Supports rootless mode without system installation
     author:
       - "David O. (oszi.dev)"
     options:
@@ -16,6 +17,13 @@ argument_specs:
         type: bool
         required: false
         default: false
+
+      podman_install_system:
+        description:
+          - Whether to install/uninstall podman packages when running as root
+          - Enabled when running as root, disable on immutable systems
+        type: bool
+        required: false
 
       podman_compose_enabled:
         description:
@@ -76,7 +84,7 @@ argument_specs:
 
       podman_local_bin_path:
         description:
-          - Directory path where podman utility scripts are installed
+          - Directory path where podman utility scripts are installed when running as root
           - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false

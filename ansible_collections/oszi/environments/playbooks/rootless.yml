@@ -11,6 +11,7 @@
     - oszi.general.dotfiles
     - oszi.general.cloudflare_dns
     - oszi.general.acme
+    - oszi.general.podman
     - oszi.general.podman_kube
     - oszi.general.podman_quadlets
     - oszi.general.flatpak

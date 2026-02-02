@@ -1,11 +1,27 @@
 ---
 # Podman config paths
-podman_config_containers_path: "/etc/containers/containers.conf"
-podman_config_policy_path: "/etc/containers/policy.json"
-podman_config_toolbox_path: "/etc/containers/toolbox.conf"
+podman_config_containers_path: "{{ '/etc/containers/containers.conf'
+  if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.config/containers/containers.conf' }}"
+
+podman_config_policy_path: "{{ '/etc/containers/policy.json'
+  if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.config/containers/policy.json' }}"
+
+podman_config_storage_path: "{{ '/etc/containers/storage.conf'
+  if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.config/containers/storage.conf' }}"
+
+# Default graphroot to copy SELinux context from
+podman_graphroot_default: "{{ '/var/lib/containers/storage'
+  if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.local/share/containers/storage' }}"
 
 # Podman toolbox package - containertoolbx.org
 podman_toolbox_package: "{{ (ansible_facts.os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
+
+# Toolbox config is only relevant as root
+podman_config_toolbox_path: "/etc/containers/toolbox.conf"
 
 # Shell command to list all updatable podman images
 podman_updatable_images_command: >-

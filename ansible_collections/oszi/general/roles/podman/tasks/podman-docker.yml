@@ -33,8 +33,6 @@
             export DOCKER_HOST="unix://${XDG_RUNTIME_DIR:-/run}/podman/podman.sock"
           fi
         dest: "/etc/profile.d/podman-docker-socket.sh"
-        owner: "root"
-        group: "root"
         mode: "0644"
 
     - name: Ensure docker-compose is present or absent

@@ -17,4 +17,5 @@ galaxy_info:
 
   galaxy_tags:
     - general
+    - rootless
     - containers

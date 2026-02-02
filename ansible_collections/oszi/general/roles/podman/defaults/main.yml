@@ -1,6 +1,9 @@
 ---
 # Skip podman setup tasks and uninstall podman?
 podman_disabled: false
+# Ensure configured packages are installed or uninstalled (see below)?
+# Disable for running on immutable systems, or without root.
+podman_install_system: "{{ ansible_facts.user_uid | int == 0 }}"
 
 # [Un]Install podman-compose (rootless, daemonless)?
 podman_compose_enabled: "{{ not podman_disabled }}"
@@ -13,7 +16,10 @@ podman_docker_enabled: "{{ not podman_disabled }}"
 # * Prefer to use a virtual env instead of the distro package.
 podman_docker_compose_enabled: false
 
-# Override the graphroot from /var/lib/containers/storage:
+# Path for local executables when running as root
+podman_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
+
+# Override the graphroot from podman_graphroot_default:
 podman_graphroot: ""
 # Contents of policy.json in YAML/JSON format.
 podman_config_policy: {}
@@ -21,9 +27,6 @@ podman_config_policy: {}
 podman_config_containers: ""
 # Contents of toolbox.conf
 podman_config_toolbox: ""
-
-# Path for local executables
-podman_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
 # Prefer using oszi.general.podman_quadlets and oszi.general.podman_kube
 # instead of the following ansible-native deployments.

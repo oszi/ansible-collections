@@ -1,0 +1,36 @@
+---
+- name: Ensure podman, buildah, skopeo are installed
+  ansible.builtin.package:
+    name:
+      - "podman"
+      - "buildah"
+      - "skopeo"
+    state: "present"
+
+- name: Ensure podman-compose is present or absent
+  ansible.builtin.package:
+    name: "podman-compose"
+    state: "{{ podman_compose_enabled | ternary('present', 'absent') }}"
+
+- name: Ensure toolbox is installed - containertoolbx.org
+  ansible.builtin.package:
+    name: "{{ podman_toolbox_package }}"
+    state: "{{ podman_toolbox_enabled | ternary('present', 'absent') }}"
+
+# Toolbox config is only relevant as root
+- name: Configure podman toolbox.conf
+  when: podman_toolbox_enabled and podman_config_toolbox is truthy
+  ansible.builtin.copy:
+    content: "{{ podman_config_toolbox }}"
+    dest: "{{ podman_config_toolbox_path }}"
+    mode: "0644"
+
+- name: Copy scripts for podman
+  ansible.builtin.copy:
+    src: "bin/"
+    dest: "{{ podman_local_bin_path }}/"
+    mode: "0755"
+
+- name: Import podman-docker tasks
+  ansible.builtin.import_tasks:
+    file: podman-docker.yml

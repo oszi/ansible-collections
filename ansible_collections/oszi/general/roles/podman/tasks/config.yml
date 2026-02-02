@@ -1,0 +1,40 @@
+---
+# include_role: name=oszi.general.podman tasks_from=config
+
+- name: Change default podman graphroot?
+  when: podman_graphroot is truthy
+  block:
+    - name: Change podman graphroot
+      community.general.ini_file:
+        dest: "{{ podman_config_storage_path }}"
+        section: "storage"
+        option: "graphroot"
+        value: "{{ podman_graphroot | string | to_json }}"
+        mode: "0644"
+      register: _podman_storage_config_result
+
+    - name: Set SELinux for new podman graphroot
+      when: _podman_storage_config_result.changed
+      ansible.builtin.shell: |
+        set -euo pipefail
+        mkdir -p -m 0711 {{ podman_graphroot | quote }}
+        semanage fcontext -a -e {{ podman_graphroot_default | quote }} {{ podman_graphroot | quote }}
+        restorecon -R -v {{ podman_graphroot | quote }}
+      args:
+        executable: "/bin/bash"
+      changed_when: true
+      ignore_errors: true  # noqa: ignore-errors
+
+- name: Configure podman policy.json
+  when: podman_config_policy is truthy
+  ansible.builtin.copy:
+    content: "{{ podman_config_policy | to_nice_json }}"
+    dest: "{{ podman_config_policy_path }}"
+    mode: "0644"
+
+- name: Configure podman containers.conf
+  when: podman_config_containers is truthy
+  ansible.builtin.copy:
+    content: "{{ podman_config_containers }}"
+    dest: "{{ podman_config_containers_path }}"
+    mode: "0644"

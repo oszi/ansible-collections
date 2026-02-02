@@ -2,17 +2,17 @@
 - name: Podman setup tasks
   tags: [podman]
   block:
-    - name: Include podman setup tasks
+    - name: Include podman installation tasks
+      when: podman_install_system
+      ansible.builtin.include_tasks:
+        file: "{{ (not podman_disabled) | ternary('install', 'uninstall') }}.yml"
+
+    - name: Include podman configuration tasks
       when: not podman_disabled
       ansible.builtin.include_tasks:
-        file: podman.yml
+        file: config.yml
 
     - name: Include podman ansible deployment tasks
       when: not podman_disabled
       ansible.builtin.include_tasks:
         file: deploy.yml
-
-    - name: Include podman uninstall tasks
-      when: podman_disabled
-      ansible.builtin.include_tasks:
-        file: uninstall.yml
