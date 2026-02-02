@@ -38,3 +38,17 @@
     content: "{{ podman_config_containers }}"
     dest: "{{ podman_config_containers_path }}"
     mode: "0644"
+
+- name: Configure podman registries.conf
+  when: podman_config_registries is truthy
+  ansible.builtin.copy:
+    content: "{{ podman_config_registries }}"
+    dest: "{{ podman_config_registries_path }}"
+    mode: "0644"
+
+- name: Configure podman mounts.conf
+  when: podman_config_mounts is truthy
+  ansible.builtin.copy:
+    content: "{{ podman_config_mounts }}"
+    dest: "{{ podman_config_mounts_path }}"
+    mode: "0644"

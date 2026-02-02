@@ -75,6 +75,20 @@ argument_specs:
         type: str
         required: false
 
+      podman_config_registries:
+        description:
+          - Contents of registries.conf configuration file
+          - Configures registry resolution for relative image URLs
+        type: str
+        required: false
+
+      podman_config_mounts:
+        description:
+          - Contents of mounts.conf configuration file
+          - Configures volume mounts that are automatically mounted inside containers
+        type: str
+        required: false
+
       podman_config_toolbox:
         description:
           - Contents of toolbox.conf configuration file

@@ -1,12 +1,20 @@
 ---
-# Podman config paths
+# Dynamic podman config paths...
+podman_config_policy_path: "{{ '/etc/containers/policy.json'
+  if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.config/containers/policy.json' }}"
+
 podman_config_containers_path: "{{ '/etc/containers/containers.conf'
   if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.config/containers/containers.conf' }}"
 
-podman_config_policy_path: "{{ '/etc/containers/policy.json'
+podman_config_registries_path: "{{ '/etc/containers/registries.conf'
   if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/containers/policy.json' }}"
+  else ansible_facts.user_dir + '/.config/containers/registries.conf' }}"
+
+podman_config_mounts_path: "{{ '/etc/containers/mounts.conf'
+  if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.config/containers/mounts.conf' }}"
 
 podman_config_storage_path: "{{ '/etc/containers/storage.conf'
   if ansible_facts.user_uid | int == 0

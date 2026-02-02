@@ -25,6 +25,10 @@ podman_graphroot: ""
 podman_config_policy: {}
 # Contents of containers.conf
 podman_config_containers: ""
+# Contents of registries.conf
+podman_config_registries: ""
+# Contents of mounts.conf
+podman_config_mounts: ""
 # Contents of toolbox.conf
 podman_config_toolbox: ""
 
