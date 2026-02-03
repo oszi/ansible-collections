@@ -13,41 +13,41 @@ argument_specs:
     options:
       podman_disabled:
         description:
-          - Whether to skip podman configuration and uninstall podman packages
+          - Whether to skip podman configuration, and uninstall podman packages when O(podman_install_system)
         type: bool
         required: false
         default: false
 
       podman_install_system:
         description:
-          - Whether to install/uninstall podman packages when running as root
+          - Whether to install (or uninstall) podman and related system packages and files
           - Enabled when running as root, disable on immutable systems
         type: bool
         required: false
 
       podman_compose_enabled:
         description:
-          - Whether to install podman-compose (rootless, daemonless docker-compose alternative)
+          - Whether to install podman-compose, a docker-compose alternative when O(podman_install_system)
         type: bool
         required: false
 
       podman_toolbox_enabled:
         description:
-          - Whether to install toolbox from containertoolbx.org
+          - Whether to install toolbox from containertoolbx.org when O(podman_install_system)
           - Requires flatpak to not be disabled
         type: bool
         required: false
 
       podman_docker_enabled:
         description:
-          - Whether to emulate docker using podman-docker package
-          - Provides docker CLI compatibility layer
+          - Whether to emulate docker using podman-docker when O(podman_install_system)
+          - Provides docker CLI compatibility, conflicts with docker
         type: bool
         required: false
 
       podman_docker_compose_enabled:
         description:
-          - Whether to install docker-compose to use with podman (use with caution)
+          - Whether to install docker-compose when O(podman_install_system) (use with caution)
           - For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
           - Prefer using a virtual environment instead of the distro package
         type: bool
@@ -65,6 +65,7 @@ argument_specs:
         description:
           - Contents of policy.json in YAML/JSON format
           - Defines container image signature verification and trust policies
+          - Located at /etc/containers/policy.json or ~/.config/containers/policy.json
         type: dict
         required: false
 
@@ -72,6 +73,8 @@ argument_specs:
         description:
           - Contents of containers.conf configuration file
           - Configures container runtime behavior, resource limits, and defaults
+          - Located at /etc/containers/containers.conf or ~/.config/containers/containers.conf
+          - See also /usr/share/containers/containers.conf
         type: str
         required: false
 
@@ -79,6 +82,7 @@ argument_specs:
         description:
           - Contents of registries.conf configuration file
           - Configures registry resolution for relative image URLs
+          - Located at /etc/containers/registries.conf or ~/.config/containers/registries.conf
         type: str
         required: false
 
@@ -86,19 +90,22 @@ argument_specs:
         description:
           - Contents of mounts.conf configuration file
           - Configures volume mounts that are automatically mounted inside containers
+          - Located at /etc/containers/mounts.conf or ~/.config/containers/mounts.conf
+          - See also /usr/share/containers/mounts.conf
         type: str
         required: false
 
       podman_config_toolbox:
         description:
           - Contents of toolbox.conf configuration file
-          - Configures toolbox container defaults
+          - Configures toolbox container defaults when O(podman_install_system)
+          - Located at /etc/containers/toolbox.conf
         type: str
         required: false
 
       podman_local_bin_path:
         description:
-          - Directory path where podman utility scripts are installed when running as root
+          - Directory path where podman scripts are installed when O(podman_install_system)
           - Defaults to `local_bin_path` if set (should be in system PATH)
         type: path
         required: false
