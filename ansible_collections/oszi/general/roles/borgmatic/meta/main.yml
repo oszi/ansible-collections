@@ -21,4 +21,10 @@ galaxy_info:
 
 dependencies:
   - role: oszi.utils.facts
+  - role: oszi.utils.assert
+    vars:
+      assert_task_msg: "Assert root privileges"
+      assert_that:
+        - "ansible_facts.user_uid | int == 0"
+
   - role: oszi.general.python

@@ -1,0 +1,7 @@
+---
+- name: Assert tasks
+  tags: [always]
+  block:
+    - name: Import assert tasks
+      ansible.builtin.import_tasks:
+        file: assert.yml

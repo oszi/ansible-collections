@@ -25,6 +25,16 @@ dependencies:
   - role: oszi.utils.facts
     vars:
       facts_subset: ["hardware"]
+  - role: oszi.utils.assert
+    vars:
+      assert_task_msg: "Assert OS family"
+      assert_that:
+        - "ansible_facts.os_family in ['Debian', 'RedHat']"
+  - role: oszi.utils.assert
+    vars:
+      assert_task_msg: "Assert root privileges"
+      assert_that:
+        - "ansible_facts.user_uid | int == 0"
 
   - role: oszi.general.python
   - role: oszi.general.shell

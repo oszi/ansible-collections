@@ -1,0 +1,9 @@
+---
+# List of rules for ansible.builtin.assert:
+# * Do not interpolate here!
+assert_that: []
+
+# Optional task, fail and success messages:
+assert_task_msg: "Assert requirements"
+assert_fail_msg: ""
+assert_success_msg: ""

@@ -28,14 +28,6 @@ argument_specs:
         elements: str
         required: false
 
-      bootstrap_assert_that:
-        description:
-          - List of assertion rules for M(ansible.builtin.assert) to validate system requirements
-          - Should contain literal strings without interpolation
-        type: list
-        elements: str
-        required: false
-
       bootstrap_package_update_cache:
         description:
           - Whether to update the default package manager cache after fact gathering (not in rootless mode)

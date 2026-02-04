@@ -1,0 +1,6 @@
+---
+- name: "{{ assert_task_msg }}"
+  ansible.builtin.assert:
+    that: "{{ assert_that }}"
+    fail_msg: "{{ assert_fail_msg | default(omit, true)  }}"
+    success_msg: "{{ assert_success_msg | default(omit, true) }}"

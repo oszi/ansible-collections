@@ -24,7 +24,3 @@
   vars:
     facts_subset: "{{ bootstrap_facts_gather_subset }}"
     facts_filter: []
-
-- name: Assert bootstrap rules
-  ansible.builtin.assert:
-    that: "{{ bootstrap_assert_that }}"

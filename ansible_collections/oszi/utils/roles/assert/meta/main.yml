@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Configure local users on Linux."
+  description: "Utility role for assertions."
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.18.0"
@@ -14,15 +14,10 @@ galaxy_info:
       versions: [all]
     - name: Ubuntu
       versions: [all]
+    - name: macOS
+      versions: [all]
 
   galaxy_tags:
-    - general
+    - utils
+    - rootless
     - baselinux
-
-dependencies:
-  - role: oszi.utils.facts
-  - role: oszi.utils.assert
-    vars:
-      assert_task_msg: "Assert root privileges"
-      assert_that:
-        - "ansible_facts.user_uid | int == 0"
