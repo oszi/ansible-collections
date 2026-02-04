@@ -8,7 +8,7 @@
     - oszi.environments.toolbox
     - oszi.environments.workstation
 
-- name: Deploy third-party roles for workstations - all disabled by default
+- name: Deploy "thirdparty" roles for workstations - all disabled by default
   become: true
   gather_facts: false
   hosts: "{{ workstation_hosts | default('workstations') }}"
@@ -23,4 +23,4 @@
     - oszi.thirdparty.google_chrome
     - oszi.thirdparty.vscode
   tags:
-    - third-party
+    - thirdparty

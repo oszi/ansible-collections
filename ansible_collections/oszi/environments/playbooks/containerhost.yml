@@ -6,7 +6,7 @@
   roles:
     - oszi.environments.containerhost
 
-- name: Deploy third-party roles for containerhosts - all disabled by default
+- name: Deploy "thirdparty" roles for containerhosts - all disabled by default
   become: true
   gather_facts: false
   hosts: "{{ containerhost_hosts | default('containerhosts') }}"
@@ -14,4 +14,4 @@
     - oszi.thirdparty.gcloud_sdk
     - oszi.thirdparty.tailscale
   tags:
-    - third-party
+    - thirdparty

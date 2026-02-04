@@ -6,7 +6,7 @@
   roles:
     - oszi.environments.toolbox
 
-- name: Deploy third-party roles for toolbox - all disabled by default
+- name: Deploy "thirdparty" roles for toolbox - all disabled by default
   become: true
   gather_facts: false
   hosts: "{{ toolbox_hosts | default('toolbox*') }}"
@@ -17,4 +17,4 @@
     - oszi.thirdparty.hashicorp
     - oszi.thirdparty.opentofu
   tags:
-    - third-party
+    - thirdparty
