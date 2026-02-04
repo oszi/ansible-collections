@@ -13,3 +13,6 @@ galaxy_info:
 
   galaxy_tags:
     - thirdparty
+
+dependencies:
+  - role: oszi.utils.facts

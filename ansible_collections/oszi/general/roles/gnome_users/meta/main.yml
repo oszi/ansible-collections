@@ -19,3 +19,6 @@ galaxy_info:
     - general
     - rootless
     - workstation
+
+dependencies:
+  - role: oszi.utils.facts

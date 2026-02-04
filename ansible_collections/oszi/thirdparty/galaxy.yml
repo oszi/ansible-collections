@@ -14,6 +14,9 @@ authors:
 license:
   - "BSD-3-Clause"
 
+dependencies:
+  "oszi.utils": "==4.31.0"
+
 tags:
   - thirdparty
   - linux

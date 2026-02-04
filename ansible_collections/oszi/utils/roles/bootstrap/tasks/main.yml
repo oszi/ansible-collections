@@ -1,5 +1,5 @@
 ---
-- name: Include bootstrap tasks
+- name: Bootstrap tasks
   tags: [always]
   block:
     - name: Include bootstrap tasks if necessary

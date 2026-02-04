@@ -20,5 +20,6 @@ galaxy_info:
     - baselinux
 
 dependencies:
+  - role: oszi.utils.facts
   - role: oszi.general.firewalld
   - role: oszi.general.selinux

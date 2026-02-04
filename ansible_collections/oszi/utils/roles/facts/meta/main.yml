@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Configure SELinux on RedHat family distributions."
+  description: "Utility role for fact gathering."
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.18.0"
@@ -10,10 +10,14 @@ galaxy_info:
       versions: [all]
     - name: EL
       versions: [all]
+    - name: Debian
+      versions: [all]
+    - name: Ubuntu
+      versions: [all]
+    - name: macOS
+      versions: [all]
 
   galaxy_tags:
-    - general
+    - utils
+    - rootless
     - baselinux
-
-dependencies:
-  - role: oszi.utils.facts

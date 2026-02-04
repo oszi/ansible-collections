@@ -19,3 +19,6 @@ galaxy_info:
     - general
     - baselinux
     - rootless
+
+dependencies:
+  - role: oszi.utils.facts

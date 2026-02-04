@@ -17,9 +17,13 @@
   ansible.builtin.include_tasks:
     file: ssh-fallback.yml
 
-- name: Deferred setup to gather facts
-  ansible.builtin.setup:
-    gather_subset: "{{ bootstrap_facts_gather_subset }}"
+- name: Gather facts for early bootstrapping
+  ansible.builtin.import_role:
+    name: oszi.utils.facts
+    tasks_from: facts
+  vars:
+    facts_subset: "{{ bootstrap_facts_gather_subset }}"
+    facts_filter: []
 
 - name: Assert bootstrap rules
   ansible.builtin.assert:

@@ -21,6 +21,11 @@ galaxy_info:
 
 dependencies:
   - role: oszi.utils.bootstrap
+  - role: oszi.utils.facts  # default facts, deduplicated
+  - role: oszi.utils.facts
+    vars:
+      facts_subset: ["hardware"]
+
   - role: oszi.general.python
   - role: oszi.general.shell
   - role: oszi.general.users

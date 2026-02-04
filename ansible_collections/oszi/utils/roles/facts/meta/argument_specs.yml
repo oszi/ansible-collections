@@ -1,0 +1,26 @@
+---
+argument_specs:
+  main:
+    short_description: Fact gathering utility role
+    description:
+      - Gathers facts subset with configurable filtering
+      - Use as role dependencies to take advantage of dependency deduplication
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      facts_subset:
+        description:
+          - List of explicit gather subsets for M(ansible.builtin.setup)
+          - Implies `!all` and `!min` unless explicitly specified
+          - Default is `min` and `virtual`
+        type: list
+        elements: str
+        required: false
+
+      facts_filter:
+        description:
+          - If supplied, only return facts that match one of the shell-style (fnmatch) patterns
+          - Avoid if possible, complicates caching and role dependency deduplication
+        type: list
+        elements: str
+        required: false

@@ -1,0 +1,16 @@
+---
+# Valid list, argument_specs lets strings pass for list of strings:
+_facts_subset_list: "{{ facts_subset if facts_subset is not string
+  else facts_subset.split(',') | map('trim') }}"
+
+# Facts subset not already present in the cache:
+# If all has been gathered, nothing is missing.
+facts_subset_missing: "{{ _facts_subset_list | difference(facts_subset_gathered | default([]))
+  if 'all' not in facts_subset_gathered | default([]) else [] }}"
+
+# Explicit subset to gather with !min and !all:
+# If min has been requested but not yet gathered, do not exclude it.
+# If all has been requested explicitly, only then do not exclude it.
+facts_subset_missing_explicit: "{{ facts_subset_missing
+  + (['!min'] if 'min' not in facts_subset_missing and 'all' not in facts_subset_missing else [])
+  + (['!all'] if 'all' not in facts_subset_missing else []) }}"

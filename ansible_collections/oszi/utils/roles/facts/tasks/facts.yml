@@ -1,0 +1,12 @@
+---
+- name: "Gather missing facts subset {{ facts_subset_missing_explicit | join(',') }}"
+  when: "facts_subset_missing | length > 0"
+  ansible.builtin.setup:
+    gather_subset: "{{ facts_subset_missing_explicit }}"
+    filter: "{{ facts_filter }}"
+
+- name: "Set facts_subset_gathered fact"
+  when: "facts_subset_missing | length > 0"
+  ansible.builtin.set_fact:
+    facts_subset_gathered: "{{ facts_subset_gathered | default([]) + facts_subset_missing }}"
+    cacheable: true

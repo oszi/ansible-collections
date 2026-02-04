@@ -18,3 +18,6 @@ galaxy_info:
   galaxy_tags:
     - general
     - baselinux
+
+dependencies:
+  - role: oszi.utils.facts

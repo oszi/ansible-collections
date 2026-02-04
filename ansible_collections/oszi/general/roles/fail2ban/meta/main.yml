@@ -20,4 +20,5 @@ galaxy_info:
     - baselinux
 
 dependencies:
+  - role: oszi.utils.facts
   - role: oszi.general.ssh

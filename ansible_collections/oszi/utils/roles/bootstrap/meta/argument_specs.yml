@@ -22,12 +22,11 @@ argument_specs:
 
       bootstrap_facts_gather_subset:
         description:
-          - List of fact subsets to gather with M(ansible.builtin.setup)
-          - Controls which system information is collected during bootstrapping
+          - List of explicit gather subsets for P(oszi.utils.facts#role) for early bootstrapping
+          - Default is `distribution`, `pkg_mgr` and `user`
         type: list
         elements: str
         required: false
-        default: ["all"]
 
       bootstrap_assert_that:
         description:

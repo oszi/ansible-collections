@@ -1,0 +1,10 @@
+---
+# List of explicit gather subsets for ansible.builtin.setup:
+# Implies !all and !min unless explicitly specified.
+facts_subset:
+  - "min"
+  - "virtual"
+
+# Optional facts filter to pass to ansible.builtin.setup:
+# Avoid if possible, complicates caching and role dependency deduplication.
+facts_filter: []
