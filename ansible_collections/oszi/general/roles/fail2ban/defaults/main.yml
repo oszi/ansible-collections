@@ -1,6 +1,6 @@
 ---
 # Disable fail2ban?
-fail2ban_disabled: "{{ ssh_server_disabled
+fail2ban_disabled: "{{ ssh_server_disabled | default(false)
   or (ansible_facts.os_family == 'RedHat' and ansible_facts.distribution != 'Fedora') }}"
 
 fail2ban_local: |
@@ -15,4 +15,4 @@ fail2ban_jail_local: |
 
   [sshd]
   enabled = true
-  port = {{ ssh_port }}
+  port = {{ ssh_port | default(bootstrap_ssh_port) }}

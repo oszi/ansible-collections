@@ -15,6 +15,7 @@ galaxy_info:
     - general
     - baselinux
 
+# Run before oszi.general.ssh but there is no hard requirement.
 dependencies:
   - role: oszi.utils.facts
   - role: oszi.utils.assert

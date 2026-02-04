@@ -19,6 +19,7 @@ galaxy_info:
     - general
     - baselinux
 
+# Run after oszi.general.ssh but there is no hard requirement.
 dependencies:
   - role: oszi.utils.facts
   - role: oszi.utils.assert
@@ -26,5 +27,3 @@ dependencies:
       assert_task_msg: "Assert root privileges"
       assert_that:
         - "ansible_facts.user_uid | int == 0"
-
-  - role: oszi.general.ssh
