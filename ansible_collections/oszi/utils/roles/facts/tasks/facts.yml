@@ -1,12 +1,14 @@
 ---
-- name: "Gather missing facts subset {{ facts_subset_missing_explicit | join(',') }}"
+- name: "Gather missing facts subset {{ facts_subset_missing | join(',') }}"
   when: "facts_subset_missing | length > 0"
   ansible.builtin.setup:
     gather_subset: "{{ facts_subset_missing_explicit }}"
     filter: "{{ facts_filter }}"
 
-- name: "Set facts_subset_gathered fact"
-  when: "facts_subset_missing | length > 0"
+# The current facts_gathered_subset now includes the last call of ansible.builtin.setup.
+# If it was filtered, ansible_facts.gather_subset was not updated.
+# This task always runs so the role is always considered a completed dependency.
+- name: Update facts_gathered_subset_cache
   ansible.builtin.set_fact:
-    facts_subset_gathered: "{{ facts_subset_gathered | default([]) + facts_subset_missing }}"
+    facts_gathered_subset_cache: "{{ facts_gathered_subset }}"
     cacheable: true

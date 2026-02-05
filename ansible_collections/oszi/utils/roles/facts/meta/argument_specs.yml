@@ -4,6 +4,7 @@ argument_specs:
     short_description: Fact gathering utility role
     description:
       - Gathers facts subset with configurable filtering
+      - Compatible with implicit gathering, including `all` subset
       - Use as role dependencies to take advantage of dependency deduplication
     author:
       - "David O. (oszi.dev)"
@@ -20,7 +21,7 @@ argument_specs:
       facts_filter:
         description:
           - If supplied, only return facts that match one of the shell-style (fnmatch) patterns
-          - Avoid if possible, complicates caching and role dependency deduplication
+          - Avoid if possible, disables caching and complicates dependency deduplication
         type: list
         elements: str
         required: false
