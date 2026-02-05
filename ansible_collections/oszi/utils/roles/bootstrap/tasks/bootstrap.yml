@@ -16,11 +16,3 @@
     and bootstrap_ssh_port_fallback|int != bootstrap_ssh_port|int"
   ansible.builtin.include_tasks:
     file: ssh-fallback.yml
-
-- name: Gather facts for early bootstrapping
-  ansible.builtin.import_role:
-    name: oszi.utils.facts
-    tasks_from: facts
-  vars:
-    facts_subset: "{{ bootstrap_facts_gather_subset }}"
-    facts_filter: []

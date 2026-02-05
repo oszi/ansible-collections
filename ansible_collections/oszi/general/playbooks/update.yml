@@ -10,6 +10,12 @@
         tasks_from: bootstrap
       tags: [always]
 
+    - name: Import facts tasks
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+        tasks_from: facts
+      tags: [always]
+
   tasks:
     - name: Update distribution packages
       ansible.builtin.package:

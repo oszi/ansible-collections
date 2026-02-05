@@ -6,17 +6,11 @@
 # * Persistent fact caching should be disabled initially.
 bootstrap_ssh_port_fallback: 22
 
-# List of early fact subsets for oszi.utils.facts:
-bootstrap_facts_gather_subset:
-  - distribution
-  - pkg_mgr
-  - user
+# Update the default package manager's cache?
+# * Useful for Debian/Ubuntu hosts that are often offline and fail to update apt cache.
+# * Facts are not available at this point, enable manually from the inventory.
+bootstrap_package_update_cache: false
 
-# Update the default package manager cache after fact gathering?
-# * Useful to avoid having to specify cache_valid_time in apt package tasks.
-# * Use default filter to pass argument specs validation without facts.
-bootstrap_package_update_cache: "{{ ansible_facts.pkg_mgr | default('') == 'apt'
-  and ansible_facts.user_uid | default(0) | int == 0 }}"
-
-# Cache validity time in seconds for apt (defaults to 24h)
-bootstrap_apt_cache_valid_time: 86400
+# Cache validity time in seconds for apt (default is omit).
+# * Facts are not available at this point, set manually from the inventory.
+bootstrap_apt_cache_valid_time: -1
