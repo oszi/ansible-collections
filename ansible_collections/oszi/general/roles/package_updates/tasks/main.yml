@@ -1,0 +1,7 @@
+---
+- name: Package updates tasks
+  tags: [package-updates]
+  block:
+    - name: Import package updates tasks
+      ansible.builtin.import_tasks:
+        file: update.yml

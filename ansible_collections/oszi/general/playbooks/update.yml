@@ -10,34 +10,14 @@
         tasks_from: bootstrap
       tags: [always]
 
-    - name: Import facts tasks
-      ansible.builtin.import_role:
-        name: oszi.utils.facts
-        tasks_from: facts
-      tags: [always]
-
   tasks:
-    - name: Update distribution packages
-      ansible.builtin.package:
-      args: "{{ apt_args if ansible_facts.pkg_mgr == 'apt' else dnf_args }}"
-      vars:
-        apt_args:
-          cache_valid_time: 3600
-          update_cache: true
-          upgrade: "dist"
-        dnf_args:
-          name: "*"
-          state: "latest"  # noqa: package-latest
-          update_cache: true
+    - name: Import updates for distribution packages
+      ansible.builtin.import_role:
+        name: oszi.general.package_updates
+        tasks_from: update
       tags: [package]
 
-    - name: Autoremove orphaned packages
-      when: "update_package_autoremove | default(true)"
-      ansible.builtin.package:
-        autoremove: true
-      tags: [package]
-
-    - name: Update python packages
+    - name: Include updates for python packages
       when: "not python_disabled | default(false)"
       ansible.builtin.include_role:
         name: oszi.general.python
@@ -46,7 +26,7 @@
           tags: [python]
       tags: [python]
 
-    - name: Update flatpak packages
+    - name: Include updates for flatpak packages
       when: "not flatpak_disabled | default(false)"
       ansible.builtin.include_role:
         name: oszi.general.flatpak
@@ -55,7 +35,7 @@
           tags: [flatpak]
       tags: [flatpak]
 
-    - name: Update snap packages
+    - name: Include updates for snap packages
       when: "not snap_disabled | default(false)"
       ansible.builtin.include_role:
         name: oszi.general.snap
@@ -64,7 +44,7 @@
           tags: [snap]
       tags: [snap]
 
-    - name: Refresh ACME certificates
+    - name: Include updates for ACME certificates
       when: "acme_certificates is defined and acme_certificates | length > 0"
       ansible.builtin.include_role:
         name: oszi.general.acme
@@ -77,12 +57,13 @@
       when: "not podman_disabled | default(false)"
       tags: [podman]
       block:
-        - name: Update podman images as root
+        - name: Include updates for podman images as root
           ansible.builtin.include_role:
             name: oszi.general.podman
             tasks_from: update
 
-        - name: Check if user namespaces are enabled
+        - name: Check if unprivileged user namespaces are enabled
+          when: "ansible_user | default('root') != 'root'"
           ansible.builtin.shell: |
             set -euo pipefail
             sysctl -n kernel.unprivileged_userns_clone 2>/dev/null \
@@ -94,8 +75,8 @@
           changed_when: false
           failed_when: false
 
-        - name: Update podman images as ansible_user
-          when: "_sysctl_userns_result.stdout | default(0) | int > 0"
+        - name: Include updates for podman images as ansible_user
+          when: "_sysctl_userns_result is defined and _sysctl_userns_result.stdout | default(0) | int > 0"
           ansible.builtin.include_role:
             name: oszi.general.podman
             tasks_from: update

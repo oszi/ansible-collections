@@ -1,0 +1,16 @@
+---
+argument_specs:
+  main:
+    short_description: Distribution package updates role
+    description:
+      - Updates distribution packages
+      - Autoremoves orphaned packages by default
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      package_updates_autoremove:
+        description:
+          - Whether to autoremove orphaned packages
+        type: bool
+        required: false
+        default: true

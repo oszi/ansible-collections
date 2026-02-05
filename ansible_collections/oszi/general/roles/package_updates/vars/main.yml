@@ -1,0 +1,12 @@
+---
+# Options for ansible.builtin.apt:
+package_updates_apt_args:
+  cache_valid_time: 3600
+  update_cache: true
+  upgrade: "dist"
+
+# Options for ansible.builtin.dnf:
+package_updates_dnf_args:
+  name: "*"
+  state: "latest"
+  update_cache: true

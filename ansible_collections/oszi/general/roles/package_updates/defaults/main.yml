@@ -1,0 +1,3 @@
+---
+# Autoremove orphaned packages?
+package_updates_autoremove: true

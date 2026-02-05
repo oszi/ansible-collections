@@ -1,0 +1,28 @@
+---
+galaxy_info:
+  description: "Update distribution packages"
+  author: "David O. (oszi.dev)"
+  license: "BSD-3-Clause"
+  min_ansible_version: "2.18.0"
+
+  platforms:
+    - name: Fedora
+      versions: [all]
+    - name: EL
+      versions: [all]
+    - name: Debian
+      versions: [all]
+    - name: Ubuntu
+      versions: [all]
+
+  galaxy_tags:
+    - general
+    - baselinux
+
+dependencies:
+  - role: oszi.utils.facts
+  - role: oszi.utils.assert
+    vars:
+      assert_task_msg: "Assert root privileges"
+      assert_that:
+        - "ansible_facts.user_uid | int == 0"
