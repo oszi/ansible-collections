@@ -16,3 +16,6 @@
     and bootstrap_ssh_port_fallback|int != bootstrap_ssh_port|int"
   ansible.builtin.include_tasks:
     file: ssh-fallback.yml
+
+- name: Check connectivity
+  ansible.builtin.ping:

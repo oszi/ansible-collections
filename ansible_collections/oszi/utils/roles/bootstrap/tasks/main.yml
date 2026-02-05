@@ -14,7 +14,7 @@
         update_cache: true
         cache_valid_time: "{{ bootstrap_apt_cache_valid_time if bootstrap_apt_cache_valid_time > -1 else omit }}"
       changed_when: false
-      ignore_errors: true  # We could be offline. # noqa: ignore-errors
+      ignore_errors: true  # noqa: ignore-errors
 
     - name: Bootstrap role completed
       ansible.builtin.debug:

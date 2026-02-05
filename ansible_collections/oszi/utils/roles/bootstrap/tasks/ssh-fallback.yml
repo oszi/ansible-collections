@@ -16,6 +16,3 @@
   when: _bootstrap_wait_for_ssh_result is undefined or _bootstrap_wait_for_ssh_result.state is undefined
   ansible.builtin.set_fact:
     ansible_port: "{{ bootstrap_ssh_port_fallback }}"  # noqa: var-naming[no-role-prefix]
-
-- name: Check connectivity
-  ansible.builtin.ping:
