@@ -22,3 +22,6 @@ galaxy_info:
 
 dependencies:
   - role: oszi.utils.facts
+  - role: oszi.utils.facts
+    vars:
+      facts_subset: [network]

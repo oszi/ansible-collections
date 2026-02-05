@@ -21,6 +21,9 @@ galaxy_info:
 
 dependencies:
   - role: oszi.utils.facts
+  - role: oszi.utils.facts
+    vars:
+      facts_subset: [network]
   - role: oszi.utils.assert
     vars:
       assert_task_msg: "Assert root privileges"

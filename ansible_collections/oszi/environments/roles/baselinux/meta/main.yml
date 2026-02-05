@@ -24,7 +24,10 @@ dependencies:
   - role: oszi.utils.facts  # default facts, deduplicated
   - role: oszi.utils.facts
     vars:
-      facts_subset: ["hardware"]
+      facts_subset: [hardware]
+  - role: oszi.utils.facts
+    vars:
+      facts_subset: [network]
   - role: oszi.utils.assert
     vars:
       assert_task_msg: "Assert OS family"
