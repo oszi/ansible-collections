@@ -85,13 +85,18 @@ new_version_spec="==${new_version}"
     exit 0
 }
 
-# Update pinned dependencies - affects dependent collections...
-for collection_item in "${collections_affected[@]}"; do
-    sed -i -E "s/^(\s+['\"]?${NAMESPACE}\.${collection_item}['\"]?:).*\$/\1 \"${new_version_spec}\"/g" -- */galaxy.yml
-done
+# Update dependency chain...
+affected_count=0
+while [[ "${#collections_affected[@]}" -gt "$affected_count" ]]; do
+    affected_count="${#collections_affected[@]}"
 
-git add -- */galaxy.yml
-read -r -a collections_affected -d '' < <(get_affected_collections) ||:
+    for collection_item in "${collections_affected[@]}"; do
+        sed -i -E "s/^(\s+['\"]?${NAMESPACE}\.${collection_item}['\"]?:).*\$/\1 \"${new_version_spec}\"/g" -- */galaxy.yml
+    done
+
+    git add -- */galaxy.yml
+    read -r -a collections_affected -d '' < <(get_affected_collections) ||:
+done
 
 for collection_item in "${collections_affected[@]}"; do
     sed -i -E "s/^(version:).*\$/\1 \"${new_version}\"/g" -- "${collection_item}/galaxy.yml"
