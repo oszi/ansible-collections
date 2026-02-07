@@ -1,21 +1,14 @@
 ---
 # Valid list, argument_specs lets strings pass for list of strings [core 2.18]:
-_facts_subset_list: "{{ (facts_subset.split(',') | map('trim') if facts_subset is string
+facts_subset_list: "{{ (facts_subset.split(',') | map('trim') if facts_subset is string
   else facts_subset) | unique | sort }}"
-
-# Current, already gathered subsets:
-# Includes the last call of ansible.builtin.setup (including implicit gathering).
-# If filtered, ansible_facts.gather_subset is not set.
-# Wraps the role's cacheable fact facts_gathered_subset_cache.
-facts_gathered_subset: "{{ (ansible_facts.gather_subset | default([]) | reject('in', ['!all', '!min'])
-  + facts_gathered_subset_cache | default([])) | unique | sort }}"
 
 # Facts subset not already present in the cache:
 # If filtered, ignore what has been gathered already.
 # If all has been gathered, nothing is missing.
-facts_subset_missing: "{{ _facts_subset_list if facts_filter is truthy
-  else _facts_subset_list | difference(facts_gathered_subset) | sort
-  if 'all' not in facts_gathered_subset else [] }}"
+facts_subset_missing: "{{ facts_subset_list if facts_filter is truthy
+  else facts_subset_list | difference(facts_gathered_subset_cache) | sort
+  if 'all' not in facts_gathered_subset_cache else [] }}"
 
 # Explicit subset to gather with !all and !min:
 # If min has been requested but not yet gathered, do not exclude it.
