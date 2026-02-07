@@ -5,9 +5,9 @@
     gather_subset: "{{ facts_subset_missing_explicit }}"
     filter: "{{ facts_filter }}"
 
-# The current facts_gathered_subset now includes the last call of ansible.builtin.setup.
-# If it was filtered, ansible_facts.gather_subset was not updated.
-# This task always runs so the role is always considered a completed dependency.
+# The current facts_gathered_subset now includes the last call of ansible.builtin.setup
+# unless it was filtered (then ansible_facts.gather_subset was not set).
+# This task always runs so role dependencies are completed.
 - name: Update facts_gathered_subset_cache
   ansible.builtin.set_fact:
     facts_gathered_subset_cache: "{{ facts_gathered_subset }}"

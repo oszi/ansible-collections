@@ -13,7 +13,7 @@ argument_specs:
         description:
           - List of explicit gather subsets for M(ansible.builtin.setup)
           - Implies `!all` and `!min` unless explicitly specified
-          - With implicit gathering (if not `all`), set the same subset as default
+          - With implicit gathering, if not `all`, set the same subset as default
           - Default is `min` and `virtual`
         type: list
         elements: str
@@ -23,6 +23,7 @@ argument_specs:
         description:
           - If supplied, only return facts that match one of the shell-style (fnmatch) patterns
           - Avoid if possible, disables caching and complicates dependency deduplication
+          - Patterns must not return `gather_subset` to avoid cache confusion
         type: list
         elements: str
         required: false
