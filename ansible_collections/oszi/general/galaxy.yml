@@ -3,7 +3,7 @@ namespace: oszi
 name: general
 
 # Versioned by _scripts/galaxy-release.sh
-version: "4.34.1"
+version: "4.35.0"
 
 description: "Ansible collection for general, bite-sized, single-purpose roles."
 repository: "https://github.com/oszi/ansible-collections.git"
@@ -24,7 +24,7 @@ dependencies:
   "community.libvirt": ">=1.3"
   "containers.podman": ">=1.16"
   "amazon.aws": ">=9.0"
-  "oszi.utils": "==4.34.1"
+  "oszi.utils": "==4.35.0"
 
 tags:
   - general

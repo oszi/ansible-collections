@@ -3,7 +3,7 @@ namespace: oszi
 name: utils
 
 # Versioned by _scripts/galaxy-release.sh
-version: "4.34.1"
+version: "4.35.0"
 
 description: "Ansible collection for ansible plugins and utility roles."
 repository: "https://github.com/oszi/ansible-collections.git"
