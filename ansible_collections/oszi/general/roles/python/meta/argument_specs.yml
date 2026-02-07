@@ -195,6 +195,13 @@ argument_specs:
             required: false
             default: false
 
+      python_install_distribution_packages:
+        description:
+          - Whether to install packages in O(python_distro_packages) and O(python_devel_distro_packages)
+          - Enabled when running as root, disable on immutable systems
+        type: bool
+        required: false
+
       python_distro_packages:
         description:
           - Nested list of distribution python packages to install

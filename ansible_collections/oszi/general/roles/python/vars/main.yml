@@ -1,7 +1,4 @@
 ---
-# Skip distribution packages in rootless mode.
-python_install_distribution_packages: "{{ ansible_facts.user_uid | int == 0 }}"
-
 # Accepted states to update pip packages:
 python_pip_update_states:
   - present
