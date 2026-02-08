@@ -13,6 +13,8 @@
   ansible.builtin.setup:
     gather_subset: "{{ facts_subset_missing_explicit }}"
     filter: "{{ facts_filter }}"
+    fact_path: "{{ facts_path | default(omit, true) }}"
+    gather_timeout: "{{ facts_timeout }}"
 
 - name: Set newly gathered subset
   when: facts_subset_missing is truthy and facts_filter is not truthy

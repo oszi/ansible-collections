@@ -8,3 +8,10 @@ facts_subset:
 # Optional facts filter to pass to ansible.builtin.setup:
 # Avoid if possible, complicates caching and role dependency deduplication.
 facts_filter: []
+
+# Path for ansible_local facts.
+# Empty means omit, default is /etc/ansible/facts.d
+facts_path: ""
+
+# Default timeout in seconds for individual fact gathering.
+facts_timeout: 10

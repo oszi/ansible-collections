@@ -97,6 +97,21 @@ argument_specs:
         elements: str
         required: false
 
+      facts_path:
+        description:
+          - Path used for local ansible facts - results are added to `ansible_local` facts
+          - .fact files in this directory will be run if executable, or read in JSON or INI-format if not
+          - Ansible default is /etc/ansible/facts.d
+        type: str
+        required: false
+
+      facts_timeout:
+        description:
+          - Sets the default timeout in seconds for individual fact gathering
+        type: int
+        required: false
+        default: 10
+
   facts:
     short_description: Direct entrypoint for fact gathering
     description:
