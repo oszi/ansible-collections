@@ -57,3 +57,8 @@ argument_specs:
           - "Example: {com.example.App: ['--nofilesystem=home', '--filesystem=/mnt/data:ro']}"
         type: dict
         required: false
+
+  update:
+    short_description: Update entrypoint for flatpak packages
+    description:
+      - Updates system or user flatpak packages depending on rootful vs rootless execution

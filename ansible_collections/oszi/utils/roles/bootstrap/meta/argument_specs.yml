@@ -9,7 +9,7 @@ argument_specs:
     author:
       - "David O. (oszi.dev)"
     options:
-      bootstrap_ssh_port_fallback:
+      bootstrap_ssh_port_fallback: &bootstrap_ssh_port_fallback
         description:
           - Fallback SSH port to try if ansible_port is unreachable
           - Set to zero (or ansible_port) to disable SSH port fallback
@@ -33,3 +33,13 @@ argument_specs:
           - Set manually for apt hosts, facts are not available at this point
         type: int
         required: false
+
+  bootstrap:
+    short_description: Direct entrypoint for bootstrap
+    description:
+      - Does not include double inclusion check so it always runs, even with persistent fact caching
+      - Does not include updating the package manager's cache
+      - Does not apply `always` or any other tag, unlike entrypoint `main`
+    options:
+      bootstrap_ssh_port_fallback:
+        <<: *bootstrap_ssh_port_fallback

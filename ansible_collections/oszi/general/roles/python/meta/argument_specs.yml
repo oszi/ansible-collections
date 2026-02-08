@@ -16,7 +16,7 @@ argument_specs:
         required: false
         default: false
 
-      python_pip_list:
+      python_pip_list: &python_pip_list
         description:
           - List of arguments to manage python packages with M(ansible.builtin.pip)
           - Pip should be present in O(python_devel_distro_packages)
@@ -92,7 +92,7 @@ argument_specs:
             required: false
             default: false
 
-      python_pipx_list:
+      python_pipx_list: &python_pipx_list
         description:
           - List of arguments to manage python packages with M(community.general.pipx)
           - Pipx should be present in O(python_devel_distro_packages)
@@ -219,3 +219,14 @@ argument_specs:
         type: list
         elements: raw
         required: false
+
+  update:
+    short_description: Update entrypoint for pip and pipx
+    description:
+      - Updates applicable role-managed pip and pipx packages
+      - Supports rootful and rootless execution
+    options:
+      python_pip_list:
+        <<: *python_pip_list
+      python_pipx_list:
+        <<: *python_pipx_list

@@ -48,3 +48,8 @@ argument_specs:
         type: list
         elements: str
         required: false
+
+  update:
+    short_description: Update entrypoint for snap packages
+    description:
+      - Updates (refresh) all snap packages

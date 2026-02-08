@@ -8,7 +8,7 @@ argument_specs:
       - Use as role dependencies to take advantage of dependency deduplication
     author:
       - "David O. (oszi.dev)"
-    options:
+    options: &options
       facts_subset:
         description:
           - List of explicit gather subsets for M(ansible.builtin.setup)
@@ -27,3 +27,10 @@ argument_specs:
         type: list
         elements: str
         required: false
+
+  facts:
+    short_description: Direct entrypoint for fact gathering
+    description:
+      - Does not apply `always` or any other tag, unlike entrypoint `main`
+    options:
+      <<: *options

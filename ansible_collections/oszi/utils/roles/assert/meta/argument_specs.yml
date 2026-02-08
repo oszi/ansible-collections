@@ -7,7 +7,7 @@ argument_specs:
       - Use as role dependencies to take advantage of dependency deduplication
     author:
       - "David O. (oszi.dev)"
-    options:
+    options: &options
       assert_that:
         description:
           - List of assertion rules for M(ansible.builtin.assert) to validate requirements
@@ -34,3 +34,10 @@ argument_specs:
           - Customized message used for successful assertions
         type: str
         required: false
+
+  assert:
+    short_description: Direct entrypoint for assertions
+    description:
+      - Does not apply `always` or any other tag, unlike entrypoint `main`
+    options:
+      <<: *options

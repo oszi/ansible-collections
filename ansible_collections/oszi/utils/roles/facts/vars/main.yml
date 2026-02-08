@@ -1,5 +1,5 @@
 ---
-# Valid list, argument_specs lets strings pass for list of strings [core 2.18]:
+# Deterministic list - supports legacy comma-separated string format without argument specs:
 facts_subset_list: "{{ (facts_subset.split(',') | map('trim') if facts_subset is string
   else facts_subset) | unique | sort }}"
 

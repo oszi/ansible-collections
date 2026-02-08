@@ -7,10 +7,15 @@ argument_specs:
       - Autoremoves orphaned packages by default
     author:
       - "David O. (oszi.dev)"
-    options:
+    options: &options
       package_updates_autoremove:
         description:
           - Whether to autoremove orphaned packages
         type: bool
         required: false
         default: true
+
+  update:
+    short_description: Direct entrypoint for package updates
+    options:
+      <<: *options

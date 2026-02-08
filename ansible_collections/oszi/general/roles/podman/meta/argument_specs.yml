@@ -142,3 +142,10 @@ argument_specs:
         type: list
         elements: dict
         required: false
+
+  update:
+    short_description: Update entrypoint for podman auto-update
+    description:
+      - Updates labelled podman containers and pods with podman auto-update
+      - Containers and pods must set the `io.containers.autoupdate` label or Kubernetes annotation
+      - Supports rootful and rootless execution
