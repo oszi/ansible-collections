@@ -10,6 +10,7 @@
     path: "{{ gcloud_sdk_deb_gpgkey | dirname }}"
     state: "directory"
     owner: "root"
+    group: "root"
     mode: "0755"
 
 - name: Copy GCloud SDK deb signing key
@@ -17,6 +18,7 @@
     src: "{{ gcloud_sdk_deb_gpgkey.lstrip('/') }}"
     dest: "{{ gcloud_sdk_deb_gpgkey }}"
     owner: "root"
+    group: "root"
     mode: "0644"
 
 - name: Install GCloud SDK deb repository
@@ -24,6 +26,7 @@
     dest: "{{ gcloud_sdk_deb_repo_path }}"
     content: "{{ gcloud_sdk_deb_repo }}"
     owner: "root"
+    group: "root"
     mode: "0644"
   register: _gcloud_sdk_deb_repo_result
 

@@ -1,6 +1,4 @@
 ---
-# include_role: name=oszi.general.podman tasks_from=deploy
-
 - name: Deploy podman networks
   containers.podman.podman_network:
   args: "{{ item }}"

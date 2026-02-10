@@ -66,6 +66,7 @@
     dest: "{{ baselinux_ca_trust_anchors_path }}/{{ item | basename | regex_replace('\\.(pem|crt)$', '')
       }}.{{ baselinux_ca_trust_anchors_extension }}"
     owner: "root"
+    group: "root"
     mode: "0644"
   with_items: "{{ baselinux_ca_trust_anchors }}"
   notify: "Update CA trust"

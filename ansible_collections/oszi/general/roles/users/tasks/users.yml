@@ -18,5 +18,6 @@
       {% endfor %}
     dest: "/etc/sudoers.d/nopasswd_groups"
     owner: "root"
+    group: "root"
     mode: "0440"
     validate: "visudo -csf %s"

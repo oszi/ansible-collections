@@ -4,6 +4,7 @@
     path: "{{ google_chrome_deb_gpgkey | dirname }}"
     state: "directory"
     owner: "root"
+    group: "root"
     mode: "0755"
 
 - name: Copy Google Chrome deb signing key
@@ -11,6 +12,7 @@
     src: "{{ google_chrome_deb_gpgkey.lstrip('/') }}"
     dest: "{{ google_chrome_deb_gpgkey }}"
     owner: "root"
+    group: "root"
     mode: "0644"
 
 - name: Remove vendored Google Chrome deb signing key
@@ -24,6 +26,7 @@
     dest: "{{ google_chrome_deb_repo_path }}"
     content: "{{ google_chrome_deb_repo }}"
     owner: "root"
+    group: "root"
     mode: "0644"
   register: _google_chrome_deb_repo_result
   check_mode: true
@@ -42,6 +45,7 @@
         dest: "{{ google_chrome_deb_repo_path }}"
         content: "{{ google_chrome_deb_repo }}"
         owner: "root"
+        group: "root"
         mode: "0644"
 
     - name: Ensure google-chrome.list is immutable to prevent vendor changes

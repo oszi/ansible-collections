@@ -26,6 +26,7 @@
     path: "/etc/systemd/network"
     state: "directory"
     owner: "root"
+    group: "root"
     mode: "0755"
 
 - name: Install systemd-networkd units

@@ -4,6 +4,7 @@
     path: "{{ item }}"
     state: "directory"
     owner: "root"
+    group: "root"
     mode: "0755"
   with_items: "{{ opentofu_deb_gpgkeys | map('dirname') | unique }}"
 
@@ -12,6 +13,7 @@
     src: "{{ item.lstrip('/') }}"
     dest: "{{ item }}"
     owner: "root"
+    group: "root"
     mode: "0644"
   with_items: "{{ opentofu_deb_gpgkeys }}"
 
@@ -22,6 +24,7 @@
       {{ opentofu_deb_repo }}
       {{ opentofu_deb_repo | regex_replace('^deb (.*)$', 'deb-src \1') }}
     owner: "root"
+    group: "root"
     mode: "0644"
   register: _opentofu_deb_repo_result
 

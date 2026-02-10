@@ -4,6 +4,7 @@
     src: "{{ item.lstrip('/') }}"
     dest: "{{ item }}"
     owner: "root"
+    group: "root"
     mode: "0644"
   with_items: "{{ opentofu_rpm_gpgkeys }}"
 

@@ -34,6 +34,7 @@
       {% endif %}
     dest: "/etc/fail2ban/jail.d/00-systemd-firewalld.conf"
     owner: "root"
+    group: "root"
     mode: "0644"
   notify: "Restart fail2ban service"
 
@@ -42,6 +43,7 @@
     content: "{{ fail2ban_local }}"
     dest: "/etc/fail2ban/fail2ban.local"
     owner: "root"
+    group: "root"
     mode: "0644"
   notify: "Restart fail2ban service"
 
@@ -50,5 +52,6 @@
     content: "{{ fail2ban_jail_local }}"
     dest: "/etc/fail2ban/jail.local"
     owner: "root"
+    group: "root"
     mode: "0644"
   notify: "Restart fail2ban service"

@@ -22,6 +22,7 @@
     dest: "{{ libvirt_local_bin_path }}/"
     owner: "root"
     group: "root"
+    directory_mode: "0755"
     mode: "0755"
 
 - name: Apply libvirt networks

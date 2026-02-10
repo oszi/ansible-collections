@@ -4,6 +4,7 @@
     src: "{{ hashicorp_rpm_gpgkey.lstrip('/') }}"
     dest: "{{ hashicorp_rpm_gpgkey }}"
     owner: "root"
+    group: "root"
     mode: "0644"
 
 - name: Install Hashicorp RPM repository

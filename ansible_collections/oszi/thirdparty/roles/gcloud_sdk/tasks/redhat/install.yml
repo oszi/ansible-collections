@@ -4,6 +4,7 @@
     src: "{{ gcloud_sdk_rpm_gpgkey.lstrip('/') }}"
     dest: "{{ gcloud_sdk_rpm_gpgkey }}"
     owner: "root"
+    group: "root"
     mode: "0644"
 
 - name: Install GCloud SDK RPM repository

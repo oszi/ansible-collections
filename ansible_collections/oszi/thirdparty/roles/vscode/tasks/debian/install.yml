@@ -4,6 +4,7 @@
     path: "{{ vscode_deb_gpgkey | dirname }}"
     state: "directory"
     owner: "root"
+    group: "root"
     mode: "0755"
 
 - name: Copy VS Code deb signing key
@@ -11,6 +12,7 @@
     src: "{{ vscode_deb_gpgkey.lstrip('/') }}"
     dest: "{{ vscode_deb_gpgkey }}"
     owner: "root"
+    group: "root"
     mode: "0644"
   notify: "Update code microsoft repo debconf"
 
@@ -19,6 +21,7 @@
     dest: "{{ vscode_deb_repo_path }}"
     content: "{{ vscode_deb_repo }}"
     owner: "root"
+    group: "root"
     mode: "0644"
   register: _vscode_deb_repo_result
   check_mode: true
@@ -45,6 +48,7 @@
         dest: "{{ vscode_deb_repo_path }}"
         content: "{{ vscode_deb_repo }}"
         owner: "root"
+        group: "root"
         mode: "0644"
       notify: "Update code microsoft repo debconf"
 

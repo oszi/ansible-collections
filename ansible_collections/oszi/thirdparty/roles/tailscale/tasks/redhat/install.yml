@@ -4,6 +4,7 @@
     src: "{{ tailscale_rpm_gpgkey.lstrip('/') }}"
     dest: "{{ tailscale_rpm_gpgkey }}"
     owner: "root"
+    group: "root"
     mode: "0644"
 
 - name: Install Tailscale RPM repository

@@ -9,6 +9,7 @@
     path: "/etc/wireguard"
     state: "directory"
     owner: "root"
+    group: "root"
     mode: "0700"
 
 - name: Copy WireGuard config files
@@ -16,6 +17,7 @@
     content: "{{ item.value }}"
     dest: "/etc/wireguard/{{ item.key }}.conf"
     owner: "root"
+    group: "root"
     mode: "0600"
   notify: "Restart wireguard services"
   with_dict: "{{ wireguard_quick_configs }}"

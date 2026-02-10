@@ -4,6 +4,7 @@
     src: "{{ vscode_rpm_gpgkey.lstrip('/') }}"
     dest: "{{ vscode_rpm_gpgkey }}"
     owner: "root"
+    group: "root"
     mode: "0644"
 
 - name: Check VS Code RPM repository

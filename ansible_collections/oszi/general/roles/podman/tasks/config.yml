@@ -1,5 +1,5 @@
 ---
-# include_role: name=oszi.general.podman tasks_from=config
+# Do not set owner/group to use ansible_user or root!
 
 - name: Change default podman graphroot?
   when: podman_graphroot is truthy

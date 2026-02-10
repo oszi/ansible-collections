@@ -1,4 +1,6 @@
 ---
+# Do not set owner/group to use ansible_user or root!
+
 - name: Reset podman-kube loop vars
   ansible.builtin.set_fact:
     _podman_kube_copy_results: null
@@ -33,7 +35,6 @@
   ansible.builtin.file:
     path: "{{ podman_kube_spec_path | dirname }}"
     state: "directory"
-    # owner: ansible_user or root
     mode: "0755"
 
 - name: "Install podman-kube spec {{ podman_kube_item.path }}"
@@ -41,7 +42,6 @@
     content: "{{ podman_kube_item.spec if podman_kube_item.spec is string
       else podman_kube_item.spec | to_nice_yaml }}"
     dest: "{{ podman_kube_spec_path }}"
-    # owner: ansible_user or root
     mode: "0644"
   register: _podman_kube_spec_result
 
