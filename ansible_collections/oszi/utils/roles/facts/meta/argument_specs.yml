@@ -3,16 +3,17 @@ argument_specs:
   main:
     short_description: Fact gathering utility role
     description:
-      - Gathers facts subset with configurable filtering
+      - Configurable fact gathering role to use as role dependencies
+      - Use one subset per dependency to take advantage of dependency deduplication
       - Compatible with implicit gathering, including `all` subset
-      - Use as role dependencies to take advantage of dependency deduplication
     author:
       - "David O. (oszi.dev)"
     options: &options
       facts_subset:
         description:
           - List of explicit gather subsets for M(ansible.builtin.setup)
-          - Implies `!all` and `!min` unless explicitly specified
+          - Implies `!all` and `!min` unless explicitly specified, use `all` and `min` explicitly
+          - Avoid more specific subsets instead of `min` in role dependencies to avoid exploding the number of dependencies
           - With implicit gathering, if not `all`, set the same subset as default
           - Default is `min` and `virtual`
         type: list
@@ -20,9 +21,11 @@ argument_specs:
         required: false
         choices:
           # Special subsets
+          # See https://github.com/ansible/ansible/blob/devel/lib/ansible/modules/setup.py
           - all
           - min
           # Known subsets with overlaps
+          # See https://github.com/ansible/ansible/tree/devel/lib/ansible/module_utils/facts
           - all_ipv4_addresses
           - all_ipv6_addresses
           - apparmor
@@ -102,7 +105,7 @@ argument_specs:
           - Path used for local ansible facts - results are added to `ansible_local` facts
           - .fact files in this directory will be run if executable, or read in JSON or INI-format if not
           - Ansible default is /etc/ansible/facts.d
-        type: str
+        type: path
         required: false
 
       facts_timeout:

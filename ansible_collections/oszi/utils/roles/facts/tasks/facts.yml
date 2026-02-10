@@ -1,14 +1,13 @@
 ---
-# ansible_facts.gather_subset contains the last call of ansible.builtin.setup (unless filtered),
-# including implicit and "smart" gathering controlled by playbooks and ansible config.
+# Use facts_previously_gathered_subset for the very first time to support implicit gathering.
 # This task always runs so role dependencies are always completed.
 - name: Set previously gathered subset
   ansible.builtin.set_fact:
-    facts_gathered_subset_cache: "{{ (facts_gathered_subset_cache | default([])
-      + ansible_facts.gather_subset | default([]) | reject('in', ['!all', '!min'])) | unique | sort }}"
+    facts_gathered_subset_cache: "{{ facts_previously_gathered_subset | sort
+      if facts_gathered_subset_cache is not defined else facts_gathered_subset_cache }}"
     cacheable: true
 
-- name: "Gather missing subset - {{ facts_subset_list | join(',') }}"
+- name: "Gather missing subset - {{ facts_subset | sort | join(',') }}"
   when: facts_subset_missing is truthy
   ansible.builtin.setup:
     gather_subset: "{{ facts_subset_missing_explicit }}"
@@ -19,5 +18,5 @@
 - name: Set newly gathered subset
   when: facts_subset_missing is truthy and facts_filter is not truthy
   ansible.builtin.set_fact:
-    facts_gathered_subset_cache: "{{ (facts_gathered_subset_cache + facts_subset_missing) | unique | sort }}"
+    facts_gathered_subset_cache: "{{ (facts_gathered_subset_cache + facts_subset_missing) | sort }}"
     cacheable: true

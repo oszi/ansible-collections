@@ -1,13 +1,12 @@
 ---
-# Deterministic list - supports legacy comma-separated string format without argument specs:
-facts_subset_list: "{{ (facts_subset.split(',') | map('trim') if facts_subset is string
-  else facts_subset) | unique | sort }}"
+# The role requires being explicit about subsets to simplify subset operations.
+# Negated subsets are not allowed by argument_specs as input.
 
 # Facts subset not already present in the cache:
 # If filtered, ignore what has been gathered already.
 # If all has been gathered, nothing is missing.
-facts_subset_missing: "{{ facts_subset_list if facts_filter is truthy
-  else facts_subset_list | difference(facts_gathered_subset_cache) | sort
+facts_subset_missing: "{{ facts_subset if facts_filter is truthy
+  else facts_subset | difference(facts_gathered_subset_cache)
   if 'all' not in facts_gathered_subset_cache else [] }}"
 
 # Explicit subset to gather with !all and !min:
@@ -16,3 +15,11 @@ facts_subset_missing: "{{ facts_subset_list if facts_filter is truthy
 facts_subset_missing_explicit: "{{ facts_subset_missing
   + (['!all'] + (['!min'] if 'min' not in facts_subset_missing else [])
   if 'all' not in facts_subset_missing else []) }}"
+
+# ansible_facts.gather_subset contains the last call of ansible.builtin.setup (unless filtered),
+# including implicit and "smart" gathering controlled by playbooks and ansible config.
+# It can contain negated subsets, ignore if it does besides !all and !min. Accept implicit min.
+facts_previously_gathered_subset: "{{ [] if ansible_facts.gather_subset is not defined
+  or ansible_facts.gather_subset | select('match', '^!(?!(all|min)$)') is truthy
+  else ansible_facts.gather_subset | reject('match', '^!(all|min)$')
+  + (['min'] if ['!min', 'all', 'min'] | intersect(ansible_facts.gather_subset) is not truthy else []) }}"
