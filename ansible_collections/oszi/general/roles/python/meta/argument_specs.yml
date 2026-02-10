@@ -195,7 +195,7 @@ argument_specs:
             required: false
             default: false
 
-      python_install_distribution_packages:
+      python_install_distro_packages:
         description:
           - Whether to install packages in O(python_distro_packages) and O(python_devel_distro_packages)
           - Enabled when running as root, disable on immutable systems
@@ -204,7 +204,7 @@ argument_specs:
 
       python_distro_packages:
         description:
-          - Nested list of distribution python packages to install
+          - Nested list of distribution python packages to install when O(python_install_distro_packages)
           - Default includes common requirements like cryptography, jmespath, netaddr, psutil, requests, yaml
           - These packages must exist or redirect on both RedHat and Debian family distributions
         type: list
@@ -213,7 +213,7 @@ argument_specs:
 
       python_devel_distro_packages:
         description:
-          - Nested list of distribution packages for python3 development
+          - Nested list of distribution packages for python3 development to install when O(python_install_distro_packages)
           - Default includes python3-dev/devel, pip, pipx, build essentials, and virtual environment support
           - These packages must exist or redirect on both RedHat and Debian family distributions
         type: list

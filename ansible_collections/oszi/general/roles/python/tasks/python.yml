@@ -1,6 +1,6 @@
 ---
 - name: Install python3 distribution packages
-  when: python_install_distribution_packages
+  when: python_install_distro_packages
   block:
     - name: Flatten package list variables
       ansible.builtin.set_fact:
