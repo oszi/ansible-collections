@@ -1,24 +1,14 @@
 ---
 # Dynamic podman config paths...
-podman_config_policy_path: "{{ '/etc/containers/policy.json'
+podman_config_base_path: "{{ '/etc/containers'
   if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/containers/policy.json' }}"
+  else ansible_facts.user_dir + '/.config/containers' }}"
 
-podman_config_containers_path: "{{ '/etc/containers/containers.conf'
-  if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/containers/containers.conf' }}"
-
-podman_config_registries_path: "{{ '/etc/containers/registries.conf'
-  if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/containers/registries.conf' }}"
-
-podman_config_mounts_path: "{{ '/etc/containers/mounts.conf'
-  if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/containers/mounts.conf' }}"
-
-podman_config_storage_path: "{{ '/etc/containers/storage.conf'
-  if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/containers/storage.conf' }}"
+podman_config_policy_path: "{{ [podman_config_base_path, 'policy.json'] | path_join }}"
+podman_config_containers_path: "{{ [podman_config_base_path, 'containers.conf'] | path_join }}"
+podman_config_registries_path: "{{ [podman_config_base_path, 'registries.conf'] | path_join }}"
+podman_config_mounts_path: "{{ [podman_config_base_path, 'mounts.conf'] | path_join }}"
+podman_config_storage_path: "{{ [podman_config_base_path, 'storage.conf'] | path_join }}"
 
 # Default graphroot to copy SELinux context from
 podman_graphroot_default: "{{ '/var/lib/containers/storage'

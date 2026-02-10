@@ -16,9 +16,6 @@ podman_docker_enabled: "{{ not podman_disabled }}"
 # * Prefer to use a virtual env instead of the distro package.
 podman_docker_compose_enabled: false
 
-# Path for local executables when running as root
-podman_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
-
 # Override the graphroot from podman_graphroot_default:
 podman_graphroot: ""
 # Contents of policy.json in YAML/JSON format.
@@ -31,6 +28,11 @@ podman_config_registries: ""
 podman_config_mounts: ""
 # Contents of toolbox.conf
 podman_config_toolbox: ""
+
+# Path for scripts for podman.
+podman_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
+  if ansible_facts.user_uid | int == 0
+  else ansible_facts.user_dir + '/.local/bin' }}"
 
 # Prefer using oszi.general.podman_quadlets and oszi.general.podman_kube
 # instead of the following ansible-native deployments.

@@ -25,12 +25,6 @@
     dest: "{{ podman_config_toolbox_path }}"
     mode: "0644"
 
-- name: Copy scripts for podman
-  ansible.builtin.copy:
-    src: "bin/"
-    dest: "{{ podman_local_bin_path }}/"
-    mode: "0755"
-
 - name: Import podman-docker tasks
   ansible.builtin.import_tasks:
-    file: podman-docker.yml
+    file: install-podman-docker.yml
