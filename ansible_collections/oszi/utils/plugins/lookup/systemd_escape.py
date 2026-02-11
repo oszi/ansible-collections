@@ -1,5 +1,4 @@
-# pylint: disable=missing-class-docstring,missing-module-docstring,line-too-long
-# black -l 120 --target-version=py311 ansible_collections/oszi/general/plugins/lookup/systemd_escape.py
+# pylint: disable=missing-class-docstring,missing-function-docstring,missing-module-docstring,line-too-long
 from subprocess import check_output, CalledProcessError
 
 from ansible.errors import AnsibleError
@@ -65,6 +64,7 @@ options:
 display = Display()
 
 
+# pylint: disable=too-few-public-methods
 class LookupModule(LookupBase):
     FLAG_OPTIONS = [
         "path",

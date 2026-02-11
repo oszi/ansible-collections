@@ -1,5 +1,4 @@
-# pylint: disable=missing-class-docstring,missing-module-docstring,missing-function-docstring,line-too-long
-# black -l 120 --target-version=py311 ansible_collections/oszi/general/plugins/filter/nested_dict.py
+# pylint: disable=missing-class-docstring,missing-function-docstring,missing-module-docstring,line-too-long
 from typing import Any, Dict, List, TypeVar
 
 _KeyT = TypeVar("_KeyT")

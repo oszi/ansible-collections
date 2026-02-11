@@ -1,5 +1,4 @@
-# pylint: disable=missing-class-docstring,missing-module-docstring
-# black -l 120 --target-version=py311 ansible_collections/oszi/general/plugins/lookup/wg_pubkey.py
+# pylint: disable=missing-class-docstring,missing-function-docstring,missing-module-docstring,line-too-long
 from functools import partial
 from subprocess import check_output, CalledProcessError
 
@@ -23,6 +22,7 @@ options:
 display = Display()
 
 
+# pylint: disable=too-few-public-methods
 class LookupModule(LookupBase):
     def run(self, terms, variables=None, **kwargs):
         self.set_options(var_options=variables, direct=kwargs)

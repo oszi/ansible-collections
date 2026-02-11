@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
-# black -l 120 --target-version=py311 ansible_collections/oszi/environments/roles/toolbox/files/bin/ansible-ssh
 import dataclasses as dcls
 import io
 import json

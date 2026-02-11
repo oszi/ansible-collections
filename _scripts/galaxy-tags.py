@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
-# black -l 120 --target-version=py311 _scripts/galaxy-tags.py
 import json
 import sys
 
