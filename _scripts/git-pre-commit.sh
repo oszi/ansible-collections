@@ -1,6 +1,7 @@
 #!/bin/bash
 # Script to run before git commits.
 # You may symlink this file into a parent repository - e.g. inventory.
+# XXX: Rewrite this script in python with configurable CLI options.
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
@@ -55,6 +56,30 @@ check_ansible_lint() {
     ansible-lint
 }
 
+_check_targets_stub() {
+    local targets_func="$1"
+    shift
+
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo -e "${COLOR_YELLOW}${1} is not installed! skipping...${COLOR_CLEAR}" >&2
+        return 0
+    fi
+
+    local IFS=$'\n'
+    local targets
+    read -r -a targets -d '' < <("$targets_func" | sort -u) ||:
+    IFS=' '
+
+    if [[ -n "${targets-}" ]]; then
+        "$@" "${targets[@]}" || {
+            echo -e "${COLOR_RED}ERROR: $*${COLOR_CLEAR}" >&2
+            return 1
+        }
+        echo -e "${COLOR_GREEN}${1} passed${COLOR_CLEAR}: on ${#targets[@]} files." >&2
+    fi
+}
+
+# shellcheck disable=SC2329,SC2317 # function is never invoked
 _shellcheck_targets() {
     local IFS=' '
 
@@ -64,19 +89,24 @@ _shellcheck_targets() {
 }
 
 check_shellcheck() {
-    if ! command -v shellcheck >/dev/null 2>&1; then
-        echo -e "${COLOR_RED}shellcheck is not installed! skipping...${COLOR_CLEAR}" >&2
-        return 0
-    fi
+    _check_targets_stub _shellcheck_targets shellcheck --
+}
 
-    local IFS=$'\n'
-    local targets
+# shellcheck disable=SC2329,SC2317 # function is never invoked
+_python_targets() {
+    local IFS=' '
 
-    read -r -a targets -d '' < <(_shellcheck_targets | sort -u) ||:
-    if [[ -n "${targets-}" ]]; then
-        shellcheck -- "${targets[@]}" || return 1
-        echo -e "${COLOR_GREEN}shellcheck passed${COLOR_CLEAR}: on ${#targets[@]} files." >&2
-    fi
+    ${GIT_LS_FILES} -- '*.py'
+    ${GIT_LS_FILES} -z -- '**scripts/*' '**/bin/*' '**/sbin/*' ':!:*.'{j2,jinja2,jinja} \
+        | xargs -0 -r awk -- 'FNR>1 {nextfile} /^#![^ ]+[/ ](python3?)$/ {print FILENAME; nextfile}'
+}
+
+check_pylint() {
+    _check_targets_stub _python_targets pylint --disable duplicate-code,import-error --
+}
+
+check_black() {
+    _check_targets_stub _python_targets black --check -l 120 --target-version=py311 --
 }
 
 run_linters=0
@@ -84,7 +114,7 @@ run_linters=0
 if [[ $# -eq 0 ]]; then
     if [[ -t 1 ]]; then
         exec < /dev/tty
-        echo -en "${COLOR_YELLOW}Run ansible-lint and shellcheck?${COLOR_CLEAR} [y/N]" >&2
+        echo -en "${COLOR_YELLOW}Run ansible-lint and linters for scripts?${COLOR_CLEAR} [y/N]" >&2
         read -r answer
         if [[ "$answer" =~ ^[Yy] ]]; then
             run_linters=1
@@ -99,9 +129,11 @@ fi
 
 rc=0
 if [[ "$run_linters" -ne 0 ]]; then
-    check_ansible_lint || (( rc+=4 ))
-    check_shellcheck   || (( rc+=8 ))
+    check_ansible_lint || (( rc=1 ))
+    check_shellcheck   || (( rc=1 ))
+    check_pylint       || (( rc=1 ))
+    check_black        || (( rc=1 ))
 fi
 
-check_ansible_vault    || (( rc+=16 ))
+check_ansible_vault    || (( rc=1 ))
 exit $rc
