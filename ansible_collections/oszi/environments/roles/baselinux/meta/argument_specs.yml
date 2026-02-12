@@ -50,6 +50,15 @@ argument_specs:
         type: dict
         required: false
 
+      baselinux_sysctl_conf_path:
+        description:
+          - Path to store O(baselinux_sysctl_values)
+          - Modern systemd no longer reads /etc/sysctl.conf
+          - Most distributions symlink /etc/sysctl.d/99-sysctl.conf to /etc/sysctl.conf
+        type: path
+        required: false
+        default: /etc/sysctl.d/99-sysctl.conf
+
       baselinux_sysctl_values:
         description:
           - Dictionary of custom sysctl kernel parameters to configure

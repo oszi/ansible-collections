@@ -32,6 +32,10 @@ baselinux_dhclient_resolvconf_disabled: false
 # Set inventory_hostname to avoid DNS hanging during hostname lookup.
 # * {hostname.example.com hostname: IP_ADDRESS}
 baselinux_etc_hosts: "{{ {inventory_hostname: '127.0.0.1'} }}"
+# Path to store baselinux_sysctl_values:
+# Modern systemd no longer reads /etc/sysctl.conf
+# Most distributions symlink /etc/sysctl.d/99-sysctl.conf to /etc/sysctl.conf
+baselinux_sysctl_conf_path: "/etc/sysctl.d/99-sysctl.conf"
 # Dict of custom sysctl values:
 baselinux_sysctl_values: {}
 # Dict of udev rules to install under /etc/udev/rules.d/{{ item.key }}.rules

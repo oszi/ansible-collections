@@ -13,6 +13,7 @@
   ansible.posix.sysctl:
     name: "{{ item.key }}"
     value: "{{ item.value }}"
+    sysctl_file: "{{ baselinux_sysctl_conf_path }}"
     sysctl_set: true
     reload: true
     state: "present"
