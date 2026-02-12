@@ -1,10 +1,9 @@
 ---
 # Use facts_previously_gathered_subset for the very first time to support implicit gathering.
-# This task always runs so role dependencies are always completed.
 - name: Set previously gathered subset
+  when: facts_gathered_subset_cache is not defined
   ansible.builtin.set_fact:
-    facts_gathered_subset_cache: "{{ facts_previously_gathered_subset | sort
-      if facts_gathered_subset_cache is not defined else facts_gathered_subset_cache }}"
+    facts_gathered_subset_cache: "{{ facts_previously_gathered_subset | sort }}"
     cacheable: true
 
 - name: "Gather missing subset - {{ facts_subset | sort | join(',') }}"

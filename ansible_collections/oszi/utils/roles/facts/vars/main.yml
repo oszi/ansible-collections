@@ -18,7 +18,8 @@ facts_subset_missing_explicit: "{{ facts_subset_missing
 
 # ansible_facts.gather_subset contains the last call of ansible.builtin.setup (unless filtered),
 # including implicit and "smart" gathering controlled by playbooks and ansible config.
-# It can contain negated subsets, ignore if it does besides !all and !min. Accept implicit min.
+# It can contain negated subsets, ignore everything if it does besides !all and !min.
+# Accept implicit min. While all,!min is technically valid, it means all.
 facts_previously_gathered_subset: "{{ [] if ansible_facts.gather_subset is not defined
   or ansible_facts.gather_subset | select('match', '^!(?!(all|min)$)') is truthy
   else ansible_facts.gather_subset | reject('match', '^!(all|min)$')
