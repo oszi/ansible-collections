@@ -5,3 +5,8 @@
     - name: Import facts tasks
       ansible.builtin.import_tasks:
         file: facts.yml
+
+    - name: Facts role completed
+      ansible.builtin.assert:
+        that: true
+        quiet: true

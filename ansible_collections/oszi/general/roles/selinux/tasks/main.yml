@@ -8,6 +8,6 @@
         file: selinux.yml
 
     - name: SELinux role completed
-      ansible.builtin.debug:
-        msg: prevent-multiple-inclusions
-      no_log: true
+      ansible.builtin.assert:
+        that: true
+        quiet: true

@@ -13,6 +13,6 @@
         file: systemd-networkd.yml
 
     - name: Systemd role completed
-      ansible.builtin.debug:
-        msg: prevent-multiple-inclusions
-      no_log: true
+      ansible.builtin.assert:
+        that: true
+        quiet: true
