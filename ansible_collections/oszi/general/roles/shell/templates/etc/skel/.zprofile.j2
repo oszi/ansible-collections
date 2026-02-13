@@ -7,3 +7,8 @@
 if [ -f ~/.profile ]; then
     . ~/.profile
 fi
+{% if ansible_facts.os_family == 'Debian' %}
+
+# See /etc/zsh/zshrc vs {{ shell_shrc_d_safe_path }}/01-key-bindings.zsh
+export DEBIAN_PREVENT_KEYBOARD_CHANGES=1
+{% endif %}

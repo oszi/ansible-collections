@@ -6,11 +6,6 @@
 export {{ key | quote }}={{ value | quote }}
 {% endfor %}
 {% endif %}
-{% if ansible_facts.os_family == 'Debian' %}
-
-# See /etc/zsh/zshrc
-export DEBIAN_PREVENT_KEYBOARD_CHANGES=1
-{% endif %}
 {% if shell_search_paths %}
 
 # shellcheck disable=SC2043 # for loop run once
@@ -24,8 +19,7 @@ for i in {{ shell_search_paths | join(' ') }}; do
                 ;;
         esac
     fi
-    unset i
 done
-
+unset i
 export PATH
 {% endif %}
