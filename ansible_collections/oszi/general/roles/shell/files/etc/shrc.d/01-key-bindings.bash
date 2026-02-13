@@ -40,6 +40,7 @@ declare -A key2seq=(
 )
 
 function bind2maps() {
+    local IFS=' '
     local key sequences seq map widget
     local -a maps
 
@@ -56,7 +57,7 @@ function bind2maps() {
     [[ -n "$sequences" ]] || return 1
     [[ -n "$widget"    ]] || return 1
 
-    for seq in $sequences; do
+    for seq in ${sequences}; do
         for map in "${maps[@]}"; do
             bind -m "$map" "\"${seq}\": ${widget}"
         done
