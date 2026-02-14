@@ -3,7 +3,7 @@ namespace: oszi
 name: thirdparty
 
 # Versioned by _scripts/galaxy-release.sh
-version: "4.38.0"
+version: "4.39.2"
 
 description: "Ansible collection for software from third-party sources."
 repository: "https://github.com/oszi/ansible-collections.git"
