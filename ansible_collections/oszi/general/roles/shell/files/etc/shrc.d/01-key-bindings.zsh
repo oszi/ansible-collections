@@ -64,12 +64,17 @@ function bind2maps() {
     done
 }
 
+function edit-command-line-fixed() {
+    edit-command-line
+    zle reset-prompt
+}
+
 autoload -Uz edit-command-line
 autoload -Uz up-line-or-beginning-search
 autoload -Uz down-line-or-beginning-search
 autoload -Uz select-word-style
 
-zle -N edit-command-line
+zle -N edit-command-line edit-command-line-fixed
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 zle -N select-word-style
