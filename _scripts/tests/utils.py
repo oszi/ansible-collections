@@ -19,6 +19,7 @@ class Color:
         return f"\033[{code}m" if STDIN_IS_ATTY else ""
 
     CLEAR = code(0)
+    BOLD = code(1)
     HIGHLIGHT = code(7)
     RED = code(31)
     GREEN = code(32)

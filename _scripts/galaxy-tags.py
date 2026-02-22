@@ -40,7 +40,7 @@ def get_galaxy_tags(tags_filter: Optional[List[str]] = None) -> Dict[str, List[s
     return {key: list(sorted(value)) for key, value in sorted(tags_to_roles.items())}
 
 
-def main():
+def main() -> None:
     app_args = args_parser.parse_args()
     tags_filter = [t.strip() for t in app_args.tags.split(",")] if app_args.tags else None
     result = get_galaxy_tags(tags_filter)

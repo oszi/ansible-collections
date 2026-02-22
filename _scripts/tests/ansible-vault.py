@@ -25,7 +25,7 @@ def run_ansible_vault_check() -> int:
         print(f"{Color.GREEN}ansible-vault files check passed.{Color.CLEAR}", file=sys.stderr)
         return 0
 
-    print(*paths, sep="\n")
+    print(*paths, sep="\n", file=sys.stderr)
     print(f"{Color.RED}Clear-text private keys or vault files!{Color.CLEAR}", file=sys.stderr)
     return 1
 

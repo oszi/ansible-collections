@@ -56,6 +56,7 @@ run_tests() {
 rc=0
 if [[ "$run_linters" -ne 0 ]]; then
     run_tests ansible-lint.py || (( rc=1 ))
+    run_tests galaxy-tags.py  || (( rc=1 ))
     run_tests shellcheck.py   || (( rc=1 ))
     run_tests python.py       || (( rc=1 ))
 fi
