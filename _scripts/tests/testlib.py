@@ -11,6 +11,13 @@ assert sys.version_info >= (3, 11)
 # colors are probably supported if stdin is a terminal.
 STDIN_IS_ATTY = os.isatty(sys.stdin.fileno())
 
+# External return codes.
+RC_NOT_FOUND = 127
+RC_INTERRUPT = 130
+
+# Override /bin/sh on Debian/Ubuntu for globbing.
+SHELL = "/bin/bash"
+
 
 # pylint: disable=too-few-public-methods
 class Color:
@@ -30,7 +37,7 @@ class Color:
 
 
 def run_shell(shell_cmd: str, **kwargs) -> List[str]:
-    return sp.check_output(shell_cmd, encoding="utf-8", shell=True, **kwargs).splitlines()
+    return sp.check_output(shell_cmd, executable=SHELL, shell=True, encoding="utf-8", **kwargs).splitlines()
 
 
 def run_tests(cmd: List[str], paths: List[str], **kwargs) -> int:
@@ -39,17 +46,25 @@ def run_tests(cmd: List[str], paths: List[str], **kwargs) -> int:
     if not isinstance(paths, list):
         raise TypeError("paths is not a list")
 
+    print(
+        f"{Color.CYAN}Running: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}",
+        f"# {len(paths)} files" if paths else "",
+        file=sys.stderr,
+    )
+
     try:
         with sp.Popen(cmd + paths, encoding="utf-8", **kwargs) as proc:
             rc = proc.wait()
-
             if rc != 0:
                 print(f"{Color.RED}{cmd[0]} failed!{Color.CLEAR}", file=sys.stderr)
-            elif paths:
-                print(f"{Color.GREEN}{cmd[0]} passed on{Color.CLEAR}: {len(paths)} files", file=sys.stderr)
-
+            else:
+                print(f"{Color.GREEN}{cmd[0]} passed.{Color.CLEAR}", file=sys.stderr)
             return rc
 
     except FileNotFoundError:
         print(f"{Color.RED}{cmd[0]} not found!{Color.CLEAR}", file=sys.stderr)
-        return 1
+        return RC_NOT_FOUND
+
+    except KeyboardInterrupt:
+        print(f"{Color.MAGENTA}{cmd[0]} was interrupted!{Color.CLEAR}", file=sys.stderr)
+        return RC_INTERRUPT

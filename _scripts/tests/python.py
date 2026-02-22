@@ -5,8 +5,7 @@ import sys
 
 from argparse import ArgumentParser
 
-from utils import run_shell, run_tests
-
+from testlib import run_shell, run_tests
 
 GIT_LS_FILES = r"""
 git ls-files -c -o --exclude-standard --deduplicate -- '*.py'

@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 import yaml
 
-from utils import Color
+from testlib import Color
 
 GIT_DIR = Path(__file__).parent.parent.parent.resolve()
 NAMESPACE_DIR = GIT_DIR / "ansible_collections" / "oszi"
@@ -71,23 +71,26 @@ def assert_role_tags() -> bool:
             errors.append(f"{role_must_have} the rootless tag or assert root privileges")
             assert_root_privileges_noted = True
 
-    if not errors:
-        print(f"{Color.GREEN}galaxy-tags check passed.{Color.CLEAR}", file=sys.stderr)
-        return True
+    if errors:
+        print(*errors, sep="\n", file=sys.stderr)
+        if assert_root_privileges_noted:
+            print(f"{Color.YELLOW}Accepted dependencies to assert root privileges:{Color.CLEAR}", file=sys.stderr)
+            yaml.dump(ACCEPTED_ASSERT_ROOT_PRIVILEGES_DEPENDENCIES, sys.stderr)
 
-    print(*errors, sep="\n", file=sys.stderr)
-    if assert_root_privileges_noted:
-        print(f"{Color.YELLOW}Accepted dependencies to assert root privileges:{Color.CLEAR}", file=sys.stderr)
-        yaml.dump(ACCEPTED_ASSERT_ROOT_PRIVILEGES_DEPENDENCIES, sys.stderr)
-
-    print(f"{Color.RED}galaxy-tags check failed!{Color.CLEAR}", file=sys.stderr)
-    return False
+        return False
+    return True
 
 
 def main() -> None:
     _ = args_parser.parse_args()
-    res = assert_role_tags()
-    sys.exit(0 if res else 1)
+    print(f"{Color.CYAN}Running: {Color.BOLD}galaxy-tags.py{Color.CLEAR}", file=sys.stderr)
+
+    if assert_role_tags():
+        print(f"{Color.GREEN}galaxy-tags check passed.{Color.CLEAR}", file=sys.stderr)
+        sys.exit(0)
+
+    print(f"{Color.RED}galaxy-tags check failed!{Color.CLEAR}", file=sys.stderr)
+    sys.exit(1)
 
 
 if __name__ == "__main__":

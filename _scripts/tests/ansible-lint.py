@@ -6,8 +6,7 @@ import sys
 
 from argparse import ArgumentParser
 
-from utils import run_tests
-
+from testlib import run_tests
 
 args_parser = ArgumentParser(
     usage="ansible-lint.py [--help]",

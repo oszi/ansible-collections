@@ -7,7 +7,9 @@
 # - Git tags are strictly incremental and contain all relevant release information.
 # The collections are always installed from source; there is no Ansible Galaxy release.
 # There are no galaxy changelogs - use the git history instead.
+# This script does not support symlinking into a parent repository - e.g. inventory.
 set -euo pipefail
+cd -- "$(git rev-parse --show-toplevel)"
 
 if [[ ! "${1:-}" =~ ^(major|minor|patch)$ ]]; then
     echo "Usage: ${0} major|minor|patch" >&2
@@ -17,6 +19,13 @@ fi
 SEVERITY="$1"
 NAMESPACE="oszi"
 
+echo -en "Run all tests (e.g., ansible-lint)? [y/N]" >&2
+read -r answer
+if [[ "$answer" =~ ^[Yy] ]]; then
+    _scripts/run-tests.sh
+fi
+
+# Change directory to the namespace from here on.
 cd -- "$(git rev-parse --show-toplevel)/ansible_collections/${NAMESPACE}" || {
     echo "Source 'ansible_collections/${NAMESPACE}' not found." >&2
     exit 1

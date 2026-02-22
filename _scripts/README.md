@@ -27,3 +27,6 @@ Verify and reset the repository to a remote branch - master by default.
 
 * [git-verify.sh](git-verify.sh)  
 Verify the signatures of all git branches and tags.
+
+* [run-tests.sh](run-tests.sh)  
+Run test scripts in [_scripts/tests](tests) (e.g., ansible-lint or shellcheck).
