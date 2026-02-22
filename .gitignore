@@ -27,15 +27,18 @@ venv/
 
 ### Editors ###
 *.sw[op]
-*.iml
-*.ipr
-*.iws
 .idea/
 .*project
 .settings/
 .vscode/
+.zed/
 .\#*
 \#*\#
+
+### Agents ###
+.claude/
+.codex/
+opencode.json
 
 ### OSX ###
 .DS_Store
