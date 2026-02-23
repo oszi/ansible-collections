@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # pylint: disable=line-too-long,missing-function-docstring,missing-module-docstring
-
 import sys
 
 from argparse import ArgumentParser
 
-from testlib import run_shell, run_tests
+from testlib import run_shell_get_lines, run_tests
 
 GIT_LS_FILES = r"""
+set -euo pipefail
 git ls-files -c -o --exclude-standard --deduplicate -- '*.py'
 git ls-files -c -o --exclude-standard --deduplicate -z -- '**scripts/*' '**/bin/*' '**/sbin/*' ':!:*.'{j2,jinja2,jinja} \
     | xargs -0 -r awk -- 'FNR>1 {nextfile} /^#![^ ]+[/ ](python3?)$/ {print FILENAME; nextfile}'
@@ -27,7 +27,7 @@ args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 
 def main() -> None:
     app_args = args_parser.parse_args()
-    paths = run_shell(GIT_LS_FILES) if not app_args.paths else app_args.paths
+    paths = app_args.paths or run_shell_get_lines(GIT_LS_FILES, unique=True)
 
     if app_args.black:
         black_cmd = BLACK_CMD.copy()

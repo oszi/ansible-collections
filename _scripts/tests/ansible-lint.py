@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
-
 import os
 import sys
 

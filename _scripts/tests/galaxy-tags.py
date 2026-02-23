@@ -83,7 +83,7 @@ def assert_role_tags() -> bool:
 
 def main() -> None:
     _ = args_parser.parse_args()
-    print(f"{Color.CYAN}Running: {Color.BOLD}galaxy-tags.py{Color.CLEAR}", file=sys.stderr)
+    print(f"{Color.CYAN}Running test: {Color.BOLD}galaxy-tags.py{Color.CLEAR}", file=sys.stderr)
 
     if assert_role_tags():
         print(f"{Color.GREEN}galaxy-tags check passed.{Color.CLEAR}", file=sys.stderr)
