@@ -129,13 +129,17 @@ def ansible_command(args: List[str], env: Mapping[str, str] = None) -> str:
                     output.write(line)
                     skipped = True
 
-            proc.wait()
+            rc = proc.wait()
+            if rc != 0:
+                sys.exit(rc)
+
         except KeyboardInterrupt:
             proc.terminate()
-            proc.wait()
-
-        if proc.returncode != 0:
-            sys.exit(proc.returncode)
+            try:
+                proc.wait(timeout=3.0)
+            except sp.TimeoutExpired:
+                proc.kill()
+            sys.exit(130)
 
         return output.getvalue()
 
