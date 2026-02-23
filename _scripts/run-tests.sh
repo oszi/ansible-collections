@@ -24,13 +24,13 @@ if ! [[ -d "$tests_dir" ]]; then
     tests_dir="collections/${tests_dir}"
     if ! [[ -d "$tests_dir" ]]; then
         echo -e "${COLOR_RED}${tests_dir} not found!${COLOR_CLEAR}" >&2
-        exit 1
+        exit 127
     fi
 fi
 
 # Run all tests by default.
 if [[ $# -eq 0 ]]; then
-    tests=("$tests_dir"/*)
+    tests=("$tests_dir"/*.py)
 elif [[ "${1-}" =~ ^-*(h|help)$ ]]; then
     echo "Usage: $0 [ansible-lint] [python] [shellcheck] ..." >&2
     exit 2

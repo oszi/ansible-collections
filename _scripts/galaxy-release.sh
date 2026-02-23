@@ -23,10 +23,11 @@ echo -en "Run all tests (e.g., ansible-lint)? [y/N]" >&2
 read -r answer
 if [[ "$answer" =~ ^[Yy] ]]; then
     _scripts/run-tests.sh
+    echo "Tests completed. Proceeding with the release..." >&2
 fi
 
 # Change directory to the namespace from here on.
-cd -- "$(git rev-parse --show-toplevel)/ansible_collections/${NAMESPACE}" || {
+cd -- "ansible_collections/${NAMESPACE}" || {
     echo "Source 'ansible_collections/${NAMESPACE}' not found." >&2
     exit 1
 }

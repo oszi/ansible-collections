@@ -13,7 +13,7 @@ if ! [[ -f "$run_tests" ]]; then
     run_tests="collections/${run_tests}"
     if ! [[ -f "$run_tests" ]]; then
         echo "${run_tests} not found!" >&2
-        exit 1
+        exit 127
     fi
 fi
 
@@ -22,5 +22,8 @@ if [[ $# -ne 0 ]]; then
     echo "See also: ${run_tests}" >&2
     exit 2
 fi
+
+# Enable colors indirectly, reconnect stdin to the terminal.
+! [[ -t 1 ]] || exec < /dev/tty
 
 "$run_tests" ansible-vault
