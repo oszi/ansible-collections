@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 import yaml
 
-from testlib import Color
+from testlib import Color, RC, boolean_test_decorator, error_code
 
 GIT_DIR = Path(__file__).parent.parent.parent.resolve()
 NAMESPACE_DIR = GIT_DIR / "ansible_collections" / "oszi"
@@ -35,15 +35,16 @@ args_parser = ArgumentParser(
 
 
 def assert_root_privileges_dependency(meta: Dict[str, Any]) -> bool:
-    if "dependencies" in meta:
-        for dependency in meta["dependencies"]:
+    if dependencies := meta.get("dependencies"):
+        for dependency in dependencies:
             if dependency in ACCEPTED_ASSERT_ROOT_PRIVILEGES_DEPENDENCIES:
                 return True
     return False
 
 
+@boolean_test_decorator("galaxy-tags.py")
 def assert_role_tags() -> bool:
-    errors = []
+    rc = RC.OK
     assert_root_privileges_noted = False
 
     for meta_path in NAMESPACE_DIR.glob(META_GLOB):
@@ -52,27 +53,30 @@ def assert_role_tags() -> bool:
         role_fqcn = f"{NAMESPACE_DIR.name}.{collection_name}.{role_path.name}"
         role_must_have = f"{Color.BOLD}{role_fqcn}{Color.CLEAR} must have"
 
-        with meta_path.open("r", encoding="utf-8") as f:
-            meta: Dict[str, Any] = yaml.safe_load(f)
+        try:
+            with meta_path.open("r", encoding="utf-8") as f:
+                meta: Dict[str, Any] = yaml.safe_load(f)
+        except (OSError, yaml.YAMLError):
+            rc = error_code(f"{role_must_have} a valid meta/main yaml file!")
+            continue
 
         try:
             tags = set(meta["galaxy_info"]["galaxy_tags"])
-        except KeyError:
-            errors.append(f"{role_must_have} galaxy tags, there are none!")
+        except (KeyError, TypeError):
+            rc = error_code(f"{role_must_have} galaxy tags, there are none!")
             continue
 
         if collection_name not in tags:
-            errors.append(f"{role_must_have} the tag: {Color.BOLD}{collection_name}{Color.CLEAR}")
+            rc = error_code(f"{role_must_have} the tag: {Color.BOLD}{collection_name}{Color.CLEAR}")
 
         if len(tags.intersection(MUTUALLY_EXCLUSIVE_TAGS)) != 1:
-            errors.append(f"{role_must_have} one of the tags: {MUTUALLY_EXCLUSIVE_TAGS_STR}")
+            rc = error_code(f"{role_must_have} one of the tags: {MUTUALLY_EXCLUSIVE_TAGS_STR}")
 
         if ("rootless" not in tags) ^ assert_root_privileges_dependency(meta):
-            errors.append(f"{role_must_have} the rootless tag or assert root privileges")
+            rc = error_code(f"{role_must_have} the rootless tag, OR assert root privileges!")
             assert_root_privileges_noted = True
 
-    if errors:
-        print(*errors, sep="\n", file=sys.stderr)
+    if rc != RC.OK:
         if assert_root_privileges_noted:
             print(f"{Color.YELLOW}Accepted dependencies to assert root privileges:{Color.CLEAR}", file=sys.stderr)
             yaml.dump(ACCEPTED_ASSERT_ROOT_PRIVILEGES_DEPENDENCIES, sys.stderr)
@@ -83,14 +87,7 @@ def assert_role_tags() -> bool:
 
 def main() -> None:
     _ = args_parser.parse_args()
-    print(f"{Color.CYAN}Running test: {Color.BOLD}galaxy-tags.py{Color.CLEAR}", file=sys.stderr)
-
-    if assert_role_tags():
-        print(f"{Color.GREEN}galaxy-tags check passed.{Color.CLEAR}", file=sys.stderr)
-        sys.exit(0)
-
-    print(f"{Color.RED}galaxy-tags check failed!{Color.CLEAR}", file=sys.stderr)
-    sys.exit(1)
+    assert_role_tags()
 
 
 if __name__ == "__main__":

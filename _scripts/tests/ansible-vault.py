@@ -4,7 +4,7 @@ import sys
 
 from argparse import ArgumentParser
 
-from testlib import Color, run_shell_get_lines
+from testlib import boolean_test_decorator, run_shell_get_lines
 
 GIT_LS_FILES = r"""
 set -euo pipefail
@@ -19,6 +19,7 @@ args_parser = ArgumentParser(
 )
 
 
+@boolean_test_decorator("ansible-vault.py")
 def assert_ansible_vault_files() -> bool:
     if paths := run_shell_get_lines(GIT_LS_FILES):
         print(*paths, sep="\n", file=sys.stderr)
@@ -28,14 +29,7 @@ def assert_ansible_vault_files() -> bool:
 
 def main() -> None:
     _ = args_parser.parse_args()
-    print(f"{Color.CYAN}Running test: {Color.BOLD}ansible-vault.py{Color.CLEAR}", file=sys.stderr)
-
-    if assert_ansible_vault_files():
-        print(f"{Color.GREEN}ansible-vault files passed.{Color.CLEAR}", file=sys.stderr)
-        sys.exit(0)
-
-    print(f"{Color.RED}ansible-vault files failed!{Color.CLEAR}", file=sys.stderr)
-    sys.exit(1)
+    assert_ansible_vault_files()
 
 
 if __name__ == "__main__":

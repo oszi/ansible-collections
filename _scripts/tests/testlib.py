@@ -1,101 +1,166 @@
-# pylint: disable=line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
+# pylint: disable=too-few-public-methods,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
+import functools
 import os
 import subprocess as sp
 import sys
+import traceback
 
-from typing import List
+from typing import List, Optional
 
 assert sys.version_info >= (3, 11)
 
-# During a git hook execution stdout is not a terminal but
-# colors are probably supported if stdin is a terminal.
-STDIN_IS_TTY = os.isatty(sys.stdin.fileno())
-STDOUT_IS_TTY = os.isatty(sys.stdout.fileno())
-
-# External return codes.
-RC_TIMED_OUT = 124
-RC_NOT_FOUND = 127
-RC_INTERRUPT = 130
-
-# Override /bin/sh on Debian/Ubuntu for globbing.
+# Override /bin/sh for bash on Debian/Ubuntu.
 SHELL = "/bin/bash"
 
+# Set env TESTLIB_DEBUG=True to print tracebacks for caught exceptions.
+DEBUG = os.getenv("TESTLIB_DEBUG", "False").upper() in ("TRUE", "YES", "1")
+DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
 
-# pylint: disable=too-few-public-methods
+
 class Color:
-    @staticmethod
-    def code(code: int) -> str:
-        return f"\033[{code}m" if STDIN_IS_TTY or STDOUT_IS_TTY else ""
+    # During a git hook execution stdout is not a terminal but
+    # colors are probably supported if stdin is a terminal.
+    COLORS_ENABLED = os.isatty(sys.stdin.fileno()) or os.isatty(sys.stdout.fileno())
 
-    CLEAR = code(0)
-    BOLD = code(1)
-    HIGHLIGHT = code(7)
-    RED = code(31)
-    GREEN = code(32)
-    YELLOW = code(33)
-    BLUE = code(34)
-    MAGENTA = code(35)
-    CYAN = code(36)
+    class ColorCode:
+        def __init__(self, code: int):
+            self.code = code
+
+        def __str__(self) -> str:
+            return f"\033[{self.code}m" if Color.COLORS_ENABLED else ""
+
+    CLEAR = ColorCode(0)
+    BOLD = ColorCode(1)
+    HIGHLIGHT = ColorCode(7)
+    RED = ColorCode(31)
+    GREEN = ColorCode(32)
+    YELLOW = ColorCode(33)
+    BLUE = ColorCode(34)
+    MAGENTA = ColorCode(35)
+    CYAN = ColorCode(36)
+
+
+class RC:
+    OK = 0
+    ERROR = 1
+    TIMEOUT = 124
+    NOT_FOUND = 127
+    INTERRUPT = 130
+
+    # Distinguished from regular errors.
+    EARLY_EXIT_CODES = (INTERRUPT, TIMEOUT)
+
+
+def success(subject: str) -> int:
+    print(f"{Color.GREEN}{subject} passed!{Color.CLEAR}", file=sys.stderr)
+    return RC.OK
+
+
+def error_code(message: str, rc: int = RC.ERROR) -> int:
+    if rc == RC.OK:
+        raise ValueError("testlib.error_code called with RC.OK")
+
+    if rc in RC.EARLY_EXIT_CODES:
+        color = Color.MAGENTA
+    else:
+        color = Color.RED
+
+    print(f"{color}{message}{Color.CLEAR}", file=sys.stderr)
+    return rc
+
+
+def error_code_exc(subject: str, err: BaseException) -> int:
+    if isinstance(err, FileNotFoundError):
+        message = f"{subject} not found!"
+        rc = RC.NOT_FOUND
+    elif isinstance(err, KeyboardInterrupt):
+        message = f"{subject} was interrupted!"
+        rc = RC.INTERRUPT
+    elif isinstance(err, sp.TimeoutExpired):
+        message = f"{subject} has timed out!"
+        rc = RC.TIMEOUT
+    elif isinstance(err, sp.CalledProcessError):
+        message = f"{subject} failed!"
+        rc = err.returncode
+    else:
+        message = f"{subject} failed: {err}"
+        rc = RC.ERROR
+
+    if DEBUG:
+        traceback.print_exception(err)
+    elif rc not in RC.EARLY_EXIT_CODES:
+        message += f"{Color.CLEAR}\n{DEBUG_HELP}"
+
+    return error_code(message, rc)
+
+
+def print_test_cmd(cmd: List[str], paths: Optional[List[str]] = None) -> None:
+    message = f"{Color.CYAN}Running test: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
+    if paths:
+        message += f" # {len(paths)} path(s)"
+
+    print(message, file=sys.stderr)
 
 
 def run_shell_get_lines(shell_cmd: str, unique: bool = False, **kwargs) -> List[str]:
     try:
         lines = sp.check_output(shell_cmd, executable=SHELL, shell=True, encoding="utf-8", **kwargs).splitlines()
 
-    except KeyboardInterrupt:
-        print(f"{Color.MAGENTA}testlib.run_shell_get_lines was interrupted!{Color.CLEAR}", file=sys.stderr)
-        sys.exit(RC_INTERRUPT)
+    except FileNotFoundError as err:
+        sys.exit(error_code_exc(f"testlib.SHELL={SHELL}", err))
 
-    except sp.TimeoutExpired:
-        print(f"{Color.MAGENTA}testlib.run_shell_get_lines has timed out!{Color.CLEAR}", file=sys.stderr)
-        sys.exit(RC_TIMED_OUT)
-
-    except sp.CalledProcessError as e:
-        print(f"{Color.YELLOW}{shell_cmd}{Color.CLEAR}", file=sys.stderr)
-        print(f"{Color.RED}testlib.run_shell_get_lines failed!{Color.CLEAR}", file=sys.stderr)
-        sys.exit(e.returncode)
-
-    except FileNotFoundError:
-        print(f"{Color.RED}testlib.SHELL={SHELL} not found!{Color.CLEAR}", file=sys.stderr)
-        sys.exit(RC_NOT_FOUND)
+    except (sp.SubprocessError, KeyboardInterrupt) as err:
+        sys.exit(error_code_exc("testlib.run_shell_get_lines", err))
 
     if unique:
         lines = list(set(lines))
     return lines
 
 
-def run_tests(cmd: List[str], paths: List[str], timeout: float = None, **kwargs) -> int:
+def run_tests(cmd: List[str], paths: List[str], timeout: Optional[float] = None, **kwargs) -> int:
     if not isinstance(cmd, list):
         raise TypeError("cmd is not a list")
     if not isinstance(paths, list):
         raise TypeError("paths is not a list")
 
-    print(
-        f"{Color.CYAN}Running test: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}",
-        f"# {len(paths)} path(s)" if paths else "",
-        file=sys.stderr,
-    )
-
+    print_test_cmd(cmd, paths)
     try:
         with sp.Popen(cmd + paths, encoding="utf-8", **kwargs) as proc:
             try:
                 rc = proc.wait(timeout)
-                if rc == 0:
-                    print(f"{Color.GREEN}{cmd[0]} passed.{Color.CLEAR}", file=sys.stderr)
-                else:
-                    print(f"{Color.RED}{cmd[0]} failed!{Color.CLEAR}", file=sys.stderr)
+                if rc == RC.OK:
+                    return success(cmd[0])
+                return error_code(cmd[0], rc)
+
+            except (sp.TimeoutExpired, KeyboardInterrupt) as err:
+                rc = error_code_exc(cmd[0], err)
+                proc.terminate()
+                try:
+                    proc.wait(timeout=3.0)
+                except sp.TimeoutExpired:
+                    proc.kill()
                 return rc
 
-            except KeyboardInterrupt:
-                print(f"{Color.MAGENTA}{cmd[0]} was interrupted!{Color.CLEAR}", file=sys.stderr)
-                proc.terminate()
-                return RC_INTERRUPT
+    except (sp.SubprocessError, KeyboardInterrupt, FileNotFoundError) as err:
+        return error_code_exc(cmd[0], err)
 
-            except sp.TimeoutExpired:
-                print(f"{Color.MAGENTA}{cmd[0]} has timed out!{Color.CLEAR}", file=sys.stderr)
-                proc.terminate()
-                return RC_TIMED_OUT
 
-    except FileNotFoundError:
-        print(f"{Color.RED}{cmd[0]} not found!{Color.CLEAR}", file=sys.stderr)
-        return RC_NOT_FOUND
+def boolean_test_decorator(subject: str):
+    def inner_decorator(func):
+        @functools.wraps(func)
+        def inner_function(*args, **kwargs):
+            print_test_cmd([subject])
+            try:
+                result = func(*args, **kwargs)
+
+            # Cannot handle sp.TimeoutExpired here without a reference to the process.
+            except (sp.CalledProcessError, KeyboardInterrupt) as err:
+                sys.exit(error_code_exc(subject, err))
+
+            if result is True:
+                sys.exit(success(subject))
+            sys.exit(error_code(f"{subject} failed!"))
+
+        return inner_function
+
+    return inner_decorator
