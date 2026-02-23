@@ -67,7 +67,7 @@ def assert_role_tags() -> bool:
         if len(tags.intersection(MUTUALLY_EXCLUSIVE_TAGS)) != 1:
             errors.append(f"{role_must_have} one of the tags: {MUTUALLY_EXCLUSIVE_TAGS_STR}")
 
-        if "rootless" not in tags and not assert_root_privileges_dependency(meta):
+        if ("rootless" not in tags) ^ assert_root_privileges_dependency(meta):
             errors.append(f"{role_must_have} the rootless tag or assert root privileges")
             assert_root_privileges_noted = True
 
