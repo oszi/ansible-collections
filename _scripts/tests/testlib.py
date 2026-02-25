@@ -57,6 +57,8 @@ def success(subject: str) -> int:
 
 
 def error_code(message: str, rc: int = RC.ERROR) -> int:
+    if not isinstance(rc, int):
+        raise TypeError("testlib.error_code called with non-integer rc")
     if rc == RC.OK:
         raise ValueError("testlib.error_code called with RC.OK")
 
@@ -71,7 +73,7 @@ def error_code(message: str, rc: int = RC.ERROR) -> int:
 
 def error_code_exc(subject: str, err: BaseException) -> int:
     if isinstance(err, FileNotFoundError):
-        message = f"{subject} not found!"
+        message = f"{subject}: {err.filename or '?'} not found!"
         rc = RC.NOT_FOUND
     elif isinstance(err, KeyboardInterrupt):
         message = f"{subject} was interrupted!"
@@ -94,6 +96,10 @@ def error_code_exc(subject: str, err: BaseException) -> int:
     return error_code(message, rc)
 
 
+def print_warning(message: str) -> None:
+    print(f"{Color.YELLOW}WARNING: {message}{Color.CLEAR}", file=sys.stderr)
+
+
 def print_test_cmd(cmd: List[str], paths: Optional[List[str]] = None) -> None:
     message = f"{Color.CYAN}Running test: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
     if paths:
@@ -109,7 +115,7 @@ def run_shell_get_lines(shell_cmd: str, unique: bool = False, **kwargs) -> List[
     except FileNotFoundError as err:
         sys.exit(error_code_exc(f"testlib.SHELL={SHELL}", err))
 
-    except (sp.SubprocessError, KeyboardInterrupt) as err:
+    except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
         sys.exit(error_code_exc("testlib.run_shell_get_lines", err))
 
     if unique:
@@ -125,7 +131,7 @@ def run_tests(cmd: List[str], paths: List[str], timeout: Optional[float] = None,
 
     print_test_cmd(cmd, paths)
     try:
-        with sp.Popen(cmd + paths, encoding="utf-8", **kwargs) as proc:
+        with sp.Popen(cmd + paths, **kwargs) as proc:
             try:
                 rc = proc.wait(timeout)
                 if rc == RC.OK:
@@ -141,7 +147,7 @@ def run_tests(cmd: List[str], paths: List[str], timeout: Optional[float] = None,
                     proc.kill()
                 return rc
 
-    except (sp.SubprocessError, KeyboardInterrupt, FileNotFoundError) as err:
+    except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
         return error_code_exc(cmd[0], err)
 
 
@@ -153,8 +159,12 @@ def boolean_test_decorator(subject: str):
             try:
                 result = func(*args, **kwargs)
 
-            # Cannot handle sp.TimeoutExpired here without a reference to the process.
-            except (sp.CalledProcessError, KeyboardInterrupt) as err:
+            except (sp.TimeoutExpired, KeyboardInterrupt) as err:
+                print_warning(f"Unhandled {err.__class__.__name__}. Beware of zombies.")
+                sys.exit(error_code_exc(subject, err))
+
+            except (sp.SubprocessError, OSError) as err:
+                print_warning(f"Unhandled {err.__class__.__name__}.")
                 sys.exit(error_code_exc(subject, err))
 
             if result is True:
