@@ -10,7 +10,7 @@ GIT_LS_FILES = r"""
 set -euo pipefail
 git ls-files -c -o --exclude-standard --deduplicate -z -- '**_vars/**vault.'{yaml,yml,json} '*.'{key,csr,p12} \
     '**/'{private,privkey,\*[-.]key}.pem \
-    | xargs -0 -r grep --files-without-match -- $'^$ANSIBLE_VAULT' ||:
+    | (xargs -0 -r grep --files-without-match -- $'^$ANSIBLE_VAULT' ||:)
 """
 
 args_parser = ArgumentParser(
