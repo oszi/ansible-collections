@@ -44,7 +44,6 @@ class RC:
     OK = 0
     ERROR = 1
     TIMEOUT = 124
-    NOT_FOUND = 127
     INTERRUPT = 130
 
     # Distinguished from regular errors.
@@ -72,10 +71,7 @@ def error_code(message: str, rc: int = RC.ERROR) -> int:
 
 
 def error_code_exc(subject: str, err: BaseException) -> int:
-    if isinstance(err, FileNotFoundError):
-        message = f"{subject}: {err.filename or '?'} not found!"
-        rc = RC.NOT_FOUND
-    elif isinstance(err, KeyboardInterrupt):
+    if isinstance(err, KeyboardInterrupt):
         message = f"{subject} was interrupted!"
         rc = RC.INTERRUPT
     elif isinstance(err, sp.TimeoutExpired):
@@ -84,6 +80,9 @@ def error_code_exc(subject: str, err: BaseException) -> int:
     elif isinstance(err, sp.CalledProcessError):
         message = f"{subject} failed!"
         rc = err.returncode
+    elif isinstance(err, OSError):
+        message = f"{subject} failed: {err}"
+        rc = err.errno or RC.ERROR
     else:
         message = f"{subject} failed: {err}"
         rc = RC.ERROR
@@ -111,9 +110,6 @@ def print_test_cmd(cmd: List[str], paths: Optional[List[str]] = None) -> None:
 def run_shell_get_lines(shell_cmd: str, unique: bool = False, **kwargs) -> List[str]:
     try:
         lines = sp.check_output(shell_cmd, executable=SHELL, shell=True, encoding="utf-8", **kwargs).splitlines()
-
-    except FileNotFoundError as err:
-        sys.exit(error_code_exc(f"testlib.SHELL={SHELL}", err))
 
     except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
         sys.exit(error_code_exc("testlib.run_shell_get_lines", err))
@@ -159,12 +155,8 @@ def boolean_test_decorator(subject: str):
             try:
                 result = func(*args, **kwargs)
 
-            except (sp.TimeoutExpired, KeyboardInterrupt) as err:
+            except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
                 print_warning(f"Unhandled {err.__class__.__name__}. Beware of zombies.")
-                sys.exit(error_code_exc(subject, err))
-
-            except (sp.SubprocessError, OSError) as err:
-                print_warning(f"Unhandled {err.__class__.__name__}.")
                 sys.exit(error_code_exc(subject, err))
 
             if result is True:
