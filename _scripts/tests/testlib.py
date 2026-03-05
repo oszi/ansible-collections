@@ -18,9 +18,10 @@ DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
 
 
 class Color:
-    # During a git hook execution stdout is not a terminal but
-    # colors are probably supported if stdin is a terminal.
-    COLORS_ENABLED = os.isatty(sys.stdin.fileno()) or os.isatty(sys.stdout.fileno())
+    try:
+        COLORS_ENABLED = os.isatty(sys.stdout.fileno())
+    except (AttributeError, OSError):
+        COLORS_ENABLED = False
 
     class ColorCode:
         def __init__(self, code: int):

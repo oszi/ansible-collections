@@ -23,7 +23,7 @@ if [[ $# -ne 0 ]]; then
     exit 2
 fi
 
-# Enable colors indirectly, reconnect stdin to the terminal.
+# Enable colors indirectly, reconnect stdout/stdin to the terminal.
 ! [[ -t 1 ]] || exec < /dev/tty
 
 "$run_tests" ansible-vault
