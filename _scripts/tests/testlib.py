@@ -115,7 +115,7 @@ def run_shell_get_lines(shell_cmd: str, unique: bool = False, **kwargs) -> List[
         sys.exit(error_code_exc("testlib.run_shell_get_lines", err))
 
     if unique:
-        lines = list(set(lines))
+        lines = list(dict.fromkeys(lines))
     return lines
 
 
