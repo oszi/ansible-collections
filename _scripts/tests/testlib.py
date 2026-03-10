@@ -5,23 +5,33 @@ import subprocess as sp
 import sys
 import traceback
 
-from typing import List, Optional
+from typing import Any, List, Optional, IO
 
 assert sys.version_info >= (3, 11)
 
 # Override /bin/sh for bash on Debian/Ubuntu.
 SHELL = "/bin/bash"
 
-# Set env TESTLIB_DEBUG=True to print tracebacks for caught exceptions.
-DEBUG = os.getenv("TESTLIB_DEBUG", "False").upper() in ("TRUE", "YES", "1")
-DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
+
+def getenv_bool(key: str, default: bool = False) -> bool:
+    if key not in os.environ:
+        return default
+    return os.environ[key].lower() in {"true", "yes", "1"}
+
+
+DEBUG = getenv_bool("TESTLIB_DEBUG")
+DEBUG_HELP = "HINT: Set env TESTLIB_DEBUG=True for traceback."
+
+
+def io_is_tty(io: IO | Any) -> bool:
+    try:
+        return os.isatty(io.fileno())
+    except (AttributeError, OSError):
+        return False
 
 
 class Color:
-    try:
-        COLORS_ENABLED = os.isatty(sys.stdout.fileno())
-    except (AttributeError, OSError):
-        COLORS_ENABLED = False
+    COLORS_ENABLED = getenv_bool("TESTLIB_COLORS_ENABLED", io_is_tty(sys.stdout))
 
     class ColorCode:
         def __init__(self, code: int):
@@ -44,16 +54,12 @@ class Color:
 class RC:
     OK = 0
     ERROR = 1
+    MISUSE = 2
     TIMEOUT = 124
     INTERRUPT = 130
 
     # Distinguished from regular errors.
-    EARLY_EXIT_CODES = (INTERRUPT, TIMEOUT)
-
-
-def success(subject: str) -> int:
-    print(f"{Color.GREEN}{subject} passed!{Color.CLEAR}", file=sys.stderr)
-    return RC.OK
+    EARLY_EXIT_CODES = frozenset({TIMEOUT, INTERRUPT})
 
 
 def error_code(message: str, rc: int = RC.ERROR) -> int:
@@ -91,9 +97,14 @@ def error_code_exc(subject: str, err: BaseException) -> int:
     if DEBUG:
         traceback.print_exception(err)
     elif rc not in RC.EARLY_EXIT_CODES:
-        message += f"{Color.CLEAR}\n{DEBUG_HELP}"
+        print(DEBUG_HELP, file=sys.stderr)
 
     return error_code(message, rc)
+
+
+def success(subject: str) -> int:
+    print(f"{Color.GREEN}{subject} passed!{Color.CLEAR}", file=sys.stderr)
+    return RC.OK
 
 
 def print_warning(message: str) -> None:
@@ -133,7 +144,7 @@ def run_tests(cmd: List[str], paths: List[str], timeout: Optional[float] = None,
                 rc = proc.wait(timeout)
                 if rc == RC.OK:
                     return success(cmd[0])
-                return error_code(cmd[0], rc)
+                return error_code(f"{cmd[0]} failed!", rc)
 
             except (sp.TimeoutExpired, KeyboardInterrupt) as err:
                 rc = error_code_exc(cmd[0], err)
