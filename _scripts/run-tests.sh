@@ -9,9 +9,7 @@ if [[ ! -e ansible.cfg && -d ansible ]]; then
     cd ansible  # (e.g. in a submodule)
 fi
 
-# During a git hook execution stdout is not a terminal but
-# colors are probably supported if stdin is a terminal.
-if [[ -t 1 ]]; then
+if [[ -t 0 ]]; then
     COLOR_CLEAR="\033[0m"
     COLOR_RED="\033[31m"
 else
@@ -31,8 +29,9 @@ fi
 # Run all tests by default.
 if [[ $# -eq 0 ]]; then
     tests=("$tests_dir"/*.py)
-elif [[ "${1-}" =~ ^-*(h|help)$ ]]; then
-    echo "Usage: $0 [ansible-lint] [python] [shellcheck] ..." >&2
+elif [[ "$1" =~ ^-*(h|help)$ ]]; then
+    echo "Usage: ${0} [-h|--help] | [TESTS ...]" >&2
+    basename -a -s .py "$tests_dir"/*.py 2>/dev/null | grep -v testlib >&2
     exit 2
 else
     tests=("${@/#/"$tests_dir"/}")
