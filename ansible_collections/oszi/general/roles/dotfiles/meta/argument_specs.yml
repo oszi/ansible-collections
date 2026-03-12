@@ -179,6 +179,13 @@ argument_specs:
         type: str
         required: false
 
+      dotfiles_git_default_branch:
+        description:
+          - Default branch for new Git repositories
+          - Defaults to master if not set
+        type: str
+        required: false
+
       dotfiles_git_config_extra:
         description:
           - Additional content appended to .gitconfig file

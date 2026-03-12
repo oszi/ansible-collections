@@ -19,6 +19,11 @@ format = ssh
 editor = {{ dotfiles_git_editor }}
 {% endif %}
 excludesfile = ~/.gitignore
+{% if dotfiles_git_default_branch %}
+
+[init]
+defaultBranch = {{ dotfiles_git_default_branch }}
+{% endif %}
 
 [push]
 default = simple
