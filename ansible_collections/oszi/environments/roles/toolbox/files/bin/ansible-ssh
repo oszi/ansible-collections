@@ -13,7 +13,6 @@ import textwrap
 from argparse import ArgumentParser, RawTextHelpFormatter
 from typing import List, Mapping, Optional
 
-
 args_parser = ArgumentParser(
     usage="ansible-ssh [--help] [-i INVENTORY] [...] [host [command ...]]",
     description="SSH into a host in an ansible inventory with all configured arguments.",
