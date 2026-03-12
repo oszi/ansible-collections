@@ -19,13 +19,6 @@ fi
 SEVERITY="$1"
 NAMESPACE="oszi"
 
-echo -en "Run all tests (e.g., ansible-lint)? [y/N]" >&2
-read -r answer
-if [[ "$answer" =~ ^[Yy] ]]; then
-    _scripts/run-tests.sh
-    echo "Tests completed. Proceeding with the release..." >&2
-fi
-
 # Change directory to the namespace from here on.
 cd -- "ansible_collections/${NAMESPACE}" || {
     echo "Source 'ansible_collections/${NAMESPACE}' not found." >&2
@@ -83,6 +76,15 @@ fi
 
 new_version="${major}.${minor}.${patch}"
 new_version_spec="==${new_version}"
+
+echo "Releasing ${SEVERITY} version ${new_version}..." >&2
+
+echo -en "Run all tests (e.g., ansible-lint)? [y/N]" >&2
+read -r answer
+if [[ "$answer" =~ ^[Yy] ]]; then
+    _scripts/run-tests.sh
+    echo "Tests completed. Proceeding with the release..." >&2
+fi
 
 [[ "${#collections_affected[@]}" -gt 0 ]] || {
     git commit -n --allow-empty -m "Bump repository version [${new_version}]" || exit 6
