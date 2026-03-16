@@ -5,7 +5,7 @@ import subprocess as sp
 import sys
 import traceback
 
-from typing import Any, List, Optional, IO
+from typing import Any, Callable, IO, List, NoReturn, Optional, ParamSpec
 
 assert sys.version_info >= (3, 11)
 
@@ -159,10 +159,13 @@ def run_tests(cmd: List[str], paths: List[str], timeout: Optional[float] = None,
         return error_code_exc(cmd[0], err)
 
 
-def boolean_test_decorator(subject: str):
-    def inner_decorator(func):
+_PARAMS = ParamSpec("_PARAMS")
+
+
+def boolean_test_decorator(subject: str) -> Callable[[Callable[_PARAMS, bool]], Callable[_PARAMS, NoReturn]]:
+    def inner_decorator(func: Callable[_PARAMS, bool]) -> Callable[_PARAMS, NoReturn]:
         @functools.wraps(func)
-        def inner_function(*args, **kwargs):
+        def inner_function(*args: _PARAMS.args, **kwargs: _PARAMS.kwargs) -> NoReturn:  # pylint: disable=no-member
             print_test_cmd([subject])
             try:
                 result = func(*args, **kwargs)
