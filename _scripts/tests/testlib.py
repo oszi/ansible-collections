@@ -19,15 +19,15 @@ def getenv_bool(key: str, default: bool = False) -> bool:
     return os.environ[key].lower() in {"true", "yes", "1"}
 
 
-DEBUG = getenv_bool("TESTLIB_DEBUG")
-DEBUG_HELP = "HINT: Set env TESTLIB_DEBUG=True for traceback."
-
-
 def io_is_tty(io: IO | Any) -> bool:
     try:
         return os.isatty(io.fileno())
     except (AttributeError, OSError):
         return False
+
+
+DEBUG = getenv_bool("TESTLIB_DEBUG")
+DEBUG_HELP = "HINT: Set env TESTLIB_DEBUG=True for traceback."
 
 
 class Color:
@@ -54,12 +54,13 @@ class Color:
 class RC:
     OK = 0
     ERROR = 1
-    MISUSE = 2
-    TIMEOUT = 124
-    INTERRUPT = 130
 
-    # Distinguished from regular errors.
-    EARLY_EXIT_CODES = frozenset({TIMEOUT, INTERRUPT})
+    TIMEOUT = 124
+    INTERRUPT = 128 + 2  # SIGINT
+
+    @staticmethod
+    def is_early_exit(rc: int) -> bool:
+        return rc > 128 or rc == RC.TIMEOUT
 
 
 def error_code(message: str, rc: int = RC.ERROR) -> int:
@@ -68,7 +69,7 @@ def error_code(message: str, rc: int = RC.ERROR) -> int:
     if rc == RC.OK:
         raise ValueError("testlib.error_code called with RC.OK")
 
-    if rc in RC.EARLY_EXIT_CODES:
+    if RC.is_early_exit(rc):
         color = Color.MAGENTA
     else:
         color = Color.RED
@@ -96,7 +97,7 @@ def error_code_exc(subject: str, err: BaseException) -> int:
 
     if DEBUG:
         traceback.print_exception(err)
-    elif rc not in RC.EARLY_EXIT_CODES:
+    elif not RC.is_early_exit(rc):
         print(DEBUG_HELP, file=sys.stderr)
 
     return error_code(message, rc)
