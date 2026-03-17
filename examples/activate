@@ -3,12 +3,16 @@
 # Source this file in your terminal at the same level as the inventory directory.
 # ANSIBLE_INVENTORY will take precedence over ansible.cfg - overridable with CLI arguments.
 
-if [ -d ansible/inventory ]; then
+if ! [ -e ansible.cfg ] && [ -d ansible ]; then
     cd ansible || false
 fi
 
-if [ -f venv/bin/activate ]; then
+if [ -d venv ]; then
     . venv/bin/activate
+elif [ -d collections/venv ]; then
+    . collections/venv/bin/activate
+elif [ -d ../venv ]; then
+    . ../venv/bin/activate
 fi
 
 if [ -n "${ANSIBLE_INVENTORY-}" ]; then
@@ -26,11 +30,11 @@ elif [ -d inventory ]; then
         export ANSIBLE_INVENTORY="$_ansible_inventories_found"
         echo "ANSIBLE_INVENTORY=${ANSIBLE_INVENTORY}" >&2
     else
-        echo "Host not found in the inventory!" >&2
-        false
+        echo "WARNING: Host not found in the inventory! Using ansible.cfg" >&2
+        true # Error in production.
     fi
 
 else
-    echo "inventory directory not found!" >&2
+    echo "ERROR: inventory directory not found!" >&2
     false
 fi
