@@ -87,7 +87,7 @@ if [[ "$answer" =~ ^[Yy] ]]; then
 fi
 
 [[ "${#collections_affected[@]}" -gt 0 ]] || {
-    git commit -n --allow-empty -m "Bump repository version [${new_version}]" || exit 6
+    git commit -S -n --allow-empty -m "Bump repository version [${new_version}]" || exit 6
     git tag -s -m "Version ${new_version}" -m "${change_log}" -m "Collections updated: -" "${new_version}" || {
         git reset --quiet --soft HEAD~1
         exit 6
@@ -116,7 +116,7 @@ done
 
 git add -- */galaxy.yml
 
-git commit -n -m "Bump galaxy versions [${new_version}]" -- */galaxy.yml || {
+git commit -S -n -m "Bump galaxy versions [${new_version}]" -- */galaxy.yml || {
     git reset --quiet HEAD -- */galaxy.yml
     git checkout --quiet HEAD -- */galaxy.yml
     exit 8
