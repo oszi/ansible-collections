@@ -2,6 +2,8 @@
 
 The example inventory is configured to target localhost in the workstations group.
 
+See the [_scripts](../_scripts) directory for utilities and integrations.
+
 ## Run some playbooks
 
 ```bash

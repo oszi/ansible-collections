@@ -30,3 +30,9 @@ Verify the signatures of all git branches and tags.
 
 * [run-tests.sh](run-tests.sh)  
 Run test scripts in [_scripts/tests](tests) (e.g., ansible-lint or shellcheck).
+
+* [_ansible.mk](_ansible.mk)  
+Makefile fragment for a common ansible interface. See the [examples](../examples).
+
+* [_scripts.mk](_scripts.mk)  
+Makefile fragment for venv and scripts integration.
