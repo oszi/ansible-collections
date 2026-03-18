@@ -30,7 +30,9 @@ borgmatic_ssh_command: "ssh"
 # Consistency checks (dict)
 # https://borgbackup.readthedocs.org/en/stable/usage.html#borg-check
 borgmatic_consistency:
-  checks: ["repository", "archives"]
+  checks:
+    - name: repository
+    - name: archives
   check_last: 3
 
 # Retention policy (dict)
