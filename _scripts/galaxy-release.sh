@@ -10,6 +10,7 @@
 # This script does not support symlinking into a parent repository - e.g. inventory.
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
+run_tests="$(realpath _scripts/run-tests.sh)"
 
 if [[ ! "${1:-}" =~ ^(major|minor|patch)$ ]]; then
     echo "Usage: ${0} major|minor|patch" >&2
@@ -82,7 +83,7 @@ echo "Releasing ${SEVERITY} version ${new_version}..." >&2
 echo -en "Run all tests (e.g., ansible-lint)? [y/N]" >&2
 read -r answer
 if [[ "$answer" =~ ^[Yy] ]]; then
-    _scripts/run-tests.sh
+    "$run_tests" || exit 1
     echo "Tests completed. Proceeding with the release..." >&2
 fi
 
