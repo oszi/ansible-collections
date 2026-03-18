@@ -1,4 +1,4 @@
-# Requires _scripts/_scripts.mk
+# Requires ./activate
 
 CHECK     ?=
 LIMIT     ?=

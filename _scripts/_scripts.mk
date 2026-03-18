@@ -6,8 +6,6 @@ VENV_ACTIVATE := test -d $(VENV) && . $(VENV)/bin/activate \
 	&& echo "INFO: venv activated." >&2 \
 	|| echo "INFO: venv not activated. Using existing paths." >&2
 
-GIT_HOOKS := $(shell git rev-parse --git-dir)/hooks
-
 all: FORCE
 
 ifneq ($(filter $(VENV),venv ./venv),$(VENV))
@@ -29,16 +27,5 @@ reset: FORCE
 
 clean: FORCE
 	$(SCRIPTS)/git-reset.sh --force
-
-# Init collections submodule (and hooks) where .git is a file.
-ifneq ($(filter $(COLLECTIONS),. ..),$(COLLECTIONS))
-FORCE: $(GIT_HOOKS)/pre-commit $(COLLECTIONS)/.git
-$(GIT_HOOKS)/pre-commit $(COLLECTIONS)/.git $(COLLECTIONS)/requirements.txt $(COLLECTIONS)/requirements.yml &:
-	$(SCRIPTS)/git-init.sh
-else
-FORCE: $(GIT_HOOKS)/pre-commit
-$(GIT_HOOKS)/pre-commit:
-	$(SCRIPTS)/git-init.sh
-endif
 
 .PHONY: FORCE
