@@ -19,6 +19,15 @@ $(VENV): $(COLLECTIONS)/requirements.txt $(COLLECTIONS)/requirements.yml
 	&& ansible-galaxy collection install -r $(COLLECTIONS)/requirements.yml \
 	&& touch $(VENV)
 
+ifneq ($(filter $(COLLECTIONS),. ..),$(COLLECTIONS))
+update-collections: FORCE
+	$(MAKE) -C $(COLLECTIONS) reset
+	VERSION=$$(git -C $(COLLECTIONS) describe --tags --exact-match 2>/dev/null \
+		|| git -C $(COLLECTIONS) rev-parse --short HEAD) \
+	&& git commit -S -n -m "Update ansible-collections [$${VERSION}]" $(COLLECTIONS) \
+	&& git push --follow-tags
+endif
+
 tests: FORCE
 	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh
 
