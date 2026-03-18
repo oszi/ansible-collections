@@ -5,7 +5,7 @@
 borgmatic_enabled: false
 # Python3 package version of Borgmatic
 # Requires python_disabled=false!
-borgmatic_version: ">=1.9.10,<2.0.0"
+borgmatic_version: ">=2.1.0,<3.0.0"
 
 # Target directory or remote repository!
 borgmatic_repository: "/var/lib/borg-{{ inventory_hostname }}"
@@ -43,14 +43,14 @@ borgmatic_retention:
   keep_monthly: 6
   keep_yearly: 1
 
+# Shell commands or scripts to execute before and after a backup or if an error has occurred.
+# Warning: All provided commands and scripts are executed with user permissions of borgmatic!
+# Keys: before_backup, after_backup, on_error # Values: list of commands
+borgmatic_hooks: {}
+
 # Container service settings
 borgmatic_unit_options: []
 borgmatic_timer_options:
   - "OnCalendar=daily"
   - "RandomizedDelaySec=3600"
   - "Persistent=true"
-
-# Shell commands or scripts to execute before and after a backup or if an error has occurred.
-# Warning: All provided commands and scripts are executed with user permissions of borgmatic!
-# Keys: before_backup, after_backup, on_error # Values: list of commands
-borgmatic_hooks: {}
