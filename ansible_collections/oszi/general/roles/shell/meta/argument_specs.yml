@@ -37,6 +37,13 @@ argument_specs:
         type: int
         required: false
 
+      shell_tmux_default_shell:
+        description:
+          - Override default shell from `$SHELL` for all tmux users
+          - Useful when a user's shell is /bin/tmux or /bin/sh
+        type: str
+        required: false
+
       shell_tmux_conf_extra:
         description:
           - Additional content appended to .tmux.conf file

@@ -1,4 +1,7 @@
 # {{ ansible_managed }}
+{% if shell_tmux_default_shell %}
+set -g default-shell {{ shell_tmux_default_shell | quote }}
+{% endif %}
 set -g history-limit {{ shell_tmux_history_limit | int }}
 set -gw aggressive-resize on
 set -gw automatic-rename on
