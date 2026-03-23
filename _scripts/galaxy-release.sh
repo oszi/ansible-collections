@@ -26,6 +26,16 @@ cd -- "ansible_collections/${NAMESPACE}" || {
     exit 1
 }
 
+git symbolic-ref --quiet HEAD >/dev/null 2>&1 || {
+    echo "Repository is not on a branch." >&2
+    exit 4
+}
+
+[[ "$(git status -s | tee /dev/stderr)" = "" ]] || {
+    echo "Working tree changes. Use git stash or commit changes." >&2
+    exit 4
+}
+
 # Get the closest tag on the current branch. Supports backport branches.
 latest_version="$(git describe --tags --abbrev=0 | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')" || {
     echo "Latest version unknown." >&2
