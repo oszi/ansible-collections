@@ -5,11 +5,9 @@ set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
 fetch_opts=(--atomic)
-force=0
 
 if [[ "${1-}" =~ ^(-f|--force)$ ]]; then
     fetch_opts+=(--force --tags --prune --prune-tags)
-    force=1
     shift
 elif [[ "${1-}" =~ ^-.*$ ]]; then
     echo "Usage: ${0} [-f|--force] [[REMOTE(origin)] BRANCH(master)]" >&2
@@ -75,12 +73,7 @@ print_section "git: Check working tree and local commits..."
 [[ "$(git log --ignore-missing "${REFERENCE}..${BRANCH}" -- | tee /dev/stderr)" = "" ]] \
     || answer_yes_or_exit "git: Local commits! Discard everything?"
 
-print_section "git: Reset branch and clean up..."
+print_section "git: Reset branch and submodules..."
 
 git switch -fC "$BRANCH" "$REFERENCE"
 git submodule update --recursive --force --init --checkout
-
-if [[ "$force" -ne 0 ]]; then
-    git clean -xfd
-    git submodule foreach --recursive git clean -xfd
-fi
