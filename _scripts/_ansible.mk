@@ -16,7 +16,9 @@ localhost: workstation
 
 baselinux containerhost toolbox workstation rootless: %: oszi.environments.%
 
-update versions: %: oszi.general.%
+update: %: oszi.general.%
+
+debug versions: %: oszi.utils.%
 
 playbooks/% oszi.environments.% oszi.general.% oszi.thirdparty.% oszi.utils.%: FORCE
 	$(ANSIBLE_PLAYBOOK) $(ANSIBLE_ARGS) $@
