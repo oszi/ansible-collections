@@ -1,8 +1,6 @@
 SHELL := /bin/bash
 COLLECTIONS := .
 
-all: tests
-
 include _scripts/_scripts.mk
 
 # galaxy-release.sh includes run-tests.sh
