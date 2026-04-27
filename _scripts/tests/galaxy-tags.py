@@ -10,9 +10,9 @@ import yaml
 
 from testlib import Color, RC, boolean_test_decorator, error_code
 
-GIT_DIR = Path(__file__).parent.parent.parent.resolve()
-NAMESPACE_DIR = GIT_DIR / "ansible_collections" / "oszi"
-META_GLOB = "*/roles/*/meta/main.y*ml"
+# Relative path to skip checking tags in a parent repository.
+NAMESPACE_PATH = Path("ansible_collections") / "oszi"
+ROLE_META_GLOB = "*/roles/*/meta/main.y*ml"
 
 MUTUALLY_EXCLUSIVE_TAGS = {"baselinux", "containers", "thirdparty", "toolbox", "workstation"}
 MUTUALLY_EXCLUSIVE_TAGS_STR = f"{Color.BOLD}{', '.join(sorted(MUTUALLY_EXCLUSIVE_TAGS))}{Color.CLEAR}"
@@ -46,11 +46,13 @@ def assert_root_privileges_dependency(meta: Dict[str, Any]) -> bool:
 def assert_role_tags() -> bool:
     rc = RC.OK
     assert_root_privileges_noted = False
+    role_count = 0
 
-    for meta_path in NAMESPACE_DIR.glob(META_GLOB):
+    for meta_path in NAMESPACE_PATH.glob(ROLE_META_GLOB):
+        role_count += 1
         role_path = meta_path.parent.parent
         collection_name = role_path.parent.parent.name
-        role_fqcn = f"{NAMESPACE_DIR.name}.{collection_name}.{role_path.name}"
+        role_fqcn = f"{NAMESPACE_PATH.name}.{collection_name}.{role_path.name}"
         role_must_have = f"{Color.BOLD}{role_fqcn}{Color.CLEAR} must have"
 
         try:
@@ -75,6 +77,11 @@ def assert_role_tags() -> bool:
         if ("rootless" not in tags) ^ assert_root_privileges_dependency(meta):
             rc = error_code(f"{role_must_have} the rootless tag, OR assert root privileges!")
             assert_root_privileges_noted = True
+
+    if role_count > 0:
+        print(f"Asserted tags on {role_count} roles in namespace:{NAMESPACE_PATH.name}.", file=sys.stderr)
+    else:
+        print(f"No roles in this repository in namespace:{NAMESPACE_PATH.name}.", file=sys.stderr)
 
     if rc != RC.OK:
         if assert_root_privileges_noted:

@@ -10,9 +10,9 @@ from typing import Dict, List, Set, Optional
 
 import yaml
 
-GIT_DIR = Path(__file__).parent.parent.resolve()
-NAMESPACE_DIR = GIT_DIR / "ansible_collections" / "oszi"
-META_GLOB = "*/roles/*/meta/main.y*ml"
+# Always run in the ansible-collections repository, even when called from a parent repository.
+NAMESPACE_PATH = Path(__file__).parent.parent.resolve() / "ansible_collections" / "oszi"
+ROLE_META_GLOB = "*/roles/*/meta/main.y*ml"
 
 args_parser = ArgumentParser(
     usage="galaxy-tags.py [--help] [--json] [--tags=TAG1,TAG2]",
@@ -26,14 +26,14 @@ args_parser.add_argument("--tags", "-t", help="filter to specific tag(s)")
 def get_galaxy_tags(tags_filter: Optional[List[str]] = None) -> Dict[str, List[str]]:
     tags_to_roles: Dict[str, Set[str]] = defaultdict(set)
 
-    for meta_path in NAMESPACE_DIR.glob(META_GLOB):
+    for meta_path in NAMESPACE_PATH.glob(ROLE_META_GLOB):
         role_path = meta_path.parent.parent
-        role_fqcn = f"{NAMESPACE_DIR.name}.{role_path.parent.parent.name}.{role_path.name}"
+        role_fqcn = f"{NAMESPACE_PATH.name}.{role_path.parent.parent.name}.{role_path.name}"
 
         with meta_path.open("r", encoding="utf-8") as f:
             meta = yaml.safe_load(f)
 
-        for tag in meta["galaxy_info"]["galaxy_tags"]:  # ansible-lint validated
+        for tag in meta["galaxy_info"]["galaxy_tags"]:  # Validated by tests.
             if tags_filter is None or tag in tags_filter:
                 tags_to_roles[tag].add(role_fqcn)
 
