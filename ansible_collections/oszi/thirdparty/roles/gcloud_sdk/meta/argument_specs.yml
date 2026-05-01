@@ -41,8 +41,8 @@ argument_specs:
 
       gcloud_sdk_kubectl_enabled:
         description:
-          - Whether to install kubectl from official repositories
-          - WARNING - Conflicts with distribution-provided kubectl packages
+          - Whether to install kubectl from the Google Cloud SDK repository
+          - WARNING - Conflicts with distribution packages and the Kubernetes community repository
         type: bool
         required: false
         default: false

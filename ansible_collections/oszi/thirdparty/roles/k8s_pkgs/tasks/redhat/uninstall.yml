@@ -1,0 +1,8 @@
+---
+- name: Uninstall Kubernetes RPM repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ k8s_pkgs_rpm_gpgkey }}"
+    - "{{ k8s_pkgs_rpm_repo_path }}"

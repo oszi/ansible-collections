@@ -12,7 +12,7 @@ gcloud_sdk_emulators_enabled: false
 gcloud_sdk_minikube_enabled: false
 
 # Install kubectl from Google Cloud?
-# * Conflicts with distribution packages!
+# * Conflicts with distribution packages and the Kubernetes community repository!
 gcloud_sdk_kubectl_enabled: false
 
 # List of (all) emulator packages:

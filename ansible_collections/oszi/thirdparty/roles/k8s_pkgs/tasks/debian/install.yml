@@ -1,0 +1,40 @@
+---
+- name: Ensure directory for Kubernetes deb signing key
+  ansible.builtin.file:
+    path: "{{ k8s_pkgs_deb_gpgkey | dirname }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Download Kubernetes deb signing key
+  ansible.builtin.get_url:
+    url: "{{ k8s_pkgs_deb_gpgkey_url }}"
+    dest: "{{ k8s_pkgs_deb_gpgkey }}.asc"
+    checksum: "{{ k8s_pkgs_deb_gpgkey_checksum | default(omit, true) }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  register: _k8s_pkgs_deb_gpgkey_result
+
+# Do not clean up the .asc file to avoid re-downloads.
+- name: Dearmor Kubernetes deb signing key
+  when: _k8s_pkgs_deb_gpgkey_result.changed
+  ansible.builtin.command: >-
+    gpg --batch --yes --dearmor -o {{ k8s_pkgs_deb_gpgkey | quote }}
+    {{ _k8s_pkgs_deb_gpgkey_result.dest | quote }}
+  changed_when: true
+
+- name: Install Kubernetes deb repository
+  ansible.builtin.copy:
+    dest: "{{ k8s_pkgs_deb_repo_path }}"
+    content: "{{ k8s_pkgs_deb_repo }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  register: _k8s_pkgs_deb_repo_result
+
+- name: Update apt cache
+  when: _k8s_pkgs_deb_repo_result.changed
+  ansible.builtin.apt:
+    update_cache: true

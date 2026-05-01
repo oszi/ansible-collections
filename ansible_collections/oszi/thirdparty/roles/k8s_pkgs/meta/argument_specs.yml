@@ -1,0 +1,76 @@
+---
+argument_specs:
+  main:
+    short_description: Kubernetes community repository installation
+    description:
+      - Manages Kubernetes packages from the upstream community repository - pkgs.k8s.io
+      - Manages package sources for Debian and RPM-based systems
+      - Supports custom repository mirrors
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      k8s_pkgs_enabled:
+        description:
+          - Whether to install or uninstall the Kubernetes community repository
+          - Disabled by default
+        type: bool
+        required: false
+        default: false
+
+      k8s_pkgs_packages:
+        description:
+          - List of Kubernetes community packages to install
+          - Available packages include kubeadm, kubectl, kubelet, kubernetes-cni, cri-tools
+          - There is no auto uninstall because of conflicts with other repositories
+          - Only the repository is installed if left empty
+        type: list
+        elements: str
+        required: false
+
+      k8s_pkgs_version:
+        description:
+          - Main version of the Kubernetes community repository
+          - Used in the default values of O(k8s_pkgs_rpm_baseurl), O(k8s_pkgs_rpm_gpgkey_url),
+            O(k8s_pkgs_deb_baseurl), O(k8s_pkgs_deb_gpgkey_url)
+        type: str
+        required: false
+
+      k8s_pkgs_rpm_baseurl:
+        description:
+          - Base URL for the Kubernetes RPM repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      k8s_pkgs_rpm_gpgkey_url:
+        description:
+          - URL of the GPG public key for the Kubernetes RPM repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      k8s_pkgs_rpm_gpgkey_checksum:
+        description:
+          - Optional checksum in algo:hash format for O(k8s_pkgs_rpm_gpgkey_url)
+        type: str
+        required: false
+
+      k8s_pkgs_deb_baseurl:
+        description:
+          - Base URL for the Kubernetes Debian/Ubuntu repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      k8s_pkgs_deb_gpgkey_url:
+        description:
+          - URL of the GPG public key for the Kubernetes Debian/Ubuntu repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      k8s_pkgs_deb_gpgkey_checksum:
+        description:
+          - Optional checksum in algo:hash format for O(k8s_pkgs_deb_gpgkey_url)
+        type: str
+        required: false

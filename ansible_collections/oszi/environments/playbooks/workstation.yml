@@ -16,6 +16,7 @@
     # Same for toolbox and workstations
     - oszi.thirdparty.rpmfusion
     - oszi.thirdparty.gcloud_sdk
+    - oszi.thirdparty.k8s_pkgs
     - oszi.thirdparty.hashicorp
     - oszi.thirdparty.opentofu
     # Workstations-only

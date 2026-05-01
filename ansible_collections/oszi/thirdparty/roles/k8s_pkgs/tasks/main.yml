@@ -1,0 +1,14 @@
+---
+- name: Kubernetes packages tasks
+  tags: [k8s-pkgs]
+  block:
+    - name: Kubernetes community repository
+      ansible.builtin.include_tasks:
+        file: "{{ ansible_facts.os_family | lower }}/{{ k8s_pkgs_enabled | ternary('install', 'uninstall') }}.yml"
+
+    # Do not auto uninstall because of conflicts with other repositories!
+    - name: Ensure Kubernetes packages are installed
+      when: k8s_pkgs_enabled
+      ansible.builtin.package:
+        name: "{{ k8s_pkgs_packages }}"
+        state: "present"

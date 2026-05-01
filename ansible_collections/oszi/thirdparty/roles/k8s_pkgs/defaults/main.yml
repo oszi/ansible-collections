@@ -1,0 +1,22 @@
+---
+# Install the Kubernetes community repository: pkgs.k8s.io? (Off by default!)
+k8s_pkgs_enabled: false
+
+# List of Kubernetes community packages to install:
+k8s_pkgs_packages: []
+
+# Main version of the Kubernetes community package repository
+# Only used in the defaults below
+k8s_pkgs_version: "v1.36"
+
+# Repo base URLs - change for custom mirrors
+k8s_pkgs_rpm_baseurl: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version }}/rpm/"
+k8s_pkgs_deb_baseurl: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version }}/deb/"
+
+# GPG public key URLs - change for custom mirrors
+k8s_pkgs_rpm_gpgkey_url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version }}/rpm/repodata/repomd.xml.key"
+k8s_pkgs_deb_gpgkey_url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version }}/deb/Release.key"
+
+# Optional checksums (algo:hash) for GPG public key downloads
+k8s_pkgs_rpm_gpgkey_checksum: ""
+k8s_pkgs_deb_gpgkey_checksum: ""

@@ -1,0 +1,8 @@
+---
+- name: Uninstall Kubernetes deb repository
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ k8s_pkgs_deb_gpgkey }}"
+    - "{{ k8s_pkgs_deb_repo_path }}"
