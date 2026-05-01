@@ -12,3 +12,8 @@
       ansible.builtin.package:
         name: "{{ k8s_pkgs_packages }}"
         state: "present"
+
+    - name: Kubernetes packages post-setup tasks
+      when: k8s_pkgs_enabled
+      ansible.builtin.include_tasks:
+        file: post-setup.yml

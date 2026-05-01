@@ -9,3 +9,8 @@ k8s_pkgs_deb_gpgkey_path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
 k8s_pkgs_deb_repo_path: "/etc/apt/sources.list.d/kubernetes.list"
 k8s_pkgs_deb_repo: >-
   deb [signed-by={{ k8s_pkgs_deb_gpgkey_path }}] {{ k8s_pkgs_deb_baseurl }} /
+
+# Used to enable completions in post-setup tasks.
+# Joined as string to support version pinned packages.
+k8s_pkgs_kubectl_enabled: "{{ 'kubectl' in ' '.join(k8s_pkgs_packages | flatten) }}"
+k8s_pkgs_kubeadm_enabled: "{{ 'kubeadm' in ' '.join(k8s_pkgs_packages | flatten) }}"

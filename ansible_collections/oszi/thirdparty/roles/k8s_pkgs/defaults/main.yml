@@ -20,3 +20,9 @@ k8s_pkgs_deb_gpgkey_url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version 
 # Optional checksums (algo:hash) for GPG public key downloads
 k8s_pkgs_rpm_gpgkey_checksum: ""
 k8s_pkgs_deb_gpgkey_checksum: ""
+
+# System completion paths for Bash and ZSH:
+k8s_pkgs_kubeadm_bash_completion_path: "/etc/bash_completion.d/kubeadm"
+k8s_pkgs_kubeadm_zsh_completion_path: "/usr/local/share/zsh/site-functions/_kubeadm"
+k8s_pkgs_kubectl_bash_completion_path: "/etc/bash_completion.d/kubectl"
+k8s_pkgs_kubectl_zsh_completion_path: "/usr/local/share/zsh/site-functions/_kubectl"

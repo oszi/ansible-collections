@@ -1,0 +1,96 @@
+---
+- name: Install kubeadm completion for bash
+  when: k8s_pkgs_kubeadm_enabled and k8s_pkgs_kubeadm_bash_completion_path is truthy
+  block:
+    - name: Ensure completion path for bash exists
+      ansible.builtin.file:
+        path: "{{ k8s_pkgs_kubeadm_bash_completion_path | dirname }}"
+        state: "directory"
+        mode: "0755"
+
+    - name: Generate kubeadm completion for bash
+      ansible.builtin.command: "kubeadm completion bash"
+      register: _k8s_pkgs_kubeadm_completion_bash_result
+      changed_when: false
+      check_mode: false
+      no_log: true
+
+    - name: Copy kubeadm completion for bash
+      ansible.builtin.copy:
+        dest: "{{ k8s_pkgs_kubeadm_bash_completion_path }}"
+        content: "{{ _k8s_pkgs_kubeadm_completion_bash_result.stdout }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
+- name: Install kubeadm completion for ZSH
+  when: k8s_pkgs_kubeadm_enabled and k8s_pkgs_kubeadm_zsh_completion_path is truthy
+  block:
+    - name: Ensure completion path for ZSH exists
+      ansible.builtin.file:
+        path: "{{ k8s_pkgs_kubeadm_zsh_completion_path | dirname }}"
+        state: "directory"
+        mode: "0755"
+
+    - name: Generate kubeadm completion for ZSH
+      ansible.builtin.command: "kubeadm completion zsh"
+      register: _k8s_pkgs_kubeadm_completion_zsh_result
+      changed_when: false
+      check_mode: false
+      no_log: true
+
+    - name: Copy kubeadm completion for ZSH
+      ansible.builtin.copy:
+        dest: "{{ k8s_pkgs_kubeadm_zsh_completion_path }}"
+        content: "{{ _k8s_pkgs_kubeadm_completion_zsh_result.stdout }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
+- name: Install kubectl completion for bash
+  when: k8s_pkgs_kubectl_enabled and k8s_pkgs_kubectl_bash_completion_path is truthy
+  block:
+    - name: Ensure completion path for bash exists
+      ansible.builtin.file:
+        path: "{{ k8s_pkgs_kubectl_bash_completion_path | dirname }}"
+        state: "directory"
+        mode: "0755"
+
+    - name: Generate kubectl completion for bash
+      ansible.builtin.command: "kubectl completion bash"
+      register: _k8s_pkgs_kubectl_completion_bash_result
+      changed_when: false
+      check_mode: false
+      no_log: true
+
+    - name: Copy kubectl completion for bash
+      ansible.builtin.copy:
+        dest: "{{ k8s_pkgs_kubectl_bash_completion_path }}"
+        content: "{{ _k8s_pkgs_kubectl_completion_bash_result.stdout }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
+- name: Install kubectl completion for ZSH
+  when: k8s_pkgs_kubectl_enabled and k8s_pkgs_kubectl_zsh_completion_path is truthy
+  block:
+    - name: Ensure completion path for ZSH exists
+      ansible.builtin.file:
+        path: "{{ k8s_pkgs_kubectl_zsh_completion_path | dirname }}"
+        state: "directory"
+        mode: "0755"
+
+    - name: Generate kubectl completion for ZSH
+      ansible.builtin.command: "kubectl completion zsh"
+      register: _k8s_pkgs_kubectl_completion_zsh_result
+      changed_when: false
+      check_mode: false
+      no_log: true
+
+    - name: Copy kubectl completion for ZSH
+      ansible.builtin.copy:
+        dest: "{{ k8s_pkgs_kubectl_zsh_completion_path }}"
+        content: "{{ _k8s_pkgs_kubectl_completion_zsh_result.stdout }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"

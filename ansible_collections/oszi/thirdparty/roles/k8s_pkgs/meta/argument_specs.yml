@@ -75,3 +75,27 @@ argument_specs:
           - Optional checksum in algo:hash format for O(k8s_pkgs_deb_gpgkey_url)
         type: str
         required: false
+
+      k8s_pkgs_kubeadm_bash_completion_path:
+        description:
+          - System path for kubeadm bash completion script
+        type: path
+        required: false
+
+      k8s_pkgs_kubeadm_zsh_completion_path:
+        description:
+          - System path for kubeadm zsh completion script
+        type: path
+        required: false
+
+      k8s_pkgs_kubectl_bash_completion_path:
+        description:
+          - System path for kubectl bash completion script
+        type: path
+        required: false
+
+      k8s_pkgs_kubectl_zsh_completion_path:
+        description:
+          - System path for kubectl zsh completion script
+        type: path
+        required: false
