@@ -2,7 +2,7 @@
 - name: Download Kubernetes rpm signing key
   ansible.builtin.get_url:
     url: "{{ k8s_pkgs_rpm_gpgkey_url }}"
-    dest: "{{ k8s_pkgs_rpm_gpgkey }}"
+    dest: "{{ k8s_pkgs_rpm_gpgkey_path }}"
     checksum: "{{ k8s_pkgs_rpm_gpgkey_checksum | default(omit, true) }}"
     owner: "root"
     group: "root"
@@ -15,7 +15,7 @@
     description: "Kubernetes community packages"
     includepkgs: "{{ k8s_pkgs_rpm_includepkgs }}"
     baseurl: "{{ k8s_pkgs_rpm_baseurl }}"
-    gpgkey: "file://{{ k8s_pkgs_rpm_gpgkey }}"
+    gpgkey: "file://{{ k8s_pkgs_rpm_gpgkey_path }}"
     gpgcheck: true
     repo_gpgcheck: false
     enabled: true

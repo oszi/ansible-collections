@@ -1,8 +1,8 @@
 ---
 - name: Copy Hashicorp RPM signing key
   ansible.builtin.copy:
-    src: "{{ hashicorp_rpm_gpgkey.lstrip('/') }}"
-    dest: "{{ hashicorp_rpm_gpgkey }}"
+    src: "{{ hashicorp_rpm_gpgkey_path.lstrip('/') }}"
+    dest: "{{ hashicorp_rpm_gpgkey_path }}"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -14,7 +14,7 @@
     description: "Hashicorp Stable - $basearch"
     includepkgs: "{{ hashicorp_rpm_includepkgs }}"
     baseurl: "{{ hashicorp_rpm_baseurl }}/stable"
-    gpgkey: "file://{{ hashicorp_rpm_gpgkey }}"
+    gpgkey: "file://{{ hashicorp_rpm_gpgkey_path }}"
     gpgcheck: true
     repo_gpgcheck: false
     enabled: true
@@ -26,7 +26,7 @@
     description: "Hashicorp Test - $basearch"
     includepkgs: "{{ hashicorp_rpm_includepkgs }}"
     baseurl: "{{ hashicorp_rpm_baseurl }}/test"
-    gpgkey: "file://{{ hashicorp_rpm_gpgkey }}"
+    gpgkey: "file://{{ hashicorp_rpm_gpgkey_path }}"
     gpgcheck: true
     repo_gpgcheck: false
     enabled: false

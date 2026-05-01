@@ -1,8 +1,8 @@
 ---
 - name: Copy VS Code RPM signing key
   ansible.builtin.copy:
-    src: "{{ vscode_rpm_gpgkey.lstrip('/') }}"
-    dest: "{{ vscode_rpm_gpgkey }}"
+    src: "{{ vscode_rpm_gpgkey_path.lstrip('/') }}"
+    dest: "{{ vscode_rpm_gpgkey_path }}"
     owner: "root"
     group: "root"
     mode: "0644"

@@ -1,8 +1,8 @@
 ---
 - name: Copy Tailscale RPM signing key
   ansible.builtin.copy:
-    src: "{{ tailscale_rpm_gpgkey.lstrip('/') }}"
-    dest: "{{ tailscale_rpm_gpgkey }}"
+    src: "{{ tailscale_rpm_gpgkey_path.lstrip('/') }}"
+    dest: "{{ tailscale_rpm_gpgkey_path }}"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -14,7 +14,7 @@
     description: "Tailscale stable"
     includepkgs: "{{ tailscale_rpm_includepkgs }}"
     baseurl: "{{ tailscale_rpm_baseurl }}"
-    gpgkey: "{{ tailscale_rpm_gpgkey }}"
+    gpgkey: "{{ tailscale_rpm_gpgkey_path }}"
     gpgcheck: true
     repo_gpgcheck: false
     enabled: true

@@ -1,5 +1,5 @@
 ---
-hashicorp_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp"
+hashicorp_rpm_gpgkey_path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp"
 hashicorp_rpm_repo_path: "/etc/yum.repos.d/hashicorp.repo"
 hashicorp_rpm_includepkgs:
   - boundary
@@ -14,8 +14,8 @@ hashicorp_rpm_includepkgs:
   - vault
   - waypoint
 
-hashicorp_deb_gpgkey: "/etc/apt/keyrings/hashicorp.gpg"
+hashicorp_deb_gpgkey_path: "/etc/apt/keyrings/hashicorp.gpg"
 hashicorp_deb_repo_path: "/etc/apt/sources.list.d/hashicorp.list"
 hashicorp_deb_repo: >-
-  deb [signed-by={{ hashicorp_deb_gpgkey }}]
+  deb [signed-by={{ hashicorp_deb_gpgkey_path }}]
   {{ hashicorp_deb_baseurl }} {{ ansible_facts.distribution_release }} main

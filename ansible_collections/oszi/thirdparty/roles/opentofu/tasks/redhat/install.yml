@@ -6,7 +6,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  with_items: "{{ opentofu_rpm_gpgkeys }}"
+  with_items: "{{ opentofu_rpm_gpgkey_paths }}"
 
 - name: Install OpenTofu RPM repository
   ansible.builtin.yum_repository:
@@ -15,7 +15,7 @@
     description: "OpenTofu Upstream"
     includepkgs: "{{ opentofu_rpm_includepkgs }}"
     baseurl: "{{ opentofu_rpm_baseurl }}"
-    gpgkey: "{{ opentofu_rpm_gpgkeys | map('regex_replace', '^(.*)$', 'file://\\1') | list }}"
+    gpgkey: "{{ opentofu_rpm_gpgkey_paths | map('regex_replace', '^(.*)$', 'file://\\1') | list }}"
     gpgcheck: true
     repo_gpgcheck: false
     enabled: true

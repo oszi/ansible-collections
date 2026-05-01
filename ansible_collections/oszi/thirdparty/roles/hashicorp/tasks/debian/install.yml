@@ -1,7 +1,7 @@
 ---
 - name: Ensure directory for Hashicorp deb signing key
   ansible.builtin.file:
-    path: "{{ hashicorp_deb_gpgkey | dirname }}"
+    path: "{{ hashicorp_deb_gpgkey_path | dirname }}"
     state: "directory"
     owner: "root"
     group: "root"
@@ -9,8 +9,8 @@
 
 - name: Copy Hashicorp deb signing key
   ansible.builtin.copy:
-    src: "{{ hashicorp_deb_gpgkey.lstrip('/') }}"
-    dest: "{{ hashicorp_deb_gpgkey }}"
+    src: "{{ hashicorp_deb_gpgkey_path.lstrip('/') }}"
+    dest: "{{ hashicorp_deb_gpgkey_path }}"
     owner: "root"
     group: "root"
     mode: "0644"

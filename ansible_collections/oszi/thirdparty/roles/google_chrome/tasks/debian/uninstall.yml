@@ -10,6 +10,6 @@
     path: "{{ item }}"
     state: "absent"
   with_items:
-    - "{{ google_chrome_deb_gpgkey }}"
+    - "{{ google_chrome_deb_gpgkey_path }}"
     - "{{ google_chrome_deb_gpgkey_vendored }}"
     - "{{ google_chrome_deb_repo_path }}"

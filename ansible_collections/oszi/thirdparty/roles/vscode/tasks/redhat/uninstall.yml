@@ -13,5 +13,5 @@
 - name: Uninstall Microsoft RPM signing key
   when: not vscode_microsoft_gpgkey_used_elsewhere
   ansible.builtin.file:
-    path: "{{ vscode_rpm_gpgkey }}"
+    path: "{{ vscode_rpm_gpgkey_path }}"
     state: "absent"

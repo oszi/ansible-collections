@@ -1,7 +1,7 @@
 ---
 - name: Ensure directory for Google Chrome deb signing key
   ansible.builtin.file:
-    path: "{{ google_chrome_deb_gpgkey | dirname }}"
+    path: "{{ google_chrome_deb_gpgkey_path | dirname }}"
     state: "directory"
     owner: "root"
     group: "root"
@@ -9,14 +9,14 @@
 
 - name: Copy Google Chrome deb signing key
   ansible.builtin.copy:
-    src: "{{ google_chrome_deb_gpgkey.lstrip('/') }}"
-    dest: "{{ google_chrome_deb_gpgkey }}"
+    src: "{{ google_chrome_deb_gpgkey_path.lstrip('/') }}"
+    dest: "{{ google_chrome_deb_gpgkey_path }}"
     owner: "root"
     group: "root"
     mode: "0644"
 
 - name: Remove vendored Google Chrome deb signing key
-  when: "google_chrome_deb_gpgkey_vendored != google_chrome_deb_gpgkey"
+  when: "google_chrome_deb_gpgkey_vendored != google_chrome_deb_gpgkey_path"
   ansible.builtin.file:
     path: "{{ google_chrome_deb_gpgkey_vendored }}"
     state: "absent"

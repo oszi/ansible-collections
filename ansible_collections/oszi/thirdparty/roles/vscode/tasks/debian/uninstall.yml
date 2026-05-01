@@ -19,5 +19,5 @@
 - name: Uninstall Microsoft deb signing key
   when: not vscode_microsoft_gpgkey_used_elsewhere
   ansible.builtin.file:
-    path: "{{ vscode_deb_gpgkey }}"
+    path: "{{ vscode_deb_gpgkey_path }}"
     state: "absent"

@@ -4,7 +4,7 @@
     path: "{{ item }}"
     state: "absent"
   with_items:
-    - "{{ tailscale_rpm_gpgkey }}"
+    - "{{ tailscale_rpm_gpgkey_path }}"
     - "{{ tailscale_rpm_repo_path }}"
 
 - name: Ensure Tailscale post-setup files are removed

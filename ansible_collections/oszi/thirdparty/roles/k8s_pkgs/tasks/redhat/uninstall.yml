@@ -4,5 +4,5 @@
     path: "{{ item }}"
     state: "absent"
   with_items:
-    - "{{ k8s_pkgs_rpm_gpgkey }}"
+    - "{{ k8s_pkgs_rpm_gpgkey_path }}"
     - "{{ k8s_pkgs_rpm_repo_path }}"

@@ -2,7 +2,7 @@
 # VS Code and Azure CLI use the same Microsoft GPG key!
 # They might also prefer it at different paths...
 
-vscode_rpm_gpgkey: "/etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft"
+vscode_rpm_gpgkey_path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft"
 vscode_rpm_repo_path: "/etc/yum.repos.d/vscode.repo"
 vscode_rpm_includepkgs:
   - "code"
@@ -15,12 +15,12 @@ vscode_rpm_repo_args:
   description: "Visual Studio Code"
   includepkgs: "{{ vscode_rpm_includepkgs }}"
   baseurl: "{{ vscode_rpm_baseurl }}"
-  gpgkey: "file://{{ vscode_rpm_gpgkey }}"
+  gpgkey: "file://{{ vscode_rpm_gpgkey_path }}"
   gpgcheck: true
   repo_gpgcheck: false
   enabled: true
 
-vscode_deb_gpgkey: "/etc/apt/keyrings/packages.microsoft.gpg"
+vscode_deb_gpgkey_path: "/etc/apt/keyrings/packages.microsoft.gpg"
 vscode_deb_repo_path: "/etc/apt/sources.list.d/vscode.sources"
 vscode_deb_repo_path_legacy: "/etc/apt/sources.list.d/vscode.list"
 vscode_deb_repo: |
@@ -29,4 +29,4 @@ vscode_deb_repo: |
   Suites: stable
   Components: main
   Architectures: {{ vscode_deb_arch }}
-  Signed-By: {{ vscode_deb_gpgkey }}
+  Signed-By: {{ vscode_deb_gpgkey_path }}

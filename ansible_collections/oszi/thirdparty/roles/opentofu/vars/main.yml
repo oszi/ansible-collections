@@ -1,15 +1,15 @@
 ---
-opentofu_rpm_gpgkeys:
+opentofu_rpm_gpgkey_paths:
   - "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu"
   - "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo"
 opentofu_rpm_repo_path: "/etc/yum.repos.d/opentofu.repo"
 opentofu_rpm_includepkgs:
   - "tofu"
 
-opentofu_deb_gpgkeys:
+opentofu_deb_gpgkey_paths:
   - "/etc/apt/keyrings/opentofu.gpg"
   - "/etc/apt/keyrings/opentofu-repo.gpg"
 opentofu_deb_repo_path: "/etc/apt/sources.list.d/opentofu.list"
 opentofu_deb_repo: >-
-  deb [signed-by={{ ','.join(opentofu_deb_gpgkeys) }}]
+  deb [signed-by={{ ','.join(opentofu_deb_gpgkey_paths) }}]
   {{ opentofu_deb_baseurl }} any main
