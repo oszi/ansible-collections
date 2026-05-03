@@ -6,6 +6,7 @@ k8s_pkgs_rpm_includepkgs:
   - "cri-tools"
 
 k8s_pkgs_deb_gpgkey_path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+k8s_pkgs_deb_gpgkey_source_path: "{{ k8s_pkgs_deb_gpgkey_path }}.asc"
 k8s_pkgs_deb_repo_path: "/etc/apt/sources.list.d/kubernetes.list"
 k8s_pkgs_deb_repo: >-
   deb [signed-by={{ k8s_pkgs_deb_gpgkey_path }}] {{ k8s_pkgs_deb_baseurl }} /

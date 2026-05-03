@@ -10,7 +10,7 @@
 - name: Download Kubernetes deb signing key
   ansible.builtin.get_url:
     url: "{{ k8s_pkgs_deb_gpgkey_url }}"
-    dest: "{{ k8s_pkgs_deb_gpgkey_path }}.asc"
+    dest: "{{ k8s_pkgs_deb_gpgkey_source_path }}"
     checksum: "{{ k8s_pkgs_deb_gpgkey_checksum | default(omit, true) }}"
     owner: "root"
     group: "root"
@@ -22,7 +22,7 @@
   when: _k8s_pkgs_deb_gpgkey_result.changed
   ansible.builtin.command: >-
     gpg --batch --yes --dearmor -o {{ k8s_pkgs_deb_gpgkey_path | quote }}
-    {{ _k8s_pkgs_deb_gpgkey_result.dest | quote }}
+    {{ k8s_pkgs_deb_gpgkey_source_path | quote }}
   changed_when: true
 
 - name: Install Kubernetes deb repository
