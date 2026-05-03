@@ -34,6 +34,14 @@
     mode: "0644"
   register: _k8s_pkgs_deb_repo_result
 
+- name: Install Kubernetes deb preferences
+  ansible.builtin.copy:
+    dest: "{{ k8s_pkgs_deb_preferences_path }}"
+    content: "{{ k8s_pkgs_deb_preferences }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
 - name: Update apt cache
   when: _k8s_pkgs_deb_repo_result.changed
   ansible.builtin.apt:

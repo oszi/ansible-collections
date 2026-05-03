@@ -10,6 +10,12 @@ k8s_pkgs_deb_repo_path: "/etc/apt/sources.list.d/kubernetes.list"
 k8s_pkgs_deb_repo: >-
   deb [signed-by={{ k8s_pkgs_deb_gpgkey_path }}] {{ k8s_pkgs_deb_baseurl }} /
 
+k8s_pkgs_deb_preferences_path: "/etc/apt/preferences.d/kubernetes"
+k8s_pkgs_deb_preferences: |
+  Package: kube*
+  Pin: origin {{ k8s_pkgs_deb_baseurl | ansible.builtin.urlsplit('hostname') }}
+  Pin-Priority: 1001
+
 # Used to enable completions in post-setup tasks.
 # Joined as string to support version pinned packages.
 k8s_pkgs_kubectl_enabled: "{{ 'kubectl' in ' '.join(k8s_pkgs_packages | flatten) }}"

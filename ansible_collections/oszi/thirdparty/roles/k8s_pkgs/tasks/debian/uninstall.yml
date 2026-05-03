@@ -5,4 +5,5 @@
     state: "absent"
   with_items:
     - "{{ k8s_pkgs_deb_gpgkey_path }}"
+    - "{{ k8s_pkgs_deb_preferences_path }}"
     - "{{ k8s_pkgs_deb_repo_path }}"

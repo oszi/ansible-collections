@@ -21,8 +21,8 @@ argument_specs:
         description:
           - List of Kubernetes community packages to install
           - Available packages include kubeadm, kubectl, kubelet, kubernetes-cni, cri-tools
-          - Kubectl may conflict with other repositories such as gcloud_sdk, there is no auto uninstall for this reason
-          - On Debian/Ubuntu, use version pinning and apt-mark hold to fix conflicts, on Redhat/Fedora includepkgs is set automatically
+          - Packages may conflict with other repositories such as gcloud_sdk, there is no auto uninstall for this reason
+          - On Debian/Ubuntu, pin-priority is set to 1001 to fix conflicts, on Redhat/Fedora includepkgs is used
           - Only the repository is installed if no packages are given
         type: list
         elements: str
