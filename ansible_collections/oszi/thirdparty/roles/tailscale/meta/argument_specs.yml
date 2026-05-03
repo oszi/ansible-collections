@@ -51,12 +51,15 @@ argument_specs:
 
       tailscale_bash_completion_path:
         description:
-          - System path for Tailscale bash completion script
+          - System path for tailscale bash completion script
         type: path
         required: false
+        default: /etc/bash_completion.d/tailscale
 
       tailscale_zsh_completion_path:
         description:
-          - System path for Tailscale zsh completion script
+          - System path for tailscale ZSH completion script
+          - ZSH-native, auto-loading works from site-functions
         type: path
         required: false
+        default: /usr/local/share/zsh/site-functions/_tailscale
