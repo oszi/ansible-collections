@@ -3,7 +3,7 @@ import re
 import shlex
 
 # Do not use path functions that use the filesystem, filters run on the ansible controller.
-from posixpath import join, isabs, normpath, sep
+from posixpath import isabs, normpath, sep
 
 USERNAME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]*$")
 
@@ -19,13 +19,11 @@ def to_tilde_path(path: str, home: str, user: str = "") -> str:
     path_norm = normpath(path)
     home_norm = normpath(home)
 
-    if path_norm == home_norm:
-        return f"~{user}"
-
-    home_prefix = home_norm.rstrip(sep) + sep
-    if path_norm.startswith(home_prefix):
-        relpath = path_norm.removeprefix(home_prefix)
-        return join(f"~{user}", relpath)
+    if path_norm.startswith(home_norm):
+        relpath = path_norm[len(home_norm) :]
+        if relpath == "" or relpath.startswith(sep):
+            trail_sep = sep if path.endswith(sep) else ""
+            return f"~{user}" + relpath + trail_sep
 
     return path  # Change nothing.
 
@@ -41,7 +39,7 @@ def quote_tilde_path(path: str) -> str:
     if not relpath:
         return basepath + sep_
 
-    return join(basepath, shlex.quote(relpath))
+    return basepath + sep_ + shlex.quote(relpath)
 
 
 def to_quoted_tilde_path(path: str, home: str, user: str = "") -> str:
