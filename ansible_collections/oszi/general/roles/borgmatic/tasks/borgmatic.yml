@@ -35,10 +35,10 @@
 
 # When oszi.general.shell is also included alongside of this role.
 - name: Copy shell aliases for Borgmatic
-  when: shell_disabled is defined and not shell_disabled
+  when: "shell_shrc_d_export_path | default(none) is truthy"
   ansible.builtin.copy:
     src: "etc/shrc.d/borgmatic.sh"
-    dest: "{{ shell_shrc_d_path }}/borgmatic.sh"
+    dest: "{{ shell_shrc_d_export_path }}/borgmatic.sh"
     owner: "root"
     group: "root"
     mode: "0644"

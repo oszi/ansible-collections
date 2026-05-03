@@ -94,6 +94,7 @@ argument_specs:
         description:
           - Directory path where shrc entrypoint, shrc.d, and skel are installed
           - Used in role vars `shell_shrc_d_path`, `shell_shrc_path`, and `shell_skel_path`
+          - Exports `shell_shrc_d_export_path` fact for external integrations when running as root
           - Override if /etc is not writeable (e.g., /usr/local/etc)
           - Default is /etc, or ~/.config (using ansible_facts.user_dir) in rootless mode
         type: path
