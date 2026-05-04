@@ -19,6 +19,8 @@ args_parser = ArgumentParser(
     epilog=(
         "ANSIBLE environment variables and ansible.cfg are interpreted too.\n"
         "Port forwarding: ansible-ssh -N -f -L 8080:localhost:80 HOST\n"
+        "Proxy forwarding: ansible-ssh -N -f -D localhost:1080 HOST\n"
+        "  && export https_proxy=socks5h://localhost:1080\n"
         "Transfer files: tar -czf- * | ansible-ssh -T HOST dd of=tar.gz"
     ),
     formatter_class=RawTextHelpFormatter,
@@ -41,6 +43,7 @@ args_parser.add_argument("-A", dest="forward_agent", help="enable agent forwardi
 args_parser.add_argument("-J", dest="jump_host", help="comma-separated jump hosts")
 args_parser.add_argument("-L", dest="local_forward", help="[bind_address:]port:host:host_port")
 args_parser.add_argument("-R", dest="remote_forward", help="remote_socket:local_socket")
+args_parser.add_argument("-D", dest="proxy_forward", help="socks5[h] proxy on [bind_address:]port")
 args_parser.add_argument("-W", dest="stdio_forward", help="forward stdin/stdout to host:port")
 args_parser.add_argument("-N", dest="no_command", help="do not execute a command", **_args_bool)
 # SSH forking itself allows ansible-ssh to exit cleanly unlike with -n and & ...
@@ -249,6 +252,8 @@ def get_app_ssh_args(app_args) -> AnsibleSSHArgs:  # pylint: disable=too-many-br
         ssh_args.ssh_args += ["-L", app_args.local_forward]
     if app_args.remote_forward:
         ssh_args.ssh_args += ["-R", app_args.remote_forward]
+    if app_args.proxy_forward:
+        ssh_args.ssh_args += ["-D", app_args.proxy_forward]
     if app_args.stdio_forward:
         ssh_args.ssh_args += ["-W", app_args.stdio_forward]
 
