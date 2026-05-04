@@ -1,0 +1,28 @@
+---
+# List of options from downloads_list to filter out for ansible.builtin.get_url:
+downloads_rejectattr_for_get_url:
+  - directory_mode
+  - environment
+  - post_install_script
+
+# Parent directory of the downloaded file in the task loop:
+# Support when dest itself is a directory, only with a trailing slash.
+downloads_item_directory: "{{ downloads_item.dest if downloads_item.dest.endswith('/')
+  else downloads_item.dest | dirname }}"
+
+# Env vars for post_install_script in the task loop:
+# downloads_item is also available in post_install_script using jinja templates.
+downloads_item_post_install_environment:
+  DOWNLOADS_ITEM_DEST: "{{ downloads_item_result.dest | default('') }}"
+  DOWNLOADS_ITEM_URL: "{{ downloads_item_result.url | default('') }}"
+  DOWNLOADS_ITEM_BACKUP_FILE: "{{ downloads_item_result.backup_file | default('') }}"
+  DOWNLOADS_ITEM_CHECKSUM_DEST: "{{ downloads_item_result.checksum_dest | default('') }}"
+  DOWNLOADS_ITEM_CHECKSUM_SRC: "{{ downloads_item_result.checksum_src | default('') }}"
+
+# Placeholders for loop and task variables to pass argument_specs validation.
+# Wrapping loop_var prevents "loop variable is already in use" warnings.
+# Task variables take precedence over vars/main.
+downloads_item: "{{ downloads_options_default | combine(_downloads_item_var | default(_downloads_item_var_placeholder)) }}"
+_downloads_item_var_placeholder:
+  dest: "/tmp/__PLACEHOLDER__"
+  url: "http://localhost/__PLACEHOLDER__"

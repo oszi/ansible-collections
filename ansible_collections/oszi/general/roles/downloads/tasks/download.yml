@@ -1,0 +1,54 @@
+---
+- name: "Check directory for {{ downloads_item.dest }}"
+  ansible.builtin.stat:
+    path: "{{ downloads_item_directory }}"
+  register: _downloads_directory
+
+# Do NOT change existing directories to avoid conflicts with other roles and between items.
+- name: "Ensure directory for {{ downloads_item.dest }}"
+  when: not _downloads_directory.stat.exists
+  ansible.builtin.file:
+    path: "{{ downloads_item_directory }}"
+    state: "directory"
+    owner: "{{ downloads_item.owner | default(omit) }}"
+    group: "{{ downloads_item.group | default(omit) }}"
+    mode: "{{ downloads_item.directory_mode | default(omit) }}"
+
+- name: Download file and run post-install script
+  block:
+    - name: "Download file to {{ downloads_item.dest }}"
+      ansible.builtin.get_url:
+      args: "{{ downloads_item | dict2items | rejectattr('key', 'in', downloads_rejectattr_for_get_url) | items2dict }}"
+      environment: "{{ downloads_item.environment | default({}) }}"
+      register: downloads_item_result
+
+    - name: "Run post-install script for {{ downloads_item_result.dest }}"
+      when: downloads_item_result.changed and downloads_item.post_install_script is defined
+      ansible.builtin.shell: |
+        set -euxo pipefail
+        {{ downloads_item.post_install_script }}
+      environment: "{{ downloads_item.environment | default({}) | combine(downloads_item_post_install_environment) }}"
+      args:
+        chdir: "{{ downloads_item_directory }}"
+        executable: "/bin/bash"
+      changed_when: true
+
+  rescue:
+    # Move backup file in one task instead of copy then remove.
+    # A new backup will be made on the next run.
+    - name: "Restore backup of {{ downloads_item_result.dest }}"
+      when: "downloads_item_result.backup_file | default(none) is truthy"
+      ansible.builtin.command: >-
+        mv -fv {{ downloads_item_result.backup_file | quote }}
+        {{ downloads_item_result.dest | quote }}
+      changed_when: true
+
+    - name: "To force re-download without backup, remove {{ downloads_item_result.dest }}"
+      when: "downloads_item_result.backup_file | default(none) is not truthy"
+      ansible.builtin.file:
+        path: "{{ downloads_item_result.dest }}"
+        state: "absent"
+
+    - name: "Failed to download file to {{ downloads_item_result.dest }}"
+      ansible.builtin.fail:
+        msg: "Task failed: {{ ansible_failed_task.name }}"

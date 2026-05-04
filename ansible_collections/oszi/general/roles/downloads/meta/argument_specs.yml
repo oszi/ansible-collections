@@ -1,0 +1,173 @@
+---
+argument_specs:
+  main:
+    short_description: Download files with get_url, with post-install script support
+    description:
+      - Downloads files from supported URLs with ansible.builtin.get_url
+      - Supports post-install scripts, for example, for extracting archives
+      - Supports rootless mode - as `owner` and `group` options allow
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      downloads_options_default:
+        description: Default options to merge with every element of O(downloads_list)
+        type: dict
+        required: false
+        options: &options
+          # Extra options handled by the role:
+          post_install_script:
+            description:
+              - Script run after the download has finished with bash -euo pipefail
+              - Use for post-setup tasks, extracting archives, generating completions, creating symlinks, etc
+              - Post-install environment variables - DOWNLOADS_ITEM_DEST, DOWNLOADS_ITEM_URL, DOWNLOADS_ITEM_BACKUP_FILE,
+                DOWNLOADS_ITEM_CHECKSUM_DEST, DOWNLOADS_ITEM_CHECKSUM_SRC
+              - Loop variable `downloads_item` is also available using jinja templates
+            type: str
+            required: false
+          environment:
+            description: Set environment variables such as `https_proxy` for the request and for `post_install_script` in hash/dict format
+            type: dict
+            required: false
+          directory_mode:
+            description:
+              - Set the access permissions of a newly created parent directory to the given mode
+              - Permissions on existing directories do not change
+            type: str
+            required: false
+          # Known options of ansible.builtin.get_url:
+          backup:
+            description: Create a backup file including the timestamp information so you can get the original file back
+            type: bool
+            required: false
+            default: false
+          decompress:
+            description: Whether to attempt to decompress gzip content-encoded responses
+            type: bool
+            required: false
+            default: true
+          force:
+            description: If `true` and `dest` is not a directory, it will download the file every time and replace the file if the contents change
+            type: bool
+            required: false
+            default: false
+          owner:
+            description: Name of the user that should own the filesystem object, as would be fed to `chown`
+            type: str
+            required: false
+          group:
+            description: Name of the group that should own the filesystem object, as would be fed to `chown`
+            type: str
+            required: false
+          mode:
+            description: Permissions the resulting filesystem object should have, as would be fed to `chmod`
+            type: str
+            required: false
+          attributes:
+            description: Attributes the resulting filesystem object should have, as would be fed to `chattr`
+            type: str
+            required: false
+          unsafe_writes:
+            description:
+              - Influence when to use atomic operation to prevent data corruption or inconsistent reads from the target filesystem object
+              - This option allows Ansible to fall back to unsafe methods of updating filesystem objects when atomic operations fail
+              - One example is docker mounted filesystem objects, which cannot be updated atomically from inside the container
+            type: bool
+            required: false
+            default: false
+          headers:
+            description: Add custom HTTP headers to the request in hash/dict format
+            type: dict
+            required: false
+          unredirected_headers:
+            description: List of header names that will not be sent on subsequent redirected requests to avoid potential credential exposure
+            type: list
+            elements: str
+            required: false
+          http_agent:
+            description: User-Agent header to identify as, generally appears in web server logs
+            type: str
+            required: false
+            default: ansible-httpget
+          url_password:
+            description:
+              - Password for use in HTTP basic authentication
+              - If `url_username` is not specified, `url_password` will not be used
+            type: str
+            required: false
+          url_username:
+            description:
+              - Username for use in HTTP basic authentication
+              - Can be used without `url_password` for sites that allow empty passwords
+            type: str
+            required: false
+          timeout:
+            description: Timeout in seconds for the request
+            type: int
+            required: false
+            default: 10
+          use_proxy:
+            description: If `false`, it will not use a proxy, even if one is defined in an environment variable
+            type: bool
+            required: false
+            default: true
+          ciphers:
+            description:
+              - List of SSL/TLS ciphers to use for the request in OpenSSL/LibreSSL Cipher List Format
+              - See https://docs.openssl.org/master/man1/openssl-ciphers/#cipher-list-format
+            type: list
+            elements: str
+            required: false
+          client_cert:
+            description:
+              - PEM formatted certificate chain file to be used for SSL client authentication
+              - This file can also include the key as well, and if the key is included, `client_key` is not required
+            type: path
+            required: false
+          client_key:
+            description:
+              - PEM formatted file that contains your private key to be used for SSL client authentication
+              - If `client_cert` contains both the certificate and the key, this option is not required
+            type: path
+            required: false
+          validate_certs:
+            description: If `false`, SSL certificates will not be validated, use for self-signed certificates
+            type: bool
+            required: false
+            default: true
+        default:
+          http_agent: "curl/8.20.0"
+          ciphers:
+            - TLSv1.3
+            - TLSv1.2
+          validate_certs: true
+
+      downloads_list:
+        description: List of downloads for ansible.builtin.get_url
+        type: list
+        elements: dict
+        required: false
+        options:
+          dest:
+            description:
+              - Absolute path of where to download the file to
+              - If `dest` is a directory... It must have a trailing slash for correct parent directory detection.
+                Either the server provided filename or, if none provided, the base name of the URL on the remote server will be used.
+                The file will always be downloaded (regardless of `force` and `checksum`), but replaced only if the contents changed.
+                It is not a unique key attribute of `downloads_list`
+            type: path
+            required: true
+          url:
+            description:
+              - HTTP, HTTPS, or FTP URL in the format `(http|https|ftp)://[user[:pass]]@host.domain[:port]/path`
+            type: str
+            required: true
+          checksum:
+            description:
+              - If a checksum is passed, the digest of the destination file will be calculated after it is downloaded to ensure its integrity
+              - Format is <algorithm>:<checksum|url>, for example `sha256:D98291AC[...]B6DC7B97` or `sha256:http://example.com/path/sha256sum.txt`
+              - If the file exists at the `dest` location, the destination checksum would be calculated, and if `checksum` equals the destination checksum,
+                the download would be skipped (unless `force=true`)
+            type: str
+            required: false
+
+          <<: *options

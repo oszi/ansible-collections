@@ -1,0 +1,15 @@
+---
+- name: Downloads tasks
+  tags: [downloads]
+  block:
+    - name: Include download tasks
+      ansible.builtin.include_tasks:
+        file: "download.yml"
+      loop: "{{ downloads_list }}"
+      loop_control:
+        loop_var: _downloads_item_var  # use as downloads_item, combined with downloads_options_default
+
+    - name: Downloads role completed
+      ansible.builtin.assert:
+        that: true
+        quiet: true

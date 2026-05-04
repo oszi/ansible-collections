@@ -1,0 +1,8 @@
+---
+- name: Download static files
+  hosts: all
+  become: true
+  gather_facts: false
+  roles:
+    - oszi.utils.bootstrap
+    - oszi.general.downloads

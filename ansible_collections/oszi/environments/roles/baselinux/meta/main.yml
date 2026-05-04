@@ -50,5 +50,6 @@ dependencies:
   - role: oszi.general.ssh
   - role: oszi.general.fail2ban
   - role: oszi.general.dotfiles
+  - role: oszi.general.downloads
   - role: oszi.general.acme
   - role: oszi.general.borgmatic

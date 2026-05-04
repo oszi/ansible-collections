@@ -1,0 +1,14 @@
+---
+# List of downloads for ansible.builtin.get_url:
+# Key attribute, dest is not unique if dest is a directory.
+# See the argument spec for detailed documentation.
+downloads_list: []
+
+# Defaults to merge with every element of downloads_list:
+# Also present in the argument spec.
+downloads_options_default:
+  http_agent: "curl/8.20.0"
+  ciphers:
+    - TLSv1.3
+    - TLSv1.2
+  validate_certs: true
