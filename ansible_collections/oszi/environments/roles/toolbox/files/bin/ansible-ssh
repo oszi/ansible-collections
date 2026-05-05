@@ -19,8 +19,8 @@ args_parser = ArgumentParser(
     epilog=(
         "ANSIBLE environment variables and ansible.cfg are interpreted too.\n"
         "Port forwarding: ansible-ssh -N -f -L 8080:localhost:80 HOST\n"
-        "Proxy forwarding: ansible-ssh -N -f -D localhost:1080 HOST\n"
-        "  && export https_proxy=socks5h://localhost:1080\n"
+        "Proxy forwarding: ansible-ssh -N -f -D localhost:1080 HOST \\\n"
+        "  && export http{s,}_proxy=socks5h://localhost:1080\n"
         "Transfer files: tar -czf- * | ansible-ssh -T HOST dd of=tar.gz"
     ),
     formatter_class=RawTextHelpFormatter,
