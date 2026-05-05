@@ -1,6 +1,10 @@
 ---
 gcloud_sdk_enabled: true
-gcloud_sdk_kubectl_enabled: true
+gcloud_sdk_kubectl_enabled: false  # Conflicts with k8s_pkgs!
+
+k8s_pkgs_enabled: true
+k8s_pkgs_packages:
+  - kubectl
 
 hashicorp_enabled: true
 hashicorp_packages: ["terraform"]

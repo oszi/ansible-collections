@@ -1,0 +1,13 @@
+---
+downloads_list:
+  - dest: "/usr/local/bin/talosctl"
+    url: "https://github.com/siderolabs/talos/releases/download/v1.13.0/talosctl-linux-amd64"
+    checksum: "sha256:4aa5cd191c708b8c1a3b358bfd7dd21fb0cc6bd4dc7a07f2aa925cd2a8473bae"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+    # force: true
+    post_install_script: |
+      mkdir -p /etc/bash_completion.d /usr/local/share/zsh/site-functions
+      "$DOWNLOADS_ITEM_DEST" completion bash > /etc/bash_completion.d/talosctl
+      "$DOWNLOADS_ITEM_DEST" completion zsh > /usr/local/share/zsh/site-functions/_talosctl
