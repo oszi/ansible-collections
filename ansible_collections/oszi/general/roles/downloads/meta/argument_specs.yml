@@ -14,7 +14,7 @@ argument_specs:
         type: dict
         required: false
         options: &options
-          # Extra options handled by the role:
+          # Extra options for the role (see downloads_rejectattr_for_get_url):
           post_install_script:
             description:
               - Script run after the download has finished with bash -euo pipefail
@@ -34,9 +34,11 @@ argument_specs:
               - Permissions on existing directories do not change
             type: str
             required: false
-          # Known options of ansible.builtin.get_url:
+          # Options of ansible.builtin.get_url:
           backup:
-            description: Create a backup file including the timestamp information so you can get the original file back
+            description:
+              - Create a backup file including the timestamp information so you can get the original file back
+              - Automatically restored if the request or `post_install_script` failed
             type: bool
             required: false
             default: false
@@ -46,7 +48,9 @@ argument_specs:
             required: false
             default: true
           force:
-            description: If `true` and `dest` is not a directory, it will download the file every time and replace the file if the contents change
+            description:
+              - If `true` and `dest` is not a directory, it will download the file every time and replace the file if the contents change
+              - If `true` and the request or `post_install_script` failed, without a backup file, remove the file to force retry on the next run
             type: bool
             required: false
             default: false

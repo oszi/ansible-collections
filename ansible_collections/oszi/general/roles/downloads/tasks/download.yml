@@ -44,7 +44,7 @@
       changed_when: true
 
     - name: "To force re-download without backup, remove {{ downloads_item_result.dest }}"
-      when: "downloads_item_result.backup_file | default(none) is not truthy"
+      when: "downloads_item_result.backup_file | default(none) is not truthy and downloads_item.force | default(false)"
       ansible.builtin.file:
         path: "{{ downloads_item_result.dest }}"
         state: "absent"
