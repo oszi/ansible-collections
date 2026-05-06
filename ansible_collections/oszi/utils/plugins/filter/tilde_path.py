@@ -3,7 +3,9 @@ import re
 import shlex
 
 # Do not use path functions that use the filesystem, filters run on the ansible controller.
-from posixpath import isabs, normpath, sep
+from posixpath import isabs, normpath, sep as SEP
+
+TILDE = "~"
 
 USERNAME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]*$")
 
@@ -21,9 +23,9 @@ def to_tilde_path(path: str, home: str, user: str = "") -> str:
 
     if path_norm.startswith(home_norm):
         relpath = path_norm[len(home_norm) :]
-        if relpath == "" or relpath.startswith(sep):
-            trail_sep = sep if path.endswith(sep) else ""
-            return f"~{user}" + relpath + trail_sep
+        if relpath == "" or relpath.startswith(SEP):
+            trail_sep = SEP if path.endswith(SEP) else ""
+            return TILDE + user + relpath + trail_sep
 
     return path  # Change nothing.
 
@@ -32,14 +34,18 @@ def quote_tilde_path(path: str) -> str:
     if not isinstance(path, str):
         raise ValueError("quote_tilde_path: 'path' is not a string")
 
-    if not path.startswith("~"):
+    if not path.startswith(TILDE):
         return shlex.quote(path)
 
-    basepath, sep_, relpath = path.partition(sep)
-    if not relpath:
-        return basepath + sep_
+    basepath, sep, relpath = path.partition(SEP)
 
-    return basepath + sep_ + shlex.quote(relpath)
+    if basepath != TILDE:
+        basepath = TILDE + shlex.quote(basepath[len(TILDE) :])
+
+    if relpath != "":
+        relpath = shlex.quote(relpath)
+
+    return basepath + sep + relpath
 
 
 def to_quoted_tilde_path(path: str, home: str, user: str = "") -> str:
