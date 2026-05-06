@@ -10,6 +10,7 @@
     - oszi.general.shell
     - oszi.general.dotfiles
     - oszi.general.cloudflare_dns
+    - oszi.general.downloads
     - oszi.general.acme
     - oszi.general.podman
     - oszi.general.podman_kube
