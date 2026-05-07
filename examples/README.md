@@ -1,8 +1,10 @@
 # Examples
 
-The example inventory is configured to target localhost in the workstations group.
+The `examples/inventory` directory targets localhost in the workstations group.  
+It showcases common role configurations for workstations and container hosts.
 
-See the [_scripts](../_scripts) directory for utilities and integrations.
+Copy, and adapt `activate` and `ansible.cfg` to your requirements.  
+See the [_scripts](../_scripts) for utilities and integrations.
 
 ## Run some playbooks
 
@@ -10,11 +12,13 @@ See the [_scripts](../_scripts) directory for utilities and integrations.
 # cd examples
 ansible-playbook --list-tags oszi.environments.workstation
 ansible-playbook -K --check --diff oszi.environments.workstation
+make workstation TAGS=shell,dotfiles
 ```
 
 ```bash
 ansible-playbook --list-tags oszi.general.update
 ansible-playbook -K oszi.general.update
+make update
 ```
 
 ## Use ansible-vault-id-client with ansible-vault

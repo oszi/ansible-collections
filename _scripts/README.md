@@ -2,37 +2,27 @@
 
 Scripts to facilitate ansible deployments and source control.
 
-If you're using a git submodule, symlink what you need in a _scripts directory.
-
 * [ansible-ssh](../ansible_collections/oszi/environments/roles/toolbox/files/bin/ansible-ssh)  
-SSH into a host in an ansible inventory with all configured arguments.
-
+  SSH into a host in an ansible inventory with all configured arguments.
 * [ansible-vault-id-client](../ansible_collections/oszi/environments/roles/toolbox/files/bin/ansible-vault-id-client)  
-Script to use as "vault id" for GPG encrypted vault passwords.
-
+  Script to use as "vault id" for GPG encrypted vault passwords.
 * [galaxy-release.sh](galaxy-release.sh)  
-Update the galaxy versions for a new release.
-
+  Update the galaxy versions for a new release.
 * [galaxy-tags.py](galaxy-tags.py)  
-List ansible roles grouped by galaxy tags.
-
+  List ansible roles grouped by galaxy tags.
 * [git-init.sh](git-init.sh)  
-Initialize git hooks and git submodules after cloning.
-
+  Initialize git hooks and git submodules after cloning.
 * [git-pre-commit.sh](git-pre-commit.sh)  
-Pre-commit hook to protect sensitive files and to run linters.
-
+  Pre-commit hook to protect sensitive files and to run linters.
 * [git-reset.sh](git-reset.sh)  
-Verify and reset the repository to a remote branch - master by default.
-
+  Verify and reset the repository to a remote branch - master by default.
 * [git-verify.sh](git-verify.sh)  
-Verify the signatures of all git branches and tags.
-
+  Verify the signatures of all git branches and tags.
 * [run-tests.sh](run-tests.sh)  
-Run test scripts in [_scripts/tests](tests) (e.g., ansible-lint or shellcheck).
-
+  Run test scripts in [_scripts/tests](tests) (e.g., ansible-lint or shellcheck).
 * [_ansible.mk](_ansible.mk)  
-Makefile fragment for a common ansible interface. See the [examples](../examples).
-
+  Makefile fragment for a common ansible interface. See the [examples](../examples).
 * [_scripts.mk](_scripts.mk)  
-Makefile fragment for venv and scripts integration.
+  Makefile fragment for venv and scripts integration.
+
+If collections is a git submodule, symlink what you need in a _scripts directory.

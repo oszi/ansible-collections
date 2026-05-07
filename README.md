@@ -7,13 +7,13 @@ See the examples and role argument_specs for basic documentation.
 ## Collections
 
 * [oszi.environments](ansible_collections/oszi/environments) -
-High-level environment roles.
+  High-level environment roles.
 * [oszi.general](ansible_collections/oszi/general) -
-General, bite-sized, single-purpose roles.
+  General, bite-sized, single-purpose roles.
 * [oszi.thirdparty](ansible_collections/oszi/thirdparty) -
-Software from third-party sources.
+  Software from third-party sources.
 * [oszi.utils](ansible_collections/oszi/utils) -
-Ansible plugins and utility roles.
+  Ansible plugins and utility roles.
 
 ## First-time setup
 
@@ -33,11 +33,15 @@ git submodule add "https://github.com/oszi/ansible-collections.git" ansible/coll
 
 See the [examples](examples) for setting up an ansible inventory.
 
+## Development
+
+See the [Core Conventions](CONVENTIONS.md) for best practices.
+
+See the [_scripts](_scripts) for tests, utilities and integrations.
+
 ## Release policy
 
-This repository uses lock-step semantic versioning with version pinning.  
-Only the affected collections are updated in a release; minor versions may be skipped.  
-Git tags are strictly incremental and contain all relevant release information.  
+This repository uses lock-step semantic versioning. Git tags are the source of truth.  
 The collections are always installed from source; there is no Ansible Galaxy release.  
 Obsolete backwards-compatibility support may be dropped at any time.
 
