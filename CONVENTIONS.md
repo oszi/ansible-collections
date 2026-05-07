@@ -2,41 +2,35 @@
 
 ## Best practices
 
-* **Ansible best practices**: Follow official guidelines such as all role variables must be prefixed
-  with the role name, use FQCN for all modules, prefer modules over shell/command...
-* **Idempotency**: Every task must be safely re-runnable. Avoid `command`/`shell` where a module exists;
-  when unavoidable, use `creates`, `removes`, or `changed_when`.
-* **Strict shell scripts**: Use `set -euo pipefail` and `executable: /bin/bash` in `shell` module tasks.
-  Use quoted environment variables to pass values from ansible.
-* **Strict permissions**: Set strict `mode`, `owner`, and `group`, unless otherwise required (e.g. rootless).
-* **Become at playbook level**: Set `become` in playbooks, not in roles, unless a task is looped per user.
-* **Single-purpose roles**: Each role configures exactly one component. Reject creeping scope.
-* **Opt-in third-party**: Any role managing an external repo must default to disabled
-  and leave the system clean when disabled.
-* **Missing optional dependencies**: Roles that check `podman_disabled | default(false)` or similar
-  cross-role flags must use `| default(false)` defensively.
-* **Cross-role variable consumption**: When referencing another role's variable in `defaults/main.yml`
-  (e.g. `users_list`), always guard with `if VAR is defined else []` - the role must work standalone.
-* **Fact namespace**: All fact access must use `ansible_facts.fact_name`, never bare variable injection.
-* **Cross-distro gaps**: Roles must handle both `ansible_facts.os_family == 'RedHat'` and `Debian`
-  for different packages and system paths.
-* **Container environments**: Any role managing systemd units or networking must guard against
-  `ansible_facts.virtualization_type == 'container'` if expected to work in containers (dependencies of `baselinux`).
-* **Shell quoting in templates**: Use `| quote` for strings, `| to_quoted_tilde_path(...)` for home-dir relative paths.
-* **argument_specs.yml**: All defaults variables in all roles require a precise argument_specs entry.
+| Practice | Description |
+|---|---|
+| **Ansible best practices** | Follow official guidelines such as all role variables must be prefixed with the role name, use FQCN for all modules, prefer modules over shell/command... |
+| **Idempotency** | Every task must be safely re-runnable. Avoid `command`/`shell` where a module exists; when unavoidable, use `creates`, `removes`, or `changed_when`. |
+| **Strict shell scripts** | Use `set -euo pipefail` and `executable: /bin/bash` in `shell` module tasks. Use quoted environment variables to pass values from ansible. |
+| **Shell quoting in templates** | Use `\| quote` for strings, `\| to_quoted_tilde_path(...)` for home-dir relative paths. |
+| **Strict permissions** | Set strict `mode`, `owner`, and `group`, unless otherwise required (e.g. rootless). |
+| **Become at playbook level** | Set `become` in playbooks, not in roles, unless a task is looped per user. |
+| **Single-purpose roles** | Each role configures exactly one component. Reject creeping scope. |
+| **Opt-in third-party** | Roles managing an external repo must default to disabled and leave the system clean if disabled. |
+| **Optional dependencies** | `podman_disabled \| default(false)` or similar cross-role flags must use default defensively. |
+| **Cross-role variable use** | When referencing another role's variable (e.g. `users_list`), always guard with `if VAR is defined else []` if the role must work standalone. |
+| **Fact namespace** | All fact access must use `ansible_facts.fact_name`, never bare variable injection. |
+| **Cross-distro gaps** | Roles must handle both `RedHat` and `Debian` `os_family` for different packages and system paths. |
+| **Container environments** | Any role managing systemd units or networking must guard against `virtualization_type == 'container'` if expected to work in containers (dependencies of `baselinux`). |
+| **argument_specs.yml** | All defaults variables in all roles require a precise argument_specs entry. |
 
 ## Variable naming
 
 | Pattern | Meaning |
 |---|---|
-| `{role}_disabled: false` | Primary on/off switch for `general` roles; triggers uninstall or noop when `true` |
-| `{role}_enabled: false` | Opt-in on/off switch for `thirdparty` roles; triggers uninstall when `true` |
-| `{role}_{feature}_enabled` | Feature flag, typically derived from `not {role}_disabled` |
-| `{role}_{thing}_list` | List form of a dict variable, produced via `nested_dict_to_list` |
-| `{role}_{thing}` (dict) | Inventory-facing dict-of-dicts; tasks iterate the `_list` form, never this directly |
-| `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy |
-| `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory |
-| `{role}_packages` | List of cross-distro packages; flatten with set_fact in the role |
+| `{role}_disabled: false` | Primary on/off switch for `general` roles; triggers uninstall or noop when `true`. |
+| `{role}_enabled: false` | Opt-in on/off switch for `thirdparty` roles; triggers uninstall when `true`. |
+| `{role}_{feature}_enabled` | Feature flag, typically derived from `not {role}_disabled`. |
+| `{role}_{thing}_list` | List form of a nested dict variable, produced via `\| nested_dict_to_list('key_attr')`. |
+| `{role}_{thing}` (dict) | Legacy, inventory-facing dict-of-dicts; tasks iterate the `_list` form. |
+| `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (e.g. `workstation`). |
+| `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (e.g. `gnome`). |
+| `{role}_packages` | List of cross-distro packages; flatten with set_fact in the role. |
 
 ## Role anatomy
 
@@ -102,6 +96,9 @@ Every `tasks/main.yml` follows a fixed structure: one top-level block tagged wit
 `include_tasks` orchestration inside, inter-role fact exports with `tags: [always]` (runs regardless
 of `--tags` filtering), and a no-op role completed assert at the end.
 
+Common alternative entrypoints are `tasks/update.yml` or `tasks/{role}.yml`. Alternative entrypoints
+must be documented in `argument_specs.yml` (use yaml anchors for options).
+
 ```yaml
 - name: Component tasks
   tags: [component]
@@ -165,18 +162,18 @@ vars:
 
 ## Galaxy tag rules (enforced by tests)
 
-1. The collection name must be a tag (`general`, `thirdparty`, `environments`, or `utils`).
-2. Exactly one mutually exclusive environment tag: `baselinux`, `containers`, `thirdparty`, `toolbox`, or `workstation`.
-3. Rootless XOR root assertion - Every role must declare exactly one of the following:
-   - `rootless` tag -> role supports non-root execution (and must implement privilege-aware paths/handlers).
-   - A dependency asserting root privileges -> role requires root. Accepted forms:
-     ```yaml
-     # Explicit assertion:
-     - role: oszi.utils.assert
-       vars:
-         assert_task_msg: "Assert root privileges"
-         assert_that:
-           - "ansible_facts.user_uid | int == 0"
-     # Or via baselinux, which asserts root in its own dependencies:
-     - role: oszi.environments.baselinux
-     ```
+1. The collection name must be a tag: `general`, `thirdparty`, `environments`, `utils`
+2. A mutually exclusive environment tag: `baselinux`, `containers`, `thirdparty`, `toolbox`, `workstation`
+3. Rootless XOR root assertion: Roles must either add the `rootless` tag, or assert root privileges.
+
+Accepted dependencies to assert root privileges:
+```yaml
+# Explicit assertion:
+- role: oszi.utils.assert
+  vars:
+    assert_task_msg: "Assert root privileges"
+    assert_that:
+      - "ansible_facts.user_uid | int == 0"
+# Or via baselinux, which asserts root in its own dependencies:
+- role: oszi.environments.baselinux
+```
