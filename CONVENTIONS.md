@@ -16,7 +16,7 @@
 | **Cross-role variable use** | When referencing another role's variable (e.g. `users_list`), always guard with `if VAR is defined else []` if the role must work standalone. |
 | **Fact namespace** | All fact access must use `ansible_facts.fact_name`, never bare variable injection. |
 | **Cross-distro gaps** | Roles must handle both `RedHat` and `Debian` `os_family` for different packages and system paths. |
-| **Container environments** | Any role managing systemd units or networking must guard against `virtualization_type == 'container'` if expected to work in containers (dependencies of `baselinux`). |
+| **Container environments** | Any role managing systemd units or networking must guard against `virtualization_type` `container` if expected to work in containers (dependencies of `baselinux`). |
 | **argument_specs.yml** | All defaults variables in all roles require a precise argument_specs entry. |
 
 ## Variable naming
@@ -28,8 +28,8 @@
 | `{role}_{feature}_enabled` | Feature flag, typically derived from `not {role}_disabled`. |
 | `{role}_{thing}_list` | List form of a nested dict variable, produced via `\| nested_dict_to_list('key_attr')`. |
 | `{role}_{thing}` (dict) | Legacy, inventory-facing dict-of-dicts; tasks iterate the `_list` form. |
-| `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (e.g. `workstation`). |
-| `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (e.g. `gnome`). |
+| `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (see `workstation` defaults). |
+| `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (see `gnome` defaults). |
 | `{role}_packages` | List of cross-distro packages; flatten with set_fact in the role. |
 
 ## Role anatomy
