@@ -4,7 +4,7 @@ _scripts/tests is a collection of scripts for automated tests such as source cod
 
 Stable interface to run tests:
 ```bash
-_scripts/run-tests.sh  # [ansible-lint|ansible-vault|galaxy-tags|python|shellcheck]
+_scripts/run-tests.sh  # [ansible-lint|ansible-vault|galaxy-tags|python|shellcheck] ...
 ```
 
 Reformat python with black (check-only by default):
