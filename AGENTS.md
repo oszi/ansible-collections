@@ -2,8 +2,11 @@
 
 Personal Ansible collections for Linux workstations and containers.  
 Supported distributions: latest stable Fedora, Debian, Ubuntu, and EL for some roles.  
-Minimum Ansible version: **2.18.0** (Support up to the latest.)  
-For getting started with inventories, see `examples/`.
+Minimum Ansible version: **2.18.0** (Support up to the latest.)
+
+For scripts, see `_scripts/` + `_scripts/README.md`.  
+For tests, see `_scripts/tests/` + `_scripts/tests/README.md`.  
+For getting started with inventories, see `examples/` + `examples/README.md`.
 
 ## Collection Hierarchy
 
@@ -19,27 +22,21 @@ For getting started with inventories, see `examples/`.
 @ansible_collections/oszi/thirdparty/README.md  
 @ansible_collections/oszi/environments/README.md
 
-### Roles
+### Roles & Playbooks
 
+Playbook location pattern: `ansible_collections/oszi/{collection}/playbooks/{playbook}`  
 Role location pattern: `ansible_collections/oszi/{collection}/roles/{role}/`  
 Always consult `meta/argument_specs.yml` for role variables.
 
 ## Versioning & Releases
 
 **Git tags are the source of truth**: `MAJOR.MINOR.PATCH`  
-Latest version: `git describe --tags --abbrev=0 origin/master`  
+Current version: `git describe --tags --abbrev=0`  
 Changelog: `git show --no-patch MAJOR.MINOR.PATCH`
 
 Tags contain the short git log since the previous tag and which collections were updated.  
 Collections can be at different minor/patch versions. Major versions are always in sync.  
 Source-only install; no Ansible Galaxy releases.
-
-## Scripts, Testing & Linting
-
-@_scripts/README.md  
-@_scripts/tests/README.md
-
-All tests must pass before a release.
 
 ## Code Reviews
 
