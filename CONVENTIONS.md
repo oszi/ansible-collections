@@ -35,17 +35,17 @@
 ## Role anatomy
 
 ```
-roles/{name}/
+roles/{role}/
   defaults/main.yml       # User-overridable variables (lowest precedence)
-  vars/main.yml           # Internal computed variables (not user-facing)
-  tasks/main.yml          # Entry point: block with {role} tag, include_tasks orchestration, role completed assert
-  tasks/update.yml        # Optional update entrypoint for the oszi.general.update playbook
-  tasks/{install,uninstall,config,deploy}.yml
+  vars/main.yml           # Internal variables (not user-facing)
+  tasks/main.yml          # Main entrypoint (see Task structure pattern)
+  tasks/update.yml        # Optional update entrypoint (see oszi.general.update playbook)
+  tasks/{install,uninstall,config,deploy,...}.yml
   handlers/main.yml
-  meta/main.yml           # Galaxy metadata + role dependencies
-  meta/argument_specs.yml # Full documentation for every defaults variable (required)
-  templates/              # absolute dest path as relative, .j2, e.g. templates/etc/app/app.conf.j2
-  files/                  # absolute dest path as relative, e.g. files/etc/app/app.conf
+  meta/main.yml           # Galaxy metadata and role dependencies
+  meta/argument_specs.yml # Full documentation of every defaults variable (required)
+  templates/              # Absolute dest path as relative, .j2, e.g. templates/etc/app/app.conf.j2
+  files/                  # Absolute dest path as relative, e.g. files/etc/app/app.conf
 ```
 
 ## Privilege-aware paths (rootful vs rootless)
@@ -82,10 +82,10 @@ ansible.builtin.systemd:
 
 ```yaml
 # Package name differences
-package: "{{ (ansible_facts.os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
+podman_toolbox_package: "{{ (ansible_facts.os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
 
 # Platform-specific package lists - set_fact with flatten before use
-python_packages:
+python_devel_distro_packages:
   - "{{ ['python3-devel', 'gcc'] if ansible_facts.os_family == 'RedHat' else [] }}"
   - "{{ ['python3-dev', 'build-essential'] if ansible_facts.os_family == 'Debian' else [] }}"
 ```
@@ -94,10 +94,10 @@ python_packages:
 
 Every `tasks/main.yml` follows a fixed structure: one top-level block tagged with the role name,
 `include_tasks` orchestration inside, inter-role fact exports with `tags: [always]` (runs regardless
-of `--tags` filtering), and a no-op role completed assert at the end.
+of tags filtering), and a no-op role completed assert at the end.
 
 Common alternative entrypoints are `tasks/update.yml` or `tasks/{role}.yml`. Alternative entrypoints
-must be documented in `argument_specs.yml` (use yaml anchors for options).
+must be documented in argument_specs; use yaml anchors for options.
 
 ```yaml
 - name: Component tasks
@@ -158,6 +158,40 @@ and need no placeholder (see `podman_quadlets` for this approach):
 ```yaml
 vars:
   role_item_path: "{{ [base_path, role_item.name] | path_join }}"
+```
+
+## Nested dict to list pattern
+
+List-of-dicts is the preferred structure over dict-of-dicts; argument_specs does not support dict-of-dicts.
+The `nested_dict` filters transform between dict and list forms using a key attribute.
+
+**Inventory-side merge pattern** - List is derived in the inventory to combine multiple dicts:
+```yaml
+users_list: "{{ inventory_users_all | combine(inventory_users_workstations, list_merge='append_rp',
+  recursive=true) | oszi.utils.nested_dict_to_list('name') }}"  # key_attribute:name = dict key
+```
+
+**Unique list** - Uniqueness can be enforced by a key attribute:
+```yaml
+loop: "{{ users_list | oszi.utils.unique_nested_list('name') }}"
+```
+
+## Facts as role dependencies
+
+Facts are set as role dependencies. Implicit gathering is disabled in ansible.cfg and in playbooks.
+One subset per dependency works best with dependency deduplication. `!all` and `!min` are implied,
+unless explicitly specified. Subsets in `min` should be avoided; `min` + `virtual` is the default,
+to limit the number of dependencies.
+
+```yaml
+dependencies:
+  - role: oszi.utils.facts  # default facts, deduplicated
+  - role: oszi.utils.facts
+    vars:
+      facts_subset: [hardware]
+  - role: oszi.utils.facts
+    vars:
+      facts_subset: [network]
 ```
 
 ## Galaxy tag rules (enforced by tests)

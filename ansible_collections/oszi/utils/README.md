@@ -9,16 +9,11 @@ Ansible collection for ansible plugins and utility roles.
 
 ## Filter examples
 
-**Computed list pattern** - `_list` is derived in `defaults/main.yml`; inventory sets only the dict:
+**Nested dict to list pattern** - Combine multiple dicts into a nested dict before making a list:
 ```yaml
-podman_networks_list: "{{ podman_networks | oszi.utils.nested_dict_to_list('name') }}"
-podman_networks: {}  # inventory sets this
-```
-
-**Inventory-side merge pattern** - `_list` is derived in the inventory to combine multiple dicts:
-```yaml
-users_list: "{{ inventory_users_all | combine(inventory_users_workstations, list_merge='append_rp',
-  recursive=true) | oszi.utils.nested_dict_to_list('name') }}"
+podman_quadlets_list: "{{ {} | oszi.utils.update_nested_dict(podman_quadlets, 'quadlet')
+  | oszi.utils.update_nested_dict(podman_quadlets_copy_files, 'files')
+  | oszi.utils.nested_dict_to_list('name') }}"  # key_attribute:name = dict key
 ```
 
 **Shell-escaped, home-dir relative path** - Convert an absolute path into `~/'path'`:
@@ -43,9 +38,6 @@ Use **facts** and **assert** as dependencies in `meta/main.yml`:
 ```yaml
 dependencies:
   - role: oszi.utils.facts  # default facts, deduplicated
-  - role: oszi.utils.facts
-    vars:
-      facts_subset: [hardware]
   - role: oszi.utils.facts
     vars:
       facts_subset: [network]

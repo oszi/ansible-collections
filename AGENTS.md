@@ -24,7 +24,7 @@ For getting started with inventories, see `examples/` + `examples/README.md`.
 
 ### Roles & Playbooks
 
-Playbook location pattern: `ansible_collections/oszi/{collection}/playbooks/{playbook}`  
+Playbook location pattern: `ansible_collections/oszi/{collection}/playbooks/{playbook}.yml`  
 Role location pattern: `ansible_collections/oszi/{collection}/roles/{role}/`  
 Always consult `meta/argument_specs.yml` for role variables.
 
