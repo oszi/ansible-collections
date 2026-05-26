@@ -19,8 +19,8 @@ argument_specs:
       gnome_blacklisted_packages:
         description:
           - Nested list of GNOME packages to remove from workstations
-          - Includes unwanted applications like Boxes, Connections, Music, Photos
-          - Removes pre-installed games on Debian-based systems
+          - Includes unwanted applications like Boxes, Connections, Music, Photos, pre-installed games on Debian
+          - These applications are typically better installed via Flatpak, Snap or in VMs
         type: list
         elements: raw
         required: false

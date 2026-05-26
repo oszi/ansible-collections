@@ -39,6 +39,7 @@ gnome_packages:
   - xdg-desktop-portal-gnome
 
 # Packages to remove from Gnome workstations (Fedora/Debian/Ubuntu):
+# Use Flatpak to sandbox audio/video players and document viewers.
 gnome_blacklisted_packages:
   # Fedora 39+ / Gnome 45+
   - "{{ [
@@ -56,24 +57,33 @@ gnome_blacklisted_packages:
     if (gnome_terminal_is_ptyxis) else [] }}"
   # Unwanted common Gnome packages
   - chrome-gnome-shell
+  - decibels  # Gnome 50 Audio Player
   - gedit
   - gedit-common
   - gnome-boxes
   - gnome-browser-connector
+  - gnome-calendar
   - gnome-connections
   - gnome-contacts
   - gnome-documents
+  - gnome-epub-thumbnailer
   - gnome-maps
   - gnome-music
   - gnome-photos
   - gnome-shell-extension-desktop-icons-ng
   - gnome-todo
   - gnome-tour
+  - gnome-user-share
+  - gnome-weather
+  - papers  # Gnome 50 Document Viewer
+  - papers-libs
+  - papers-nautilus
+  - papers-previewer
+  - papers-thumbnailer
   - rhythmbox
-  - seahorse-nautilus  # (deprecated)
   - shotwell
   - shotwell-common
-  - tilix  # (obsolete)
+  - showtime  # Gnome 50 Video Player
   - totem
   - totem-common
   - vinagre
