@@ -96,7 +96,7 @@ class LookupModule(LookupBase):
         for term in terms:
             command = ["systemd-escape", *cmd_args, term]
             try:
-                term_escaped = check_output(command).rstrip()
+                term_escaped = check_output(command, text=True).rstrip()
                 ret.append(term_escaped)
             except CalledProcessError as e:
                 raise AnsibleError(f"{command} returned non-zero exit status") from e
