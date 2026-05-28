@@ -2,7 +2,7 @@
 
 Personal Ansible collections for Linux workstations and containers.  
 Supported distributions: latest stable Fedora, Debian, Ubuntu, and EL for some roles.  
-Minimum Ansible version: **2.18.0** (Support up to the latest.)
+Minimum Ansible version: **2.20.0** (Support up to the latest.)
 
 For scripts, see `_scripts/` + `_scripts/README.md`.  
 For tests, see `_scripts/tests/` + `_scripts/tests/README.md`.  

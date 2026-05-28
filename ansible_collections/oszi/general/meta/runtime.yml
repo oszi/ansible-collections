@@ -1,5 +1,5 @@
 ---
-requires_ansible: '>=2.18.0'
+requires_ansible: '>=2.19.0'  # >=2.20.0
 
 # XXX: Remove plugin routing in 5.0.0
 plugin_routing:
