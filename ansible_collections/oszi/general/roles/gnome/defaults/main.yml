@@ -19,15 +19,6 @@ gnome_packages:
       'gnome-shell-extensions',
     ]
     if (ansible_facts.os_family == 'Debian') else [] }}"
-  - "{{ [
-      'ptyxis',
-    ]
-    if (gnome_terminal_is_ptyxis)
-    else [
-      'gnome-terminal',
-      'gnome-terminal-nautilus' if (ansible_facts.os_family == 'RedHat')
-      else 'nautilus-extension-gnome-terminal',
-    ] }}"
   - dconf-editor
   - gnome-control-center
   - gnome-screenshot
@@ -35,6 +26,7 @@ gnome_packages:
   - gnome-shell-extension-appindicator
   - gnome-text-editor
   - gnome-tweaks
+  - ptyxis  # Supersedes gnome-terminal
   - seahorse
   - xdg-desktop-portal-gnome
 
@@ -49,12 +41,6 @@ gnome_blacklisted_packages:
       'fedora-chromium-config-gssapi',
     ]
     if (ansible_facts.distribution == 'Fedora') else [] }}"
-  - "{{ [
-      'gnome-terminal',
-      'gnome-terminal-nautilus' if (ansible_facts.os_family == 'RedHat')
-      else 'nautilus-extension-gnome-terminal',
-    ]
-    if (gnome_terminal_is_ptyxis) else [] }}"
   # Unwanted common Gnome packages
   - chrome-gnome-shell
   - decibels  # Gnome 50 Audio Player
@@ -71,6 +57,7 @@ gnome_blacklisted_packages:
   - gnome-music
   - gnome-photos
   - gnome-shell-extension-desktop-icons-ng
+  - gnome-terminal  # Ptyxis
   - gnome-todo
   - gnome-tour
   - gnome-user-share
