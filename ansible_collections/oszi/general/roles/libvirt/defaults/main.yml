@@ -11,25 +11,26 @@ libvirt_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 libvirt_packages:
   - ['fzf', 'libxml2']  # for the scripts
   - "{{ [
-      'libvirt-dev',
-      'libvirt-clients',
-      'libvirt-daemon-system',
-      'libguestfs-tools',
-      'python3-guestfs',
-      ['virtiofsd'] if ansible_facts.distribution_release in ['noble', 'sid', 'trixie'] else [],
-    ]
-    if (ansible_facts.os_family == 'Debian')
-    else [
       'libvirt-devel',
       'libvirt',
       'qemu-system-aarch64',
       'virt-install',
       'guestfs-tools',
       'python3-libguestfs',
-    ] }}"
+      'qemu-kvm',
+    ]
+    if (ansible_facts.os_family == 'RedHat') else [] }}"
+  - "{{ [
+      'libvirt-dev',
+      'libvirt-clients',
+      'libvirt-daemon-system',
+      'libguestfs-tools',
+      'python3-guestfs',
+      'virtiofsd',
+    ]
+    if (ansible_facts.os_family == 'Debian') else [] }}"
   - libguestfs-rescue
   - libguestfs-xfs
-  - qemu-kvm
   - qemu-system-arm
   - qemu-system-x86
   - qemu-user-static
