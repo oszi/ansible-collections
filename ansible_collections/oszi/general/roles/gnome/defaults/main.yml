@@ -24,9 +24,10 @@ gnome_packages:
   - gnome-screenshot
   - gnome-shell
   - gnome-shell-extension-appindicator
-  - gnome-text-editor
+  - gnome-text-editor  # gedit
   - gnome-tweaks
-  - ptyxis  # Supersedes gnome-terminal
+  - loupe  # eog
+  - ptyxis  # gnome-terminal
   - seahorse
   - xdg-desktop-portal-gnome
 
@@ -35,7 +36,6 @@ gnome_packages:
 gnome_blacklisted_packages:
   # Fedora 39+ / Gnome 45+
   - "{{ [
-      'eog',
       'fedora-chromium-config',
       'fedora-chromium-config-gnome',
       'fedora-chromium-config-gssapi',
@@ -44,7 +44,8 @@ gnome_blacklisted_packages:
   # Unwanted common Gnome packages
   - chrome-gnome-shell
   - decibels  # Gnome 50 Audio Player
-  - gedit
+  - eog  # loupe
+  - gedit  # gnome-text-editor
   - gedit-common
   - gnome-boxes
   - gnome-browser-connector
@@ -57,7 +58,7 @@ gnome_blacklisted_packages:
   - gnome-music
   - gnome-photos
   - gnome-shell-extension-desktop-icons-ng
-  - gnome-terminal  # Ptyxis
+  - gnome-terminal  # ptyxis
   - gnome-todo
   - gnome-tour
   - gnome-user-share
