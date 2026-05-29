@@ -27,7 +27,8 @@ argument_specs:
       libvirt_packages:
         description:
           - Nested list of libvirt/QEMU packages and tools to install
-          - Includes GUI tools (virt-manager), guestfs utilities, and architecture support
+          - Includes virt-manager, virt-viewer, guestfs utilities, and architecture support
+          - Includes libxml2 and python3-lxml requirements, and fzf for scripts
         type: list
         elements: raw
         required: false

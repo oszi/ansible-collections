@@ -9,31 +9,34 @@ libvirt_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 # Libvirt/QEMU + GUI packages on Fedora/Debian/Ubuntu:
 # * Override in a non-graphical environment.
 libvirt_packages:
-  - ['fzf', 'libxml2']  # for the scripts
   - "{{ [
-      'libvirt-devel',
       'libvirt',
+      'libvirt-devel',
+      'qemu-kvm',
       'qemu-system-aarch64',
-      'virt-install',
       'guestfs-tools',
       'python3-libguestfs',
-      'qemu-kvm',
+      'libxml2',
+      'virt-install',
     ]
     if (ansible_facts.os_family == 'RedHat') else [] }}"
   - "{{ [
-      'libvirt-dev',
       'libvirt-clients',
       'libvirt-daemon-system',
+      'libvirt-dev',
       'libguestfs-tools',
       'python3-guestfs',
+      'libxml2-utils',
       'virtiofsd',
     ]
     if (ansible_facts.os_family == 'Debian') else [] }}"
+  - "{{ 'qemu-user' if ansible_facts.distribution == 'Ubuntu' else 'qemu-user-static' }}"
+  - fzf  # for virsh-usb and virt-viewer-fzf
   - libguestfs-rescue
   - libguestfs-xfs
+  - python3-lxml
   - qemu-system-arm
   - qemu-system-x86
-  - qemu-user-static
   - virt-manager
   - virt-viewer
 

@@ -27,6 +27,7 @@ toolbox_packages_pt_default:
       'iptables-nft',
       'iputils',
       'libstdc++-devel.*',
+      'libxml2',
       'lm_sensors',
       'nmap-ncat',
       'perl-Image-ExifTool',
@@ -53,6 +54,7 @@ toolbox_packages_pt_default:
       'libc6-dev',
       'libimage-exiftool-perl',
       'libstdc++-*-dev',
+      'libxml2-utils',
       'lm-sensors',
       'netcat-openbsd',
       'procps',
@@ -103,7 +105,6 @@ toolbox_packages_pt_default:
   - less
   - lftp
   - libtool
-  - libxml2
   - lshw
   - lsof
   - ltrace
