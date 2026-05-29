@@ -4,13 +4,11 @@
 # Nested list of Gnome packages:
 gnome_packages:
   - "{{ [
-      'gnome-shell-extension-apps-menu',
-      'gnome-shell-extension-places-menu',
-      'gnome-shell-extension-user-theme',
+      'gnome-extensions-app',
+      'gnome-shell-extension-appindicator',
     ]
     if (ansible_facts.os_family == 'RedHat') else [] }}"
   - "{{ [
-      'gnome-extensions-app',
       'gnome-shell-extension-blur-my-shell',
     ]
     if (ansible_facts.distribution == 'Fedora') else [] }}"
@@ -19,17 +17,26 @@ gnome_packages:
       'gnome-shell-extensions',
     ]
     if (ansible_facts.os_family == 'Debian') else [] }}"
+  - "{{ [
+      'gnome-shell-ubuntu-extensions',
+    ]
+    if (ansible_facts.distribution == 'Ubuntu') else [] }}"
   - dconf-editor
   - gnome-control-center
   - gnome-screenshot
   - gnome-shell
-  - gnome-shell-extension-appindicator
   - gnome-text-editor  # gedit
   - gnome-tweaks
   - loupe  # eog
   - ptyxis  # gnome-terminal
   - seahorse
   - xdg-desktop-portal-gnome
+  # Gnome extensions, some required by gnome-classic[-session]
+  - gnome-shell-extension-apps-menu
+  - gnome-shell-extension-launch-new-instance
+  - gnome-shell-extension-places-menu
+  - gnome-shell-extension-user-theme
+  - gnome-shell-extension-window-list
 
 # Packages to remove from Gnome workstations (Fedora/Debian/Ubuntu):
 # Use Flatpak to sandbox audio/video players and document viewers.
@@ -39,6 +46,7 @@ gnome_blacklisted_packages:
       'fedora-chromium-config',
       'fedora-chromium-config-gnome',
       'fedora-chromium-config-gssapi',
+      'gnome-shell-extension-background-logo',
     ]
     if (ansible_facts.distribution == 'Fedora') else [] }}"
   # Unwanted common Gnome packages
@@ -57,7 +65,6 @@ gnome_blacklisted_packages:
   - gnome-maps
   - gnome-music
   - gnome-photos
-  - gnome-shell-extension-desktop-icons-ng
   - gnome-terminal  # ptyxis
   - gnome-todo
   - gnome-tour
