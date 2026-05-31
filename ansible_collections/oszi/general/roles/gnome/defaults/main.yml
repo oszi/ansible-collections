@@ -39,7 +39,8 @@ gnome_packages:
   - gnome-shell-extension-window-list
 
 # Packages to remove from Gnome workstations (Fedora/Debian/Ubuntu):
-# Use Flatpak to sandbox audio/video players and document viewers.
+# Use Flatpak and VMs to sandbox audio/video players and document editors/viewers.
+# See also: workstation_blacklisted_packages
 gnome_blacklisted_packages:
   # Fedora 39+ / Gnome 45+
   - "{{ [
@@ -70,11 +71,6 @@ gnome_blacklisted_packages:
   - gnome-tour
   - gnome-user-share
   - gnome-weather
-  - papers  # Gnome 50 Document Viewer
-  - papers-libs
-  - papers-nautilus
-  - papers-previewer
-  - papers-thumbnailer
   - rhythmbox
   - shotwell
   - shotwell-common

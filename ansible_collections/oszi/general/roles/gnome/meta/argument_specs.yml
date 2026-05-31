@@ -21,6 +21,7 @@ argument_specs:
           - Nested list of GNOME packages to remove from workstations
           - Includes unwanted applications like Boxes, Connections, Music, Photos, pre-installed games on Debian
           - These applications are typically better installed via Flatpak, Snap or in VMs
+          - See also, O(oszi.environments.workstation#role:main:workstation_blacklisted_packages)
         type: list
         elements: raw
         required: false

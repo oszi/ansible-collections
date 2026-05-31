@@ -30,7 +30,8 @@ argument_specs:
       workstation_blacklisted_packages:
         description:
           - Nested list of package names to remove from workstations
-          - Defaults to workstation_blacklisted_packages_pt_*, combine with lists from the inventory
+          - Defaults to `workstation_blacklisted_packages_pt_*`, combine with lists from the inventory
+          - See also, O(oszi.general.gnome#role:main:gnome_blacklisted_packages)
         type: list
         elements: raw
         required: false
@@ -47,7 +48,7 @@ argument_specs:
       workstation_blacklisted_packages_pt_office:
         description:
           - Office packages to remove from workstations [avoid directly using this variable]
-          - Includes LibreOffice, Evolution email client, and Evince document viewer
+          - Includes LibreOffice, Evolution email client, and Evince and Papers document viewers
           - These applications are typically better installed via Flatpak, Snap or in VMs
         type: list
         elements: raw

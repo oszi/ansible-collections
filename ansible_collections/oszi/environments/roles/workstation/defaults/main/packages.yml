@@ -42,6 +42,8 @@ workstation_packages_pt_default:
   - yubikey-manager
 
 # Packages to remove from workstations (Fedora/Debian/Ubuntu):
+# Includes: workstation_blacklisted_packages_pt_*
+# See also: gnome_blacklisted_packages
 workstation_blacklisted_packages:
   - "{{ workstation_blacklisted_packages_pt_to_sandbox }}"
   - "{{ workstation_blacklisted_packages_pt_office }}"
@@ -66,7 +68,7 @@ workstation_blacklisted_packages_pt_to_sandbox:
   - xclip  # wl-clipboard
 
 workstation_blacklisted_packages_pt_office:
-  - evince
+  - evince  # Gnome <50 Document Viewer
   - evince-common
   - evolution
   - evolution-common
@@ -79,6 +81,11 @@ workstation_blacklisted_packages_pt_office:
   - libreoffice-opensymbol-fonts
   - libreoffice-ure-common
   - libreofficekit-data
+  - papers  # Gnome 50 Document Viewer
+  - papers-libs
+  - papers-nautilus
+  - papers-previewer
+  - papers-thumbnailer
 
 # RedHat/Fedora installer components - unnecessary on an installed system most of the time.
 workstation_blacklisted_packages_pt_anaconda:
