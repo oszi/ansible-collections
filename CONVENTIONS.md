@@ -17,7 +17,8 @@
 | **Fact namespace** | All fact access must use `ansible_facts.fact_name`, never bare variable injection. |
 | **Cross-distro gaps** | Roles must handle both `RedHat` and `Debian` `os_family` for different packages and system paths. |
 | **Container environments** | Any role managing systemd units or networking must guard against `virtualization_type` `container` if expected to work in containers (dependencies of `baselinux`). |
-| **argument_specs.yml** | All defaults variables in all roles require a precise argument_specs entry. |
+| **Role files/templates paths** | Use absolute dest paths as relative for files (.j2 for templates), e.g. `templates/etc/app/app.conf.j2` |
+| **argument_specs.yml** | All defaults and entrypoints must have precise argument_specs entries; use yaml anchors for options. |
 
 ## Variable naming
 
@@ -31,22 +32,6 @@
 | `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (see `workstation` defaults). |
 | `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (see `gnome` defaults). |
 | `{role}_packages` | List of cross-distro packages; flatten with set_fact in the role. |
-
-## Role anatomy
-
-```
-roles/{role}/
-  defaults/main.yml       # User-overridable variables (lowest precedence)
-  vars/main.yml           # Internal variables (not user-facing)
-  tasks/main.yml          # Main entrypoint (see Task structure pattern)
-  tasks/update.yml        # Optional update entrypoint (see oszi.general.update playbook)
-  tasks/{install,uninstall,config,deploy,...}.yml
-  handlers/main.yml
-  meta/main.yml           # Galaxy metadata and role dependencies
-  meta/argument_specs.yml # Full documentation of every defaults variable (required)
-  templates/              # Absolute dest path as relative, .j2, e.g. templates/etc/app/app.conf.j2
-  files/                  # Absolute dest path as relative, e.g. files/etc/app/app.conf
-```
 
 ## Privilege-aware paths (rootful vs rootless)
 
@@ -157,7 +142,7 @@ and need no placeholder (see `podman_quadlets` for this approach):
 
 ```yaml
 vars:
-  role_item_path: "{{ [base_path, role_item.name] | path_join }}"
+  role_item_path: "{{ [role_base_path, role_item.name] | path_join }}"
 ```
 
 ## Nested dict to list pattern
