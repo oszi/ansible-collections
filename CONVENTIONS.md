@@ -7,9 +7,9 @@
 | **Ansible best practices** | Follow official guidelines such as all role variables must be prefixed with the role name, use FQCN for all modules, prefer modules over shell/command... |
 | **Idempotency** | Every task must be safely re-runnable. Avoid `command`/`shell` where a module exists; when unavoidable, use `creates`, `removes`, or `changed_when`. |
 | **Strict shell scripts** | Use `set -euo pipefail` and `executable: /bin/bash` in `shell` module tasks. Use quoted environment variables to pass values from ansible. |
-| **Shell quoting in templates** | Use `\| quote` for strings, `\| to_quoted_tilde_path(...)` for home-dir relative paths. |
+| **Shell quoting in templates** | Use `\| quote` for strings, `\| to_quoted_tilde_path(...)` for home-dir relative and absolute paths. |
 | **Strict permissions** | Set strict `mode`, `owner`, and `group`, unless otherwise required (e.g. rootless). |
-| **Become at playbook level** | Set `become` in playbooks, not in roles, unless a task is looped per user. |
+| **Become at playbook level** | Set `become` in playbooks, not in roles; do not mix privilege levels. One exception: roles may loop users with `become`, disregarding user facts. |
 | **Single-purpose roles** | Each role configures exactly one component. Reject creeping scope. |
 | **Opt-in third-party** | Roles managing an external repo must default to disabled and leave the system clean if disabled. |
 | **Optional dependencies** | `podman_disabled \| default(false)` or similar cross-role flags must use default defensively. |
@@ -27,8 +27,7 @@
 | `{role}_disabled: false` | Primary on/off switch for `general` roles; triggers uninstall or noop when `true`. |
 | `{role}_enabled: false` | Opt-in on/off switch for `thirdparty` roles; triggers uninstall when `true`. |
 | `{role}_{feature}_enabled` | Feature flag, typically derived from `not {role}_disabled`. |
-| `{role}_{thing}_list` | List form of a nested dict variable, produced via `\| nested_dict_to_list('key_attr')`. |
-| `{role}_{thing}` (dict) | Legacy, inventory-facing dict-of-dicts; tasks iterate the `_list` form. |
+| `{role}_{thing}_list` | List of dicts with a key attribute, produced via `\| nested_dict_to_list('key_attr')` or defined as-is. |
 | `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (see `workstation` defaults). |
 | `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (see `gnome` defaults). |
 | `{role}_packages` | List of cross-distro packages; flatten with set_fact in the role. |
@@ -38,7 +37,9 @@
 **Pre-condition:** `rootless`-tagged roles only.
 Root-only roles assert root and use system paths unconditionally.
 
-All paths must resolve correctly for both root and non-root:
+Defaults must be correct in both rootful and rootless modes without the user setting anything.
+Facts as role dependencies guarantee facts exist, and are gathered with the same privilege as the role is run,
+because roles do not set `become` as per best practices.
 
 ```yaml
 # defaults/main.yml pattern
@@ -51,6 +52,9 @@ role_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
 role_config_base: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.config/component' }}"
 ```
+
+If tasks are looped per user with `become`, use `ansible.builtin.user` in `check_mode` for valid per-user facts,
+applying the **Loop variable pattern** (see `dotfiles` for this approach).
 
 ## Systemd scope in handlers
 
@@ -77,11 +81,12 @@ python_devel_distro_packages:
 
 ## Task structure pattern (tasks/main.yml)
 
-Every `tasks/main.yml` follows a fixed structure: one top-level block tagged with the role name,
-`include_tasks` orchestration inside, inter-role fact exports with `tags: [always]` (runs regardless
-of tags filtering), and a no-op role completed assert at the end.
+Most `tasks/main.yml` follow a fixed structure: one top-level block tagged with the role name so the role tag does
+not apply to dependencies; `include_tasks` orchestration inside; optional inter-role fact exports with `always` tag
+(guarantees definition); and a no-op role completed assert at the end to guarantee one task execution per invocation,
+otherwise dependencies could be re-run.
 
-Common alternative entrypoints are `tasks/update.yml` or `tasks/{role}.yml`. Alternative entrypoints
+Common alternative entrypoints are `tasks/update.yml` and `tasks/{role}.yml`. Alternative entrypoints
 must be documented in argument_specs; use yaml anchors for options.
 
 ```yaml
@@ -112,10 +117,13 @@ must be documented in argument_specs; use yaml anchors for options.
 
 ## Loop variable pattern
 
-`vars/main.yml` is evaluated at **role load time**, before any loop runs. Using a meaningful name
-directly as `loop_var` when that name is already defined in `vars/main.yml` triggers an Ansible
-warning; leaving it undefined at load time causes argument_specs validation to fail.
-Solution - two-name convention:
+Where defaults may legitimately interpolate a loop var, the loop var must be defined as a shape-compatible
+placeholder at role load time, because argument_specs validates defaults at entrypoint time.
+Common use-case in loop-based user configuration roles, e.g. `dotfiles` and `gnome_users`.
+
+Solution: Wrap the loop var with a placeholder in `vars/main.yml`, loaded at role load time.
+Wrapping the loop var - instead of overriding it - prevents "loop variable is already in use" warnings,
+and allows extending functionality, e.g. merge role-level defaults into every item.
 
 ```yaml
 # tasks/main.yml - underscore-prefixed loop_var; comment documents the friendly name
@@ -163,10 +171,12 @@ loop: "{{ users_list | oszi.utils.unique_nested_list('name') }}"
 
 ## Facts as role dependencies
 
-Facts are set as role dependencies. Implicit gathering is disabled in ansible.cfg and in playbooks.
-One subset per dependency works best with dependency deduplication. `!all` and `!min` are implied,
-unless explicitly specified. Subsets in `min` should be avoided; `min` + `virtual` is the default,
-to limit the number of dependencies.
+Facts are set as role dependencies, making the roles self-contained. Implicit gathering should be disabled
+in ansible.cfg and in playbooks, but `oszi.utils.facts` supports implicit gathering and fact caching.
+One subset per dependency works best with dependency deduplication.
+
+`!all` and `!min` are implied, unless explicitly specified. Subsets included in `min` should be avoided;
+`min` + `virtual` is the default, to limit the number of dependencies.
 
 ```yaml
 dependencies:
@@ -179,13 +189,14 @@ dependencies:
       facts_subset: [network]
 ```
 
-## Galaxy tag rules (enforced by tests)
+## Galaxy tag rules
 
 1. The collection name must be a tag: `general`, `thirdparty`, `environments`, `utils`
 2. A mutually exclusive environment tag: `baselinux`, `containers`, `thirdparty`, `toolbox`, `workstation`
 3. Rootless XOR root assertion: Roles must either add the `rootless` tag, or assert root privileges.
 
-Accepted dependencies to assert root privileges:
+**Accepted dependencies to assert root privileges:**  
+Root assertion requires roles to not set `become` as per best practices (Become at playbook level).
 ```yaml
 # Explicit assertion:
 - role: oszi.utils.assert

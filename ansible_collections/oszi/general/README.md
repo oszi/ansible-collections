@@ -7,4 +7,4 @@ Ansible collection for general, bite-sized, single-purpose roles.
 * Primary on/off switch: `ROLENAME_disabled: false` - true triggers uninstall or noop.
 * General playbooks also serve a single-purpose and always target **all** hosts.
 * Roles supporting **rootless** mode (or loop-based rootful mode) are tagged as rootless.
-* Set galaxy tags for corresponding environments. Use `_scripts/tests/galaxy-tags.py` to test tags.
+* Set galaxy tags for corresponding environments. See [Galaxy tag rules](../../../CONVENTIONS.md#galaxy-tag-rules).
