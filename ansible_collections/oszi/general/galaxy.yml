@@ -16,14 +16,14 @@ license:
 
 # See also: requirements.yml (project root)
 dependencies:
-  "ansible.netcommon": ">=7.0"
-  "ansible.posix": ">=1.6"
-  "ansible.utils": ">=5.0"
+  "ansible.netcommon": ">=8.0"
+  "ansible.posix": ">=2.0"
+  "ansible.utils": ">=6.0"
   "community.crypto": ">=2.22"
-  "community.general": ">=10.5"
-  "community.libvirt": ">=1.3"
+  "community.general": ">=12.0"
+  "community.libvirt": ">=2.0"
   "containers.podman": ">=1.16"
-  "amazon.aws": ">=9.0"
+  "amazon.aws": ">=10.0"
   "oszi.utils": "==4.51.0"
 
 tags:
