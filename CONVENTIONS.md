@@ -4,19 +4,20 @@
 
 | Practice | Description |
 |---|---|
-| **Ansible best practices** | Follow official guidelines such as all role variables must be prefixed with the role name, use FQCN for all modules, prefer modules over shell/command... |
+| **Ansible best practices** | Follow upstream guidelines enforced by ansible-lint. Roles must pass ansible-lint with production profile. |
 | **Idempotency** | Every task must be safely re-runnable. Avoid `command`/`shell` where a module exists; when unavoidable, use `creates`, `removes`, or `changed_when`. |
+| **Check mode** | Every task must support check mode if possible. `command`/`shell` must set `check_mode: false` if they do not change the host. |
+| **Secrets handling** | Secrets must be encrypted with ansible-vault, or retrieved by external tools. Sensitive tasks must set `no_log: true` to prevent credential exposure. |
 | **Strict shell scripts** | Use `set -euo pipefail` and `executable: /bin/bash` in `shell` module tasks. Use quoted environment variables to pass values from ansible. |
 | **Shell quoting in templates** | Use `\| quote` for strings, `\| to_quoted_tilde_path(...)` for home-dir relative and absolute paths. |
 | **Strict permissions** | Set strict `mode`, `owner`, and `group`, unless otherwise required (e.g. rootless). |
 | **Become at playbook level** | Set `become` in playbooks, not in roles; do not mix privilege levels. One exception: roles may loop users with `become`, disregarding user facts. |
 | **Single-purpose roles** | Each role configures exactly one component. Reject creeping scope. |
 | **Opt-in third-party** | Roles managing an external repo must default to disabled and leave the system clean if disabled. |
-| **Optional dependencies** | `podman_disabled \| default(false)` or similar cross-role flags must use default defensively. |
-| **Cross-role variable use** | When referencing another role's variable (e.g. `users_list`), always guard with `if VAR is defined else []` if the role must work standalone. |
+| **Cross-role variable use** | Guard references to other roles' variables if the role must work standalone, e.g. `... if users_list is defined else []` or `podman_disabled \| default(false)`. |
 | **Fact namespace** | All fact access must use `ansible_facts.fact_name`, never bare variable injection. |
 | **Cross-distro gaps** | Roles must handle both `RedHat` and `Debian` `os_family` for different packages and system paths. |
-| **Container environments** | Any role managing systemd units or networking must guard against `virtualization_type` `container` if expected to work in containers (dependencies of `baselinux`). |
+| **Container environments** | Any role managing systemd units or networking must guard against `virtualization_type` `container` if expected to work in containers (e.g. dependencies of `baselinux`). |
 | **Role files/templates paths** | Use absolute dest paths as relative for files (.j2 for templates), e.g. `templates/etc/app/app.conf.j2` |
 | **argument_specs.yml** | All defaults and entrypoints must have precise argument_specs entries; use yaml anchors for options. |
 
@@ -25,7 +26,7 @@
 | Pattern | Meaning |
 |---|---|
 | `{role}_disabled: false` | Primary on/off switch for `general` roles; triggers uninstall or noop when `true`. |
-| `{role}_enabled: false` | Opt-in on/off switch for `thirdparty` roles; triggers uninstall when `true`. |
+| `{role}_enabled: false` | Opt-in on/off switch for `thirdparty` roles; triggers uninstall when `false`. |
 | `{role}_{feature}_enabled` | Feature flag, typically derived from `not {role}_disabled`. |
 | `{role}_{thing}_list` | List of dicts with a key attribute, produced via `\| nested_dict_to_list('key_attr')` or defined as-is. |
 | `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (see `workstation` defaults). |
@@ -43,18 +44,18 @@ because roles do not set `become` as per best practices.
 
 ```yaml
 # defaults/main.yml pattern
-role_install_system: "{{ ansible_facts.user_uid | int == 0 }}"
-role_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
+rolename_install_system: "{{ ansible_facts.user_uid | int == 0 }}"
+rolename_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
   if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.local/bin' }}"
 
 # vars/main.yml pattern
-role_config_base: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
+rolename_config_base: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.config/component' }}"
 ```
 
-If tasks are looped per user with `become`, use `ansible.builtin.user` in `check_mode` for valid per-user facts,
-applying the **Loop variable pattern** (see `dotfiles` for this approach).
+If tasks are looped per user with `become` or as root, use `ansible.builtin.user` in `check_mode` for valid per-user facts,
+applying the **Loop variable pattern** (see `dotfiles` and `gnome_users` for this approach).
 
 ## Systemd scope in handlers
 
@@ -90,26 +91,26 @@ Common alternative entrypoints are `tasks/update.yml` and `tasks/{role}.yml`. Al
 must be documented in argument_specs; use yaml anchors for options.
 
 ```yaml
-- name: Component tasks
-  tags: [component]
+- name: Rolename tasks
+  tags: [rolename]
   block:
     - name: Include installation tasks
-      when: component_install_system
+      when: rolename_install_system
       ansible.builtin.include_tasks:
-        file: "{{ (not component_disabled) | ternary('install', 'uninstall') }}.yml"
+        file: "{{ (not rolename_disabled) | ternary('install', 'uninstall') }}.yml"
 
     - name: Include configuration tasks
-      when: not component_disabled
+      when: not rolename_disabled
       ansible.builtin.include_tasks:
         file: config.yml
 
-    - name: Export component_export_path fact for integrations
+    - name: Export rolename_export_path fact for integrations
       ansible.builtin.set_fact:
-        component_export_path: "{{ component_path if not component_disabled else none }}"
+        rolename_export_path: "{{ rolename_path if not rolename_disabled else none }}"
         cacheable: true
       tags: [always]
 
-    - name: Component role completed
+    - name: Rolename role completed
       ansible.builtin.assert:
         that: true
         quiet: true
@@ -128,10 +129,10 @@ and allows extending functionality, e.g. merge role-level defaults into every it
 ```yaml
 # tasks/main.yml - underscore-prefixed loop_var; comment documents the friendly name
 loop_control:
-  loop_var: _role_item_var  # use as role_item
+  loop_var: _rolename_item_var  # use as rolename_item
 
 # vars/main.yml - friendly name wraps loop var with a placeholder default
-role_item: "{{ _role_item_var | default('__PLACEHOLDER__') }}"
+rolename_item: "{{ _rolename_item_var | default('__PLACEHOLDER__') }}"
 ```
 
 Placeholder shape must match the expected type - for dicts include all required keys,
@@ -139,8 +140,8 @@ and use `combine()` to merge role-level defaults into every item in one expressi
 
 ```yaml
 # vars/main.yml
-role_item: "{{ role_item_default | combine(_role_item_var | default(_role_item_var_placeholder)) }}"
-_role_item_var_placeholder:
+rolename_item: "{{ rolename_item_default | combine(_rolename_item_var | default(_rolename_item_var_placeholder)) }}"
+_rolename_item_var_placeholder:
   dest: "/tmp/__PLACEHOLDER__"
   url: "http://localhost/__PLACEHOLDER__"
 ```
@@ -150,7 +151,7 @@ and need no placeholder (see `podman_quadlets` for this approach):
 
 ```yaml
 vars:
-  role_item_path: "{{ [role_base_path, role_item.name] | path_join }}"
+  rolename_item_path: "{{ [rolename_base_path, rolename_item.name] | path_join }}"
 ```
 
 ## Nested dict to list pattern
@@ -207,3 +208,5 @@ Root assertion requires roles to not set `become` as per best practices (Become 
 # Or via baselinux, which asserts root in its own dependencies:
 - role: oszi.environments.baselinux
 ```
+
+All roles tagged as `rootless` must be included in the `oszi.environments.rootless` playbook.

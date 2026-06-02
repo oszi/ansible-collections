@@ -32,7 +32,8 @@ Always consult `meta/argument_specs.yml` for role variables.
 
 **Git tags are the source of truth**: `MAJOR.MINOR.PATCH`  
 Current version: `git describe --tags --abbrev=0`  
-Changelog: `git show --no-patch MAJOR.MINOR.PATCH`
+Changelog: `git show --no-patch MAJOR.MINOR.PATCH`  
+Always tagged by: `_scripts/galaxy-release.sh major|minor|patch`
 
 Tags contain the short git log since the previous tag and which collections were updated.  
 Collections can be at different minor/patch versions. Major versions are always in sync.  
@@ -45,7 +46,7 @@ Source-only install; no Ansible Galaxy releases.
 * What could go wrong in production?
 * Could anything introduce vulnerabilities or expand attack surface?
 * Could anything expose secrets or sensitive files?
-* Do not mention version bumps in reviews.
+* Ignore galaxy version bumps; they are automated.
 
 ## Core Conventions
 

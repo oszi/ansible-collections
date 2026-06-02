@@ -2,10 +2,11 @@
 
 Ansible collection for ansible plugins and utility roles.
 
-* Includes [filter](plugins/filter) and [lookup](plugins/lookup) plugins required by the collections.
+## Collection Rules
+
+* All custom [filter](plugins/filter) and [lookup](plugins/lookup) plugins are in the utils collection.
 * Utility playbooks target **all** hosts or the ansible controller and do not alter hosts.
 * Utility roles mainly target the ansible controller and do not alter hosts.
-* For example, gather **facts** and **bootstrap** SSH connections.
 
 ## Filter examples
 
@@ -16,7 +17,7 @@ podman_quadlets_list: "{{ {} | oszi.utils.update_nested_dict(podman_quadlets, 'q
   | oszi.utils.nested_dict_to_list('name') }}"  # key_attribute:name = dict key
 ```
 
-**Shell-escaped, home-dir relative path** - Convert an absolute path into `~/'path'`:
+**Shell-escaped, home-dir relative path** - Transform an absolute path into `~/'path'`:
 
 ```yaml
 shell_shrc_safe_path: "{{ shell_shrc_path | oszi.utils.to_quoted_tilde_path(ansible_facts.user_dir) }}"
