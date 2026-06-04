@@ -5,21 +5,23 @@
 | Practice | Description |
 |---|---|
 | **Ansible best practices** | Follow official guidelines enforced by ansible-lint, roles must pass the production profile. Exceptions are allowed case-by-case (noqa comments). |
-| **Secrets handling** | Secrets must be encrypted with ansible-vault, or retrieved by external tools. Sensitive tasks must set `no_log: true` to prevent credential exposure. |
-| **Become at playbook level** | Set `become` in playbooks, not in roles; do not mix privilege levels. Some conventions depend on this. One exception: roles may loop users with `become_user`, disregarding user facts. |
+| **Become at playbook level** | Set `become` in playbooks, not in roles; do not mix privilege levels. Some conventions depend on this. One exception: roles may loop users with `become_user`, invalidating user facts. |
+| **argument_specs.yml** | All entrypoints must have precise argument_specs for their defaults; use yaml anchors for options. |
 | **Idempotency** | Every task must be safely re-runnable. Avoid `command`/`shell` where a module exists; when unavoidable, use `creates`, `removes`, or `changed_when`. |
 | **Check mode** | Every task must support check mode if possible. `command`/`shell` must set `check_mode: false` if they do not change the host. |
 | **Strict shell scripts** | Use `set -euo pipefail` and `executable: /bin/bash` in `shell` module tasks. Use quoted environment variables to pass values from ansible. |
-| **Shell quoting in templates** | Use `\| quote` for strings, `\| to_quoted_tilde_path(...)` for home-dir relative and absolute paths. |
-| **Strict permissions** | Set strict `mode`, `owner`, and `group`, unless otherwise required (e.g. rootless). |
+| **Shell quoting** | Use `\| quote` for strings, `\| int` for integers, `\| to_quoted_tilde_path(...)` for absolute paths transformed to quoted home-dir relative paths. |
+| **Strict permissions** | Set least-privilege `mode`, `owner`, and `group`, except in rootless roles to inherit ansible_user. |
 | **Cross-role variable use** | Guard references to other roles' variables if the role must work standalone, e.g. `... if users_list is defined else []` or `podman_disabled \| default(false)`. |
 | **Cross-distro gaps** | Roles must handle both `RedHat` and `Debian` `os_family` for different packages and system paths. |
-| **Container environments** | Any role managing systemd units or networking must guard against `virtualization_type` `container` if expected to work in containers (e.g. dependencies of `baselinux`). |
-| **Fact namespace** | All fact access must use `ansible_facts.fact_name`, never bare variable injection. |
-| **Role files/templates paths** | Use absolute dest paths as relative for files (.j2 for templates), e.g. `templates/etc/app/app.conf.j2` |
+| **Container environments** | Roles managing privileged system settings must guard against `virtualization_type` `container` if expected to work in containers (e.g. dependencies of `baselinux`). |
+| **Fact namespace** | All fact access must use `ansible_facts.fact_name`. `inject_facts_as_vars` must be disabled. |
+| **Files/templates paths** | Mirror absolute dest paths under `files/` and `templates/`, append `.j2` for templates. |
+| **Prefer handlers** | Prefer handlers for triggered tasks, avoid them with complex conditions and in loop-based roles. |
 | **Single-purpose roles** | Each role configures exactly one component. Reject creeping scope. |
 | **Opt-in third-party** | Roles managing an external repo must default to disabled and leave the system clean if disabled. |
-| **argument_specs.yml** | All defaults and entrypoints must have precise argument_specs entries; use yaml anchors for options. |
+| **Secrets encryption** | Secrets must be encrypted with ansible-vault, using `_scripts/ansible-vault-id-client`. Vault files must match `*vault.{yml,yaml,json}`. |
+| **Secrets exposure** | Tasks handling secrets must set `no_log: true` to prevent credential exposure. |
 
 ## Variable naming
 
@@ -30,8 +32,9 @@
 | `{role}_{feature}_enabled` | Feature flag, typically derived from `not {role}_disabled`. |
 | `{role}_{thing}_list` | List of dicts with a key attribute, produced via `\| nested_dict_to_list('key_attr')` or defined as-is. |
 | `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (see `workstation` defaults). |
-| `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (see `gnome` defaults). |
+| `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (see `gnome_users`). |
 | `{role}_packages` | List of cross-distro packages; flatten with set_fact in the role. |
+| `_{role}_{thing}_result` | Task-registered private variable used only in that task file. |
 
 ## Privilege-aware context (rootful vs rootless)
 
@@ -81,15 +84,13 @@ python_devel_distro_packages:
   - "python3-virtualenv"
 ```
 
-## Task structure pattern (tasks/main.yml)
+## General task structure pattern
 
-Most `tasks/main.yml` follow a fixed structure: one top-level block tagged with the role name so the role tag does
-not apply to dependencies; `include_tasks` orchestration inside; optional inter-role fact exports with `always` tag
-(guarantees definition); and a no-op role completed assert at the end to guarantee one task execution per invocation,
-otherwise dependencies could be re-run.
-
-Common alternative entrypoints are `tasks/update.yml` and `tasks/{role}.yml`. Alternative entrypoints
-must be documented in argument_specs; use yaml anchors for options.
+Most `tasks/main.yml` in `general` follow a fixed structure (partially applied in other collections):
+1. One top-level block tagged with the role name so the role tag does not apply to dependencies.
+2. `include_tasks` orchestration. `tasks/{role}.yml` is common if there are no install/uninstall/config tasks to keep main lean.
+3. Optional inter-role fact exports with `always` tag (guarantees definition).
+4. No-op role completed assert to guarantee one task execution, without it an all-skipped role re-runs as a dependency.
 
 ```yaml
 - name: Rolename tasks
@@ -117,6 +118,13 @@ must be documented in argument_specs; use yaml anchors for options.
         quiet: true
 ```
 
+## Update entrypoint pattern
+
+Roles managing packages or container images should have an entrypoint `tasks/update.yml` to update the packages/images
+to their latest compatible versions. For example, `package_updates`, `python`, `podman`, `flatpak`, `snap`.
+
+The `oszi.general.update` playbook must include all `update` entrypoints in `general` roles.
+
 ## Loop variable pattern
 
 Where defaults may legitimately interpolate a loop var, the loop var must be defined as a shape-compatible
@@ -137,7 +145,7 @@ rolename_item: "{{ _rolename_item_var | default('__PLACEHOLDER__') }}"
 ```
 
 Placeholder shape must match the expected type - for dicts include all required keys,
-and use `combine()` to merge role-level defaults into every item in one expression:
+and use `combine` to merge role-level defaults into every item in one expression:
 
 ```yaml
 # vars/main.yml
@@ -173,11 +181,11 @@ loop: "{{ users_list | oszi.utils.unique_nested_list('name') }}"
 
 ## Facts as role dependencies pattern
 
-Facts are set as role dependencies, making the roles self-contained. Implicit gathering should be disabled
+Facts must be set as role dependencies, making the roles self-contained. Implicit gathering should be disabled
 in ansible.cfg and in playbooks, but `oszi.utils.facts` supports implicit gathering and fact caching.
 One subset per dependency works best with dependency deduplication.
 
-`!all` and `!min` are implied, unless explicitly specified. Subsets included in `min` should be avoided;
+`!all` and `!min` are implied, unless explicitly specified. Subsets already covered by `min` should be avoided;
 `min` + `virtual` is the default, to limit the number of dependencies.
 
 ```yaml
