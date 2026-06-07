@@ -121,7 +121,7 @@ Most `tasks/main.yml` in `general` follow a fixed structure (partially applied i
 ## Update entrypoint pattern
 
 Roles managing packages or container images should have an entrypoint `tasks/update.yml` to update the packages/images
-to their latest compatible versions. For example, `package_updates`, `python`, `podman`, `flatpak`, `snap`.
+to their latest compatible versions. For example, `package_manager`, `python`, `podman`, `flatpak`, `snap`.
 
 The `oszi.general.update` playbook must include all `update` entrypoints in `general` roles.
 

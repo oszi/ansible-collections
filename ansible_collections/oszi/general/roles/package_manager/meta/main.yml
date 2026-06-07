@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Update distribution packages"
+  description: "System package manager role"
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.20.0"

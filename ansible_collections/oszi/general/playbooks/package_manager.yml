@@ -1,0 +1,8 @@
+---
+- name: System package manager on Linux
+  hosts: all
+  become: true
+  gather_facts: false
+  roles:
+    - oszi.utils.bootstrap
+    - oszi.general.package_manager

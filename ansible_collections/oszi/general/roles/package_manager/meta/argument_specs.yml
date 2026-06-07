@@ -1,0 +1,80 @@
+---
+argument_specs:
+  main:
+    short_description: System package manager role
+    description:
+      - Replaces regexp patterns in distro-shipped repo files
+      - Installs and removes extra distribution packages
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      package_manager_repo_replacements:
+        description:
+          - List of regexp/replace pairs to be applied to distro-shipped repo files
+          - Targets are defined in O(package_manager_repo_replacements_targets)
+        type: list
+        elements: dict
+        required: false
+        options:
+          after:
+            description:
+              - If specified, only content after this match will be replaced
+              - Python regular expressions, uses `DOTALL`, does not use `MULTILINE`
+            type: str
+            required: false
+          before:
+            description:
+              - If specified, only content before this match will be replaced
+              - Python regular expressions, uses `DOTALL`, does not use `MULTILINE`
+            type: str
+            required: false
+          regexp:
+            description:
+              - Python regular expression; see https://docs.python.org/3/library/re.html
+              - Uses `MULTILINE`, does not use `DOTALL`
+              - For example, `'https?://(\w+\.)?(\w+)\.ubuntu\.com'`
+            type: str
+            required: true
+          replace:
+            description:
+              - String to replace regexp matches
+              - Backreferences can be used ambiguously like `\1`, or explicitly like `\g<1>`
+              - For example, `'https://\2.ubuntu.com'`
+            type: str
+            required: true
+
+      package_manager_repo_replacements_targets:
+        description:
+          - List of glob patterns targeted by O(package_manager_repo_replacements)
+          - Default matches Debian, Ubuntu, Fedora, and most EL repo files, also RPMFusion
+        type: list
+        elements: str
+        required: false
+
+      package_manager_extra_packages:
+        description:
+          - Nested list of additional package names to install on all Linux hosts
+        type: list
+        elements: raw
+        required: false
+
+      package_manager_blacklisted_packages:
+        description:
+          - Nested list of package names to remove from all Linux hosts
+          - Useful for removing unwanted or conflicting packages
+        type: list
+        elements: raw
+        required: false
+
+  update:
+    short_description: Update entrypoint for system package updates
+    description:
+      - Updates distribution packages
+      - Autoremoves orphaned packages by default
+    options:
+      package_manager_update_autoremove:
+        description:
+          - Whether to autoremove orphaned packages
+        type: bool
+        required: false
+        default: true

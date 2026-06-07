@@ -82,21 +82,6 @@ argument_specs:
         type: dict
         required: false
 
-      baselinux_extra_packages:
-        description:
-          - Nested list of additional package names to install on all Linux hosts
-        type: list
-        elements: raw
-        required: false
-
-      baselinux_blacklisted_packages:
-        description:
-          - Nested list of package names to remove from all Linux hosts
-          - Useful for removing unwanted or conflicting packages
-        type: list
-        elements: raw
-        required: false
-
       baselinux_posix_mounts:
         description:
           - List of filesystem mounts to configure with M(ansible.posix.mount)

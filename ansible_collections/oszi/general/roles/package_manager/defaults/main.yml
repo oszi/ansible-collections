@@ -1,0 +1,29 @@
+---
+# List of {regexp, replace} pairs applied to distro-shipped repo files.
+# - regexp: 'https?://(\w+\.)?(\w+)\.ubuntu\.com'
+#   replace: 'https://\2.ubuntu.com'
+package_manager_repo_replacements: []
+
+# Glob patterns of distro-shipped repo files targeted by package_manager_repo_replacements:
+package_manager_repo_replacements_targets: "{{ [
+    '/etc/apt/sources.list',
+    '/etc/apt/sources.list.d/' + ansible_facts.distribution | lower + '*.sources',
+  ]
+  if ansible_facts.os_family == 'Debian'
+  else [
+    '/etc/yum.repos.d/' + ansible_facts.distribution | lower + '*.repo',
+    '/etc/yum.repos.d/rpmfusion*.repo',
+  ] + (
+    ['/etc/yum.repos.d/epel*.repo'] if ansible_facts.distribution != 'Fedora' else []
+  ) }}"
+
+# XXX: Remove deprecated baselinux defaults in 5.0.0
+
+# Nested list of packages to install on all Linux hosts:
+package_manager_extra_packages: "{{ baselinux_extra_packages | default([]) }}"
+
+# Nested list of packages to remove on all Linux hosts:
+package_manager_blacklisted_packages: "{{ baselinux_blacklisted_packages | default([]) }}"
+
+# Autoremove orphaned packages after updating?
+package_manager_update_autoremove: true

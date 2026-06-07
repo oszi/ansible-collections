@@ -13,7 +13,7 @@
   tasks:
     - name: Import updates for distribution packages
       ansible.builtin.import_role:
-        name: oszi.general.package_updates
+        name: oszi.general.package_manager
         tasks_from: update
       tags: [package]
 

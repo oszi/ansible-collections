@@ -1,0 +1,10 @@
+---
+- name: Update distribution packages
+  ansible.builtin.package:
+  args: "{{ package_manager_update_apt_args if ansible_facts.pkg_mgr == 'apt'
+    else package_manager_update_dnf_args }}"
+
+- name: Autoremove orphaned packages
+  when: package_manager_update_autoremove
+  ansible.builtin.package:
+    autoremove: true

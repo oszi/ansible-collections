@@ -1,0 +1,17 @@
+---
+- name: Package-manager tasks
+  tags: [package-manager]
+  block:
+    - name: Import repo replacements tasks
+      when: package_manager_repo_replacements | length > 0
+      ansible.builtin.import_tasks:
+        file: repo-replacements.yml
+
+    - name: Import system packages tasks
+      ansible.builtin.import_tasks:
+        file: packages.yml
+
+    - name: Package-manager role completed
+      ansible.builtin.assert:
+        that: true
+        quiet: true

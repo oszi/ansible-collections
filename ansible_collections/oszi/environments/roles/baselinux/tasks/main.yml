@@ -2,11 +2,11 @@
 - name: Baselinux role tasks
   tags: [baselinux]
   block:
-    - name: Common system setup tasks
-      ansible.builtin.import_tasks:
-        file: system.yml
-
     - name: Privileged system setup tasks
       when: "ansible_facts.virtualization_type != 'container'"
       ansible.builtin.import_tasks:
         file: system-privileged.yml
+
+    - name: Common system setup tasks
+      ansible.builtin.import_tasks:
+        file: system.yml

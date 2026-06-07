@@ -39,6 +39,7 @@ dependencies:
       assert_that:
         - "ansible_facts.user_uid | int == 0"
 
+  - role: oszi.general.package_manager
   - role: oszi.general.python
   - role: oszi.general.shell
   - role: oszi.general.users

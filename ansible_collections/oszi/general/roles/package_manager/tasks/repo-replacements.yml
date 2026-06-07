@@ -1,0 +1,26 @@
+---
+- name: Find distro repo files matching target patterns
+  ansible.builtin.find:
+    paths: "{{ item | dirname }}"
+    patterns: "{{ item | basename }}"
+    use_regex: false
+  loop: "{{ package_manager_repo_replacements_targets }}"
+  register: _package_manager_repo_targets
+
+- name: Replace regexp patterns in distro-shipped repo files
+  ansible.builtin.replace:
+    path: "{{ item.0.path }}"
+    after: "{{ item.1.after | default(omit) }}"
+    before: "{{ item.1.before | default(omit) }}"
+    regexp: "{{ item.1.regexp }}"
+    replace: "{{ item.1.replace }}"
+  loop: "{{ _package_manager_repo_targets.results | map(attribute='files') | flatten
+    | product(package_manager_repo_replacements) }}"
+  loop_control:
+    label: "{{ item.0.path }} :: {{ item.1.regexp }}"
+  register: _package_manager_repo_replacements_result
+
+- name: Update package cache
+  when: _package_manager_repo_replacements_result is changed
+  ansible.builtin.package:
+    update_cache: true
