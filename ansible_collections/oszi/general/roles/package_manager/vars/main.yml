@@ -1,4 +1,10 @@
 ---
+# Target file for package_manager_apt_conf options:
+package_manager_apt_conf_path: "/etc/apt/apt.conf.d/99-ansible-managed.conf"
+
+# Target file for package_manager_dnf_conf [main] options:
+package_manager_dnf_conf_path: "/etc/dnf/dnf.conf"
+
 # Update options for ansible.builtin.apt:
 package_manager_update_apt_args:
   cache_valid_time: 3600

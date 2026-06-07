@@ -3,11 +3,25 @@ argument_specs:
   main:
     short_description: System package manager role
     description:
+      - Configures apt.conf.d and dnf.conf [main] options
       - Replaces regexp patterns in distro-shipped repo files
       - Installs and removes extra distribution packages
     author:
       - "David O. (oszi.dev)"
     options:
+      package_manager_apt_conf:
+        description:
+          - Dict of apt options to set in /etc/apt/apt.conf.d/99-ansible-managed.conf
+          - Values are auto-quoted, use lower-case string for booleans; trailing semicolon is added
+        type: dict
+        required: false
+
+      package_manager_dnf_conf:
+        description:
+          - Dict of dnf options to set in the [main] section of /etc/dnf/dnf.conf
+        type: dict
+        required: false
+
       package_manager_repo_replacements:
         description:
           - List of regexp/replace pairs to be applied to distro-shipped repo files

@@ -1,4 +1,14 @@
 ---
+# Dict of apt options (auto-quoted) to set in package_manager_apt_conf_path:
+# APT::Get::Assume-Yes: "true"
+# Acquire::Retries: 3
+package_manager_apt_conf: {}
+
+# Dict of dnf options to set in the [main] section of package_manager_dnf_conf_path:
+# max_parallel_downloads: 10
+# defaultyes: true
+package_manager_dnf_conf: {}
+
 # List of {regexp, replace} pairs applied to distro-shipped repo files.
 # - regexp: 'https?://(\w+\.)?(\w+)\.ubuntu\.com'
 #   replace: 'https://\2.ubuntu.com'
@@ -8,6 +18,7 @@ package_manager_repo_replacements: []
 package_manager_repo_replacements_targets: "{{ [
     '/etc/apt/sources.list',
     '/etc/apt/sources.list.d/' + ansible_facts.distribution | lower + '*.sources',
+    '/etc/apt/mirrors/*.list',
   ]
   if ansible_facts.os_family == 'Debian'
   else [

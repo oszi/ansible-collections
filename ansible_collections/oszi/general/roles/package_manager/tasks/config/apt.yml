@@ -1,0 +1,19 @@
+---
+- name: Ensure directory for ansible-managed apt.conf options
+  ansible.builtin.file:
+    path: "{{ package_manager_apt_conf_path | dirname }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Install ansible-managed apt.conf options
+  ansible.builtin.copy:
+    dest: "{{ package_manager_apt_conf_path }}"
+    content: |
+      {% for k, v in package_manager_apt_conf | dictsort %}
+      {{ k }} {{ v | string | to_json }};
+      {% endfor %}
+    owner: "root"
+    group: "root"
+    mode: "0644"

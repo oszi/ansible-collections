@@ -1,0 +1,12 @@
+---
+- name: Configure dnf.conf [main] options
+  community.general.ini_file:
+    path: "{{ package_manager_dnf_conf_path }}"
+    section: "main"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: true
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_dict: "{{ package_manager_dnf_conf }}"
