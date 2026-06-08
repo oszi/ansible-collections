@@ -45,3 +45,10 @@
     mode: "0644"
   notify: "Reload systemd"
   with_dict: "{{ systemd_system_presets }}"
+
+- name: Ensure systemd_absent_paths are deleted
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ systemd_absent_paths }}"
+  notify: "Reload systemd"

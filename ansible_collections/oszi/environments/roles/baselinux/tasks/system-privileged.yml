@@ -65,6 +65,11 @@
   args: "{{ item }}"
   with_items: "{{ baselinux_posix_mounts }}"
 
+- name: Include swap file configuration tasks
+  when: baselinux_swapfile_path is truthy and baselinux_swapfile_size is truthy
+  ansible.builtin.include_tasks:
+    file: swapfile.yml
+
 - name: Ignore DNS settings by DHCP client
   when: baselinux_dhclient_resolvconf_disabled
   ansible.builtin.copy:
@@ -77,11 +82,3 @@
     owner: "root"
     group: "root"
     mode: "0755"
-
-- name: Enable swapfile if there is no swap partition
-  when: "ansible_facts.swaptotal_mb < 1"
-  ansible.builtin.systemd:
-    name: "swapfile"  # from oszi.general.systemd
-    state: "started"
-    daemon_reload: true
-    enabled: true

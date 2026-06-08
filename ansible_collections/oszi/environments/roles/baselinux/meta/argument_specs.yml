@@ -159,3 +159,18 @@ argument_specs:
         type: list
         elements: path
         required: false
+
+      baselinux_swapfile_path:
+        description:
+          - Absolute path of the swap file to create and enable when O(baselinux_swapfile_size) is set
+          - Renaming is not implemented, disable and delete the swap file manually
+        type: path
+        required: false
+        default: "/swapfile"
+
+      baselinux_swapfile_size:
+        description:
+          - Size of the swap file at O(baselinux_swapfile_path) in `fallocate -l` syntax, e.g. 1024m, 2g
+          - Resizing is not implemented, disable and delete the swap file manually
+        type: str
+        required: false

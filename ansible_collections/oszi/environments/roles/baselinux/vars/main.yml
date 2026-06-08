@@ -37,3 +37,5 @@ baselinux_ca_trust_anchors_path: "{{ '/etc/pki/ca-trust/source/anchors'
   else '/usr/local/share/ca-certificates' }}"
 
 baselinux_ca_trust_anchors_extension: "{{ 'pem' if ansible_facts.os_family == 'RedHat' else 'crt' }}"
+
+baselinux_swapfile_unit: "{{ lookup('oszi.utils.systemd_escape', baselinux_swapfile_path, path=True, suffix='swap') }}"

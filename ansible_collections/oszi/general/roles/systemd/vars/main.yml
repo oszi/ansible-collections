@@ -3,3 +3,9 @@
 systemd_resolv_conf_path: "/run/systemd/resolve/{{
   (systemd_resolved_options['DNSStubListener'] | default('no') | lower in ['yes', 'true'])
   | ternary('stub-resolv', 'resolv') }}.conf"
+
+# Systemd-related obsolete paths to remove:
+systemd_absent_paths:
+  # Superseded by swapfile.swap in oszi.environments.baselinux
+  - /etc/systemd/system/swapfile.service
+  - /etc/systemd/system/swapfile@.service

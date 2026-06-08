@@ -1,0 +1,54 @@
+---
+- name: Initialize swap file
+  block:
+    # btrfs requires NOCOW on swap files; chattr +C only takes effect on empty files.
+    - name: "Initialize swap file at {{ baselinux_swapfile_path }}"
+      ansible.builtin.shell: |
+        set -euo pipefail
+        install -m 0600 /dev/null "$SWAPFILE"
+        if [ "$(stat -f -c %T "$SWAPFILE")" = "btrfs" ]; then
+          chattr +C "$SWAPFILE"
+        fi
+        fallocate -l "$SIZE" "$SWAPFILE"
+        mkswap "$SWAPFILE"
+      args:
+        executable: "/bin/bash"
+        creates: "{{ baselinux_swapfile_path }}"
+      environment:
+        SWAPFILE: "{{ baselinux_swapfile_path }}"
+        SIZE: "{{ baselinux_swapfile_size }}"
+
+  rescue:
+    - name: "Remove failed swap file at {{ baselinux_swapfile_path }}"
+      ansible.builtin.file:
+        path: "{{ baselinux_swapfile_path }}"
+        state: "absent"
+
+    - name: Failed to initialize swap file
+      ansible.builtin.fail:
+        msg: "Task failed: {{ ansible_failed_task.name }}"
+
+- name: "Install swap systemd unit {{ baselinux_swapfile_unit }}"
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/{{ baselinux_swapfile_unit }}"
+    content: |
+      [Unit]
+      Description=Ansible managed swap file
+
+      [Swap]
+      What={{ baselinux_swapfile_path }}
+
+      [Install]
+      WantedBy=swap.target
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  register: _baselinux_swapfile_unit_result
+
+- name: Ensure swap systemd unit is active
+  when: not ansible_check_mode  # unit file may not exist yet
+  ansible.builtin.systemd:
+    name: "{{ baselinux_swapfile_unit }}"
+    state: "started"
+    daemon_reload: "{{ _baselinux_swapfile_unit_result is changed }}"
+    enabled: true

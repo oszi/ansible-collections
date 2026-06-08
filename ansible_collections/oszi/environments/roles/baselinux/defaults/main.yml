@@ -62,3 +62,10 @@ baselinux_ca_trust_anchors: []
 # Absolute remote paths of CAs to remove:
 # HINT: Specify separate entries for Debian and RedHat.
 baselinux_ca_trust_anchors_blacklisted_paths: []
+
+# Absolute path of the swap file:
+# Disabled if empty; renaming is not implemented.
+baselinux_swapfile_path: "/swapfile"
+# Size of the swap file in fallocate -l syntax, e.g. 1024m, 2g:
+# Disabled if empty; resizing is not implemented.
+baselinux_swapfile_size: ""
