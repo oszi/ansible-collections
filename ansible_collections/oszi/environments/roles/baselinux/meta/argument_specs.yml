@@ -63,6 +63,7 @@ argument_specs:
         description:
           - Dictionary of custom sysctl kernel parameters to configure
           - Each key is a sysctl parameter name and each value is the parameter value
+          - Merged with `baselinux_sysctl_values_default` from vars/main.
         type: dict
         required: false
 
@@ -79,6 +80,7 @@ argument_specs:
           - Dictionary of sudoers rules to install under /etc/sudoers.d/
           - Each key becomes the filename and each value is the sudoers file content
           - Allows fine-grained sudo permission management per user or group
+          - Merged with `baselinux_sudoers_rules_default` from vars/main.
         type: dict
         required: false
 

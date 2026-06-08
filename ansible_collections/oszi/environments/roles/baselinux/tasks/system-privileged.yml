@@ -44,12 +44,12 @@
 - name: Install custom sudoers rules
   ansible.builtin.copy:
     dest: "/etc/sudoers.d/{{ item.key }}"
-    content: "{{ item.value }}"
+    content: "{{ item.value -}}\n"
     owner: "root"
     group: "root"
     mode: "0440"
     validate: "visudo -csf %s"
-  with_dict: "{{ baselinux_sudoers_rules }}"
+  with_dict: "{{ baselinux_sudoers_rules_default | combine(baselinux_sudoers_rules) }}"
 
 - name: Ensure system mount points exist
   # Do not set permissions as they could be changed by the users.
