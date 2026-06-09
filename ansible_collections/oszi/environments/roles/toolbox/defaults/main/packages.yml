@@ -1,4 +1,5 @@
 ---
+# WARNING: GUI packages must never be installed by toolbox!
 # See also: environments/roles/workstation/default/main/packages.yml
 # and general/roles/shell/default/main.yml
 
@@ -11,16 +12,15 @@ toolbox_packages:
 toolbox_packages_pt_default:
   - "{{ [
       'bind-utils',
+      'cryptsetup',
       'ddrescue',
       'device-mapper',
       'dnf-plugins-core',
-      'dnf-utils',
       'fpaste',
       'fuse-sshfs',
       'gcc-c++',
       'git-subtree',
       'glibc-devel.*',
-      'hddtemp',
       'httpd-tools',
       'iproute',
       'iptables-legacy',
@@ -29,6 +29,7 @@ toolbox_packages_pt_default:
       'libstdc++-devel.*',
       'libxml2',
       'lm_sensors',
+      'mtr',
       'nmap-ncat',
       'perl-Image-ExifTool',
       'procps-ng',
@@ -36,6 +37,7 @@ toolbox_packages_pt_default:
       'redhat-rpm-config',
       'shyaml',
       'sqlite',
+      'stunnel',
       'vim-enhanced',
       'vim-minimal',
       'which',
@@ -45,7 +47,11 @@ toolbox_packages_pt_default:
   - "{{ [
       'apache2-utils',
       'bind9-utils',
+      'bsdextrautils',
       'build-essential',
+      'cryptsetup-bin',
+      'dmsetup',
+      'fdisk',
       'g++',
       'gddrescue',
       'iproute2',
@@ -56,10 +62,12 @@ toolbox_packages_pt_default:
       'libstdc++-*-dev',
       'libxml2-utils',
       'lm-sensors',
+      'mtr-tiny',
       'netcat-openbsd',
       'procps',
       'sqlite3',
       'sshfs',
+      'stunnel4',
       'vim',
       'xz-utils',
     ]
@@ -77,7 +85,9 @@ toolbox_packages_pt_default:
   - bzip2
   - checksec
   - curl
+  - dmidecode
   - dnsenum
+  - dosfstools
   - duperemove
   - e2fsprogs
   - ethtool
@@ -108,8 +118,10 @@ toolbox_packages_pt_default:
   - lshw
   - lsof
   - ltrace
+  - lvm2
   - m4
   - make
+  - mdadm
   - mediainfo
   - nano
   - net-tools
@@ -119,8 +131,10 @@ toolbox_packages_pt_default:
   - numactl
   - openssl
   - p7zip
+  - parted
   - passwd
   - patch
+  - pciutils
   - perl
   - pinentry-tty
   - psmisc
@@ -131,11 +145,8 @@ toolbox_packages_pt_default:
   - shellcheck
   - smartmontools
   - socat
-  - speedtest-cli
   - sslscan
-  - sslsplit
   - strace
-  - stunnel
   - subnetcalc
   - sudo
   - sysstat
@@ -148,11 +159,13 @@ toolbox_packages_pt_default:
   - tree
   - unar
   - unzip
+  - usbutils
   - util-linux
   - wget
   - whois
   - xfsprogs
   - zip
+  - zstd
 
 # Fedora/Debian/Ubuntu ansible packages to include in toolbox_packages
 # or toolbox_blacklisted_packages to remove distribution packaged ansible:
@@ -180,4 +193,8 @@ toolbox_packages_pt_ansible:
   - python3-ansible-compat
 
 # Packages to remove from toolboxes (Fedora/Debian/Ubuntu)
-toolbox_blacklisted_packages: []
+toolbox_blacklisted_packages:
+  # Deprecated toolbox packages:
+  - hddtemp  # smartctl -A
+  - sslsplit
+  - speedtest-cli

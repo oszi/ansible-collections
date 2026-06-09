@@ -39,6 +39,7 @@ shell_packages:
   - zsh
   # Essential tools
   - bat
+  - bc
   - curl
   - findutils
   - fzf
@@ -55,6 +56,7 @@ shell_packages:
   - screen
   - tar
   - tmux
+  - tree
   - util-linux
 
 # Path for shrc, shrc.d, and skel (override if /etc is not writeable).
