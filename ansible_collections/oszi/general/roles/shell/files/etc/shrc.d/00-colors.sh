@@ -7,7 +7,7 @@ if [ -z "${LS_COLORS-}" ] && command -v dircolors >/dev/null 2>&1; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 fi
 
-for i in ls grep egrep fgrep xzgrep xzegrep xzfgrep zgrep zegrep zfgrep; do
+for i in ls bzegrep bzfgrep bzgrep egrep fgrep grep xzegrep xzfgrep xzgrep zegrep zfgrep zgrep zstdgrep; do
     if ! alias "$i" >/dev/null 2>&1 && command -v "$i" >/dev/null 2>&1; then
         # shellcheck disable=SC2139 # expand when defined
         alias "${i}=${i} --color=auto"
