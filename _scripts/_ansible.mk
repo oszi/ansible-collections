@@ -1,4 +1,4 @@
-# Requires ./activate
+# Requires ./activate and ./ansible.cfg
 
 VERBOSE    ?=
 CHECK      ?=
