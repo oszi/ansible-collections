@@ -34,3 +34,13 @@
     flatpak override --{{ flatpak_method }} {% for option in flatpak_global_overrides
     %} {{ option | quote }} {% endfor %}
   changed_when: false
+
+# When oszi.general.shell is also included alongside of this role.
+- name: Install shell aliases for flatpak apps
+  when: shell_shrc_d_export_path is defined and shell_shrc_d_export_path is truthy
+  ansible.builtin.template:
+    src: "etc/shrc.d/flatpak-aliases.sh.j2"
+    dest: "{{ shell_shrc_d_export_path }}/flatpak-aliases.sh"
+    owner: "root"
+    group: "root"
+    mode: "0644"

@@ -1,15 +1,7 @@
 # shellcheck shell=sh
+# workstation-aliases.sh is ordered after flatpak-aliases.sh (e.g. chromium)
 alias o='xdg-open'
 
-{% if not flatpak_disabled %}
-{% set _flatpak_chromium = 'org.chromium.Chromium' %}
-{% if _flatpak_chromium in flatpak_apps %}
-if ! command -v chromium >/dev/null 2>&1; then
-    alias chromium='/usr/bin/flatpak run --command=/app/bin/chromium {{ _flatpak_chromium }}'
-fi
-
-{% endif %}
-{% endif %}
 if command -v google-chrome >/dev/null 2>&1; then
     alias google-chrome-jitless='google-chrome --js-flags="--jitless"'
     alias google-chrome-x11='google-chrome --ozone-platform=x11'

@@ -1,0 +1,11 @@
+# shellcheck shell=sh
+if ! command -v flatpak >/dev/null 2>&1; then
+    return
+fi
+{% for app in flatpak_apps.keys() %}
+
+{% set app_cmd = app.split('.')[-1] | lower | quote %}
+if ! command -v {{ app_cmd }} >/dev/null 2>&1; then
+    alias {{ app_cmd }}='flatpak run {{ app }}'
+fi
+{% endfor %}
