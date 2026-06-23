@@ -20,12 +20,11 @@
     directory_mode: "0755"
     mode: "0755"
 
-# oszi.general.shell is an indirect dependency.
-- name: Install workstation aliases
-  when: not shell_disabled
+- name: Install shell aliases for workstations
+  when: workstation_shell_aliases_path is truthy
   ansible.builtin.template:
     src: "etc/shrc.d/workstation-aliases.sh.j2"
-    dest: "{{ shell_shrc_d_path }}/workstation-aliases.sh"
+    dest: "{{ workstation_shell_aliases_path }}"
     owner: "root"
     group: "root"
     mode: "0644"

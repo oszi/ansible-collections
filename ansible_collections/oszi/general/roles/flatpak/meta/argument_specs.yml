@@ -58,6 +58,13 @@ argument_specs:
         type: dict
         required: false
 
+      flatpak_shell_aliases_path:
+        description:
+          - File path to install dynamic shell aliases for flatpak apps - disabled if empty
+          - Default is `{{ shell_shrc_d_export_path }}/flatpak-aliases.sh` if `oszi.general.shell` is loaded
+        type: path
+        required: false
+
   update:
     short_description: Update entrypoint for flatpak packages
     description:

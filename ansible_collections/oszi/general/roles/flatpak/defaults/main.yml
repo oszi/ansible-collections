@@ -24,3 +24,7 @@ flatpak_global_overrides: []
 # Flatpak overrides in a dict of lists per app:
 # {com.example.App: ["--nofilesystem=home", "--filesystem=/mnt/data:ro"]}
 flatpak_app_overrides: {}
+
+# File path to install dynamic shell aliases for flatpak apps - disabled if empty:
+flatpak_shell_aliases_path: "{{ [shell_shrc_d_export_path, 'flatpak-aliases.sh'] | path_join
+  if shell_shrc_d_export_path | default(none) is truthy else '' }}"

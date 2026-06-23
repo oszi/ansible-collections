@@ -69,6 +69,13 @@ argument_specs:
         type: path
         required: false
 
+      workstation_shell_aliases_path:
+        description:
+          - File path to install shell aliases for workstations - disabled if empty
+          - Default is `{{ shell_shrc_d_export_path }}/workstation-aliases.sh` if `oszi.general.shell` is loaded
+        type: path
+        required: false
+
       workstation_hid_apple_options:
         description:
           - Configuration options for the hid_apple kernel module

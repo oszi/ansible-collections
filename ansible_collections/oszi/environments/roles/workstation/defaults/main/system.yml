@@ -6,3 +6,7 @@ workstation_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
 # See /sys/module/hid_apple/parameters/*
 workstation_hid_apple_options:
   fnmode: 2  # Fix Keychron Windows mode!
+
+# File path to install shell aliases for workstations - disabled if empty:
+workstation_shell_aliases_path: "{{ [shell_shrc_d_export_path, 'workstation-aliases.sh'] | path_join
+  if shell_shrc_d_export_path | default(none) is truthy else '' }}"

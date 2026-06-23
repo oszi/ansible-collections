@@ -33,12 +33,11 @@
     virtualenv_site_packages: true
     state: "present"
 
-# When oszi.general.shell is also included alongside of this role.
 - name: Copy shell aliases for Borgmatic
-  when: "shell_shrc_d_export_path | default(none) is truthy"
+  when: borgmatic_shell_aliases_path is truthy
   ansible.builtin.copy:
     src: "etc/shrc.d/borgmatic.sh"
-    dest: "{{ shell_shrc_d_export_path }}/borgmatic.sh"
+    dest: "{{ borgmatic_shell_aliases_path }}"
     owner: "root"
     group: "root"
     mode: "0644"
