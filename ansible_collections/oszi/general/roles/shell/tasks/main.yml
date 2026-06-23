@@ -2,11 +2,11 @@
 - name: Shell configuration tasks
   tags: [shell]
   block:
+    # Do not mix privilege levels in playbooks - shell_shrc_d_path is rootless aware!
     - name: Export shell_shrc_d_export_path fact for integrations
       ansible.builtin.set_fact:
-        shell_shrc_d_export_path: "{{ shell_shrc_d_path if not shell_disabled
-          and ansible_facts.user_uid | int == 0 else none }}"
-        cacheable: true
+        shell_shrc_d_export_path: "{{ shell_shrc_d_path if not shell_disabled else none }}"
+        cacheable: true  # Persists through all plays.
       tags: [always]
 
     - name: Include shell configuration tasks
