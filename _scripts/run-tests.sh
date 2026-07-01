@@ -47,4 +47,9 @@ for cmd in "${tests[@]}"; do
         (( rc=1 ))
     fi
 done
+
+if [[ $rc -ne 0 ]]; then
+    echo -e "${COLOR_RED}$0 failed!${COLOR_CLEAR}" >&2
+fi
+
 exit $rc
