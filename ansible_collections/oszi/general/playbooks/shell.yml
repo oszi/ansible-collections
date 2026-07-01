@@ -1,6 +1,5 @@
 ---
-# Change the shell configuration without running any other role.
-- name: Shell configuration on Linux
+- name: Configure the shell environment
   hosts: all
   become: true
   gather_facts: false

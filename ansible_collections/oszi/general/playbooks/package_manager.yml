@@ -1,5 +1,5 @@
 ---
-- name: System package manager on Linux
+- name: Configure the system package manager
   hosts: all
   become: true
   gather_facts: false

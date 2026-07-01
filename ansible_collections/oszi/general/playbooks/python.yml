@@ -1,8 +1,8 @@
 ---
-- name: Configure per-user dotfiles
+- name: Manage python packages
   hosts: all
   become: true
   gather_facts: false
   roles:
     - oszi.utils.bootstrap
-    - oszi.general.dotfiles
+    - oszi.general.python

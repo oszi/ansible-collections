@@ -1,8 +1,8 @@
 ---
-- name: Configure per-user dotfiles
+- name: Configure SELinux on RedHat family
   hosts: all
   become: true
   gather_facts: false
   roles:
     - oszi.utils.bootstrap
-    - oszi.general.dotfiles
+    - oszi.general.selinux
