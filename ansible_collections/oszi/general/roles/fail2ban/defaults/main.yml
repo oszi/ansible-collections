@@ -15,4 +15,4 @@ fail2ban_jail_local: |
 
   [sshd]
   enabled = true
-  port = {{ ssh_port | default(bootstrap_ssh_port) }}
+  port = {{ bootstrap_ssh_port | default(ansible_port | default(22)) | int }}

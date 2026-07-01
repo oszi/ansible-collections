@@ -48,9 +48,9 @@
     enabled: true
 
 - name: Enable alternate SSH port in the default zone
-  when: "ssh_port | default(22) | int != 22"
+  when: "firewalld_ssh_port != 22"
   ansible.posix.firewalld:
-    port: "{{ ssh_port }}/tcp"
+    port: "{{ firewalld_ssh_port }}/tcp"
     state: "enabled"
     permanent: true
     immediate: true

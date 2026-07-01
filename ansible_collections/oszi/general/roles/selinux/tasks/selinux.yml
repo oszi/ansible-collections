@@ -37,10 +37,10 @@
   ansible.builtin.reboot:
 
 - name: Set alternate ssh_port_t
-  when: "ssh_port | default(22) | int != 22"
+  when: "selinux_ssh_port != 22"
   community.general.seport:
     setype: "ssh_port_t"
-    ports: "{{ ssh_port }}"
+    ports: "{{ selinux_ssh_port }}"
     proto: "tcp"
     state: "present"
 
