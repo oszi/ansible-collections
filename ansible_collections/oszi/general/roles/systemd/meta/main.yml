@@ -21,6 +21,7 @@ galaxy_info:
 
 dependencies:
   - role: oszi.utils.facts
+  # Gather hardware and network facts only for inventory references.
   - role: oszi.utils.facts
     vars:
       facts_subset: [hardware]

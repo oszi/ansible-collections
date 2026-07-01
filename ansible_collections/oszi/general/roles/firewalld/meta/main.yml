@@ -22,6 +22,10 @@ galaxy_info:
 # Run before oszi.general.ssh but there is no hard requirement.
 dependencies:
   - role: oszi.utils.facts
+  # Gather network facts only for inventory references.
+  - role: oszi.utils.facts
+    vars:
+      facts_subset: [network]
   - role: oszi.utils.assert
     vars:
       assert_task_msg: "Assert root privileges"
