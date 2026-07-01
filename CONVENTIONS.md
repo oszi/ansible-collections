@@ -20,6 +20,7 @@
 | **Prefer handlers** | Prefer handlers for triggered tasks, avoid them with complex conditions and in loop-based roles. |
 | **Single-purpose roles** | Each role configures exactly one component. Reject creeping scope. |
 | **Opt-in third-party** | Roles managing an external repo must default to disabled and leave the system clean if disabled. |
+| **Playbook hosts var** | Use a variable for host targeting: `{playbook}_hosts \| default(...)`, or target `all` hosts. |
 | **Secrets encryption** | Secrets must be encrypted with ansible-vault, using `_scripts/ansible-vault-id-client`. Vault files must match `*vault.{yml,yaml,json}`. |
 | **Secrets exposure** | Tasks handling secrets must set `no_log: true` to prevent credential exposure. |
 
@@ -33,8 +34,10 @@
 | `{role}_{thing}_list` | List of dicts with a key attribute, produced via `\| nested_dict_to_list('key_attr')` or defined as-is. |
 | `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (see `workstation` defaults). |
 | `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (see `gnome_users`). |
+| `{role}_{thing}_path(s)` | Variable for absolute path(s) with (list of) `path` argument_specs type; always use the suffix. |
 | `{role}_packages` | List of cross-distro packages; flatten with set_fact in the role. |
 | `_{role}_{thing}_result` | Task-registered private variable used only in that task file. |
+| `{playbook}_hosts` | Playbook host targeting override used with a default filter; not a role variable. |
 
 ## Privilege-aware context (rootful vs rootless)
 
@@ -53,7 +56,7 @@ rolename_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
   else ansible_facts.user_dir + '/.local/bin' }}"
 
 # vars/main.yml pattern
-rolename_config_base: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
+rolename_config_base_path: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.config/component' }}"
 ```
 
