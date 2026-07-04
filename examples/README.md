@@ -16,8 +16,8 @@ make workstation TAGS=shell,dotfiles
 ```
 
 ```bash
-ansible-playbook --list-tags oszi.general.update
-ansible-playbook -K oszi.general.update
+ansible-playbook --list-tags oszi.environments.update
+ansible-playbook -K oszi.environments.update
 make update
 ```
 

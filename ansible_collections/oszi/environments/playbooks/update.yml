@@ -1,6 +1,9 @@
 ---
-- name: Update packages and containers
-  hosts: all
+- name: Update system and python packages, ACME certificates
+  hosts: "{{ [baselinux_hosts | default('all'),
+    containerhost_hosts | default('containerhosts'),
+    toolbox_hosts | default('toolbox*'),
+    workstation_hosts | default('workstations')] | flatten }}"
   become: true
   gather_facts: false
   pre_tasks:
@@ -26,24 +29,6 @@
           tags: [python]
       tags: [python]
 
-    - name: Include updates for flatpak packages
-      when: "not flatpak_disabled | default(false)"
-      ansible.builtin.include_role:
-        name: oszi.general.flatpak
-        tasks_from: update
-        apply:
-          tags: [flatpak]
-      tags: [flatpak]
-
-    - name: Include updates for snap packages
-      when: "not snap_disabled | default(false)"
-      ansible.builtin.include_role:
-        name: oszi.general.snap
-        tasks_from: update
-        apply:
-          tags: [snap]
-      tags: [snap]
-
     - name: Include updates for ACME certificates
       when: "acme_certificates is defined and acme_certificates | length > 0"
       ansible.builtin.include_role:
@@ -53,6 +38,12 @@
         acme_reload: true
       tags: [acme]
 
+- name: Update podman images
+  hosts: "{{ [containerhost_hosts | default('containerhosts'),
+    workstation_hosts | default('workstations')] | flatten }}"
+  become: true
+  gather_facts: false
+  tasks:
     - name: Podman update tasks
       when: "not podman_disabled | default(false)"
       tags: [podman]
@@ -82,3 +73,26 @@
             tasks_from: update
             apply:
               become: false
+
+- name: Update flatpak and snap packages
+  hosts: "{{ workstation_hosts | default('workstations') }}"
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Include updates for flatpak packages
+      when: "not flatpak_disabled | default(false)"
+      ansible.builtin.include_role:
+        name: oszi.general.flatpak
+        tasks_from: update
+        apply:
+          tags: [flatpak]
+      tags: [flatpak]
+
+    - name: Include updates for snap packages
+      when: "not snap_disabled | default(false)"
+      ansible.builtin.include_role:
+        name: oszi.general.snap
+        tasks_from: update
+        apply:
+          tags: [snap]
+      tags: [snap]

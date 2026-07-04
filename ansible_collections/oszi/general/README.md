@@ -13,6 +13,5 @@ Ansible collection for general, bite-sized, single-purpose roles.
 * General playbooks are also single-purpose, or include a single general role.
 * Playbooks always target **all** hosts, environments are responsible for host targeting.
 * Thus, only baselinux roles without cross-role variable use may have matching playbooks.
-* The **update** playbook includes all "update" entrypoints in general roles.
 
 See the Core Conventions for details.
