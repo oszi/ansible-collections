@@ -16,10 +16,20 @@
     mode: "0644"
 
 - name: Remove vendored Google Chrome deb signing key
-  when: "google_chrome_deb_gpgkey_vendored != google_chrome_deb_gpgkey_path"
+  when: "google_chrome_deb_gpgkey_vendored_path != google_chrome_deb_gpgkey_path"
   ansible.builtin.file:
-    path: "{{ google_chrome_deb_gpgkey_vendored }}"
+    path: "{{ google_chrome_deb_gpgkey_vendored_path }}"
     state: "absent"
+
+- name: Disable vendor overrides of google-chrome.list
+  ansible.builtin.copy:
+    dest: "/etc/default/google-chrome"
+    content: |
+      repo_add_once="false"
+      repo_reenable_on_distupgrade="false"
+    owner: "root"
+    group: "root"
+    mode: "0644"
 
 - name: Check Google Chrome deb repository
   ansible.builtin.copy:
