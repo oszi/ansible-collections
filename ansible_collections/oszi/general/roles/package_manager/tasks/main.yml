@@ -4,20 +4,22 @@
   block:
     - name: Include package-manager config tasks
       when: >-
-        (_pkg_mgr == 'apt' and package_manager_apt_conf | length > 0)
-        or (_pkg_mgr == 'dnf' and package_manager_dnf_conf | length > 0)
+        not package_manager_disabled
+        and ((_pkg_mgr == 'apt' and package_manager_apt_conf | length > 0)
+        or (_pkg_mgr == 'dnf' and package_manager_dnf_conf | length > 0))
       ansible.builtin.include_tasks:
         file: "config/{{ _pkg_mgr }}.yml"
       vars:
         _pkg_mgr: "{{ ansible_facts.pkg_mgr | replace('dnf5', 'dnf') }}"
 
     - name: Include repo replacements tasks
-      when: "package_manager_repo_replacements | length > 0"
+      when: "not package_manager_disabled and package_manager_repo_replacements | length > 0"
       ansible.builtin.include_tasks:
         file: repo-replacements.yml
 
-    - name: Import system packages tasks
-      ansible.builtin.import_tasks:
+    - name: Include system packages tasks
+      when: not package_manager_disabled
+      ansible.builtin.include_tasks:
         file: packages.yml
 
     - name: Package-manager role completed

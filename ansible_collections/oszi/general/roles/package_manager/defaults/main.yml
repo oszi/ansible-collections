@@ -1,4 +1,7 @@
 ---
+# Skip package_manager setup tasks (e.g. read-only systems)?
+package_manager_disabled: false
+
 # Dict of apt options (auto-quoted) to set in package_manager_apt_conf_path:
 # APT::Get::Assume-Yes: "true"
 # Acquire::Retries: 3

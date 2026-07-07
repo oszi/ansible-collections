@@ -9,6 +9,14 @@ argument_specs:
     author:
       - "David O. (oszi.dev)"
     options:
+      package_manager_disabled:
+        description:
+          - Whether to skip all package manager role configuration tasks
+          - Useful for read-only systems or immutable environments
+        type: bool
+        required: false
+        default: false
+
       package_manager_apt_conf:
         description:
           - Dict of apt options to set in /etc/apt/apt.conf.d/99-ansible-managed.conf

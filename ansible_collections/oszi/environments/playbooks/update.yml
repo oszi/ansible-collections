@@ -14,10 +14,13 @@
       tags: [always]
 
   tasks:
-    - name: Import updates for distribution packages
-      ansible.builtin.import_role:
+    - name: Include updates for distribution packages
+      when: "not package_manager_disabled | default(false)"
+      ansible.builtin.include_role:
         name: oszi.general.package_manager
         tasks_from: update
+        apply:
+          tags: [package]
       tags: [package]
 
     - name: Include updates for python packages
