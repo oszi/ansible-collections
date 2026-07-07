@@ -1,7 +1,4 @@
 ---
-# include_role: name=oszi.general.flatpak tasks_from=update
-# See oszi/general/playbooks/update.yml
-
 - name: Update flatpak packages
   ansible.builtin.shell: |
     set -euo pipefail

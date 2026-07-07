@@ -1,7 +1,4 @@
 ---
-# include_role: name=oszi.general.snap tasks_from=update
-# See oszi/general/playbooks/update.yml
-
 - name: Update snap packages
   ansible.builtin.shell: |
     set -euo pipefail

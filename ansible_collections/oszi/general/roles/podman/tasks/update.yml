@@ -1,7 +1,4 @@
 ---
-# include_role: name=oszi.general.podman tasks_from=update
-# See oszi/general/playbooks/update.yml
-
 - name: Dump podman info
   when: "ansible_verbosity > 1"
   ansible.builtin.command: "podman info"

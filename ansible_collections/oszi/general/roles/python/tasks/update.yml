@@ -1,7 +1,4 @@
 ---
-# include_role: name=oszi.general.python tasks_from=update
-# See oszi/general/playbooks/update.yml
-
 - name: Update python packages with pip
   ansible.builtin.pip:
   args: "{{ item | combine(python_pip_update_args) }}"
