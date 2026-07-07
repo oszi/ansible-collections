@@ -10,7 +10,7 @@ argument_specs:
       - Supports rootless mode depending on paths used and file ownerships
     author:
       - "David O. (oszi.dev)"
-    options:
+    options: &options
       acme_certificates:
         description:
           - List of ACME certificates to manage with their configuration
@@ -159,3 +159,11 @@ argument_specs:
           - Required when acme_dns_provider is route53
         type: str
         required: false
+
+  update:
+    short_description: Update entrypoint for ACME certificates
+    description:
+      - Updates ACME certificates by running ACME certificate tasks
+      - Does not include account creation and revoke tasks
+    options:
+      <<: *options
