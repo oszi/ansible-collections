@@ -11,6 +11,13 @@ argument_specs:
     author:
       - "David O. (oszi.dev)"
     options: &options
+      acme_disabled:
+        description:
+          - Whether to skip all ACME tasks, even account creation
+          - Default is true if both O(acme_certificates) and O(acme_revoke_paths) are empty
+        type: bool
+        required: false
+
       acme_certificates:
         description:
           - List of ACME certificates to manage with their configuration

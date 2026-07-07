@@ -1,4 +1,7 @@
 ---
+# Skip all ACME tasks, even account creation?
+acme_disabled: "{{ acme_certificates | length == 0 and acme_revoke_paths | length == 0 }}"
+
 # List of dicts of ACME certificates:
 # Example certificate item:
 # - common_name: "test.{{ acme_cloudflare_zone }}"

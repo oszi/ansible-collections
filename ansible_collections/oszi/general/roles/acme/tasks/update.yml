@@ -1,5 +1,6 @@
 ---
 - name: ACME update tasks
+  when: not acme_disabled
   tags: [acme]
   vars:
     # Reloading is disabled by default for first-time setup.

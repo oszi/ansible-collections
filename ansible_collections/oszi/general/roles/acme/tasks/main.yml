@@ -3,7 +3,7 @@
   tags: [acme]
   block:
     - name: Include ACME tasks
-      when: "acme_certificates | length > 0 or acme_revoke_paths | length > 0"
+      when: not acme_disabled
       ansible.builtin.include_tasks:
         file: acme.yml
 
