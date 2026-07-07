@@ -1,12 +1,16 @@
 ---
-- name: Update python packages with pip
-  ansible.builtin.pip:
-  args: "{{ item | combine(python_pip_update_args) }}"
-  when: "item.state | default('present') in python_pip_update_states"
-  with_items: "{{ python_pip_list }}"
+- name: Python update tasks
+  when: not python_disabled
+  tags: [python]
+  block:
+    - name: Update python packages with pip
+      ansible.builtin.pip:
+      args: "{{ item | combine(python_pip_update_args) }}"
+      when: "item.state | default('present') in python_pip_update_states"
+      with_items: "{{ python_pip_list }}"
 
-- name: Update python packages with pipx
-  community.general.pipx:
-  args: "{{ item | combine(python_pipx_update_args) }}"
-  when: "item.state | default('present') in python_pipx_update_states"
-  with_items: "{{ python_pipx_list }}"
+    - name: Update python packages with pipx
+      community.general.pipx:
+      args: "{{ item | combine(python_pipx_update_args) }}"
+      when: "item.state | default('present') in python_pipx_update_states"
+      with_items: "{{ python_pipx_list }}"

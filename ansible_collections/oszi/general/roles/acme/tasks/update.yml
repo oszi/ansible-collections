@@ -1,8 +1,14 @@
 ---
-# Orchestration must match acme/tasks/acme.yml
-- name: Include ACME certificate tasks
-  ansible.builtin.include_tasks:
-    file: acme-certificate.yml
-  loop: "{{ acme_certificates | oszi.utils.unique_nested_list('live_path') }}"
-  loop_control:
-    loop_var: acme_certificate_item
+- name: ACME update tasks
+  tags: [acme]
+  vars:
+    # Reloading is disabled by default for first-time setup.
+    acme_reload: true
+  block:
+    # Include loop must match acme/tasks/acme.yml
+    - name: Include ACME certificate tasks
+      ansible.builtin.include_tasks:
+        file: acme-certificate.yml
+      loop: "{{ acme_certificates | oszi.utils.unique_nested_list('live_path') }}"
+      loop_control:
+        loop_var: acme_certificate_item

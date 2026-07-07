@@ -1,11 +1,15 @@
 ---
-- name: Update snap packages
-  ansible.builtin.shell: |
-    set -euo pipefail
-    if snap --version >/dev/null 2>&1; then
-      snap refresh
-    fi
-  args:
-    executable: "/bin/bash"
-  register: _snap_refresh_result
-  changed_when: "'refreshed' in _snap_refresh_result.stdout"
+- name: Snap update tasks
+  when: not snap_disabled
+  tags: [snap]
+  block:
+    - name: Update snap packages
+      ansible.builtin.shell: |
+        set -euo pipefail
+        if snap --version >/dev/null 2>&1; then
+          snap refresh
+        fi
+      args:
+        executable: "/bin/bash"
+      register: _snap_refresh_result
+      changed_when: "'refreshed' in _snap_refresh_result.stdout"

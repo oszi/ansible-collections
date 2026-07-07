@@ -1,14 +1,18 @@
 ---
-- name: Update flatpak packages
-  ansible.builtin.shell: |
-    set -euo pipefail
-    if flatpak --version >/dev/null 2>&1; then
-      flatpak update --assumeyes --noninteractive --{{ flatpak_method }}
-    else
-      echo "Nothing to do - flatpak missing"
-    fi
-  args:
-    executable: "/bin/bash"
-  register: _flatpak_update_result
-  changed_when: "'Nothing to do' not in _flatpak_update_result.stdout
-    and 'Nothing to update' not in _flatpak_update_result.stdout"
+- name: Flatpak update tasks
+  when: not flatpak_disabled
+  tags: [flatpak]
+  block:
+    - name: Update flatpak packages
+      ansible.builtin.shell: |
+        set -euo pipefail
+        if flatpak --version >/dev/null 2>&1; then
+          flatpak update --assumeyes --noninteractive --{{ flatpak_method }}
+        else
+          echo "Nothing to do - flatpak missing"
+        fi
+      args:
+        executable: "/bin/bash"
+      register: _flatpak_update_result
+      changed_when: "'Nothing to do' not in _flatpak_update_result.stdout
+        and 'Nothing to update' not in _flatpak_update_result.stdout"

@@ -14,35 +14,20 @@
       tags: [always]
 
   tasks:
-    - name: Include updates for distribution packages
-      when: "not package_manager_disabled | default(false)"
-      ansible.builtin.include_role:
+    - name: Import updates for distribution packages
+      ansible.builtin.import_role:
         name: oszi.general.package_manager
         tasks_from: update
-        apply:
-          tags: [package]
-      tags: [package]
 
-    - name: Include updates for python packages
-      when: "not python_disabled | default(false)"
-      ansible.builtin.include_role:
+    - name: Import updates for python packages
+      ansible.builtin.import_role:
         name: oszi.general.python
         tasks_from: update
-        apply:
-          tags: [python]
-      tags: [python]
 
-    - name: Include updates for ACME certificates
-      when: "acme_certificates is defined and acme_certificates | length > 0"
-      ansible.builtin.include_role:
+    - name: Import updates for ACME certificates
+      ansible.builtin.import_role:
         name: oszi.general.acme
         tasks_from: update
-        apply:
-          tags: [acme]
-      vars:
-        # Reloading is disabled by default for first-time setup.
-        acme_reload: true
-      tags: [acme]
 
 - name: Update podman images
   hosts: "{{ [containerhost_hosts | default('containerhosts'),
@@ -85,20 +70,12 @@
   become: true
   gather_facts: false
   tasks:
-    - name: Include updates for flatpak packages
-      when: "not flatpak_disabled | default(false)"
-      ansible.builtin.include_role:
+    - name: Import updates for flatpak packages
+      ansible.builtin.import_role:
         name: oszi.general.flatpak
         tasks_from: update
-        apply:
-          tags: [flatpak]
-      tags: [flatpak]
 
-    - name: Include updates for snap packages
-      when: "not snap_disabled | default(false)"
-      ansible.builtin.include_role:
+    - name: Import updates for snap packages
+      ansible.builtin.import_role:
         name: oszi.general.snap
         tasks_from: update
-        apply:
-          tags: [snap]
-      tags: [snap]
