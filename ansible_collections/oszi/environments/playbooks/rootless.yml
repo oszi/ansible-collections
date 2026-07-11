@@ -1,7 +1,9 @@
 ---
 # WARNING: The inventory must be designed for rootless mode!
-- name: Deploy all rootless roles
-  hosts: "{{ rootless_hosts | default('rootless') }}"
+- name: Deploy rootless baselinux roles
+  hosts: "{{ [rootless_baselinux_hosts | default('rootless_baselinux'),
+    rootless_containerhost_hosts | default('rootless_containerhosts'),
+    rootless_workstation_hosts | default('rootless_workstations')] | flatten }}"
   become: false
   gather_facts: false
   roles:
@@ -12,8 +14,20 @@
     - oszi.general.cloudflare_dns
     - oszi.general.downloads
     - oszi.general.acme
+
+- name: Deploy rootless containerhost roles
+  hosts: "{{ rootless_containerhost_hosts | default(['rootless_containerhosts', 'rootless_workstations']) }}"
+  become: false
+  gather_facts: false
+  roles:
     - oszi.general.podman
     - oszi.general.podman_kube
     - oszi.general.podman_quadlets
+
+- name: Deploy rootless workstation roles
+  hosts: "{{ rootless_workstation_hosts | default('rootless_workstations') }}"
+  become: false
+  gather_facts: false
+  roles:
     - oszi.general.flatpak
     - oszi.general.gnome_users
