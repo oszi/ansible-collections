@@ -1,7 +1,6 @@
 ---
-# WARNING: The inventory must be designed for rootless mode!
 - name: Deploy rootless baselinux roles
-  hosts: "{{ [rootless_baselinux_hosts | default('rootless_baselinux'),
+  hosts: "{{ [rootless_baselinux_hosts | default('rootless'),
     rootless_containerhost_hosts | default('rootless_containerhosts'),
     rootless_workstation_hosts | default('rootless_workstations')] | flatten }}"
   become: false
