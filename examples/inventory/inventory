@@ -4,5 +4,8 @@ localhost ansible_connection=local
 [workstations:vars]
 ansible_python_interpreter=/usr/bin/python3
 
+[containerhosts:children]
+workstations
+
 [toolbox:children]
 workstations

@@ -1,9 +1,14 @@
 # Examples
 
-The `examples/inventory` directory targets localhost in the workstations group.  
-It showcases common role configurations for workstations and container hosts.
+The `examples/inventory` directory targets localhost in the workstations group.
+It showcases common role configurations for workstations and containerhosts.
 
-Copy, and adapt `activate` and `ansible.cfg` to your requirements.  
+The workstation playbook already includes the containerhost and toolbox *roles*
+but we can also target workstation hosts via the containerhost and toolbox *playbooks*
+by making workstations part of the containerhosts and toolbox *groups*.
+
+Copy, and adapt `activate` and `ansible.cfg` to your requirements.
+
 See the [_scripts](../_scripts) for utilities and integrations.
 
 ## Run some playbooks
