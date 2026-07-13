@@ -15,7 +15,8 @@
     - oszi.general.acme
 
 - name: Deploy rootless containerhost roles
-  hosts: "{{ rootless_containerhost_hosts | default(['rootless_containerhosts', 'rootless_workstations']) }}"
+  hosts: "{{ [rootless_containerhost_hosts | default('rootless_containerhosts'),
+    rootless_workstation_hosts | default('rootless_workstations')] | flatten }}"
   become: false
   gather_facts: false
   roles:
