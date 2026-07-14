@@ -21,6 +21,14 @@ argument_specs:
         description:
           - Dictionary of authorized SSH keys by username
           - Keys are usernames, values are SSH public keys (multiple keys can be separated by newlines)
+          - |-
+            Advanced example with multiple keys and restrictions:
+            ```yaml
+            ssh_authorized_keys:
+              mobile: |-
+                from="{{ vault_mobile_vpn_cidr }}",restrict,pty {{ vault_mobile_ssh_biometric_pub }}
+                from="{{ vault_mobile_vpn_cidr }}",restrict,command="{{ ssh_sftp_subsystem }}" {{ vault_mobile_sftp_only_pub }}
+            ```
         type: dict
         required: false
 

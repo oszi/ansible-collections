@@ -3,3 +3,7 @@
 # This role also works without bootstrap as long as we have a working connection.
 # The loosely coupled firewalld, selinux and ssh roles must all use this ssh_port variable pattern.
 ssh_port: "{{ bootstrap_ssh_port | default(ansible_port | default(22)) | int }}"
+
+# On RedHat, internal-sftp is blocked by SELinux, use the distribution default sftp-server.
+# Use this variable in ssh_authorized_keys for sftp-only command restriction.
+ssh_sftp_subsystem: "{{ '/usr/libexec/openssh/sftp-server' if ansible_facts.os_family == 'RedHat' else 'internal-sftp' }}"

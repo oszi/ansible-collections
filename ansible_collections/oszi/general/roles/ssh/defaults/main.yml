@@ -3,7 +3,9 @@
 ssh_server_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
 
 # Dict of authorized keys by user
-# * Multiple keys can be separated by new lines
+# Multiple keys can be separated by new lines, for example:
+# from="0.0.0.0/0",restrict,pty ssh-ed25519 AAAA... mobile-biometric
+# from="0.0.0.0/0",restrict,command="{{ ssh_sftp_subsystem }}" ssh-ed25519 AAAA... mobile-sftp-only
 ssh_authorized_keys: {}
 # Remove keys that were not configured here?
 ssh_authorized_keys_exclusive: true

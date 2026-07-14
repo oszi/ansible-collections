@@ -1,4 +1,4 @@
-Port {{ ssh_port }}
+Port {{ ssh_port | int }}
 AuthenticationMethods {{ ssh_auth_methods | default('publickey') }}
 {% if ssh_allow_users %}
 AllowUsers {{ ssh_allow_users | join(' ') }}
@@ -10,10 +10,10 @@ Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr
 MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
 {% endif %}
 {% for item in ssh_host_keys %}
-HostKey {{ item }}
+HostKey {{ item | quote }}
 {% endfor %}
 
-Subsystem sftp internal-sftp
+Subsystem sftp {{ ssh_sftp_subsystem | quote }}
 UsePAM yes
 UseDNS no
 {% if ssh_server_config_extra %}
