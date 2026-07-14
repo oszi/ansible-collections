@@ -2,6 +2,10 @@
 # Disable and uninstall(!) OpenSSH server?
 ssh_server_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
 
+# Space-separated list of one or more comma-separated authentication methods...
+# publickey password hostbased keyboard-interactive none
+ssh_auth_methods: "publickey"
+
 # Dict of authorized keys by user
 # Multiple keys can be separated by new lines, for example:
 # from="0.0.0.0/0",restrict,pty ssh-ed25519 AAAA... mobile-biometric

@@ -17,6 +17,32 @@ argument_specs:
         type: bool
         required: false
 
+      ssh_server_config_overridable:
+        description:
+          - Whether to override the distribution-provided sshd_config
+          - When true, the role manages /etc/ssh/sshd_config, set to false to only manage authorized keys
+        type: bool
+        required: false
+        default: true
+
+      ssh_auth_methods:
+        description:
+          - Space-separated list of one or more comma-separated authentication methods that must be successfully completed
+            for a user to be granted access; authentication requires completion of exactly one complete AND-logic method listed
+          - Known authentication methods - `publickey` `password` `hostbased` `keyboard-interactive` `none`
+          - For example, `publickey,password publickey,keyboard-interactive`, `publickey,publickey` to require two different public keys
+        type: str
+        required: false
+        default: publickey
+
+      ssh_allow_users:
+        description:
+          - List of usernames allowed to connect via SSH
+          - When set, generates AllowUsers directive in sshd_config
+        type: list
+        elements: str
+        required: false
+
       ssh_authorized_keys:
         description:
           - Dictionary of authorized SSH keys by username
@@ -26,8 +52,8 @@ argument_specs:
             ```yaml
             ssh_authorized_keys:
               mobile: |-
-                from="{{ vault_mobile_vpn_cidr }}",restrict,pty {{ vault_mobile_ssh_biometric_pub }}
-                from="{{ vault_mobile_vpn_cidr }}",restrict,command="{{ ssh_sftp_subsystem }}" {{ vault_mobile_sftp_only_pub }}
+                from="0.0.0.0/0",restrict,pty ssh-ed25519 AAAA... mobile-biometric
+                from="0.0.0.0/0",restrict,command="{{ ssh_sftp_subsystem }}" ssh-ed25519 AAAA... mobile-sftp-only
             ```
         type: dict
         required: false
@@ -49,29 +75,6 @@ argument_specs:
         required: false
         default: false
 
-      ssh_server_config_overridable:
-        description:
-          - Whether to override the distribution-provided sshd_config
-          - When true, role-managed configuration replaces distro defaults
-        type: bool
-        required: false
-        default: true
-
-      ssh_server_config_extra:
-        description:
-          - Extra configuration lines to append to sshd_config
-          - Use for additional SSH server settings not covered by role defaults
-        type: str
-        required: false
-
-      ssh_allow_users:
-        description:
-          - List of usernames allowed to connect via SSH
-          - When set, generates AllowUsers directive in sshd_config
-        type: list
-        elements: str
-        required: false
-
       ssh_harden_crypto:
         description:
           - Whether to harden SSH cryptographic settings
@@ -86,4 +89,11 @@ argument_specs:
           - Only listed host keys will be active on the server
         type: list
         elements: path
+        required: false
+
+      ssh_server_config_extra:
+        description:
+          - Extra configuration lines to append to sshd_config
+          - Use for additional SSH server settings not covered by role defaults
+        type: str
         required: false

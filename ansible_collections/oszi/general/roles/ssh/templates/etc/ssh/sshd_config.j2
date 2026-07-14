@@ -1,5 +1,5 @@
 Port {{ ssh_port | int }}
-AuthenticationMethods {{ ssh_auth_methods | default('publickey') }}
+AuthenticationMethods {{ ssh_auth_methods }}
 {% if ssh_allow_users %}
 AllowUsers {{ ssh_allow_users | join(' ') }}
 {% endif %}
