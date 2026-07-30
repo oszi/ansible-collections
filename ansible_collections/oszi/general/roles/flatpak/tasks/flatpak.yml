@@ -35,11 +35,6 @@
     %} {{ option | quote }} {% endfor %}
   changed_when: false
 
-- name: Install dynamic shell aliases for flatpak apps
-  when: flatpak_shell_aliases_path is truthy
-  ansible.builtin.template:
-    src: "etc/shrc.d/flatpak-aliases.sh.j2"
-    dest: "{{ flatpak_shell_aliases_path }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
+- name: Import flatpak-aliases tasks
+  ansible.builtin.import_tasks:
+    file: flatpak-aliases.yml
