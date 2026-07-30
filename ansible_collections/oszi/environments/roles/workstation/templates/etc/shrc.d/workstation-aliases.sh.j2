@@ -21,6 +21,9 @@ fi
 
 if [ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1; then
     alias clip='wl-copy'
+{% if shell_wl_copy_text_command is defined %}
+    alias clip-text={{ shell_wl_copy_text_command | quote }}
+{% endif %}
 elif command -v xclip >/dev/null 2>&1; then
     alias clip='xclip -i -selection clipboard'
 fi

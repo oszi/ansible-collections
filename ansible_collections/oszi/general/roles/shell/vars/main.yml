@@ -33,3 +33,6 @@ shell_user_info:
   group: 0
   groups: []
   changed: false
+
+# Command to use in shrc files to copy text with wl-copy.
+shell_wl_copy_text_command: 'wl-copy -t "text/plain;charset=utf-8"'
