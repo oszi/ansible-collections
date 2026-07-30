@@ -3,6 +3,9 @@ AuthenticationMethods {{ ssh_auth_methods }}
 {% if ssh_allow_users %}
 AllowUsers {{ ssh_allow_users | join(' ') }}
 {% endif %}
+{% if ssh_allow_groups %}
+AllowGroups {{ ssh_allow_groups | join(' ') }}
+{% endif %}
 
 {% if ssh_harden_crypto %}
 KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256

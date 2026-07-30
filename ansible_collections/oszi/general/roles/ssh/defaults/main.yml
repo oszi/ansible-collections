@@ -24,8 +24,10 @@ ssh_server_config_overridable: true
 ssh_server_config_extra: ""
 # List of SSH allowed users
 ssh_allow_users: []
+# List of SSH allowed groups
+ssh_allow_groups: []
 
-# Harden SSH crypto settings?
+# Harden SSHD crypto settings?
 ssh_harden_crypto: true
 # List of existing host keys:
 ssh_host_keys:
