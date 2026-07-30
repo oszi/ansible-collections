@@ -1,4 +1,4 @@
-# _scripts
+# \_scripts
 
 Scripts to facilitate ansible deployments and source control.
 
@@ -21,13 +21,13 @@ Scripts to facilitate ansible deployments and source control.
 * **[git-verify.sh](git-verify.sh)**  
   Verify the signatures of all git branches and tags.
 * **[run-tests.sh](run-tests.sh)** `[-h|--help] | [TESTS ...]`  
-  Run test scripts in [_scripts/tests](tests) (e.g., ansible-lint or shellcheck).
-* **[_ansible.mk](_ansible.mk)** `localhost workstation update versions ... playbooks/* oszi.*`  
+  Run test scripts in [\_scripts/tests](tests) (e.g., ansible-lint or shellcheck).
+* **[\_ansible.mk](_ansible.mk)** `localhost workstation update versions ... playbooks/* oszi.*`  
   `[VERBOSE=y] [CHECK=y] [LIMIT=HOST] [TAGS=TAG1,TAG2] [SKIP_TAGS=TAG1,TAG2]`  
   Makefile fragment for a common ansible interface. See the [examples](../examples).
-* **[_scripts.mk](_scripts.mk)** `venv update-collections tests reset clean`  
+* **[\_scripts.mk](_scripts.mk)** `venv update-collections tests reset clean`  
   `[COLLECTIONS=path] [SCRIPTS=path] [VENV=path]`  
   Makefile fragment for venv and scripts integration.
 
-If collections is a git submodule, symlink what you need in a _scripts directory.  
-All scripts (except galaxy*) support parent repositories.
+If collections is a git submodule, symlink what you need in a \_scripts directory.  
+All scripts (except galaxy\*) support parent repositories.

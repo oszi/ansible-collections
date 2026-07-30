@@ -1,6 +1,6 @@
-# _scripts/tests
+# \_scripts/tests
 
-_scripts/tests is a collection of scripts for automated tests such as source code linting.
+A collection of scripts for automated tests such as source code linting.
 
 Stable interface to run tests:
 ```bash

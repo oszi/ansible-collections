@@ -37,7 +37,7 @@ See the [examples](examples) for setting up an ansible inventory.
 
 See the [Core Conventions](CONVENTIONS.md) for best practices.
 
-See the [_scripts](_scripts) for tests, utilities and integrations.
+See the [\_scripts](_scripts) for tests, utilities and integrations.
 
 ## Release policy
 

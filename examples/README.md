@@ -9,7 +9,7 @@ by making workstations part of the containerhosts and toolbox *groups*.
 
 Copy, and adapt `activate` and `ansible.cfg` to your requirements.
 
-See the [_scripts](../_scripts) for utilities and integrations.
+See the [\_scripts](../_scripts) for utilities and integrations.
 
 ## Run some playbooks
 
