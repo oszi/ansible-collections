@@ -26,18 +26,20 @@ fi
 
 if (command -v eza || command -v exa) >/dev/null 2>&1; then
     # shellcheck disable=SC2139 # expand when defined
-    alias l="$(command -v eza || command -v exa) -F --group-directories-first"
+    alias l="$(command -v eza || command -v exa) -F"
     alias l.='l -d .*'
     alias la='l -a'
     alias ll='l -alg'
+    alias lt='ll --sort=modified'
     if ! command -v tree >/dev/null 2>&1; then
         alias tree='l -T'
     fi
 else
-    alias l='ls -CF --group-directories-first'
+    alias l='ls -CF'
     alias l.='l -d .*'
     alias la='l -A'
     alias ll='l -Alh'
+    alias lt='ll -t'
 fi
 
 if command -v git >/dev/null 2>&1; then
