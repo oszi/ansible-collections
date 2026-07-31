@@ -35,6 +35,21 @@
     %} {{ option | quote }} {% endfor %}
   changed_when: false
 
-- name: Import flatpak-aliases tasks
-  ansible.builtin.import_tasks:
-    file: flatpak-aliases.yml
+- name: Install shell aliases for flatpak apps
+  when: flatpak_shell_aliases_path is truthy
+  ansible.builtin.copy:
+    content: |
+      # Ansible managed flatpak app to command aliases.
+      # shellcheck shell=sh
+      if ! command -v flatpak >/dev/null 2>&1; then
+          return
+      fi
+      {% for alias, command in flatpak_shell_aliases.items() %}
+
+      if ! command -v {{ alias | quote }} >/dev/null 2>&1; then
+          alias {{ alias | quote }}={{ command | quote }}
+      fi
+      {% endfor %}
+    # Support rootless mode without owner/group.
+    dest: "{{ flatpak_shell_aliases_path }}"
+    mode: "0644"
