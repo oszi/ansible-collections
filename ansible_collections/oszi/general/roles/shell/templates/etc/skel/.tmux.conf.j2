@@ -42,9 +42,9 @@ bind \\ split-window -v -c "#{pane_current_path}"
 
 # Use wl-clipboard, stay in copy-mode after selection
 if-shell -b '[ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1' {
-  set -s copy-command {{ shell_wl_copy_text_command | quote }}
-  bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe {{ shell_wl_copy_text_command | quote }}
-  bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe {{ shell_wl_copy_text_command | quote }}
+  set -s copy-command 'wl-copy -t text/plain'
+  bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe 'wl-copy -t text/plain'
+  bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe 'wl-copy -t text/plain'
 }
 {% endif %}
 {% if shell_tmux_conf_extra %}
