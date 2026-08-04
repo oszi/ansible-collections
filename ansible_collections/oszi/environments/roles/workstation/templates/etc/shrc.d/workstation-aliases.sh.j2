@@ -21,9 +21,9 @@ fi
 
 if [ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1; then
     alias clip='wl-copy'
+{# Fail if shell_env_locale_charmap is undefined; oszi.general.shell is a dependency of baselinux #}
     alias clip-text="wl-copy -n -t 'text/plain;charset={{ shell_env_locale_charmap }}'"
-elif command -v xclip >/dev/null 2>&1; then
-    alias clip='xclip -i -selection clipboard'
+    alias reclip-text="wl-paste | wl-copy -n -t 'text/plain;charset={{ shell_env_locale_charmap }}'"
 fi
 
 if command -v ykman >/dev/null 2>&1; then
