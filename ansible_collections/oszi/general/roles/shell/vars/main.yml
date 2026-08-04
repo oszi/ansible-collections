@@ -33,12 +33,3 @@ shell_user_info:
   group: 0
   groups: []
   changed: false
-
-# System locale from environment facts.
-shell_env_locale_ctype: "{{ ansible_facts.env['LC_ALL'] if 'LC_ALL' in ansible_facts.env
-  else ansible_facts.env['LC_CTYPE'] if 'LC_CTYPE' in ansible_facts.env
-  else ansible_facts.env['LANG'] if 'LANG' in ansible_facts.env
-  else 'C.UTF-8' }}"
-
-# System locale charmap from environment facts.
-shell_env_locale_charmap: "{{ shell_env_locale_ctype.split('.')[1] | lower if '.' in shell_env_locale_ctype else 'utf-8' }}"
