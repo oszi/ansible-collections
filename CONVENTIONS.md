@@ -92,7 +92,7 @@ python_devel_distro_packages:
 Most `tasks/main.yml` in `general` follow a fixed structure (partially applied in other collections):
 1. One top-level block tagged with the role name so the role tag does not apply to dependencies.
 2. `include_tasks` orchestration. `tasks/{role}.yml` is common if there are no install/uninstall/config tasks to keep main lean.
-3. Optional inter-role fact exports with `always` tag (guarantees definition).
+3. Optional inter-role fact exports with `always` tag (guarantees definition); after or before task orchestration.
 4. No-op role completed assert to guarantee one task execution, without it an all-skipped role re-runs as a dependency.
 
 ```yaml
@@ -109,10 +109,9 @@ Most `tasks/main.yml` in `general` follow a fixed structure (partially applied i
       ansible.builtin.include_tasks:
         file: config.yml
 
-    - name: Export rolename_export_path fact for integrations
-      ansible.builtin.set_fact:
-        rolename_export_path: "{{ rolename_path if not rolename_disabled else none }}"
-        cacheable: true
+    - name: Import facts tasks
+      ansible.builtin.import_tasks:
+        file: facts.yml
       tags: [always]
 
     - name: Rolename role completed
