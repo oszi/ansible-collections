@@ -1,0 +1,8 @@
+---
+- name: Configure system locale settings
+  hosts: all
+  become: true
+  gather_facts: false
+  roles:
+    - oszi.utils.bootstrap
+    - oszi.general.locale

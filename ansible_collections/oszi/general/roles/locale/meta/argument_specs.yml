@@ -1,0 +1,29 @@
+---
+argument_specs:
+  main:
+    short_description: System locale settings
+    description:
+      - Manages system locale settings via systemd localectl
+    author:
+      - "David O. (oszi.dev)"
+    options:
+      locale_conf:
+        description:
+          - System locale settings in the format used by /etc/locale.conf and localectl
+          - Sets LANG, LANGUAGE, LC_* variables for system-wide locale configuration
+          - Defaults to en_US.UTF-8 for workstations, C.UTF-8 for other systems
+          - Set to an empty string to skip locale setting; comments are not allowed
+        type: str
+        required: false
+
+      locale_file_implementation:
+        description:
+          - Use legacy file implementation instead of systemd localectl
+          - Default is true in containers, false otherwise
+        type: bool
+        required: false
+
+  facts:
+    short_description: Facts only entrypoint
+    description:
+      - Get locale role facts without changing anything; also asserts root

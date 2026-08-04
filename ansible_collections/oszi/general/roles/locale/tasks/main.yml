@@ -1,0 +1,18 @@
+---
+- name: System locale tasks
+  tags: [locale]
+  block:
+    - name: Include locale configuration tasks
+      when: locale_conf is truthy
+      ansible.builtin.include_tasks:
+        file: "{{ locale_file_implementation | ternary('locale-conf-file.yml', 'localectl.yml') }}"
+
+    - name: Import locale facts tasks
+      ansible.builtin.import_tasks:
+        file: facts.yml
+      tags: [always]
+
+    - name: Locale role completed
+      ansible.builtin.assert:
+        that: true
+        quiet: true

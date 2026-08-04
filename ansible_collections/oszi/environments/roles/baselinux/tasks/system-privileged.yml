@@ -4,11 +4,6 @@
   community.general.timezone:
     name: "{{ baselinux_timezone }}"
 
-- name: Set system locale
-  when: baselinux_set_locale is truthy
-  ansible.builtin.command: "/usr/bin/localectl set-locale {{ baselinux_set_locale }}"
-  changed_when: false
-
 - name: Set custom sysctl parameters
   ansible.posix.sysctl:
     name: "{{ item.key }}"

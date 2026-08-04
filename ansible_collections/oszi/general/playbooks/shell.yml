@@ -5,4 +5,7 @@
   gather_facts: false
   roles:
     - oszi.utils.bootstrap
+    # locale (rootful) is not a dependency of shell...
+    # shell supports rootless mode but this playbook is rootful.
+    - oszi.general.locale
     - oszi.general.shell

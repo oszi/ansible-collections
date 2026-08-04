@@ -125,3 +125,8 @@ argument_specs:
             description: Path to a ZSH-compatible bash-completion file
             type: path
             required: true
+
+  facts:
+    short_description: Facts only entrypoint
+    description:
+      - Get shell role facts without changing anything

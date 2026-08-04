@@ -1,0 +1,22 @@
+---
+- name: Ensure locale_conf is multiline
+  ansible.builtin.set_fact:
+    locale_conf: "{{ locale_conf.strip() | replace(' ', '\n') }}\n"
+
+- name: Assert valid locale_conf
+  ansible.builtin.assert:
+    that:
+      - "locale_conf.splitlines() | map('regex_search', locale_conf_file_regex) | select('none') | length == 0"
+      - "'LC_ALL=' not in locale_conf"
+    fail_msg: "locale_conf must contain LANG=en_US.UTF-8 and LC_* style settings; it must not contain LC_ALL"
+    success_msg: "locale_conf seems to be valid"
+
+- name: "Install locale conf file {{ locale_conf_path }}"
+  ansible.builtin.copy:
+    content: "{{ locale_conf }}"
+    dest: "{{ locale_conf_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    # /etc/default/locale -> /etc/locale.conf
+    follow: true

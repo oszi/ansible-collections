@@ -1,14 +1,6 @@
 ---
-# Re-run if baselinux ever changes the default UTF-8 charmap!
-- name: Detect locale charmap
-  ansible.builtin.command: "locale charmap"
-  register: _shell_locale_charmap_result
-  changed_when: false
-  check_mode: false
-
 # Do not mix privilege levels in playbooks - shell_shrc_d_path is rootless aware!
 - name: Export shell role facts
   ansible.builtin.set_fact:
     shell_shrc_d_export_path: "{{ shell_shrc_d_path if not shell_disabled else none }}"
-    shell_env_locale_charmap: "{{ _shell_locale_charmap_result.stdout | lower }}"
     cacheable: true  # Persists through all plays.

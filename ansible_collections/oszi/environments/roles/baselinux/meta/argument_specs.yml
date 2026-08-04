@@ -9,15 +9,6 @@ argument_specs:
     author:
       - "David O. (oszi.dev)"
     options:
-      baselinux_set_locale:
-        description:
-          - System locale settings in the format used by /etc/locale.conf
-          - Sets LANG, LANGUAGE, LC_* variables for system-wide locale configuration
-          - Defaults to en_US.UTF-8 for workstations, C.UTF-8 for other systems
-          - Set to an empty string to skip locale setting
-        type: str
-        required: false
-
       baselinux_timezone:
         description:
           - System timezone identifier (e.g., UTC, Europe/London)
