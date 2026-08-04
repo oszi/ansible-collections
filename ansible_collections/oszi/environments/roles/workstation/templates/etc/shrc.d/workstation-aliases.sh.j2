@@ -21,7 +21,7 @@ fi
 
 if [ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1; then
     alias clip='wl-copy'
-    alias clip-text='wl-copy -t text/plain'
+    alias clip-text="wl-copy -n -t 'text/plain;charset={{ shell_env_locale_charmap }}'"
 elif command -v xclip >/dev/null 2>&1; then
     alias clip='xclip -i -selection clipboard'
 fi
