@@ -1,9 +1,10 @@
 ---
 - name: Detect locale charmap
   ansible.builtin.shell: |
-    set -aeuo pipefail
-    if [ -r /etc/locale.conf ]; then
-      . /etc/locale.conf
+    set -euo pipefail
+    if [ -r {{ locale_conf_path | quote }} ]; then
+      set -a
+      . {{ locale_conf_path | quote }} >/dev/null
     fi
     locale charmap
   args:
