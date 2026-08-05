@@ -19,10 +19,11 @@ if ! command -v gedit >/dev/null 2>&1 && command -v gnome-text-editor >/dev/null
     alias gedit='gnome-text-editor'
 fi
 
+{% set wl_copy_text = 'wl-copy -n -t "text/plain;charset=%s"' | format(locale_charmap | default('utf-8', true) | lower) %}
 if [ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1; then
     alias clip='wl-copy'
-    alias clip-text="wl-copy -n -t 'text/plain;charset={{ locale_charmap | default('utf-8') | lower }}'"
-    alias reclip-text="wl-paste | wl-copy -n -t 'text/plain;charset={{ locale_charmap | default('utf-8') | lower }}'"
+    alias clip-text={{ wl_copy_text | quote }}
+    alias reclip-text={{ ('wl-paste | ' + wl_copy_text) | quote }}
 fi
 
 if command -v ykman >/dev/null 2>&1; then
