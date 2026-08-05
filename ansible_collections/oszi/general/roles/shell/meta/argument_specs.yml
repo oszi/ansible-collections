@@ -130,3 +130,4 @@ argument_specs:
     short_description: Facts only entrypoint
     description:
       - Get shell role facts without changing anything
+      - Fact `shell_shrc_d_export_path` contains `shell_shrc_d_path` for downstream roles

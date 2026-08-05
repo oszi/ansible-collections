@@ -27,3 +27,4 @@ argument_specs:
     short_description: Facts only entrypoint
     description:
       - Get locale role facts without changing anything; also asserts root
+      - Fact `locale_charmap` contains the detected locale charmap
