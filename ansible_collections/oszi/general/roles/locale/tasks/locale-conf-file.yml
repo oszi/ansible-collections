@@ -6,9 +6,9 @@
 - name: Assert valid locale_conf
   ansible.builtin.assert:
     that:
-      - "locale_conf.splitlines() | map('regex_search', locale_conf_file_regex) | select('none') | length == 0"
+      - "locale_conf.splitlines() | map('regex_search', locale_conf_line_regex) | select('none') | length == 0"
       - "'LC_ALL=' not in locale_conf"
-    fail_msg: "locale_conf must contain LANG=en_US.UTF-8 and LC_* style settings; it must not contain LC_ALL"
+    fail_msg: "locale_conf must contain LANG=en_US.UTF-8 and LC_* style settings; it must not contain LC_ALL; no comments or empty lines"
     success_msg: "locale_conf seems to be valid"
 
 - name: "Install locale conf file {{ locale_conf_path }}"

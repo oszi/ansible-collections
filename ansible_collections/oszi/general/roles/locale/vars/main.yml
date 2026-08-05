@@ -1,7 +1,7 @@
 ---
 # On systemd-based Debian/Ubuntu, /etc/default/locale is a symlink to /etc/locale.conf
-locale_conf_path: "{{ '/etc/default/locale' if ansible_facts.os_family == 'Debian' else '/etc/locale.conf' }}"
+locale_conf_path: "{{ '/etc/default/locale' if ansible_facts.os_family == 'Debian' and locale_file_implementation
+  else '/etc/locale.conf' }}"
 
 # Regex to validate locale_conf lines when localectl is not available.
-# Spaces are replaced to newlines before validation.
-locale_conf_file_regex: '^(?:(?:LANG|LANGUAGE|LC_[A-Za-z0-9_]+)=[A-Za-z0-9_@.+-]+\s*)+$'
+locale_conf_line_regex: '^(?:LANG|LANGUAGE|LC_[a-zA-Z0-9_]+)=[a-zA-Z0-9][a-zA-Z0-9_@.+-]*$'
