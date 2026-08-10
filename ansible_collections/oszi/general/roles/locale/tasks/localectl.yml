@@ -1,18 +1,12 @@
 ---
-- name: Get previous locale status
-  ansible.builtin.command: "localectl status"
-  register: _locale_status_previous
-  changed_when: false
-  check_mode: false
-
-# Use command to prevent shell injections via locale_conf which cannot be quoted as is.
-# Validation is done by localectl set-locale, no need for asserts here.
 - name: Set system locale
-  ansible.builtin.command: "localectl set-locale {{ locale_conf | replace('\n', ' ') }}"
-  changed_when: false  # There is no output.
-
-# In check mode, localectl set-locale never runs, do not set check_mode here.
-- name: Check current locale status
-  ansible.builtin.command: "localectl status"
-  register: _locale_status_current
-  changed_when: "_locale_status_previous.stdout != _locale_status_current.stdout"
+  ansible.builtin.shell: |
+    set -euo pipefail
+    before="$(localectl status)"
+    localectl set-locale {{ locale_conf.split() | map('quote') | join(' ') }}
+    after="$(localectl status)"
+    [ "$before" = "$after" ] || echo CHANGED
+  args:
+    executable: /bin/bash
+  register: _locale_set_result
+  changed_when: "'CHANGED' in _locale_set_result.stdout_lines"
