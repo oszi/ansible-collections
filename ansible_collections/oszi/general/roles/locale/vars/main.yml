@@ -4,4 +4,4 @@ locale_conf_path: "{{ '/etc/default/locale' if ansible_facts.os_family == 'Debia
   else '/etc/locale.conf' }}"
 
 # Regex to validate locale_conf lines when localectl is not available.
-locale_conf_line_regex: '^(?:LANG|LANGUAGE|LC_[a-zA-Z0-9_]+)=[a-zA-Z0-9][a-zA-Z0-9_@.+-]*$'
+locale_conf_line_regex: '^(?:LANG|LANGUAGE|LC_[a-zA-Z0-9_]+)=[a-zA-Z0-9][a-zA-Z0-9_.:,@+-]*$'
