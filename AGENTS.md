@@ -13,8 +13,8 @@ Ansible version: **2.20.0** through latest stable.
 
 ## Where to look for ...
 
-**Core Conventions:** `CONVENTIONS.md` (best practices, variable naming, code patterns)  
-**Per-collection rules:** `ansible_collections/oszi/{collection}/README.md`
+Core Conventions (best practices, variable naming, code patterns): `CONVENTIONS.md`  
+Per-collection READMEs: `ansible_collections/oszi/{collection}/README.md`
 
 Playbook location pattern: `ansible_collections/oszi/{collection}/playbooks/{playbook}.yml`  
 Role location pattern: `ansible_collections/oszi/{collection}/roles/{role}/`  
@@ -34,7 +34,7 @@ Tags contain the short git log since the previous tag and which collections were
 Collections can be at different minor/patch versions. Major versions are always in sync.  
 Source-only install; no Ansible Galaxy releases.
 
-## Development / Making Changes
+## Development
 
 **Before making changes, always:**
 1. Read `CONVENTIONS.md` for Core Conventions.
@@ -45,6 +45,17 @@ Source-only install; no Ansible Galaxy releases.
   There are no molecule or coverage tests yet.
 * Never commit changes or create releases yourself.
 
+## Security Model
+
+This project is treated as production for security-sensitive environments.  
+Downstream users must not be disclosed; assume the strictest plausible deployment.
+
+* Strict information hygiene applies from code to source control;  
+  no real identifiers, no deployment-specific rationale.
+* Supply chain: no `curl | sh`, use pinned refs, checksums, GPG signatures.
+* Exposure is opt-in, not default.
+* Consider what a diff might reveal about downstream deployments.
+
 ## Code Reviews
 
 **Before reviewing, always:**
@@ -54,6 +65,7 @@ Source-only install; no Ansible Galaxy releases.
 
 **Then evaluate:**
 * Do changes follow Core Conventions and per-collection rules?
-* What production and security risks could be introduced?
+* Do changes comply with the Security Model?
+* What production risks could be introduced?
 * What edge cases the author might not have anticipated?
 * Ignore galaxy version bumps; they are automated.
