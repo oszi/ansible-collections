@@ -35,9 +35,9 @@ See the [examples](examples) for setting up an ansible inventory.
 
 ## Development
 
-See the [Core Conventions](CONVENTIONS.md) for best practices.
-
-See the [\_scripts](_scripts) for tests, utilities and integrations.
+* [Core Conventions](CONVENTIONS.md) - Best practices and patterns.
+* [AGENTS.md](AGENTS.md) - Agentic context, also useful for developers.
+* [\_scripts](_scripts) - Tests, utilities and integrations.
 
 ## Release policy
 
