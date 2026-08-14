@@ -50,10 +50,10 @@ Source-only install; no Ansible Galaxy releases.
 This project is treated as production for security-sensitive environments.  
 Downstream users must not be disclosed; assume the strictest plausible deployment.
 
-* Strict information hygiene applies from code to source control;  
-  no real identifiers, no deployment-specific rationale.
-* Supply chain: no `curl | sh`, use pinned refs, checksums, GPG signatures.
-* Exposure is opt-in, not default.
+* Strict information hygiene in code, documentation, and source control;  
+  no deployment-specific rationale, no real identifiers, no secrets.
+* Supply chain: pinned refs, checksums, GPG signatures, no `curl | sh`.
+* Network exposure and third-party sources are opt-in, not default.
 * Consider what a diff might reveal about downstream deployments.
 
 ## Code Reviews
