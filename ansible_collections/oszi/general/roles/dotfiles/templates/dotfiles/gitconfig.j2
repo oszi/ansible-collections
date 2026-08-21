@@ -18,6 +18,9 @@ format = ssh
 {% if dotfiles_git_editor %}
 editor = {{ dotfiles_git_editor }}
 {% endif %}
+{% if dotfiles_git_delta_command.rc == 0 %}
+pager = delta
+{% endif %}
 excludesfile = ~/.gitignore
 {% if dotfiles_git_default_branch %}
 
@@ -49,9 +52,18 @@ ui = auto
 
 [diff]
 algorithm = histogram
-colorMoved = plain
+colorMoved = dimmed-zebra
 mnemonicPrefix = true
 renames = true
+{% if dotfiles_git_delta_command.rc == 0 %}
+
+[interactive]
+diffFilter = delta --color-only
+
+[delta]
+navigate = true
+line-numbers = true
+{% endif %}
 
 [merge]
 conflictstyle = zdiff3
