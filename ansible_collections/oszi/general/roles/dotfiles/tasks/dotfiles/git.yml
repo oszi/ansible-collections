@@ -1,4 +1,5 @@
 ---
+# git-delta should be installed by oszi.general.shell
 - name: Detect presence of git-delta
   ansible.builtin.shell: |
     set -euo pipefail

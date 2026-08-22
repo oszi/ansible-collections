@@ -85,7 +85,8 @@ argument_specs:
       shell_packages:
         description:
           - Nested list of shell and essential utility packages to install when O(shell_install_packages)
-          - Includes bash, zsh, bash-completion, and common CLI tools
+          - Includes important shell packages - bash, bash-completion, zsh, and tmux
+          - Includes git and gnupg - configured by `oszi.general.dotfiles`, and essential CLI tools
         type: list
         elements: raw
         required: false
