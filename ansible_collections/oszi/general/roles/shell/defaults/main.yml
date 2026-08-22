@@ -34,20 +34,23 @@ shell_install_packages: "{{ ansible_facts.user_uid | int == 0 }}"
 # Nested list of shell packages to install (RedHat/Debian):
 # When shell_install_packages is true.
 shell_packages:
+  # Important shell packages
   - bash
   - bash-completion
   - zsh
-  # Essential tools
+  - tmux
+  # Git and GnuPG - configured by oszi.general.dotfiles
   - "{{ ['git-delta'] if ansible_facts.os_family != 'RedHat'
     or ansible_facts.distribution == 'Fedora' else [] }}"
+  - git
+  - gnupg
+  # Essential tools
   - bat
   - bc
   - curl
   - findutils
   - fzf
   - gawk
-  - git
-  - gnupg
   - grep
   - jq
   - less
@@ -57,7 +60,6 @@ shell_packages:
   - rsync
   - screen
   - tar
-  - tmux
   - tree
   - util-linux
 
