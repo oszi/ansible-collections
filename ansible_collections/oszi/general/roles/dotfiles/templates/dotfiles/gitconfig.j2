@@ -18,7 +18,7 @@ format = ssh
 {% if dotfiles_git_editor %}
 editor = {{ dotfiles_git_editor }}
 {% endif %}
-{% if dotfiles_git_delta_command.rc == 0 %}
+{% if _dotfiles_git_delta_command.rc == 0 %}
 pager = delta
 {% endif %}
 excludesfile = ~/.gitignore
@@ -55,7 +55,7 @@ algorithm = histogram
 colorMoved = dimmed-zebra
 mnemonicPrefix = true
 renames = true
-{% if dotfiles_git_delta_command.rc == 0 %}
+{% if _dotfiles_git_delta_command.rc == 0 %}
 
 [interactive]
 diffFilter = delta --color-only

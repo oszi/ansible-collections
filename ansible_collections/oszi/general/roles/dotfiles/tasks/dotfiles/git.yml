@@ -1,4 +1,6 @@
 ---
+# Redundantly runs per user but we do not want role-level facts for this.
+# Do not skip if defined, the variable would be overridden by the skipped task.
 # git-delta should be installed by oszi.general.shell
 - name: Detect presence of git-delta
   ansible.builtin.shell: |
@@ -6,7 +8,7 @@
     command -v delta
   args:
     executable: /bin/bash
-  register: dotfiles_git_delta_command
+  register: _dotfiles_git_delta_command  # gitconfig.j2
   changed_when: false
   check_mode: false
   failed_when: false
