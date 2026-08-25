@@ -10,7 +10,7 @@ set -gw automatic-rename on
 set -g set-titles on
 set -g mouse on
 
-# Status right (everything else is default)
+# Optimize status right
 set -g status-right "\"#{=56:pane_title}\" %H:%M "
 set -g status-right-length 65
 
@@ -40,7 +40,6 @@ bind C-e set -w synchronize-panes
 bind C-r source-file ~/.tmux.conf \; display "~/.tmux.conf reloaded"
 bind | split-window -h -c "#{pane_current_path}"
 bind \\ split-window -v -c "#{pane_current_path}"
-{% if 'workstations' in group_names %}
 
 # Use wl-clipboard, stay in copy-mode after selection
 {% set wl_copy_text = 'wl-copy -n -t "text/plain;charset=%s"' | format(locale_charmap | default('utf-8', true) | lower) %}
@@ -49,7 +48,6 @@ if-shell -b '[ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1'
   bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe {{ wl_copy_text | quote }}
   bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe {{ wl_copy_text | quote }}
 }
-{% endif %}
 {% if shell_tmux_conf_extra %}
 
 {{ shell_tmux_conf_extra -}}
