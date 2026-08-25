@@ -41,6 +41,9 @@ bind C-r source-file ~/.tmux.conf \; display "~/.tmux.conf reloaded"
 bind | split-window -h -c "#{pane_current_path}"
 bind \\ split-window -v -c "#{pane_current_path}"
 
+# Ensure consistent mouse drag; ignore #{alternate_on}
+bind -T root MouseDrag1Pane if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' { send-keys -M } { copy-mode -M }
+
 # Use wl-clipboard, stay in copy-mode after selection
 {% set wl_copy_text = 'wl-copy -n -t "text/plain;charset=%s"' | format(locale_charmap | default('utf-8', true) | lower) %}
 if-shell -b '[ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1' {
