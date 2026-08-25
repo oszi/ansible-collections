@@ -1,7 +1,8 @@
 ---
 # Obsolete / superseded files to remove:
 # Prefix with the path vars below!
-shell_obsolete_config_files: []
+shell_obsolete_config_files:
+  - "{{ [shell_shrc_d_path, 'flatpak-aliases.sh'] | path_join }}"
 
 # Path variables to use everywhere:
 shell_shrc_d_path: "{{ [shell_etc_path, 'shrc.d'] | path_join }}"

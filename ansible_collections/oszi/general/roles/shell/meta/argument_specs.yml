@@ -60,8 +60,9 @@ argument_specs:
 
       shell_search_paths:
         description:
-          - List of additional paths to add to $PATH in .profile
-          - Paths should be escaped for shells (e.g., '"$HOME"/.local/bin')
+          - List of additional paths to add to $PATH in .profile; last path added is searched first
+          - Paths should be escaped for shells (e.g., `'"$HOME"/.local/bin'`)
+          - Default is `'"$HOME"/.local/bin'`, `'"$HOME"/bin'`, after flatpak exports/bin paths if not disabled
         type: list
         elements: str
         required: false

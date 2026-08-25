@@ -8,7 +8,9 @@ export {{ key | quote }}={{ value | quote }}
 {% endif %}
 {% if shell_search_paths %}
 
+{% if shell_search_paths | length == 1 %}
 # shellcheck disable=SC2043 # for loop run once
+{% endif %}
 for i in {{ shell_search_paths | join(' ') }}; do
     if [ -d "$i" ]; then
         case ":${PATH}:" in

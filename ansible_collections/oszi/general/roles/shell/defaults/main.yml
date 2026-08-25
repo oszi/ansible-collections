@@ -15,11 +15,12 @@ shell_environment:
   ENV: "{{ shell_shrc_path }}"
   EDITOR: nano
 
-# List of extra paths to add to $PATH:
+# List of extra paths to add to $PATH; last path added is searched first:
+# Skip flatpak for root, but not in skel where shell_user_info is a placeholder.
 # WARNING: Escape paths here!
-shell_search_paths:
-  - '"$HOME"/.local/bin'
-  - '"$HOME"/bin'
+shell_search_paths: "{{ (['/var/lib/flatpak/exports/bin', '\"$HOME\"/.local/share/flatpak/exports/bin']
+  if not flatpak_disabled | default(false) and shell_user_info.name != 'root' else [])
+  + ['\"$HOME\"/.local/bin', '\"$HOME\"/bin'] }}"
 
 # List of users to enforce skel templates for:
 shell_skeleton_enforced_users: "{{ (['root', ansible_user | default('root')]
