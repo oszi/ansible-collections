@@ -3,6 +3,8 @@
 set -g default-shell {{ shell_tmux_default_shell | quote }}
 {% endif %}
 set -g history-limit {{ shell_tmux_history_limit | int }}
+set -as terminal-features 'xterm*:extkeys'
+set -s extended-keys on
 set -gw aggressive-resize on
 set -gw automatic-rename on
 set -g set-titles on
