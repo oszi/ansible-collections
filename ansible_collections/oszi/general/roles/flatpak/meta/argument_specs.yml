@@ -58,6 +58,23 @@ argument_specs:
         type: dict
         required: false
 
+      flatpak_exports_bin_aliases:
+        description:
+          - Dictionary of aliases to bin exports to symlink in `/var/lib/flatpak/exports/bin`,
+            or in `"$HOME"/.local/share/flatpak/exports/bin` in rootless mode
+          - Keys are command names, values are relative symlinks already present in the above paths, or absolute paths
+          - "Example: {chromium: org.chromium.Chromium}"
+        type: dict
+        required: false
+
+      flatpak_exports_bin_aliases_absent:
+        description:
+          - List of obsolete filenames to remove from `/var/lib/flatpak/exports/bin`,
+            or from `"$HOME"/.local/share/flatpak/exports/bin` in rootless mode
+        type: list
+        elements: str
+        required: false
+
   update:
     short_description: Update entrypoint for flatpak packages
     description:

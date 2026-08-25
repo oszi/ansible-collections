@@ -13,3 +13,10 @@ flatpak_global_overrides:
 flatpak_app_overrides:
   org.chromium.Chromium:
     - "--filesystem=xdg-download"
+
+flatpak_exports_bin_aliases: "{{ _flatpak_exports_bin_aliases_all | dict2items
+  | selectattr('value', 'in', flatpak_apps) | items2dict }}"
+
+_flatpak_exports_bin_aliases_all:
+  chromium: org.chromium.Chromium
+  signal-desktop: org.signal.Signal

@@ -34,3 +34,24 @@
     flatpak override --{{ flatpak_method }} {% for option in flatpak_global_overrides
     %} {{ option | quote }} {% endfor %}
   changed_when: false
+
+- name: Ensure flatpak/exports/bin is a directory
+  ansible.builtin.file:
+    path: "{{ flatpak_exports_bin_path }}"
+    state: "directory"
+    mode: "0755"
+
+- name: Symlink aliases to apps in flatpak/exports/bin
+  ansible.builtin.file:
+    src: "{{ item.value }}"
+    dest: "{{ flatpak_exports_bin_path }}/{{ item.key }}"
+    state: "link"
+    follow: false
+    force: false
+  with_dict: "{{ flatpak_exports_bin_aliases }}"
+
+- name: Remove obsolete files from flatpak/exports/bin
+  ansible.builtin.file:
+    path: "{{ flatpak_exports_bin_path }}/{{ item }}"
+    state: "absent"
+  with_items: "{{ flatpak_exports_bin_aliases_absent }}"
