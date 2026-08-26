@@ -11,7 +11,7 @@ argument_specs:
     author:
       - "David O. (oszi.dev)"
     options:
-      shell_disabled:
+      shell_disabled: &shell_disabled
         description:
           - Whether to skip all shell configuration tasks
           - Useful for read-only systems or immutable environments
@@ -92,11 +92,11 @@ argument_specs:
         elements: raw
         required: false
 
-      shell_etc_path:
+      shell_etc_path: &shell_etc_path
         description:
           - Directory path where shrc entrypoint, shrc.d, and skel are installed
           - Used in role vars `shell_shrc_d_path`, `shell_shrc_path`, and `shell_skel_path`
-          - Exports `shell_shrc_d_export_path` fact for external integrations when running as root
+          - Related fact `shell_shrc_d_export_path` contains `shell_shrc_d_path` for downstream roles
           - Override if /etc is not writeable (e.g., /usr/local/etc)
           - Default is /etc, or ~/.config (using ansible_facts.user_dir) in rootless mode
         type: path
@@ -131,5 +131,11 @@ argument_specs:
   facts:
     short_description: Facts only entrypoint
     description:
-      - Get shell role facts without changing anything
-      - Fact `shell_shrc_d_export_path` contains `shell_shrc_d_path` for downstream roles
+      - Get shell role facts without changing anything; do not mix privilege levels in playbooks, variables are privilege-aware
+      - Fact `shell_shrc_d_export_path` contains `shell_shrc_d_path` for downstream roles to add shrc integrations;
+        is set to empty string if O(shell_disabled) (guard with `is truthy`)
+    options:
+      shell_disabled:
+        <<: *shell_disabled
+      shell_etc_path:
+        <<: *shell_etc_path

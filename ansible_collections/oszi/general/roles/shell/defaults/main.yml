@@ -76,13 +76,13 @@ shell_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
   if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.local/bin' }}"
 
-# Dict of ZSH-compatible bash completion files (values) to pre-load if there is no
-# native completion function (_key). When given a list, files are tried in order.
-# Most bash completion files are NOT ZSH-compatible, use them on a case-by-case basis.
+# List of ZSH-compatible bash-completion files to pre-load when native completion does not exist (_command).
+# Most bash-completion files are not ZSH-compatible, use selectively.
 shell_bash_completions_for_zsh:
+  # completion.zsh.inc is still bash in part and does not work with auto-loading.
+  # Use /etc/bash_completion.d/gcloud for older versions.
   - command: gcloud
-    # completion.zsh.inc is still bash in part and does not work with auto-loading.
-    # Use /etc/bash_completion.d/gcloud for older versions.
     path: "/usr/{{ (ansible_facts.os_family == 'Debian') | ternary('lib', 'lib64') }}/google-cloud-sdk/completion.zsh.inc"
+  # No default ZSH completion for wireguard.
   - command: wg
     path: "/usr/share/bash-completion/completions/wg"

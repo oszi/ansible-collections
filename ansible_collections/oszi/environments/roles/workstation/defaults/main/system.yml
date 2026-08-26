@@ -9,4 +9,4 @@ workstation_hid_apple_options:
 
 # File path to install shell aliases for workstations - disabled if empty:
 workstation_shell_aliases_path: "{{ [shell_shrc_d_export_path, 'workstation-aliases.sh'] | path_join
-  if shell_shrc_d_export_path | default(none) is truthy else '' }}"
+  if shell_shrc_d_export_path | default('') is truthy else '' }}"

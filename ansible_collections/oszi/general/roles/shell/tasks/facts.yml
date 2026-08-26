@@ -1,6 +1,6 @@
 ---
-# Do not mix privilege levels in playbooks - shell_shrc_d_path is rootless aware!
+# Do not mix privilege levels in playbooks; shell_shrc_d_path is privilege-aware!
 - name: Export shell role facts
   ansible.builtin.set_fact:
-    shell_shrc_d_export_path: "{{ shell_shrc_d_path if not shell_disabled else none }}"
+    shell_shrc_d_export_path: "{{ shell_shrc_d_path if not shell_disabled else '' }}"
     cacheable: true  # Persists through all plays.

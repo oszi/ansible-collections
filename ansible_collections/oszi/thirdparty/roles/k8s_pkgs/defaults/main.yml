@@ -26,4 +26,4 @@ k8s_pkgs_kubectl_bash_completion_path: "/etc/bash_completion.d/kubectl"
 k8s_pkgs_kubectl_zsh_completion_path: "/usr/local/share/zsh/site-functions/_kubectl"
 k8s_pkgs_kubeadm_bash_completion_path: "/etc/bash_completion.d/kubeadm"
 k8s_pkgs_kubeadm_zsh_completion_path: "{{ [shell_shrc_d_export_path, 'kubeadm-completion.zsh'] | path_join
-  if shell_shrc_d_export_path | default(none) is truthy else '' }}"  # kubeadm is not ZSH-native.
+  if shell_shrc_d_export_path | default('') is truthy else '' }}"  # kubeadm is not ZSH-native.
