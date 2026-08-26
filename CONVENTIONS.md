@@ -19,6 +19,8 @@
 | **Files/templates paths** | Mirror absolute dest paths under `files/` and `templates/`, append `.j2` for templates. |
 | **Prefer handlers** | Prefer handlers for triggered tasks, avoid them with complex conditions and in loop-based roles. |
 | **Single-purpose roles** | Each role configures exactly one component. Reject creeping scope. |
+| **Supply chain** | Use pinned refs, checksums, GPG signatures, no `curl \| sh`. |
+| **Network exposure** | Non-essential network services (anything besides SSH and VPNs) must not be exposed by default. |
 | **Opt-in third-party** | Roles managing an external repo must default to disabled and leave the system clean if disabled. |
 | **Playbook hosts var** | Use a variable for host targeting: `{playbook}_hosts \| default(...)`, or target `all` hosts. |
 | **Secrets encryption** | Secrets must be encrypted with ansible-vault, using `_scripts/ansible-vault-id-client`. Vault files must match `*vault.{yml,yaml,json}`. |
