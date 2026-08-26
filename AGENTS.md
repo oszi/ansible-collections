@@ -31,7 +31,7 @@ Changelog: `git show --no-patch MAJOR.MINOR.PATCH`
 Automated by: `_scripts/galaxy-release.sh major|minor|patch`
 
 Tags contain the short git log since the previous tag and which collections were updated.  
-Collections can be at different minor/patch versions. Major versions are always in sync.  
+Updated collection versions are incremented in lockstep; dependencies are pinned.  
 Source-only install; no Ansible Galaxy releases.
 
 ## Development

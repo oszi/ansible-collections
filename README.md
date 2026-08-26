@@ -41,7 +41,7 @@ See the [examples](examples) for setting up an ansible inventory.
 
 ## Release policy
 
-This repository uses lock-step semantic versioning. Git tags are the source of truth.  
+This repository uses lockstep semantic versioning. Git tags are the source of truth.  
 The collections are always installed from source; there is no Ansible Galaxy release.  
 Obsolete backwards-compatibility support may be dropped at any time.
 
