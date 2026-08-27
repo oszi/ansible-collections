@@ -24,6 +24,7 @@ dependencies:
   "community.libvirt": ">=2.0"
   "containers.podman": ">=1.16"
   "amazon.aws": ">=10.0"
+  # Pinned by _scripts/galaxy-release.sh
   "oszi.utils": "==4.68.0"
 
 tags:

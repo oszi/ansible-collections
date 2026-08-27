@@ -15,6 +15,7 @@ license:
   - "BSD-3-Clause"
 
 dependencies:
+  # Pinned by _scripts/galaxy-release.sh
   "oszi.utils": "==4.68.0"
 
 tags:
