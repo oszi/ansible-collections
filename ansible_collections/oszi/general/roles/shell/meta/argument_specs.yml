@@ -46,8 +46,14 @@ argument_specs:
 
       shell_tmux_conf_extra:
         description:
-          - Additional content appended to .tmux.conf file
-          - Use for custom tmux configuration
+          - Additional content appended to .tmux.conf; use for custom overrides
+          - |
+            For example:
+            ```
+            # Let arbitrary, potentially dangerous escapes through (e.g., OSC52 clipboard, images)
+            set -g allow-passthrough on
+            set -g set-clipboard on
+            ```
         type: str
         required: false
 

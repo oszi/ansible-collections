@@ -3,16 +3,48 @@
 set -g default-shell {{ shell_tmux_default_shell | quote }}
 {% endif %}
 set -g history-limit {{ shell_tmux_history_limit | int }}
-set -as terminal-features 'xterm*:extkeys'
-set -s extended-keys on
+set -g mouse on
+
+# Resize windows to active viewer
 set -gw aggressive-resize on
+
+# Auto-rename windows and send titles
 set -gw automatic-rename on
 set -g set-titles on
-set -g mouse on
+
+# Start indexes at 1 to match number-row keys
+set -g base-index 1
+set -gw pane-base-index 1
+
+# Enable extended keys when requested (e.g., Shift+Enter)
+set -as terminal-features 'xterm*:extkeys'
+set -s extended-keys on
+
+# Reduce latency for ESC
+set -sg escape-time {{ 10 if 'workstations' in group_names else 100 }}
 
 # Optimize status right
 set -g status-right "\"#{=56:pane_title}\" %H:%M "
 set -g status-right-length 65
+
+# Longer display-time for messages
+set -g display-time 2000
+set -g display-panes-time 2000
+
+# Add secondary prefix
+set -g prefix2 C-a
+bind C-a send-prefix
+
+# Prefixed custom commands
+bind C-e set -w synchronize-panes
+bind C-r source-file ~/.tmux.conf \; display "~/.tmux.conf reloaded"
+bind | split-window -h -c "#{pane_current_path}"
+bind \\ split-window -v -c "#{pane_current_path}"
+bind F1 list-keys # Rebind ? to F1
+
+# Search straight from prefix
+bind / copy-mode \; command-prompt -i -p "(search down)" { send-keys -X search-forward-incremental "%%" }
+bind ? copy-mode \; command-prompt -i -p "(search up)" { send-keys -X search-backward-incremental "%%" }
 
 # Alt+Arrows to switch panes
 bind -n M-Left select-pane -L
@@ -30,16 +62,6 @@ bind -T copy-mode S-PPage send-keys -X halfpage-up
 bind -T copy-mode-vi S-PPage send-keys -X halfpage-up
 bind -T copy-mode S-NPage send-keys -X halfpage-down
 bind -T copy-mode-vi S-NPage send-keys -X halfpage-down
-
-# Add secondary prefix
-set -g prefix2 C-a
-bind C-a send-prefix
-
-# Prefixed custom commands
-bind C-e set -w synchronize-panes
-bind C-r source-file ~/.tmux.conf \; display "~/.tmux.conf reloaded"
-bind | split-window -h -c "#{pane_current_path}"
-bind \\ split-window -v -c "#{pane_current_path}"
 
 # Ensure consistent mouse drag; ignore #{alternate_on}
 bind -T root MouseDrag1Pane if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' { send-keys -M } { copy-mode -M }
