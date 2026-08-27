@@ -37,7 +37,7 @@ git symbolic-ref --quiet HEAD >/dev/null 2>&1 || {
 }
 
 # Get the closest tag on the current branch. Supports backport branches.
-latest_version="$(git describe --tags --abbrev=0 | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')" || {
+latest_version="$(git describe --tags --abbrev=0 --match='[0-9]*.[0-9]*.[0-9]*')" || {
     echo "Latest version unknown." >&2
     exit 4
 }

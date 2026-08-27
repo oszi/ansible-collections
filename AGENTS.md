@@ -26,7 +26,7 @@ Utility scripts: `_scripts/` and `_scripts/README.md`
 ## Releases
 
 **Git tags are the source of truth:** `MAJOR.MINOR.PATCH`  
-Current version: `git describe --tags --abbrev=0`  
+Latest version: `git describe --tags --abbrev=0 --match='[0-9]*.[0-9]*.[0-9]*'`  
 Changelog: `git show --no-patch MAJOR.MINOR.PATCH`  
 Automated by: `_scripts/galaxy-release.sh major|minor|patch`
 
