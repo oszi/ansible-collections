@@ -4,7 +4,7 @@ import sys
 
 from argparse import ArgumentParser
 
-from testlib import run_shell_get_lines, run_tests
+from testlib import Color, RC, run_shell_get_lines, run_tests
 
 GIT_LS_FILES = r"""
 set -euo pipefail
@@ -37,6 +37,9 @@ def main() -> None:
 
     rc_pylint = run_tests(PYLINT_CMD, paths)
     rc_black = run_tests(BLACK_CMD, paths)
+    if rc_black != RC.OK:
+        print(f"{Color.BLUE}Run: {Color.BOLD}{sys.argv[0]} --black{Color.CLEAR}", file=sys.stderr)
+
     sys.exit(rc_pylint | rc_black)
 
 
