@@ -1,5 +1,6 @@
 ---
-# See also: ansible_collections/oszi/general/galaxy.yml
+# Galaxy requirements of all the collections.
+# See: ansible_collections/oszi/*/galaxy.yml
 collections:
   - name: "ansible.netcommon"
     version: ">=8.0"
