@@ -1,11 +1,19 @@
 ---
-# "locale" (rootful) is not a dependency of "shell" (rootless) but "shell" uses "locale" facts.
-# This playbook is rootful so include both roles for full functionality.
 - name: Configure the shell environment
   hosts: all
   become: true
   gather_facts: false
+  pre_tasks:
+    - name: Import bootstrap role
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+
+    # "locale" (rootful) is not a dependency of "shell" (rootless) but "shell" uses "locale" facts.
+    - name: Import locale facts tasks
+      ansible.builtin.import_role:
+        name: oszi.general.locale
+        tasks_from: facts
+      tags: [always]
+
   roles:
-    - oszi.utils.bootstrap
-    - oszi.general.locale
     - oszi.general.shell
