@@ -9,10 +9,10 @@ argument_specs:
     options:
       locale_conf:
         description:
-          - System locale settings in the format used by /etc/locale.conf and localectl
-          - Sets LANG, LANGUAGE, LC_* variables for system-wide locale configuration
-          - Defaults to en_US.UTF-8 for workstations, C.UTF-8 for other systems
-          - Set to an empty string to skip locale setting; comments are not allowed
+          - System locale settings in the format used by /etc/locale.conf and localectl (man locale.conf.5);
+            whitespace separated LANG, LANGUAGE, LC_* variables; comments and quotes are not allowed
+          - Default is en_US.UTF-8 with en_IE formats for workstations, empty for other hosts
+          - Empty string skips locale settings but locale facts are still gathered
         type: str
         required: false
 

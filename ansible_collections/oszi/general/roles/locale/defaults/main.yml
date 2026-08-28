@@ -1,10 +1,11 @@
 ---
 # System locale in the format used by /etc/locale.conf and localectl
 # Set to an empty string to skip.
-locale_conf: >-
-  {% if baselinux_set_locale is defined %}
-  {{ baselinux_set_locale }}
-  {% elif 'workstations' in group_names %}
+# XXX: Remove deprecated baselinux defaults in 5.0.0
+locale_conf: |-
+  {% if baselinux_set_locale is defined -%}
+  {{ baselinux_set_locale -}}
+  {% elif 'workstations' in group_names -%}
   LANG=en_US.UTF-8
   LANGUAGE=en_US
   LC_COLLATE=C.UTF-8
@@ -18,9 +19,7 @@ locale_conf: >-
   LC_PAPER=en_IE.UTF-8
   LC_TELEPHONE=en_IE.UTF-8
   LC_TIME=en_IE.UTF-8
-  {% else %}
-  LANG=C.UTF-8
-  {% endif %}
+  {% endif -%}
 
 # Use legacy file implementation instead of localectl?
 locale_file_implementation: "{{ ansible_facts.virtualization_type == 'container' }}"
