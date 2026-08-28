@@ -26,6 +26,7 @@ set -sg escape-time {{ 10 if 'workstations' in group_names else 100 }}
 # Customize pane border with status (tmux requires UTF-8)
 {% set pane_title_format = '"#{=/55/…:pane_title}"' %}
 set -g pane-border-format ' #{pane_index}:#{pane_current_command} {{ pane_title_format }} '
+set -g pane-active-border-style fg=darkgreen
 set -g pane-border-indicators colour
 set -g pane-border-lines double
 
