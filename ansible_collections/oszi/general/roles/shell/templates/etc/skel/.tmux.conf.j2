@@ -23,20 +23,19 @@ set -s extended-keys on
 # Reduce latency for ESC
 set -sg escape-time {{ 10 if 'workstations' in group_names else 100 }}
 
-# Customize pane border with status
-set -g pane-border-format ' #{pane_index}:#{pane_current_command} "#{=56:pane_title}" '
+# Customize pane border with status (tmux requires UTF-8)
+{% set pane_title_format = '"#{=/55/…:pane_title}"' %}
+set -g pane-border-format ' #{pane_index}:#{pane_current_command} {{ pane_title_format }} '
 set -g pane-border-indicators colour
-{% if locale_charmap | default('utf-8', true) | lower == 'utf-8' %}
 set -g pane-border-lines double
-{% endif %}
 
-# Enable pane status for multiple panes
+# Enable pane border status for multiple panes
 set-hook -g window-layout-changed {
   if-shell -F '#{==:#{window_panes},1}' { set -w pane-border-status off } { set -w pane-border-status top }
 }
 
 # Customize status right
-set -g status-right '"#{=56:pane_title}" %H:%M '
+set -g status-right '{{ pane_title_format }} %H:%M '
 set -g status-right-length 65
 
 # Longer display-time for messages
