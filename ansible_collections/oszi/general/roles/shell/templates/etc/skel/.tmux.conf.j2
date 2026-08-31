@@ -21,7 +21,10 @@ set -us terminal-features # Reset default for reloading
 set -as terminal-features 'xterm*:extkeys'
 set -s extended-keys on
 
-# Reduce latency for ESC
+# Forward terminal focus changes
+set -g focus-events on
+
+# Reduce ESC latency for modal editors
 set -sg escape-time {{ 10 if 'workstations' in group_names else 100 }}
 
 # Customize pane border with status
