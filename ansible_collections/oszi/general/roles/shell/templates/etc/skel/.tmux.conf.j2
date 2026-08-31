@@ -17,6 +17,7 @@ set -g base-index 1
 set -gw pane-base-index 1
 
 # Enable extended keys when requested (e.g., Shift+Enter)
+set -us terminal-features # Reset default for reloading
 set -as terminal-features 'xterm*:extkeys'
 set -s extended-keys on
 
@@ -54,8 +55,8 @@ bind \\ split-window -v -c "#{pane_current_path}"
 bind F1 list-keys # Rebind ? to F1
 
 # Search straight from prefix
-bind / copy-mode \; command-prompt -i -p "(search down)" { send-keys -X search-forward-incremental "%%" }
-bind ? copy-mode \; command-prompt -i -p "(search up)" { send-keys -X search-backward-incremental "%%" }
+bind / copy-mode \; command-prompt -i -p "(search down)" { send-keys -X search-forward-incremental -- "%%" }
+bind ? copy-mode \; command-prompt -i -p "(search up)" { send-keys -X search-backward-incremental -- "%%" }
 
 # Alt+Arrows to switch panes
 bind -n M-Left select-pane -L
