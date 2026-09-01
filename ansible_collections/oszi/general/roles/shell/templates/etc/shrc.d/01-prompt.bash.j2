@@ -15,10 +15,6 @@ function _bash_prompt_init() {
 }
 
 {% raw %}
-function _prompt_window_title() {
-    printf '\e]2;%s@%s:%s\a' "$USER" "$(hostname -s)" "$PWD"
-}
-
 function _bash_prompt_command() {
     PS1_RC=$?
 
@@ -40,6 +36,10 @@ function _bash_prompt_command() {
     if [[ "$PS1" != *PS1_PROMPT* ]]; then
         _bash_prompt_init
     fi
+}
+
+function _prompt_window_title() {
+    printf '\e]2;%q@%q:%q\a' "${USER:-$UID}" "${HOSTNAME%%.*}" "$PWD"
 }
 
 if [[ "$(declare -p PROMPT_COMMAND 2>&1)" = "declare -a"* ]]; then
