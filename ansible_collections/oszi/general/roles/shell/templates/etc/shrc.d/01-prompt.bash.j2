@@ -14,6 +14,11 @@ function _bash_prompt_init() {
     PS1="${PS1}\u@\h\[\033[0m\]:\[\033[34m\]\W\[\033[0m\]\${PS1_PROMPT@P} "
 }
 
+{% raw %}
+function _prompt_window_title() {
+    printf '\e]2;%s@%s:%s\a' "$USER" "$(hostname -s)" "$PWD"
+}
+
 function _bash_prompt_command() {
     PS1_RC=$?
 
@@ -38,11 +43,12 @@ function _bash_prompt_command() {
 }
 
 if [[ "$(declare -p PROMPT_COMMAND 2>&1)" = "declare -a"* ]]; then
-    PROMPT_COMMAND+=("_bash_prompt_command")
+    PROMPT_COMMAND+=("_bash_prompt_command" "_prompt_window_title")
 elif [[ -n "${PROMPT_COMMAND-}" ]]; then
-    PROMPT_COMMAND=("$PROMPT_COMMAND" "_bash_prompt_command")
+    PROMPT_COMMAND=("$PROMPT_COMMAND" "_bash_prompt_command" "_prompt_window_title")
 else
-    PROMPT_COMMAND=("_bash_prompt_command")
+    PROMPT_COMMAND=("_bash_prompt_command" "_prompt_window_title")
 fi
 
 _bash_prompt_init
+{% endraw %}
