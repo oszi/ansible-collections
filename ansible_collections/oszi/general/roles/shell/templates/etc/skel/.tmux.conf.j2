@@ -27,10 +27,9 @@ set -g focus-events on
 # Reduce ESC latency for modal editors
 set -sg escape-time {{ 10 if 'workstations' in group_names else 100 }}
 
-# Customize pane border with status
-{% set trunc_limit = 57 %}{# + 1 ellipsis #}
-{% set pane_title_trunc = '#{=/%d/…:pane_title}' | format(trunc_limit) %}
-set -g pane-border-format {{ '#[reverse] #{pane_index}:#{pane_current_command} %s ' | format(pane_title_trunc) | quote }}
+# Customize pane border with status; pane_width - 7 (ellipsis + 2 spaces + border lines)
+%hidden pane_border_limit='#{?#{e|>|:#{e|-|:#{pane_width},7},1},#{e|-|:#{pane_width},7},1}'
+set -g pane-border-format '#[reverse] #{=/#{E:pane_border_limit}/…:#{window_index}.#{pane_index}:#{pane_current_command} #{pane_title}} '
 set -g pane-border-style fg=white # Terminal theme white
 set -g pane-border-lines heavy
 
@@ -39,10 +38,10 @@ set-hook -g window-layout-changed {
   if-shell -F '#{==:#{window_panes},1}' { set -w pane-border-status off } { set -w pane-border-status top }
 }
 
-# Customize status right
-set -g status-right {{ '#{?#{==:#{window_panes},1},%s,%s}%s' | format(pane_title_trunc,
-  '#{=/%d/…:#{client_user}@#H}' | format(trunc_limit), ' %H:%M ') | quote }}
-set -g status-right-length {{ trunc_limit + 1 + 7 }}
+# Customize status right; client_width // 2 - 8 (ellipsis + ' HH:MM ')
+%hidden status_right_limit='#{?#{e|>|:#{e|/|:#{client_width},2},8},#{e|-|:#{e|/|:#{client_width},2},8},8}'
+set -g status-right '#{=/#{E:status_right_limit}/…:#{?#{==:#{window_panes},1},#{pane_title},#{client_user}@#H}} %H:%M '
+set -g status-right-length 1000
 
 # Customize status left; yellow for prefix, red for synchronized panes
 set -g status-left '#{?client_prefix,#[bg=yellow],#{?pane_synchronized,#[bg=red],}}[#{=/6/…:session_name}]#[default] '
