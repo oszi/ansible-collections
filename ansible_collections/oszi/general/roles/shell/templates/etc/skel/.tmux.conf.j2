@@ -28,8 +28,9 @@ set -g focus-events on
 set -sg escape-time {{ 10 if 'workstations' in group_names else 100 }}
 
 # Customize pane border with status; pane_width - 7 (ellipsis + 2 spaces + border lines)
-%hidden pane_border_limit='#{?#{e|>|:#{e|-|:#{pane_width},7},1},#{e|-|:#{pane_width},7},1}'
-set -g pane-border-format '#[reverse] #{=/#{E:pane_border_limit}/…:#{window_index}.#{pane_index}:#{pane_current_command} #{pane_title}} '
+%hidden pane_border_title_limit='#{?#{e|>|:#{e|-|:#{pane_width},7},1},#{e|-|:#{pane_width},7},1}'
+%hidden pane_border_title='#{window_index}.#{pane_index}:#{pane_current_command} #{pane_title}'
+set -g pane-border-format '#[reverse] #{=/#{E:pane_border_title_limit}/…:#{E:pane_border_title}} '
 set -g pane-border-style fg=white # Terminal theme white
 set -g pane-border-lines heavy
 
@@ -39,8 +40,9 @@ set-hook -g window-layout-changed {
 }
 
 # Customize status right; client_width // 2 - 8 (ellipsis + ' HH:MM ')
-%hidden status_right_limit='#{?#{e|>|:#{e|/|:#{client_width},2},8},#{e|-|:#{e|/|:#{client_width},2},8},8}'
-set -g status-right '#{=/#{E:status_right_limit}/…:#{?#{==:#{window_panes},1},#{pane_title},#{client_user}@#H}} %H:%M '
+%hidden status_right_title_limit='#{?#{e|>|:#{e|/|:#{client_width},2},8},#{e|-|:#{e|/|:#{client_width},2},8},8}'
+%hidden status_right_title='#{?#{==:#{window_panes},1},#{pane_title},#{client_user}@#H}'
+set -g status-right '#{=/#{E:status_right_title_limit}/…:#{E:status_right_title}} %H:%M '
 set -g status-right-length 1000
 
 # Customize status left; yellow for prefix, red for synchronized panes
