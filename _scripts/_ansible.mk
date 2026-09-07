@@ -19,7 +19,8 @@ baselinux containerhost toolbox workstation rootless update: %: oszi.environment
 debug versions: %: oszi.utils.%
 
 playbooks/% oszi.environments.% oszi.general.% oszi.thirdparty.% oszi.utils.%: activate ansible.cfg FORCE
-	$(ANSIBLE_PLAYBOOK) $(ANSIBLE_ARGS) $@
+	$(ANSIBLE_PLAYBOOK) $(ANSIBLE_ARGS) $@; \
+	rc=$$?; printf "\007"; exit $$rc;
 
 activate ansible.cfg:
 	@test -f $@ || (echo "./$@ not found! Copy examples/$@"; exit 127)
