@@ -21,6 +21,9 @@ set -us terminal-features # Reset default for reloading
 set -as terminal-features 'xterm*:extkeys'
 set -s extended-keys on
 
+# Enable advanced text effects
+set -as terminal-features 'xterm*:overline:usstyle'
+
 # Forward terminal focus changes
 set -g focus-events on
 
@@ -40,23 +43,23 @@ set-hook -g window-layout-changed {
 }
 
 # Customize status right; client_width // 2 - 8 (ellipsis + ' HH:MM '); min 16 total
-%hidden status_right_title_limit='#{?#{e|>=|:#{e|/|:#{client_width},2},16},#{e|-|:#{e|/|:#{client_width},2},8},8}'
+%hidden status_right_title_limit='#{?#{e|>=|:#{client_width},32},#{e|-|:#{e|/|:#{client_width},2},8},8}'
 %hidden status_right_title='#{?#{==:#{window_panes},1},#{pane_title},#{client_user}@#H}'
 set -g status-right '#{=/#{E:status_right_title_limit}/…:#{E:status_right_title}} %H:%M '
 set -g status-right-length 1000
 
-# Customize status left; yellow for prefix, red for synchronized panes
-set -g status-left '#{?client_prefix,#[bg=yellow],#{?pane_synchronized,#[bg=red],}}[#{=/6/…:session_name}]#[default] '
+# Customize status left; yellow in prefix mode
+set -g status-left '#{?client_prefix,#[bg=yellow],}[#{=/6/…:session_name}]#[default] '
 set -g status-left-length 10
 
 # Customize window status
 set -g window-status-format '#I:#W#F'
-set -g window-status-current-format '#I:#W#F'
+set -g window-status-current-format '#[underscore]#I:#W#[default]#F'
 set -g window-status-activity-style bold
 set -g window-status-bell-style bold
 
 # Set titles for the terminal
-set -g set-titles-string '[#S]#{?session_alerts, [#{session_alerts}],} #I:#W #T'
+set -g set-titles-string '[#S]#{?session_alerts, (#{session_alerts}),} #I:#W #T'
 set -g set-titles on
 
 # Longer display-time for messages
@@ -68,7 +71,9 @@ set -g prefix2 C-a
 bind C-a send-prefix
 
 # Prefixed custom commands
-bind C-e set -w synchronize-panes
+bind C-e set -w synchronize-panes \; display "(#I:#W) synchronize-panes #{?synchronize-panes,on,off}"
+bind C-q set -w monitor-activity \; display "(#I:#W) monitor-activity #{?monitor-activity,on,off}"
+bind C-s command-prompt -p "(#I:#W) monitor-silence sec:" -I "#{monitor-silence}" { set -w monitor-silence "%%" }
 bind C-r source-file ~/.tmux.conf \; display "~/.tmux.conf reloaded"
 bind | split-window -h -c "#{pane_current_path}"
 bind \\ split-window -v -c "#{pane_current_path}"
@@ -102,8 +107,8 @@ bind -T root MouseDrag1Pane if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}
 {% set wl_copy_text = 'wl-copy -n -t "text/plain;charset=%s"' | format(locale_charmap | default('utf-8', true) | lower) %}
 if-shell -b '[ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1' {
   set -s copy-command {{ wl_copy_text | quote }}
-  bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe {{ wl_copy_text | quote }}
-  bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe {{ wl_copy_text | quote }}
+  bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe
+  bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe
 }
 {% if shell_tmux_conf_extra %}
 
