@@ -44,8 +44,8 @@ set-hook -g window-layout-changed {
 
 # Customize status right; client_width // 2 - 8 (ellipsis + ' HH:MM '); min 16 total
 %hidden status_right_title_limit='#{?#{e|>=|:#{client_width},32},#{e|-|:#{e|/|:#{client_width},2},8},8}'
-%hidden status_right_title='#{?#{==:#{window_panes},1},#{pane_title},#{client_user}@#H}'
-set -g status-right '#{=/#{E:status_right_title_limit}/…:#{E:status_right_title}} %H:%M '
+%hidden status_right_title='#{?#{==:#{window_panes},1},#{pane_title},#{client_user}@#{host}}'
+set -g status-right ' #{=/#{E:status_right_title_limit}/…:#{E:status_right_title}} %H:%M '
 set -g status-right-length 1000
 
 # Customize status left; yellow in prefix mode
@@ -53,8 +53,8 @@ set -g status-left '#{?client_prefix,#[bg=yellow],}[#{=/6/…:session_name}]#[de
 set -g status-left-length 10
 
 # Customize window status
+set -g window-status-current-format '#{?#{!=:#{session_windows},1},#[underscore],}#I:#W#[nounderscore]#F'
 set -g window-status-format '#I:#W#F'
-set -g window-status-current-format '#[underscore]#I:#W#[default]#F'
 set -g window-status-activity-style bold
 set -g window-status-bell-style bold
 
@@ -103,12 +103,14 @@ bind -T copy-mode-vi S-NPage send-keys -X halfpage-down
 # Ensure consistent mouse drag; ignore #{alternate_on}
 bind -T root MouseDrag1Pane if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' { send-keys -M } { copy-mode -M }
 
-# Use wl-clipboard, stay in copy-mode after selection
+# Stay in copy-mode after selection, do not cancel
+bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe
+bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe
+
+# Use wl-clipboard if available
 {% set wl_copy_text = 'wl-copy -n -t "text/plain;charset=%s"' | format(locale_charmap | default('utf-8', true) | lower) %}
 if-shell -b '[ -n "${WAYLAND_DISPLAY-}" ] && command -v wl-copy >/dev/null 2>&1' {
   set -s copy-command {{ wl_copy_text | quote }}
-  bind -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe
-  bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe
 }
 {% if shell_tmux_conf_extra %}
 
