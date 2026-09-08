@@ -31,7 +31,7 @@ gnome_users_dconf_vars_extra:
   /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"
   # Ptyxis terminal settings
   /org/gnome/Ptyxis/restore-window-size: "false"
-  /org/gnome/Ptyxis/default-columns: "uint32 100"
+  /org/gnome/Ptyxis/default-columns: "uint32 120"
   /org/gnome/Ptyxis/default-rows: "uint32 25"
 
 # XDG user-dirs shell-escaped, homedir-relative paths:
