@@ -11,7 +11,7 @@ export {{ key | quote }}={{ value | quote }}
 {% if shell_search_paths | length == 1 %}
 # shellcheck disable=SC2043 # for loop run once
 {% endif %}
-for i in {{ shell_search_paths | join(' ') }}; do
+for i in {{ shell_search_paths | map('oszi.utils.home_var_to_quoted_tilde_path') | join(' ') }}; do
     if [ -d "$i" ]; then
         case ":${PATH}:" in
             *:"$i":*)
