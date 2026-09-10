@@ -139,7 +139,8 @@ argument_specs:
     description:
       - Get shell role facts without changing anything; do not mix privilege levels in playbooks, variables are privilege-aware
       - Fact `shell_shrc_d_export_path` contains `shell_shrc_d_path` for downstream roles to add shrc integrations;
-        is set to empty string if O(shell_disabled) (guard with `is truthy`)
+        it is set to empty string when O(shell_disabled) (guard with `is truthy`)
+      - Facts `shell_shrc_uid` and `shell_shrc_gid` contain the required owner and group IDs of shrc directories and files
     options:
       shell_disabled:
         <<: *shell_disabled

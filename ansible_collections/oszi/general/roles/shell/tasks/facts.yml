@@ -3,4 +3,6 @@
 - name: Export shell role facts
   ansible.builtin.set_fact:
     shell_shrc_d_export_path: "{{ shell_shrc_d_path if not shell_disabled else '' }}"
+    shell_shrc_uid: "{{ shell_shrc_uid }}"
+    shell_shrc_gid: "{{ shell_shrc_gid }}"
     cacheable: true  # Persists through all plays.

@@ -20,6 +20,8 @@
       ansible.builtin.file:
         path: "{{ gcloud_sdk_kubectl_bash_completion_path | dirname }}"
         state: "directory"
+        owner: "root"
+        group: "root"
         mode: "0755"
 
     - name: Generate kubectl completion for bash
@@ -44,6 +46,8 @@
       ansible.builtin.file:
         path: "{{ gcloud_sdk_kubectl_zsh_completion_path | dirname }}"
         state: "directory"
+        owner: "root"
+        group: "root"
         mode: "0755"
 
     - name: Generate kubectl completion for ZSH

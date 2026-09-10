@@ -59,4 +59,5 @@ borgmatic_timer_options:
 
 # File path to install shell aliases for borgmatic - disabled if empty:
 borgmatic_shell_aliases_path: "{{ [shell_shrc_d_export_path, 'borgmatic.sh'] | path_join
-  if shell_shrc_d_export_path | default('') is truthy else '' }}"
+  if shell_shrc_d_export_path | default('') is truthy
+  and shell_shrc_uid | int == 0 else '' }}"

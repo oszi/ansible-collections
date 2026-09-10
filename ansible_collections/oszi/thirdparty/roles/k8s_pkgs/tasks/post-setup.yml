@@ -6,6 +6,8 @@
       ansible.builtin.file:
         path: "{{ k8s_pkgs_kubeadm_bash_completion_path | dirname }}"
         state: "directory"
+        owner: "root"
+        group: "root"
         mode: "0755"
 
     - name: Generate kubeadm completion for bash
@@ -30,6 +32,8 @@
       ansible.builtin.file:
         path: "{{ k8s_pkgs_kubeadm_zsh_completion_path | dirname }}"
         state: "directory"
+        owner: "root"
+        group: "root"
         mode: "0755"
 
     - name: Generate kubeadm completion for ZSH
@@ -54,6 +58,8 @@
       ansible.builtin.file:
         path: "{{ k8s_pkgs_kubectl_bash_completion_path | dirname }}"
         state: "directory"
+        owner: "root"
+        group: "root"
         mode: "0755"
 
     - name: Generate kubectl completion for bash
@@ -78,6 +84,8 @@
       ansible.builtin.file:
         path: "{{ k8s_pkgs_kubectl_zsh_completion_path | dirname }}"
         state: "directory"
+        owner: "root"
+        group: "root"
         mode: "0755"
 
     - name: Generate kubectl completion for ZSH
