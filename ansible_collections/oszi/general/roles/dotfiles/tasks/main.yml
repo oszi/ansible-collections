@@ -6,6 +6,9 @@
       when: not dotfiles_disabled
       ansible.builtin.include_tasks:
         file: dotfiles-user.yml
+        apply:
+          become: "{{ ansible_user | default('') != dotfiles_user_item }}"
+          become_user: "{{ dotfiles_user_item }}"
       loop: "{{ dotfiles_users | unique }}"
       loop_control:
         loop_var: _dotfiles_user_item_var  # use as dotfiles_user_item

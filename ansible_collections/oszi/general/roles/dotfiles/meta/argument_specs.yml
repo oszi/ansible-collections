@@ -20,6 +20,7 @@ argument_specs:
       dotfiles_users:
         description:
           - List of usernames to install dotfiles for
+          - Uses become to switch user context if different from ansible_user
           - Defaults to root and ansible_user when running as root, or current user otherwise
           - Role works without privilege escalation for a single user
         type: list

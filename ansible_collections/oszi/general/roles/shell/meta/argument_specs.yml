@@ -77,6 +77,7 @@ argument_specs:
         description:
           - List of usernames to enforce role-managed `skel` files for
           - Ensures consistent shell configuration for all specified users
+          - Uses become to switch user context if different from ansible_user
           - Default is users_list + ansible_user + root, or user_id in rootless mode
         type: list
         elements: str

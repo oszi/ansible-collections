@@ -16,6 +16,9 @@
       when: not shell_disabled
       ansible.builtin.include_tasks:
         file: skel-user.yml
+        apply:
+          become: "{{ ansible_user | default('') != shell_user_item }}"
+          become_user: "{{ shell_user_item }}"
       loop: "{{ shell_skeleton_enforced_users | unique }}"
       loop_control:
         loop_var: _shell_user_item_var  # use as shell_user_item
