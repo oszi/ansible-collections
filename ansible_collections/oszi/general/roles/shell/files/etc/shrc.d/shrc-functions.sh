@@ -25,7 +25,7 @@ if command -v sort >/dev/null 2>&1; then
 fi
 
 _answer_yes() {
-    printf "# %s [y/N]" "${1:-Answer yes}" >&2
+    printf '# %s [y/N]' "${1:-Answer yes}" >&2
     read -r answer
     printf '%s' "$answer" | grep -iq '^Y'
 }
@@ -71,7 +71,7 @@ if command -v find >/dev/null 2>&1; then
                 exit 127
             fi
 
-            xargs -0r printf -- '%q\n' < "$manifest" >&2
+            xargs -0r printf '%s\n' < "$manifest" >&2
             _answer_yes "GPG encrypt the above files with default-recipient-self?" || exit 1
             xargs -0rn1 gpg -es --batch --yes --default-recipient-self -- < "$manifest"
 
