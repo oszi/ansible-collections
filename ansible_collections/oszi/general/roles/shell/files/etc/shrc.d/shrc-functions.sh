@@ -13,13 +13,12 @@ fi
 
 if command -v sort >/dev/null 2>&1; then
     _sort_u_file() {
-        if [ -f "$1" ]; then
-            sort -u "$1" > "$1"~
-            mv "$1"~ "$1"
-        else
+        if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
             echo 'Usage: sort-u-file <file>' >&2
             return 2
         fi
+
+        sort -u -o "$1" -- "$1"
     }
 
     alias sort-u-file='_sort_u_file'
@@ -28,7 +27,7 @@ fi
 _answer_yes() {
     printf "# %s [y/N]" "${1:-Answer yes}" >&2
     read -r answer
-    echo "$answer" | grep -iq '^Y'
+    printf '%s' "$answer" | grep -iq '^Y'
 }
 
 if command -v find >/dev/null 2>&1; then
@@ -54,27 +53,32 @@ if command -v find >/dev/null 2>&1; then
     alias find-encrypted='_find_encrypted'
 
     if command -v gpg >/dev/null 2>&1; then
-        _find_gpg_encrypt_self() {
+        _find_gpg_encrypt_self() (
+            set -eu
+
             if [ $# -eq 0 ]; then
                 echo "Usage: find-gpg-encrypt-self PATH [FIND ARGS]" >&2
-                return 2
+                exit 2
             fi
 
-            files="$(_find_not_encrypted "$@" | tee /dev/stderr)"
-            rc=1
-            if [ -n "$files" ] \
-                && _answer_yes "GPG encrypt the above files with default-recipient-self?" \
-                && echo "$files" | xargs -d'\n' -n1 gpg -es --batch --yes --default-recipient-self --; then
+            manifest="$(mktemp "${TMPDIR:-/tmp}/find-gpg-encrypt-self.XXXXXXXXXX")"
+            trap 'rm -f -- "$manifest"' EXIT
+            trap 'exit 1' HUP INT TERM
 
-                rc=0
-                if _answer_yes "Delete the above clear-text files?"; then
-                    echo "$files" | xargs -d'\n' rm -fv --
-                    rc=$?
-                fi
+            if ! find "$@" -type f -not -iregex "$_FIND_ENCRYPTED_REGEX" -fprintf "$manifest" '%p\0' >/dev/null \
+                || [ ! -s "$manifest" ]; then
+                echo "find-gpg-encrypt-self: no files found!" >&2
+                exit 127
             fi
-            unset files
-            return $rc
-        }
+
+            xargs -0r printf -- '%q\n' < "$manifest" >&2
+            _answer_yes "GPG encrypt the above files with default-recipient-self?" || exit 1
+            xargs -0rn1 gpg -es --batch --yes --default-recipient-self -- < "$manifest"
+
+            if _answer_yes "Delete the above clear-text files?"; then
+                xargs -0r rm -fv -- < "$manifest"
+            fi
+        )
 
         alias find-gpg-encrypt-self='_find_gpg_encrypt_self'
     fi
