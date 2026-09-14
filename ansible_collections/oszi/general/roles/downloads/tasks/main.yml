@@ -8,6 +8,7 @@
       loop: "{{ downloads_list }}"
       loop_control:
         loop_var: _downloads_item_var  # use as downloads_item, combined with downloads_options_default
+        label: "{{ downloads_item.dest }}"
 
     - name: Downloads role completed
       ansible.builtin.assert:

@@ -13,3 +13,4 @@
       loop: "{{ acme_certificates | oszi.utils.unique_nested_list('live_path') }}"
       loop_control:
         loop_var: acme_certificate_item
+        label: "{{ acme_certificate_item.live_path }}"

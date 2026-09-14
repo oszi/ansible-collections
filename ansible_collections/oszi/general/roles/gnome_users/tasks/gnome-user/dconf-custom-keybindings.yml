@@ -7,6 +7,7 @@
   loop: "{{ gnome_users_dconf_custom_keybindings }}"
   loop_control:
     index_var: index
+    label: "{{ item['binding'] }} :: {{ item['name'] }}"
 
 - name: Set dconf custom keybindings - command attr
   community.general.dconf:
@@ -16,6 +17,7 @@
   loop: "{{ gnome_users_dconf_custom_keybindings }}"
   loop_control:
     index_var: index
+    label: "{{ item['binding'] }} :: {{ item['name'] }}"
 
 - name: Set dconf custom keybindings - name attr
   community.general.dconf:
@@ -25,6 +27,7 @@
   loop: "{{ gnome_users_dconf_custom_keybindings }}"
   loop_control:
     index_var: index
+    label: "{{ item['binding'] }} :: {{ item['name'] }}"
 
 - name: Set dconf custom keybindings key-map helper
   community.general.dconf:

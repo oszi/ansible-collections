@@ -31,6 +31,6 @@
 - name: "Remove static files for podman-kube {{ podman_kube_item.path }}"
   when: podman_kube_item.files is defined
   ansible.builtin.file:
-    path: "{{ item.dest }}"
+    path: "{{ item }}"
     state: "absent"
-  with_items: "{{ podman_kube_item.files }}"
+  loop: "{{ podman_kube_item.files | map(attribute='dest') }}"

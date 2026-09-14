@@ -16,6 +16,7 @@
       loop: "{{ podman_kube_list | oszi.utils.unique_nested_list('path') }}"
       loop_control:
         loop_var: podman_kube_item
+        label: "{{ podman_kube_item.path }}"
 
     - name: Podman-kube role completed
       ansible.builtin.assert:

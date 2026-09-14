@@ -42,6 +42,6 @@
 - name: "Remove static files for quadlet {{ podman_quadlets_item.name }}"
   when: podman_quadlets_item.files is defined
   ansible.builtin.file:
-    path: "{{ item.dest }}"
+    path: "{{ item }}"
     state: "absent"
-  with_items: "{{ podman_quadlets_item.files }}"
+  loop: "{{ podman_quadlets_item.files | map(attribute='dest') }}"

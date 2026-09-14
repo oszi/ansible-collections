@@ -53,12 +53,14 @@
     state: "directory"
   # It could be a fuse mount point, not a directory.
   ignore_errors: true  # noqa: ignore-errors
-  with_items: "{{ baselinux_posix_mounts | map(attribute='path') }}"
+  loop: "{{ baselinux_posix_mounts | map(attribute='path') }}"
 
 - name: Create system mounts - fstab entries
   ansible.posix.mount:
   args: "{{ item }}"
-  with_items: "{{ baselinux_posix_mounts }}"
+  loop: "{{ baselinux_posix_mounts }}"
+  loop_control:
+    label: "{{ item.path }}"
 
 - name: Include swap file configuration tasks
   when: baselinux_swapfile_path is truthy and baselinux_swapfile_size is truthy
