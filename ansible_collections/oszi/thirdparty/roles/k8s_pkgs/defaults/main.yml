@@ -27,4 +27,4 @@ k8s_pkgs_kubectl_zsh_completion_path: "/usr/local/share/zsh/site-functions/_kube
 k8s_pkgs_kubeadm_bash_completion_path: "/etc/bash_completion.d/kubeadm"
 k8s_pkgs_kubeadm_zsh_completion_path: "{{ [shell_shrc_d_export_path, 'kubeadm-completion.zsh'] | path_join
   if shell_shrc_d_export_path | default('') is truthy
-  and shell_shrc_uid | int == 0 else '' }}"
+  and shell_shrc_uid | default(-1) | int == 0 else '' }}"
