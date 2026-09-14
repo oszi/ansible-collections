@@ -40,7 +40,7 @@
         daemon_reload: true
 
 - name: "Remove static files for quadlet {{ podman_quadlets_item.name }}"
-  when: podman_quadlets_item.files is defined
+  when: "podman_quadlets_item.files is defined and podman_quadlets_item.uninstall_files | default(false)"
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"

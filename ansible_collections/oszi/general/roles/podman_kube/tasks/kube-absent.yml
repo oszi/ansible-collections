@@ -29,7 +29,7 @@
         state: "absent"
 
 - name: "Remove static files for podman-kube {{ podman_kube_item.path }}"
-  when: podman_kube_item.files is defined
+  when: "podman_kube_item.files is defined and podman_kube_item.uninstall_files | default(false)"
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
