@@ -4,6 +4,7 @@ import os
 import sys
 
 from argparse import ArgumentParser
+from tempfile import TemporaryDirectory
 
 from testlib import run_tests
 
@@ -17,12 +18,19 @@ def run_ansible_lint() -> int:
     env = os.environ.copy()
     env.update(dict.fromkeys(("ANSIBLE_ASK_VAULT_PASS", "ANSIBLE_ASK_PASS", "ANSIBLE_BECOME_ASK_PASS"), "False"))
 
-    # Skip vault scripts as nothing needs to be decrypted for linting.
-    if os.path.isfile("/etc/hostname"):
-        env["ANSIBLE_VAULT_PASSWORD_FILE"] = "/etc/hostname"
-        env["ANSIBLE_VAULT_IDENTITY_LIST"] = "/etc/hostname"
+    with TemporaryDirectory(prefix="ansible-lint-") as tempdir:
+        vault_dummy = os.path.join(tempdir, "vault-password-dummy")
+        with open(vault_dummy, "w", encoding="utf-8") as f:
+            f.write("dummy")
 
-    return run_tests(["ansible-lint"], paths=[], env=env)
+        # Disable vault scripts as nothing needs to be decrypted for linting.
+        env["ANSIBLE_VAULT_PASSWORD_FILE"] = vault_dummy
+        env["ANSIBLE_VAULT_IDENTITY_LIST"] = vault_dummy
+
+        # Change ansible temp directory for read-only, agentic environments.
+        env.setdefault("ANSIBLE_LOCAL_TEMP", tempdir)
+
+        return run_tests(["ansible-lint"], paths=[], env=env)
 
 
 def main() -> None:
