@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # pylint: disable=line-too-long,missing-function-docstring,missing-module-docstring
+import os
 import sys
 
 from argparse import ArgumentParser
+from tempfile import TemporaryDirectory
 
 from testlib import Color, RC, run_shell_get_lines, run_tests
 
@@ -29,18 +31,24 @@ def main() -> None:
     app_args = args_parser.parse_args()
     paths = app_args.paths or run_shell_get_lines(GIT_LS_FILES, unique=True)
 
-    if app_args.black:
-        black_cmd = BLACK_CMD.copy()
-        black_cmd.remove("--check")
-        rc_black = run_tests(black_cmd, paths)
-        sys.exit(rc_black)
+    with TemporaryDirectory(prefix="python-tests-") as tempdir:
+        # Change python cache directory for read-only, agentic environments.
+        # XDG_CACHE_HOME is usually unset, implying ~/.cache/...
+        env = os.environ.copy()
+        env.setdefault("XDG_CACHE_HOME", tempdir)
 
-    rc_pylint = run_tests(PYLINT_CMD, paths)
-    rc_black = run_tests(BLACK_CMD, paths)
-    if rc_black != RC.OK:
-        print(f"{Color.BLUE}Run: {Color.BOLD}{sys.argv[0]} --black{Color.CLEAR}", file=sys.stderr)
+        if app_args.black:
+            black_cmd = BLACK_CMD.copy()
+            black_cmd.remove("--check")
+            rc_black = run_tests(black_cmd, paths, env=env)
+            sys.exit(rc_black)
 
-    sys.exit(rc_pylint | rc_black)
+        rc_pylint = run_tests(PYLINT_CMD, paths, env=env)
+        rc_black = run_tests(BLACK_CMD, paths, env=env)
+        if rc_black != RC.OK:
+            print(f"{Color.BLUE}Run: {Color.BOLD}{sys.argv[0]} --black{Color.CLEAR}", file=sys.stderr)
+
+        sys.exit(rc_pylint | rc_black)
 
 
 if __name__ == "__main__":
