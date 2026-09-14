@@ -25,7 +25,7 @@
     - name: "Run post-install script for {{ downloads_item_result.dest }}"
       when: downloads_item_result.changed and downloads_item.post_install_script is defined
       ansible.builtin.shell: |
-        set -euxo pipefail
+        set -euo pipefail
         {{ downloads_item.post_install_script }}
       environment: "{{ downloads_item.environment | default({}) | combine(downloads_item_post_install_environment) }}"
       args:

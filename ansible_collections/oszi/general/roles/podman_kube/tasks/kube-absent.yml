@@ -17,7 +17,7 @@
     - name: "Run uninstall script for podman-kube {{ podman_kube_item.path }}"
       when: podman_kube_item.uninstall_script is defined
       ansible.builtin.shell: |
-        set -euxo pipefail
+        set -euo pipefail
         {{ podman_kube_item.uninstall_script }}
       args:
         executable: "/bin/bash"

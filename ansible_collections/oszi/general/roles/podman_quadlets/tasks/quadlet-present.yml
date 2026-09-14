@@ -30,7 +30,7 @@
 - name: "Run init script for quadlet {{ podman_quadlets_item.name }}"
   when: podman_quadlets_item.init_script is defined
   ansible.builtin.shell: |
-    set -euxo pipefail
+    set -euo pipefail
     {{ podman_quadlets_item.init_script }}
   args:
     # White lie to only execute once before installing.
@@ -87,7 +87,7 @@
   when: _podman_quadlets_unit_result.changed and podman_quadlets_service_enabled
     and podman_quadlets_item.post_install_script is defined
   ansible.builtin.shell: |
-    set -euxo pipefail
+    set -euo pipefail
     {{ podman_quadlets_item.post_install_script }}
   args:
     executable: "/bin/bash"

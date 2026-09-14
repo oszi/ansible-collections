@@ -24,7 +24,7 @@
 - name: "Run init script for podman-kube {{ podman_kube_item.path }}"
   when: podman_kube_item.init_script is defined
   ansible.builtin.shell: |
-    set -euxo pipefail
+    set -euo pipefail
     {{ podman_kube_item.init_script }}
   args:
     # White lie to only execute once before installing.
@@ -61,7 +61,7 @@
   when: _podman_kube_spec_result.changed and podman_kube_service_enabled
     and podman_kube_item.post_install_script is defined
   ansible.builtin.shell: |
-    set -euxo pipefail
+    set -euo pipefail
     {{ podman_kube_item.post_install_script }}
   args:
     executable: "/bin/bash"

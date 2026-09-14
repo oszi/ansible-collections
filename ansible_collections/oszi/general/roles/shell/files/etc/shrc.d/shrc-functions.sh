@@ -71,12 +71,12 @@ if command -v find >/dev/null 2>&1; then
                 exit 127
             fi
 
-            xargs -0r printf '%q\n' < "$manifest" >&2 # (command printf %q, not builtin)
+            xargs -0 printf '%q\n' < "$manifest" >&2 # (command printf %q, not builtin)
             _answer_yes "GPG encrypt the above files with default-recipient-self?" || exit 1
-            xargs -0rn1 gpg -es --batch --yes --default-recipient-self -- < "$manifest"
+            xargs -0n1 gpg -es --batch --yes --default-recipient-self -- < "$manifest"
 
             if _answer_yes "Delete the above clear-text files?"; then
-                xargs -0r rm -fv -- < "$manifest"
+                xargs -0 rm -fv -- < "$manifest"
             fi
         )
 

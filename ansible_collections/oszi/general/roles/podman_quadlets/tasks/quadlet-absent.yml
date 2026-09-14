@@ -23,7 +23,7 @@
     - name: "Run uninstall script for quadlet {{ podman_quadlets_item.name }}"
       when: podman_quadlets_item.uninstall_script is defined
       ansible.builtin.shell: |
-        set -euxo pipefail
+        set -euo pipefail
         {{ podman_quadlets_item.uninstall_script }}
       args:
         executable: "/bin/bash"
