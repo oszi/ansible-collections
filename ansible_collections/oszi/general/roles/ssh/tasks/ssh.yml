@@ -53,6 +53,7 @@
     owner: "root"
     group: "root"
     mode: "0600"
+    validate: "sshd -t -f %s"
   notify:
     - "Restart sshd service"
     - "Set ansible_port to ssh_port"

@@ -14,9 +14,3 @@
         group: "root"
         directory_mode: "0755"
         mode: "0755"
-
-    - name: Remove obsolete toolbox scripts
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: "absent"
-      with_items: "{{ toolbox_obsolete_scripts }}"

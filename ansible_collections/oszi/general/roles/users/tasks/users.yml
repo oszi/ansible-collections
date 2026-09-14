@@ -8,6 +8,7 @@
   ansible.builtin.user:
   args: "{{ item }}"
   with_items: "{{ users_list | oszi.utils.unique_nested_list('name') }}"
+  no_log: true
 
 - name: Allow passwordless sudo for the specified groups
   when: "users_sudo_nopasswd_groups | length > 0"

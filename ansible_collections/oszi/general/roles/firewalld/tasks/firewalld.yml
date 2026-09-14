@@ -95,13 +95,17 @@
 
 - name: Set up pre-defined direct rules in firewalld
   with_items: "{{ firewalld_direct_rules }}"
-  ansible.builtin.shell: |-
-    set -euo pipefail
-    /usr/bin/firewall-cmd --direct --add-rule {{ item }}
-    {% if firewalld_permanent %}
-    /usr/bin/firewall-cmd --permanent --direct --add-rule {{ item }}
-    {% endif %}
-  args:
-    executable: "/bin/bash"
+  ansible.builtin.command:
+    cmd: "/usr/bin/firewall-cmd --direct --add-rule {{ item }}"
+    expand_argument_vars: false
   register: _firewalld_direct_rules_result
   changed_when: "'ALREADY_ENABLED' not in _firewalld_direct_rules_result.stderr"
+
+- name: Set up pre-defined direct rules in firewalld permanently
+  with_items: "{{ firewalld_direct_rules }}"
+  when: firewalld_permanent
+  ansible.builtin.command:
+    cmd: "/usr/bin/firewall-cmd --permanent --direct --add-rule {{ item }}"
+    expand_argument_vars: false
+  register: _firewalld_direct_rules_permanent_result
+  changed_when: "'ALREADY_ENABLED' not in _firewalld_direct_rules_permanent_result.stderr"
