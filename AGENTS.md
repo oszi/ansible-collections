@@ -40,6 +40,12 @@ Source-only install; no Ansible Galaxy releases.
 1. Read `CONVENTIONS.md` for Core Conventions.
 2. Read all collections' `README.md` for per-collection rules.
 
+**While making changes:**
+* Prefer additive, reversible changes; never discard changes you did not create.
+* Fix root causes and audit the relevant scope for similar occurrences.
+* Write self-contained, present-state prose; comments explain non-obvious intent or invariants.
+* Avoid decorative Unicode; prefer ASCII unless the character is meaningful.
+
 **After making changes:**
 * Run tests: `_scripts/run-tests.sh [ansible-lint|ansible-vault|galaxy-tags|python|shellcheck]`  
   There are no molecule or coverage tests yet.
@@ -54,6 +60,7 @@ Downstream users must not be disclosed; assume the strictest plausible deploymen
   no deployment-specific rationale, no real identifiers, no secrets.
 * Supply chain: pinned refs, checksums, GPG signatures, no `curl | sh`.
 * Network exposure and third-party sources are opt-in, not default.
+* Inventories are trusted, but input must still be verified.
 * Consider what a diff might reveal about downstream deployments.
 
 ## Code Reviews
