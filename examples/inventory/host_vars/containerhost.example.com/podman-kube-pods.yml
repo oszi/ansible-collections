@@ -40,7 +40,7 @@ podman_kube_list:
             image: quay.io/oszi/dante:latest
             env:
               - name: SOCKD_INTERNAL
-                value: tailscale0
+                value: lo
               - name: SOCKD_EXTERNAL
                 value: "{{ ansible_facts.default_ipv4.interface }}"
             resources:
@@ -74,11 +74,10 @@ podman_kube_list:
               medium: Memory
 
     files:
-      # Add hostPath volumes for files or directories.
-      # This is just for an example, the above image has an envsubst config.
+      # Example only; add hostPath volumes for files; the above image has an envsubst entrypoint.
       - dest: "{{ _containers_etc_path }}/socks-proxy/sockd.conf"
         content: |
-          internal: tailscale0 port = 1080
+          internal: lo port = 1080
           external: eth0
           # ...
         owner: root

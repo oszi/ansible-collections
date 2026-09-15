@@ -11,9 +11,6 @@ gnome_users_dconf_custom_keybindings_workstations:
   - binding: "'<Shift><Alt>Above_Tab'"
     command: "'ptyxis -x zsh'"
     name: "'New Terminal'"
-  - binding: "'<Super>Insert'"
-    command: "'keepassxc'"
-    name: "'KeePassXC'"
 
 # Use tmux in desktop terminals by default.
 gnome_users_dconf_ptyxis_terminal_default_profile_vars:

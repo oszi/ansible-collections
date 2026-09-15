@@ -8,5 +8,3 @@ k8s_pkgs_packages:
 
 hashicorp_enabled: true
 hashicorp_packages: ["terraform"]
-
-vscode_enabled: true

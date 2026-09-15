@@ -10,10 +10,6 @@ inventory_users_groups_workstations:
     system: true
   plugdev:
     system: true
-  tcpdump:
-    system: true
-  wireshark:
-    system: true
 
 # Use with ... | combine(..., recursive=true, list_merge='append_rp')
 users_list: "{{ inventory_users_workstations | oszi.utils.nested_dict_to_list('name') }}"

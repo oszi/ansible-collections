@@ -62,7 +62,7 @@ podman_quadlets_list:
       WantedBy=multi-user.target
 
   - name: jupyter.container
-    # state: present_disabled
+    state: present_disabled
     quadlet: |
       [Unit]
       Description=Jupyter Notebook
