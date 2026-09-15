@@ -27,7 +27,8 @@ update-collections: FORCE
 endif
 
 tests: FORCE
-	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh
+	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh; \
+	rc=$$?; printf "\007"; exit $$rc;
 
 reset: FORCE
 	$(SCRIPTS)/git-reset.sh --force
