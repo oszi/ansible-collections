@@ -62,7 +62,7 @@ git show-ref --quiet --verify -- "${REFERENCE}" \
 
 print_section "git: Verify commit $(git log --oneline "${REFERENCE}^..${REFERENCE}" -- 2>/dev/null)"
 
-git verify-commit "$REFERENCE" \
+git verify-commit -v -- "$REFERENCE" \
     || answer_yes_or_exit "git: Verify-commit failed! Continue anyway?"
 
 print_section "git: Check working tree and local commits..."

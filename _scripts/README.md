@@ -18,8 +18,8 @@ Scripts to facilitate ansible deployments and source control.
   Pre-commit hook to protect sensitive files.
 * **[git-reset.sh](git-reset.sh)** `[-f|--force] [[REMOTE(origin)] BRANCH(master)]`  
   Verify and reset the repository to a remote branch.
-* **[git-verify.sh](git-verify.sh)**  
-  Verify the signatures of all git branches and tags.
+* **[git-verify.sh](git-verify.sh)** `[GIT REFS ...]`  
+  Verify the signatures of all or the specified git branches and tags.
 * **[run-tests.sh](run-tests.sh)** `[-h|--help] | [TESTS ...]`  
   Run test scripts in [\_scripts/tests](tests) (e.g., ansible-lint or shellcheck).
 * **[\_ansible.mk](_ansible.mk)** `localhost workstation update versions ... playbooks/* oszi.*`  

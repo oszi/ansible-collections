@@ -1,11 +1,8 @@
 #!/bin/bash
-# Script to verify the signatures of all git branches and tags.
+# Script to verify the signatures of git branches and tags; use user keyring per environment.
 # You may symlink this file into a parent repository - e.g. inventory.
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
-
-GPG_KEY_ID="AFDE0AB3943D1FB3"
-GPG_IMPORT_URL="https://oszi.dev/oszi.dev.asc"
 
 if [[ -t 0 ]]; then
     COLOR_CLEAR="\033[0m"
@@ -17,23 +14,29 @@ else
     COLOR_GREEN=""
 fi
 
-if [[ -t 1 ]] && ! gpg -k "$GPG_KEY_ID"; then
-    echo -en "Import GPG key: ${GPG_KEY_ID} from ${GPG_IMPORT_URL}? [y/N]" >&2
-    read -r answer
-    if [[ "$answer" =~ ^[Yy] ]]; then
-        curl -sL "$GPG_IMPORT_URL" | gpg --import -
-    fi
-fi
+git_verify() {
+    local cmd="verify-${1}"
 
-xargs_git() {
-    if xargs -r -d'\n' git "$@" -v --; then
-        echo -e "${COLOR_GREEN}git $* succeeded${COLOR_CLEAR}" >&2
+    if xargs -rd'\n' git "$cmd" -v --; then
+        echo -e "${COLOR_GREEN}${cmd} [OK]${COLOR_CLEAR}" >&2
         return 0
     else
-        echo -e "${COLOR_RED}git $* failed${COLOR_CLEAR}" >&2
+        echo -e "${COLOR_RED}${cmd} [FAIL]${COLOR_CLEAR}" >&2
         return 1
     fi
 }
 
-git branch -a --format='%(refname)' | grep -Ev '^\(' | xargs_git verify-commit || exit 1
-git tag -l --sort=version:refname | xargs_git verify-tag || exit 1
+if (( $# )); then
+    rc=0
+    for ref do
+        if [[ "$ref" == refs/tags/* ]] || git show-ref --quiet --verify -- "refs/tags/${ref}"; then
+            git_verify tag <<<"$ref" || (( rc=1 ))
+        else
+            git_verify commit <<<"$ref" || (( rc=1 ))
+        fi
+    done
+    exit $rc
+else
+    git branch -a --format='%(refname)' | grep -Ev '^\(' | git_verify commit || exit 1
+    git tag -l --sort=version:refname | git_verify tag || exit 1
+fi
