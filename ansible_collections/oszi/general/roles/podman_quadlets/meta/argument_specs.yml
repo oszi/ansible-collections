@@ -105,25 +105,25 @@ argument_specs:
                 required: false
           init_script:
             description:
-              - Script run once before installation with bash -euo pipefail
+              - Script run once before installation with `bash -euo pipefail`
               - Use for first-time setup tasks like volume creation or initial configuration
             type: str
             required: false
           post_install_script:
             description:
-              - Script run after the service has changed with bash -euo pipefail
+              - Script run after the service has changed with `bash -euo pipefail`
               - Use for post-install setup tasks that depend on the service being active
             type: str
             required: false
           uninstall_script:
             description:
-              - Script run after the service is uninstalled with bash -euo pipefail
+              - Script run after the service is uninstalled with `bash -euo pipefail`
               - Use for cleanup with state=absent
             type: str
             required: false
           uninstall_files:
             description:
-              - Recursively remove `files[*].dest` with state=absent
+              - Recursively remove `files[].dest` with state=absent
               - Use `uninstall_script` to remove dynamically created volumes
             type: bool
             required: false

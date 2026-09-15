@@ -17,7 +17,7 @@ argument_specs:
           # Extra options for the role (see downloads_rejectattr_for_get_url):
           post_install_script:
             description:
-              - Script run after the download has finished with bash -euo pipefail
+              - Script run after the download has finished with `bash -euo pipefail`
               - Use for post-setup tasks, extracting archives, generating completions, creating symlinks, etc
               - Post-install environment variables - DOWNLOADS_ITEM_DEST, DOWNLOADS_ITEM_URL, DOWNLOADS_ITEM_BACKUP_FILE,
                 DOWNLOADS_ITEM_CHECKSUM_DEST, DOWNLOADS_ITEM_CHECKSUM_SRC
@@ -146,7 +146,7 @@ argument_specs:
           validate_certs: true
 
       downloads_list:
-        description: List of downloads for ansible.builtin.get_url
+        description: List of downloads with M(ansible.builtin.get_url)
         type: list
         elements: dict
         required: false

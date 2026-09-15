@@ -48,7 +48,7 @@ argument_specs:
       podman_docker_compose_enabled:
         description:
           - Whether to install docker-compose when O(podman_install_system) (use with caution)
-          - For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
+          - For rootless mode set DOCKER_HOST to `unix://${XDG_RUNTIME_DIR}/podman/podman.sock`
           - Prefer using a virtual environment instead of the distro package
         type: bool
         required: false
