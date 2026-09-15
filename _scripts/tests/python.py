@@ -30,25 +30,26 @@ args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 def main() -> None:
     app_args = args_parser.parse_args()
     paths = app_args.paths or run_shell_get_lines(GIT_LS_FILES, unique=True)
+    env = os.environ.copy()
 
-    with TemporaryDirectory(prefix="python-tests-") as tempdir:
-        # Change python cache directory for read-only, agentic environments.
-        # XDG_CACHE_HOME is usually unset, implying ~/.cache/...
-        env = os.environ.copy()
-        env.setdefault("XDG_CACHE_HOME", tempdir)
+    # Change python cache directory for read-only, agentic environments.
+    # XDG_CACHE_HOME is usually unset, implying ~/.cache/...
+    if "XDG_CACHE_HOME" not in env:
+        tempdir = TemporaryDirectory(prefix="ansible-python-tests-")  # pylint: disable=consider-using-with
+        env["XDG_CACHE_HOME"] = tempdir.name
 
-        if app_args.black:
-            black_cmd = BLACK_CMD.copy()
-            black_cmd.remove("--check")
-            rc_black = run_tests(black_cmd, paths, env=env)
-            sys.exit(rc_black)
+    if app_args.black:
+        black_cmd = BLACK_CMD.copy()
+        black_cmd.remove("--check")
+        rc_black = run_tests(black_cmd, paths, env=env)
+        sys.exit(rc_black)
 
-        rc_pylint = run_tests(PYLINT_CMD, paths, env=env)
-        rc_black = run_tests(BLACK_CMD, paths, env=env)
-        if rc_black != RC.OK:
-            print(f"{Color.BLUE}Run: {Color.BOLD}{sys.argv[0]} --black{Color.CLEAR}", file=sys.stderr)
+    rc_pylint = run_tests(PYLINT_CMD, paths, env=env)
+    rc_black = run_tests(BLACK_CMD, paths, env=env)
+    if rc_black != RC.OK:
+        print(f"{Color.BLUE}Run: {Color.BOLD}{sys.argv[0]} --black{Color.CLEAR}", file=sys.stderr)
 
-        sys.exit(rc_pylint | rc_black)
+    sys.exit(rc_pylint | rc_black)
 
 
 if __name__ == "__main__":
