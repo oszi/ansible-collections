@@ -3,7 +3,7 @@ set -euo pipefail
 
 virsh="virsh -c qemu:///system"
 virt_viewer="virt-viewer -c qemu:///system"
-virt_viewer_defaults="-a -w -H release-cursor=ctrl+alt --auto-resize=always"
+virt_viewer_defaults="-a -f -w -H release-cursor=ctrl+alt --auto-resize=always"
 
 if [[ "${1-}" =~ ^-*(h|help)$ ]]; then
     echo "Execute virt-viewer for each fzf selected domain. See virt-viewer --help" >&2
@@ -39,6 +39,10 @@ for domain in ${domains_selected}; do
     fi
 
     echo "+ ${virt_viewer} $* --domain-name -- ${domain}" >&2
-    ${virt_viewer} "$@" --domain-name -- "$domain" &
+    # shellcheck disable=SC2086 # word splitting
+    nohup ${virt_viewer} "$@" --domain-name -- "$domain" >/dev/null 2>&1 &
     disown
 done
+
+# Wait for processes to start before exiting.
+sleep 1
