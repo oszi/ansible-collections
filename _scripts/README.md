@@ -25,7 +25,7 @@ Scripts to facilitate ansible deployments and source control.
 * **[\_ansible.mk](_ansible.mk)** `localhost workstation update versions ... playbooks/* oszi.*`  
   `[VERBOSE=y] [CHECK=y] [LIMIT=HOST] [TAGS=TAG1,TAG2] [SKIP_TAGS=TAG1,TAG2]`  
   Makefile fragment for a common ansible interface. See the [examples](../examples).
-* **[\_scripts.mk](_scripts.mk)** `venv update-collections tests reset clean`  
+* **[\_scripts.mk](_scripts.mk)** `venv update-collections tests reset clean verify`  
   `[COLLECTIONS=path] [SCRIPTS=path] [VENV=path]`  
   Makefile fragment for venv and scripts integration.
 

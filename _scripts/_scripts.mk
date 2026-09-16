@@ -37,4 +37,7 @@ clean: FORCE
 	git clean -xfd
 	git submodule foreach --recursive git clean -xfd
 
+verify: FORCE
+	$(SCRIPTS)/git-verify.sh
+
 .PHONY: FORCE
