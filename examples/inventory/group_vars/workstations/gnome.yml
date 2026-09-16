@@ -11,6 +11,19 @@ gnome_users_dconf_custom_keybindings_workstations:
   - binding: "'<Shift><Alt>Above_Tab'"
     command: "'ptyxis -x zsh'"
     name: "'New Terminal'"
+  # Libvirt tricks
+  - binding: "'<Control><Super>Home'"
+    command: "'ptyxis -x virt-viewer-fzf -T virt-viewer-fzf'"
+    name: "'virt-viewer-fzf'"
+  - binding: "'<Control><Super>Insert'"
+    command: "'ptyxis -x \"{{ _virsh_usb_attach_shortcut }}\" -T \"{{ _virsh_usb_attach_shortcut }}\"'"
+    name: "'{{ _virsh_usb_attach_shortcut }}'"
+  - binding: "'<Control><Shift><Super>Insert'"
+    command: "'ptyxis -x \"{{ _virsh_usb_detach_shortcut }}\" -T \"{{ _virsh_usb_detach_shortcut }}\"'"
+    name: "'{{ _virsh_usb_detach_shortcut }}'"
+
+_virsh_usb_attach_shortcut: "virsh-usb attach DEVICE-PATTERN"
+_virsh_usb_detach_shortcut: "virsh-usb detach DEVICE-PATTERN"
 
 # Use tmux in desktop terminals by default.
 gnome_users_dconf_ptyxis_terminal_default_profile_vars:
