@@ -7,22 +7,27 @@
   register: dotfiles_user_info
   check_mode: true
 
-- name: "Fail if the dotfiles user does not exist"
-  when: dotfiles_user_info.changed
-  ansible.builtin.fail:
-    msg: "{{ dotfiles_user_item }} user does not exist"
+- name: "Assert that the dotfiles user is valid"
+  ansible.builtin.assert:
+    that: ["not dotfiles_user_info.changed
+      and not dotfiles_user_info.shell.endswith('/nologin')
+      and dotfiles_user_info.home != '/'"]
 
-- name: "Include gnupg dotfiles for user:{{ dotfiles_user_item }}"
-  when: dotfiles_gnupg_enabled
-  ansible.builtin.include_tasks:
-    file: dotfiles/gnupg.yml
+- name: Run all tasks as the user itself
+  become: "{{ ansible_user | default('') != dotfiles_user_item }}"
+  become_user: "{{ dotfiles_user_item }}"
+  block:
+    - name: "Include gnupg dotfiles for user:{{ dotfiles_user_item }}"
+      when: dotfiles_gnupg_enabled
+      ansible.builtin.include_tasks:
+        file: dotfiles/gnupg.yml
 
-- name: "Include git dotfiles for user:{{ dotfiles_user_item }}"
-  when: dotfiles_git_enabled
-  ansible.builtin.include_tasks:
-    file: dotfiles/git.yml
+    - name: "Include git dotfiles for user:{{ dotfiles_user_item }}"
+      when: dotfiles_git_enabled
+      ansible.builtin.include_tasks:
+        file: dotfiles/git.yml
 
-- name: "Include extra dotfiles for user:{{ dotfiles_user_item }}"
-  when: "dotfiles_files | length > 0"
-  ansible.builtin.include_tasks:
-    file: dotfiles/files.yml
+    - name: "Include extra dotfiles for user:{{ dotfiles_user_item }}"
+      when: "dotfiles_files | length > 0"
+      ansible.builtin.include_tasks:
+        file: dotfiles/files.yml

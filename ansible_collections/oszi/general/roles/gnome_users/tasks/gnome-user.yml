@@ -7,28 +7,33 @@
   register: gnome_users_info
   check_mode: true
 
-- name: "Fail if the gnome user does not exist"
-  when: gnome_users_info.changed
-  ansible.builtin.fail:
-    msg: "{{ gnome_users_item }} user does not exist"
+- name: "Assert that the Gnome user is valid"
+  ansible.builtin.assert:
+    that: ["not gnome_users_info.changed
+      and not gnome_users_info.shell.endswith('/nologin')
+      and gnome_users_info.home != '/'"]
 
-- name: Install Gnome user themes
-  ansible.builtin.copy:
-    src: "home/themes/"
-    dest: "{{ gnome_users_info.home }}/.themes/"
-    owner: "{{ gnome_users_info.uid }}"
-    group: "{{ gnome_users_info.group }}"
-    mode: "0644"
+- name: Run all tasks as the user itself
+  become: "{{ ansible_user | default('') != gnome_users_item }}"
+  become_user: "{{ gnome_users_item }}"
+  block:
+    - name: Install Gnome user themes
+      ansible.builtin.copy:
+        src: "home/themes/"
+        dest: "{{ gnome_users_info.home }}/.themes/"
+        owner: "{{ gnome_users_info.uid }}"
+        group: "{{ gnome_users_info.group }}"
+        mode: "0644"
 
-- name: Import dconf settings tasks
-  ansible.builtin.import_tasks:
-    file: gnome-user/dconf.yml
+    - name: Import dconf settings tasks
+      ansible.builtin.import_tasks:
+        file: gnome-user/dconf.yml
 
-- name: "Include Screenshots tasks for user:{{ gnome_users_item }}"
-  when: gnome_users_screenshots_path is truthy
-  ansible.builtin.include_tasks:
-    file: gnome-user/screenshots.yml
+    - name: "Include Screenshots tasks for user:{{ gnome_users_item }}"
+      when: gnome_users_screenshots_path is truthy
+      ansible.builtin.include_tasks:
+        file: gnome-user/screenshots.yml
 
-- name: Import XDG user-dirs tasks
-  ansible.builtin.import_tasks:
-    file: gnome-user/xdg.yml
+    - name: Import XDG user-dirs tasks
+      ansible.builtin.import_tasks:
+        file: gnome-user/xdg.yml

@@ -5,9 +5,6 @@
     - name: Include Gnome user configuration tasks
       ansible.builtin.include_tasks:
         file: gnome-user.yml
-        apply:
-          become: "{{ ansible_user | default('') != gnome_users_item }}"
-          become_user: "{{ gnome_users_item }}"
       loop: "{{ gnome_users | unique }}"
       loop_control:
         loop_var: _gnome_users_item_var  # use as gnome_users_item
