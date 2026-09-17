@@ -42,6 +42,11 @@ latest_version="$(git describe --tags --abbrev=0 --match='[0-9]*.[0-9]*.[0-9]*')
     exit 4
 }
 
+[[ "$latest_version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
+    echo "Latest version tag is invalid: ${latest_version}" >&2
+    exit 4
+}
+
 change_log="$(git log --no-merges --pretty=format:"* %h %s" "${latest_version}..HEAD")"
 [[ -n "$change_log" ]] || {
     echo "There are no commits since the latest version." >&2
