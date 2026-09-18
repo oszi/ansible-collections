@@ -95,7 +95,7 @@ new_version_spec="==${new_version}"
 
 echo "Releasing ${SEVERITY} version ${new_version}..." >&2
 
-echo -en "Run all tests (e.g., ansible-lint)? [y/N]" >&2
+echo -n "Run all tests (e.g., ansible-lint)? [y/N]" >&2
 read -r answer
 if [[ "$answer" =~ ^[Yy] ]]; then
     "$run_tests" || exit 1

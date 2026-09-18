@@ -21,7 +21,7 @@ tests_dir="_scripts/tests"
 if ! [[ -d "$tests_dir" ]]; then
     tests_dir="collections/${tests_dir}"
     if ! [[ -d "$tests_dir" ]]; then
-        echo -e "${COLOR_RED}${tests_dir} not found!${COLOR_CLEAR}" >&2
+        printf "${COLOR_RED}%q not found!${COLOR_CLEAR}\n" "$tests_dir" >&2
         exit 127
     fi
 fi
@@ -43,13 +43,13 @@ for cmd in "${tests[@]}"; do
     if [[ -f "$cmd" && -x "$cmd" ]]; then
         "$cmd" || (( rc=1 ))
     elif [[ $# -gt 0 ]]; then
-        echo -e "${COLOR_RED}${cmd} not found!${COLOR_CLEAR}" >&2
+        printf "${COLOR_RED}%q not found!${COLOR_CLEAR}\n" "$cmd" >&2
         (( rc=1 ))
     fi
 done
 
 if [[ $rc -ne 0 ]]; then
-    echo -e "${COLOR_RED}$0 failed!${COLOR_CLEAR}" >&2
+    printf "${COLOR_RED}%q failed!${COLOR_CLEAR}\n" "$0" >&2
 fi
 
 exit $rc

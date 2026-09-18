@@ -36,7 +36,7 @@ else
 fi
 
 answer_yes_or_exit() {
-    echo -en "${COLOR_RED}${1}${COLOR_CLEAR} [y/N]" >&2
+    printf "${COLOR_RED}%s${COLOR_CLEAR} [y/N]" "$1" >&2
     read -r answer
     if ! [[ "$answer" =~ ^[Yy] ]]; then
         exit 1
@@ -44,12 +44,12 @@ answer_yes_or_exit() {
 }
 
 exit_with_error() {
-    echo -e "${COLOR_RED}${1}${COLOR_CLEAR}" >&2
+    printf "${COLOR_RED}%s${COLOR_CLEAR}\n" "$1" >&2
     exit 1
 }
 
 print_section() {
-    echo -e "${COLOR_YELLOW}${1}${COLOR_CLEAR}" >&2
+    printf "${COLOR_YELLOW}%s${COLOR_CLEAR}\n" "$1" >&2
 }
 
 print_section "git: Fetch ${REMOTE} [${fetch_opts[*]:0:${#fetch_opts[@]}-1}]"

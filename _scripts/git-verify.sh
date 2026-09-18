@@ -19,10 +19,10 @@ git_verify_cmd() {
     local cmd="verify-${1}"
 
     if xargs -rd'\n' git "$cmd" -v --; then
-        echo -e "${COLOR_GREEN}${cmd} [OK]${COLOR_CLEAR}" >&2
+        printf "${COLOR_GREEN}%s [OK]${COLOR_CLEAR}\n" "$cmd" >&2
         return 0
     else
-        echo -e "${COLOR_RED}${cmd} [FAIL]${COLOR_CLEAR} (search 'error:')" >&2
+        printf "${COLOR_RED}%s [FAIL]${COLOR_CLEAR} (search 'error:')\n" "$cmd" >&2
         return 1
     fi
 }

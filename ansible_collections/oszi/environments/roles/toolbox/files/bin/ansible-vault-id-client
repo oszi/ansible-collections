@@ -31,10 +31,10 @@ if [ "$create" -ne 0 ]; then
     if [ "$check" -ne 0 ]; then
         exit_help
     fi
-    echo "Vault password for '${vault_file}':" >&2
+    printf 'Vault password for %q:\n' "$vault_file" >&2
     read -rs password
 
-    echo "Enter recipients (one per line):" >&2
+    printf 'Enter recipients (one per line):\n' >&2
     declare -a recipients
     while read -r line && [ -n "$line" ]; do
         if ${GPG} -k -- "$line" >/dev/null; then
@@ -43,19 +43,19 @@ if [ "$create" -ne 0 ]; then
     done
 
     mkdir -p -- "$(dirname -- "$vault_file")"
-    echo "$password" | ${GPG} -v -e -a -o "$vault_file" "${recipients[@]}"
+    printf '%s\n' "$password" | ${GPG} -v -e -a -o "$vault_file" "${recipients[@]}"
     exit $?
 
 elif [ -f "$vault_file" ]; then
     if [ "$check" -ne 0 ]; then
-        echo "${vault_id}@${0}"
+        printf '%q@%q\n' "$vault_id" "$0"
         exit 0
     fi
     ${GPG} -q -d -o - -- "$vault_file"
     exit $?
 
 else
-    echo -e "# '${vault_file}' not found..." >&2
-    echo -e "# ${0} --create --vault-id='${vault_id}'" >&2
+    printf '# Vault password file %q not found!\n' "$vault_file" >&2
+    printf '# %q --create --vault-id=%q\n' "$0" "$vault_id" >&2
     exit 1
 fi
