@@ -48,7 +48,10 @@ function _bash_prompt_command() {
 }
 
 function _prompt_window_title() {
-    printf '\e]2;%q@%q:%q\a' "${USER:-$UID}" "${HOSTNAME%%.*}" "$PWD"
+    local user="${USER:-$UID}"
+    local host="${HOSTNAME%%.*}"
+
+    printf '\e]2;%s@%s:%s\a' "${user//[[:cntrl:]]/}" "${host//[[:cntrl:]]/}" "${PWD//[[:cntrl:]]/}"
 }
 
 if [[ "$(declare -p PROMPT_COMMAND 2>&1)" = "declare -a"* ]]; then
