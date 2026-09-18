@@ -22,8 +22,8 @@ gnome_users_dconf_custom_keybindings_workstations:
     command: "'ptyxis -x \"{{ _virsh_usb_detach_shortcut }}\" -T \"{{ _virsh_usb_detach_shortcut }}\"'"
     name: "'{{ _virsh_usb_detach_shortcut }}'"
 
-_virsh_usb_attach_shortcut: "virsh-usb attach DEVICE-PATTERN"
-_virsh_usb_detach_shortcut: "virsh-usb detach DEVICE-PATTERN"
+_virsh_usb_attach_shortcut: "virsh-usb attach"  # [DEVICE-PATTERN]
+_virsh_usb_detach_shortcut: "virsh-usb detach"  # [DEVICE-PATTERN]
 
 # Use tmux in desktop terminals by default.
 gnome_users_dconf_ptyxis_terminal_default_profile_vars:

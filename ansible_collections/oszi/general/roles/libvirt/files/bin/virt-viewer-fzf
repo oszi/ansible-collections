@@ -1,13 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-virsh="virsh -c qemu:///system"
-virt_viewer="virt-viewer -c qemu:///system"
-virt_viewer_defaults="-a -f -w -H release-cursor=ctrl+alt --auto-resize=always"
+virsh=(virsh -c qemu:///system)
+virt_viewer=(virt-viewer -c qemu:///system)
+virt_viewer_defaults=(-a -f -w -H release-cursor=ctrl+alt --auto-resize=always)
 
 if [[ "${1-}" =~ ^-*(h|help)$ ]]; then
     echo "Execute virt-viewer for each fzf selected domain. See virt-viewer --help" >&2
-    echo "virt-viewer-fzf defaults: ${virt_viewer_defaults}" >&2
+    echo "virt-viewer-fzf defaults: ${virt_viewer_defaults[*]}" >&2
     exit 0
 fi
 
@@ -16,31 +16,31 @@ if ! (command -v virsh && command -v virt-viewer && command -v fzf) >/dev/null 2
     exit 127
 fi
 
-domains="$(${virsh} list --all --name | sort)"
-if [ -z "$domains" ]; then
-    echo "${virsh} list --all returned empty" >&2
+mapfile -t domains < <("${virsh[@]}" list --all --name | grep . | sort)
+if [ "${#domains[@]}" -eq 0 ]; then
+    echo "${virsh[*]} list --all returned empty" >&2
     exit 1
 fi
 
 if [ $# -eq 0 ]; then
-    # shellcheck disable=SC2086 # word splitting
-    set -- ${virt_viewer_defaults}
+    set -- "${virt_viewer_defaults[@]}"
 fi
 
-domains_selected="$(echo "$domains" | fzf --multi --no-sort --tac)"
-for domain in ${domains_selected}; do
-    state="$(${virsh} dominfo --domain "$domain" | grep -i '^state:' | awk '{print $2}')"
+mapfile -t domains_selected < <(printf '%s\n' "${domains[@]}" \
+    | fzf --header="${virt_viewer[*]} $* --domain-name --" --multi --no-sort --tac --exact)
+
+for domain in "${domains_selected[@]}"; do
+    state="$("${virsh[@]}" dominfo --domain "$domain" | grep -i '^state:' | awk '{print $2}')"
     if [[ "$state" == paused ]]; then
         echo "# resuming ${domain} ..." >&2
-        ${virsh} resume --domain "$domain" >/dev/null
+        "${virsh[@]}" resume --domain "$domain" >/dev/null
     elif [[ ! "$state" == running ]]; then
         echo "# starting ${domain} ..." >&2
-        ${virsh} start --domain "$domain" >/dev/null
+        "${virsh[@]}" start --domain "$domain" >/dev/null
     fi
 
-    echo "+ ${virt_viewer} $* --domain-name -- ${domain}" >&2
-    # shellcheck disable=SC2086 # word splitting
-    nohup ${virt_viewer} "$@" --domain-name -- "$domain" >/dev/null 2>&1 &
+    echo "+ ${virt_viewer[*]} $* --domain-name -- ${domain}" >&2
+    nohup "${virt_viewer[@]}" "$@" --domain-name -- "$domain" >/dev/null 2>&1 &
     disown
 done
 

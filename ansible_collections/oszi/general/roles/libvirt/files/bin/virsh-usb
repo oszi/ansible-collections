@@ -6,49 +6,76 @@ if [[ $# -gt 2 ]] || [[ ! "${1-}" =~ ^(at|de)tach$ ]]; then
     exit 2
 fi
 
-virsh="virsh -c qemu:///system"
+virsh=(virsh -c qemu:///system)
 command="$1"
-pattern="${2:-.*}"
+
+if [[ -n "${2-}" ]]; then
+    grep_opts=("-Eis")
+    pattern="$2"
+else
+    # Exclude host controllers; manufacturer and product both match [ex]hci.
+    grep_opts=("-Evis")
+    pattern=$'\\b[ex]hci'
+fi
 
 if ! (command -v virsh && command -v fzf && command -v xmllint) >/dev/null 2>&1; then
     echo "virsh|fzf|xmllint not found" >&2
     exit 127
 fi
 
-domains="$(${virsh} list --all --name | sort)"
-if [ -z "$domains" ]; then
-    echo "${virsh} list --all returned empty" >&2
+mapfile -t domains < <("${virsh[@]}" list --all --name | grep . | sort)
+if [ "${#domains[@]}" -eq 0 ]; then
+    echo "${virsh[*]} list --all returned empty" >&2
     exit 1
 fi
 
+function cat_sanitized() {
+    local content
+    content="$(<"$1")"
+    printf '%s' "${content//[[:cntrl:]]/}"
+}
+
 device=$(
     for device in /sys/bus/usb/devices/*; do
-        if grep -Eis -- "$pattern" "${device}/manufacturer" "${device}/product" >/dev/null 2>&1; then
-            printf '%s\t%s\t%s\t%s\n' \
+        if grep "${grep_opts[@]}" -- "$pattern" "${device}/manufacturer" "${device}/product" >/dev/null 2>&1; then
+            printf '%s\t[bus=%d/dev=%d]\t%s %s\n' \
                 "$device" \
-                "$(<"${device}/manufacturer")" \
-                "$(<"${device}/product")" \
-                "$(cat "${device}/serial" 2>/dev/null ||:)"
+                "$((10#$(<"${device}/busnum")))" \
+                "$((10#$(<"${device}/devnum")))" \
+                "$(cat_sanitized "${device}/manufacturer")" \
+                "$(cat_sanitized "${device}/product")"
         fi
-    done | fzf --delimiter=$'\t' --no-multi --no-sort | cut -f1
-)
+    done | sort -t $'\t' -k3 -f | fzf --header="Select one matching USB device." --delimiter=$'\t' \
+    --no-multi --no-sort --tac --exact --select-1 --exit-0 | cut -f1
+) || {
+    echo "No USB device selected that matched: grep ${grep_opts[*]} ${pattern}" >&2
+    exit 1
+}
 
-vendor_id="$(cat "${device}/idVendor")"
-product_id="$(cat "${device}/idProduct")"
+vendor_id="$(<"${device}/idVendor")"
+product_id="$(<"${device}/idProduct")"
 busnum="$((10#$(<"${device}/busnum")))"
 devnum="$((10#$(<"${device}/devnum")))"
 
-matching_device_count=0
-for usb_device in /sys/bus/usb/devices/*; do
-    if [[ -r "${usb_device}/idVendor" && -r "${usb_device}/idProduct" ]] \
-        && [[ "$(<"${usb_device}/idVendor")" == "$vendor_id" ]] \
-        && [[ "$(<"${usb_device}/idProduct")" == "$product_id" ]]; then
-        matching_device_count=$((matching_device_count + 1))
-    fi
-done
+manufacturer="$(cat_sanitized "${device}/manufacturer")"
+product="$(cat_sanitized "${device}/product")"
+device_desc="${manufacturer} ${product} [bus=${busnum}/dev=${devnum}]"
 
-device_address_xml=""
-if ((matching_device_count > 1)); then
+function multiple_matching_devices() {
+    local device
+    local matching_device_count=0
+
+    for device in /sys/bus/usb/devices/*; do
+        if [[ -r "${device}/idVendor" && -r "${device}/idProduct" ]] \
+            && [[ "$(<"${device}/idVendor")" == "$vendor_id" ]] \
+            && [[ "$(<"${device}/idProduct")" == "$product_id" ]]; then
+            matching_device_count=$((matching_device_count + 1))
+        fi
+    done
+    ((matching_device_count > 1))
+}
+
+if multiple_matching_devices; then
     device_address_xpath="and source/address[
         number(@bus)=${busnum}
         and number(@device)=${devnum}
@@ -63,6 +90,7 @@ else
             and number(@device)=${devnum}
         ]
     )"
+    device_address_xml=""
 fi
 
 device_xpath="//domain/devices/hostdev[
@@ -73,10 +101,10 @@ device_xpath="//domain/devices/hostdev[
 ]"
 
 function virsh_command() {
-    local command="$1"
+    local command="${1}-device"
     local domain="$2"
 
-    cat <<EOF | ${virsh} "${command}-device" "$domain" /dev/stdin --current
+    cat <<EOF | "${virsh[@]}" "$command" "$domain" /dev/stdin --current
 <hostdev mode="subsystem" type="usb" managed="yes">
   <source>
     <vendor id="0x${vendor_id}"/>
@@ -86,27 +114,48 @@ function virsh_command() {
 EOF
 }
 
-for domain in ${domains}; do
-    if ${virsh} dumpxml "$domain" | xmllint --xpath "$device_xpath" - >/dev/null 2>&1; then
-        echo -n "Detach ${vendor_id}:${product_id} from ${domain}? [Y/n]" >&2
-        read -r answer
+function enter_to_exit() {
+    local rc=$?
+    echo "Press ENTER to exit." >&2
+    read -r -t 30 ||:
+    exit $rc
+}
+
+if [[ -t 2 ]]; then
+    COLOR_CLEAR="\033[0m"
+    COLOR_GREEN="\033[32m"
+    COLOR_CYAN="\033[36m"
+else
+    COLOR_CLEAR=""
+    COLOR_GREEN=""
+    COLOR_CYAN=""
+fi
+
+for domain in "${domains[@]}"; do
+    if "${virsh[@]}" dumpxml "$domain" | xmllint --xpath "$device_xpath" - >/dev/null 2>&1; then
+        printf "Detach ${COLOR_GREEN}%s${COLOR_CLEAR} from ${COLOR_CYAN}%s${COLOR_CLEAR}? [Y/n]" "$device_desc" "$domain" >&2
+        read -r answer || {
+            printf "\nCould not read answer from stdin.\n" >&2
+            exit 1
+        }
+
         if ! [[ "$answer" =~ ^[Nn] ]]; then
-            virsh_command detach "$domain"
+            virsh_command detach "$domain" || enter_to_exit
         fi
     fi
 done
 
 if [[ "$command" == attach ]]; then
-    domain="$(echo "$domains" | fzf --no-multi --no-sort --tac)"
+    domain="$(printf '%s\n' "${domains[@]}" | fzf --header="Attach ${device_desc} to ..." --no-multi --no-sort --tac)"
 
-    if grep -q Yubi "${device}/manufacturer"; then
-        echo "Yubikey must be released by ssh-agent, gpg-agent, scdaemon and pcscd..." >&2
+    if [[ "$manufacturer" == *Yubi* ]]; then
+        echo "Yubikey must be released by ssh-agent, gpg-agent, scdaemon and pcscd ..." >&2
         killall ssh-agent gpg-agent scdaemon ||:
         if systemctl is-active pcscd >/dev/null 2>&1; then
             sudo systemctl stop pcscd ||:
         fi
     fi
 
-    echo "Attaching ${vendor_id}:${product_id} to ${domain}" >&2
-    virsh_command attach "$domain"
+    printf "Attach ${COLOR_GREEN}%s${COLOR_CLEAR} to ${COLOR_CYAN}%s${COLOR_CLEAR} ...\n" "$device_desc" "$domain" >&2
+    virsh_command attach "$domain" || enter_to_exit
 fi
