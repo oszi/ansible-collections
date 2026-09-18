@@ -24,14 +24,53 @@ fi
 device=$(
     for device in /sys/bus/usb/devices/*; do
         if grep -Eis -- "$pattern" "${device}/manufacturer" "${device}/product" >/dev/null 2>&1; then
-            echo "${device} $(cat "${device}/manufacturer") $(cat "${device}/product")"
+            printf '%s\t%s\t%s\t%s\n' \
+                "$device" \
+                "$(<"${device}/manufacturer")" \
+                "$(<"${device}/product")" \
+                "$(cat "${device}/serial" 2>/dev/null ||:)"
         fi
-    done | fzf --no-multi --no-sort | awk '{print $1}'
+    done | fzf --delimiter=$'\t' --no-multi --no-sort | cut -f1
 )
 
 vendor_id="$(cat "${device}/idVendor")"
 product_id="$(cat "${device}/idProduct")"
-device_xpath="//domain/devices/hostdev/source/vendor[@id='0x${vendor_id}']/following-sibling::product[@id='0x${product_id}']"
+busnum="$((10#$(<"${device}/busnum")))"
+devnum="$((10#$(<"${device}/devnum")))"
+
+matching_device_count=0
+for usb_device in /sys/bus/usb/devices/*; do
+    if [[ -r "${usb_device}/idVendor" && -r "${usb_device}/idProduct" ]] \
+        && [[ "$(<"${usb_device}/idVendor")" == "$vendor_id" ]] \
+        && [[ "$(<"${usb_device}/idProduct")" == "$product_id" ]]; then
+        matching_device_count=$((matching_device_count + 1))
+    fi
+done
+
+device_address_xml=""
+if ((matching_device_count > 1)); then
+    device_address_xpath="and source/address[
+        number(@bus)=${busnum}
+        and number(@device)=${devnum}
+    ]"
+    device_address_xml="
+    <address bus=\"${busnum}\" device=\"${devnum}\"/>"
+else
+    device_address_xpath="and (
+        not(source/address)
+        or source/address[
+            number(@bus)=${busnum}
+            and number(@device)=${devnum}
+        ]
+    )"
+fi
+
+device_xpath="//domain/devices/hostdev[
+    @type='usb'
+    and source/vendor/@id='0x${vendor_id}'
+    and source/product/@id='0x${product_id}'
+    ${device_address_xpath}
+]"
 
 function virsh_command() {
     local command="$1"
@@ -41,7 +80,7 @@ function virsh_command() {
 <hostdev mode="subsystem" type="usb" managed="yes">
   <source>
     <vendor id="0x${vendor_id}"/>
-    <product id="0x${product_id}"/>
+    <product id="0x${product_id}"/>${device_address_xml}
   </source>
 </hostdev>
 EOF
