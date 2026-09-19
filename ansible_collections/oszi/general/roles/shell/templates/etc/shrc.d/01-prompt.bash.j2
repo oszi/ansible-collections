@@ -17,6 +17,7 @@ function _bash_prompt_init() {
 {% raw %}
 function _bash_prompt_git_ref() {
     local git_ref
+
     git_ref="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)"
     # Prevent re-expansion in PS1_PROMPT@P; git refs forbid \
     git_ref="${git_ref//'$'/\\\\'$'}"
@@ -54,13 +55,28 @@ function _prompt_window_title() {
     printf '\e]2;%s@%s:%s\a' "${user//[[:cntrl:]]/}" "${host//[[:cntrl:]]/}" "${PWD//[[:cntrl:]]/}"
 }
 
-if [[ "$(declare -p PROMPT_COMMAND 2>&1)" = "declare -a"* ]]; then
-    PROMPT_COMMAND+=("_bash_prompt_command" "_prompt_window_title")
-elif [[ -n "${PROMPT_COMMAND-}" ]]; then
-    PROMPT_COMMAND=("$PROMPT_COMMAND" "_bash_prompt_command" "_prompt_window_title")
-else
-    PROMPT_COMMAND=("_bash_prompt_command" "_prompt_window_title")
+if [[ "$(declare -p PROMPT_COMMAND 2>&1)" != "declare -a"* ]]; then
+    if [[ -n "${PROMPT_COMMAND-}" ]]; then
+        PROMPT_COMMAND=("$PROMPT_COMMAND")
+    else
+        PROMPT_COMMAND=()
+    fi
 fi
 
+function _add_prompt_command() {
+    local func
+    local item
+
+    for func; do
+        for item in "${PROMPT_COMMAND[@]}"; do
+            if [[ "$item" == "$func" ]]; then
+                continue 2
+            fi
+        done
+        PROMPT_COMMAND+=("$func")
+    done
+}
+
+_add_prompt_command _bash_prompt_command _prompt_window_title
 _bash_prompt_init
 {% endraw %}
