@@ -48,7 +48,7 @@ Root-only roles assert root and use system paths unconditionally.
 
 Defaults must be correct in both rootful and rootless modes without the user setting anything.
 Facts as role dependencies guarantee facts exist, and are gathered with the same privilege as the role is run,
-because roles do not set `become` as per best practices.
+because roles do not set `become` as per best practices. See also the **User tasks loop pattern**.
 
 ```yaml
 # defaults/main.yml pattern
@@ -61,9 +61,6 @@ rolename_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
 rolename_config_base_path: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.config/component' }}"
 ```
-
-If tasks are looped per user with `become` or as root, use `ansible.builtin.user` in `check_mode` for valid per-user facts,
-applying the **Loop variable pattern** (see `dotfiles` and `gnome_users` for this approach).
 
 ### Systemd scope in tasks
 
@@ -167,6 +164,39 @@ vars:
   rolename_item_path: "{{ [rolename_base_path, rolename_item.name] | path_join }}"
 ```
 
+## User tasks loop pattern
+
+If tasks are looped per user with `become` or as root, use `ansible.builtin.user` in `check_mode` for valid per-user facts,
+also applying the **Loop variable pattern** (see `dotfiles` and `gnome_users` for this approach).
+
+Using become isolates users from each other; tasks targeting one home must not affect another.
+
+```yaml
+# tasks/user-item.yml
+- name: "Get info about user:{{ rolename_user_item }}"
+  ansible.builtin.user:
+    name: "{{ rolename_user_item }}"
+    state: "present"
+  # The user does not exist yet if changed!
+  register: rolename_user_info
+  check_mode: true
+
+- name: "Assert that the user is valid"
+  ansible.builtin.assert:
+    that: ["not rolename_user_info.changed
+      and not rolename_user_info.shell.endswith('/nologin')
+      and rolename_user_info.home != '/'"]
+
+- name: Run all tasks as the user itself
+  become: "{{ rolename_user_item_become }}"
+  become_user: "{{ rolename_user_item }}"
+  block:
+    # ...
+
+# vars/main.yml
+rolename_user_item_become: "{{ ansible_facts.user_uid | int == 0 or ansible_facts.user_id != rolename_user_item }}"
+```
+
 ## Nested dict to list pattern
 
 List-of-dicts is the preferred structure over dict-of-dicts; argument_specs does not support dict-of-dicts.
@@ -192,6 +222,9 @@ One subset per dependency works best with dependency deduplication.
 `!all` and `!min` are implied, unless explicitly specified. Subsets already covered by `min` should be avoided;
 `min` + `virtual` is the default, to limit the number of dependencies.
 
+Facts as role dependencies require roles to not set `become` (except to loop users), and playbooks to not mix
+privilege levels as per best practices (Become at playbook level).
+
 ```yaml
 dependencies:
   - role: oszi.utils.facts  # default facts, deduplicated
@@ -210,7 +243,7 @@ dependencies:
 3. Rootless XOR root assertion: Roles must either add the `rootless` tag, or assert root privileges.
 
 **Accepted dependencies to assert root privileges:**  
-Root assertion requires roles to not set `become` as per best practices (Become at playbook level).
+Root assertion also requires roles to not set `become` as per best practices.
 ```yaml
 # Explicit assertion:
 - role: oszi.utils.assert
