@@ -1,13 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-if [[ $# -gt 2 ]] || [[ ! "${1-}" =~ ^(at|de)tach$ ]]; then
-    echo "Usage: $0 attach|detach [device-regex]" >&2
+virsh=(env LC_ALL=C virsh -c qemu:///system)
+command="${1-attach}"
+
+if [[ $# -gt 2 ]] || [[ ! "$command" =~ ^(at|de)tach$ ]]; then
+    echo "Usage: $0 [attach|detach] [device-regex]" >&2
     exit 2
 fi
-
-virsh=(virsh -c qemu:///system)
-command="$1"
 
 if [[ -n "${2-}" ]]; then
     grep_opts=("-Eis")

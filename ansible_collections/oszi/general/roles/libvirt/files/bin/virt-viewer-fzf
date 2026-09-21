@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-virsh=(virsh -c qemu:///system)
+virsh=(env LC_ALL=C virsh -c qemu:///system)
 virt_viewer=(virt-viewer -c qemu:///system)
 virt_viewer_defaults=(-a -f -w -H release-cursor=ctrl+alt --auto-resize=always)
 
@@ -30,11 +30,11 @@ mapfile -t domains_selected < <(printf '%s\n' "${domains[@]}" \
     | fzf --header="${virt_viewer[*]} $* --domain-name --" --multi --no-sort --tac --exact)
 
 for domain in "${domains_selected[@]}"; do
-    state="$("${virsh[@]}" dominfo --domain "$domain" | grep -i '^state:' | awk '{print $2}')"
-    if [[ "$state" == paused ]]; then
+    state="$("${virsh[@]}" domstate --domain "$domain")"
+    if [[ "$state" == "paused" ]]; then
         echo "# resuming ${domain} ..." >&2
         "${virsh[@]}" resume --domain "$domain" >/dev/null
-    elif [[ ! "$state" == running ]]; then
+    elif [[ ! "$state" == "running" ]]; then
         echo "# starting ${domain} ..." >&2
         "${virsh[@]}" start --domain "$domain" >/dev/null
     fi
