@@ -14,7 +14,6 @@
     line: "nographics_allow_host_audio = 1"
     regexp: '#?\s*nographics_allow_host_audio\s*='
     state: "present"
-  notify: "Ensure libvirtd is reloaded"
 
 - name: Copy scripts for libvirt
   ansible.builtin.copy:
