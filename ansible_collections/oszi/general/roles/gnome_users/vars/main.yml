@@ -14,6 +14,9 @@ gnome_users_xdg_videos_screencasts_path: "{{ gnome_users_info.home }}/Videos/Scr
 # Relative to HOME. Always use the default XDG_CONFIG_HOME.
 gnome_users_xdg_config_directory: ".config"
 
+# Use become to isolate users from each other; tasks targeting one home must not affect another.
+gnome_users_item_become: "{{ ansible_facts.user_uid | int == 0 or ansible_facts.user_id != gnome_users_item }}"
+
 # Placeholders for loop and task variables to pass argument_specs validation.
 # Wrapping loop_var prevents "loop variable is already in use" warnings.
 # Task variables take precedence over vars/main.

@@ -7,15 +7,17 @@ argument_specs:
       - Configures XDG user directories (Documents, Downloads, Pictures, etc.)
       - Sets up custom keyboard shortcuts and keybindings
       - Manages GNOME desktop preferences including themes, and behavior
-      - Supports rootless mode for a single user, or multiple users with become_user
+      - Supports rootless mode with a single gnome user, or multiple users in rootful mode
     author:
       - "David O. (oszi.dev)"
     options:
       gnome_users:
         description:
           - List of usernames to configure GNOME settings for
-          - Uses become to switch user context if different from ansible_user
-          - Defaults to ansible_user for workstations (excludes root)
+          - Sets become and become_user based on ansible facts to isolate users from each other;
+            requires the "Become at playbook level" convention for correct facts
+          - Works without privilege escalation with a single user
+          - Default is ansible_user - if not root itself - when running as root, or current user in rootless mode
         type: list
         elements: str
         required: false

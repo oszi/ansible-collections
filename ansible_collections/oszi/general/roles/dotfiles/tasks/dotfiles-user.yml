@@ -14,7 +14,7 @@
       and dotfiles_user_info.home != '/'"]
 
 - name: Run all tasks as the user itself
-  become: "{{ ansible_user | default('') != dotfiles_user_item }}"
+  become: "{{ dotfiles_user_item_become }}"
   become_user: "{{ dotfiles_user_item }}"
   block:
     - name: "Include gnupg dotfiles for user:{{ dotfiles_user_item }}"

@@ -5,7 +5,7 @@ argument_specs:
     description:
       - Manages user dotfiles and configuration files for multiple users
       - Provides built-in templates for GnuPG and Git, and supports custom dotfile templates
-      - Supports rootless mode for a single user, or multiple users with root privileges
+      - Supports rootless mode with a single dotfiles user, or multiple users in rootful mode
     author:
       - "David O. (oszi.dev)"
     options:
@@ -20,9 +20,10 @@ argument_specs:
       dotfiles_users:
         description:
           - List of usernames to install dotfiles for
-          - Uses become to switch user context if different from ansible_user
-          - Defaults to root and ansible_user when running as root, or current user otherwise
-          - Role works without privilege escalation for a single user
+          - Sets become and become_user based on ansible facts to isolate users from each other;
+            requires the "Become at playbook level" convention for correct facts
+          - Works without privilege escalation with a single user
+          - Default is root and ansible_user when running as root, or current user in rootless mode
         type: list
         elements: str
         required: false
@@ -45,10 +46,6 @@ argument_specs:
               ControlPath ~/.ssh/S.%r@%h:%p
               ControlMaster auto
               ControlPersist 7200s
-
-              Host 192.168.88.1
-                Port 22
-                User admin
             ```
         type: dict
         required: false

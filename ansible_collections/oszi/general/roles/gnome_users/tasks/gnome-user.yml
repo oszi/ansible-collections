@@ -14,7 +14,7 @@
       and gnome_users_info.home != '/'"]
 
 - name: Run all tasks as the user itself
-  become: "{{ ansible_user | default('') != gnome_users_item }}"
+  become: "{{ gnome_users_item_become }}"
   become_user: "{{ gnome_users_item }}"
   block:
     - name: Install Gnome user themes
