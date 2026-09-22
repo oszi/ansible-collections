@@ -38,7 +38,7 @@ function cat_sanitized() {
 device=$(
     for device in /sys/bus/usb/devices/*; do
         if grep "${grep_opts[@]}" -- "$pattern" "${device}/manufacturer" "${device}/product" >/dev/null 2>&1; then
-            printf '%s\t[bus=%d/dev=%d]\t%s %s\n' \
+            printf '%s\t[%03d:%03d]\t%s %s\n' \
                 "$device" \
                 "$((10#$(<"${device}/busnum")))" \
                 "$((10#$(<"${device}/devnum")))" \
@@ -59,7 +59,7 @@ devnum="$((10#$(<"${device}/devnum")))"
 
 manufacturer="$(cat_sanitized "${device}/manufacturer")"
 product="$(cat_sanitized "${device}/product")"
-device_desc="${manufacturer} ${product} [bus=${busnum}/dev=${devnum}]"
+printf -v device_desc '%s %s [%03d:%03d]' "$manufacturer" "$product" "$busnum" "$devnum"
 
 function multiple_matching_devices() {
     local device
@@ -121,7 +121,7 @@ function enter_to_exit() {
     exit $rc
 }
 
-if [[ -t 2 ]]; then
+if [[ -t 2 ]]; then  # stderr
     COLOR_CLEAR="\033[0m"
     COLOR_GREEN="\033[32m"
     COLOR_CYAN="\033[36m"
