@@ -31,7 +31,11 @@ git symbolic-ref --quiet HEAD >/dev/null 2>&1 || {
     exit 4
 }
 
-[[ "$(git status -s | tee /dev/stderr)" = "" ]] || {
+tee_sanitized() {
+    tr -d '\000-\010\013-\037\177' | tee /dev/stderr
+}
+
+[[ "$(git status -s 2>&1 | tee_sanitized)" = "" ]] || {
     echo "Working tree changes. Use git stash or commit changes." >&2
     exit 4
 }
@@ -47,7 +51,7 @@ latest_version="$(git describe --tags --abbrev=0 --match='[0-9]*.[0-9]*.[0-9]*')
     exit 4
 }
 
-change_log="$(git log --no-merges --pretty=format:"* %h %s" "${latest_version}..HEAD")"
+change_log="$(git log --no-merges --pretty=format:"* %h %s" "${latest_version}..HEAD" --)"
 [[ -n "$change_log" ]] || {
     echo "There are no commits since the latest version." >&2
     exit 4
@@ -66,7 +70,7 @@ get_affected_collections() {
     fi
 
     # List changed files since the latest version and staged dependency updates in */galaxy.yml
-    (git diff-tree -r --no-commit-id --name-only "${latest_version}..HEAD" \
+    (git diff-tree -r --no-commit-id --name-only "${latest_version}..HEAD" -- \
             && git diff --cached --name-only --diff-filter=ACM -- '*/galaxy.yml') \
         | grep -E -o "^ansible_collections/${NAMESPACE}/[^/]+" \
         | sort -u | xargs -r basename -a --

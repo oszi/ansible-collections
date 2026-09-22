@@ -5,7 +5,7 @@
 set -euo pipefail
 cd -- "$(git rev-parse --show-toplevel)"
 
-if [[ -t 0 ]]; then
+if [[ -t 1 ]]; then  # stdout
     COLOR_CLEAR="\033[0m"
     COLOR_RED="\033[31m"
     COLOR_GREEN="\033[32m"
@@ -18,11 +18,11 @@ fi
 git_verify_cmd() {
     local cmd="verify-${1}"
 
-    if xargs -rd'\n' git "$cmd" -v --; then
-        printf "${COLOR_GREEN}%s [OK]${COLOR_CLEAR}\n" "$cmd" >&2
+    if xargs -rd'\n' git "$cmd" -v -- 2>&1 | tr -d '\000-\010\013-\037\177'; then  # -o pipefail
+        printf "${COLOR_GREEN}%s [OK]${COLOR_CLEAR}\n" "$cmd"
         return 0
     else
-        printf "${COLOR_RED}%s [FAIL]${COLOR_CLEAR} (search 'error:')\n" "$cmd" >&2
+        printf "${COLOR_RED}%s [FAIL]${COLOR_CLEAR} (search 'error:')\n" "$cmd"
         return 1
     fi
 }
@@ -44,8 +44,7 @@ if (( $# )); then
     done
     exit $rc
 else
-    git branch -a --format='%(refname)' \
-        | grep -Ev '^\(' \
+    git for-each-ref --format='%(refname)' refs/heads/ refs/remotes/ \
         | git_verify_cmd commit || exit 1
 
     git for-each-ref --format='%(objecttype) %(refname)' --sort=version:refname refs/tags/ \
