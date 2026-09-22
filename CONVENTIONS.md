@@ -51,13 +51,13 @@ Facts as role dependencies guarantee facts exist, and are gathered with the same
 because roles do not set `become` as per best practices. See also the **User tasks loop pattern**.
 
 ```yaml
-# defaults/main.yml pattern
+# defaults/main.yml
 rolename_install_system: "{{ ansible_facts.user_uid | int == 0 }}"
 rolename_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
   if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.local/bin' }}"
 
-# vars/main.yml pattern
+# vars/main.yml
 rolename_config_base_path: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
   else ansible_facts.user_dir + '/.config/component' }}"
 ```
@@ -156,20 +156,17 @@ _rolename_item_placeholder:
   url: "http://localhost/__PLACEHOLDER__"
 ```
 
-For values **computed from the loop item** use task-level `vars:` - they evaluate per iteration
-and need no placeholder (see `podman_quadlets` for this approach):
-
-```yaml
-vars:
-  rolename_item_path: "{{ [rolename_base_path, rolename_item.name] | path_join }}"
-```
+For values **computed from the loop item** use task-level `vars:` - they evaluate per iteration and need no placeholder.
 
 ## User tasks loop pattern
 
-If tasks are looped per user with `become` or as root, use `ansible.builtin.user` in `check_mode` for valid per-user facts,
-also applying the **Loop variable pattern** (see `dotfiles` and `gnome_users` for this approach).
+When tasks are looped per user with `become` or as root, use `ansible.builtin.user` in `check_mode` for valid per-user facts.
+Apply the **Loop variable pattern**. Become can be controlled inventory-side, tasks must follow **Strict permissions**,
+and always ensure user context. See roles using this pattern: `shell`, `dotfiles`, `gnome_users`.
 
-Using become isolates users from each other; tasks targeting one home must not affect another.
+Using `become` isolates users from each other; tasks targeting one home must not affect another. However, becoming an
+unprivileged user carries risks and is not always available. Installing the `acl` package is sufficient on Linux, or
+inventories can override ansible `become` settings accordingly.
 
 ```yaml
 # tasks/user-item.yml
@@ -192,8 +189,10 @@ Using become isolates users from each other; tasks targeting one home must not a
   become_user: "{{ rolename_user_item }}"
   block:
     # ...
+```
 
-# vars/main.yml
+```yaml
+# vars/main.yml - see also the Loop variable pattern
 rolename_user_item_become: "{{ ansible_facts.user_uid | int == 0 or ansible_facts.user_id != rolename_user_item }}"
 ```
 
