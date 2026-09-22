@@ -37,6 +37,8 @@ gnome_packages:
   - gnome-shell-extension-places-menu
   - gnome-shell-extension-user-theme
   - gnome-shell-extension-window-list
+  # Become with unprivileged users
+  - acl
 
 # Packages to remove from Gnome workstations (Fedora/Debian/Ubuntu):
 # Use Flatpak and VMs to sandbox audio/video players and document editors/viewers.

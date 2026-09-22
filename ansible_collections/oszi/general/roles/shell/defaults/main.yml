@@ -39,6 +39,8 @@ shell_packages:
   - bash-completion
   - zsh
   - tmux
+  # Become with unprivileged users
+  - acl
   # Git and GnuPG - configured by oszi.general.dotfiles
   - "{{ ['git-delta'] if ansible_facts.os_family != 'RedHat'
     or ansible_facts.distribution == 'Fedora' else [] }}"
