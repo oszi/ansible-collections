@@ -6,7 +6,6 @@ argument_specs:
       - Manages Kubernetes-spec services using the podman-kube@.service systemd template
       - Provides lifecycle hooks for initialization and post-installation scripts
       - Alternative to quadlets when quadlets are unavailable or undesirable
-      - Supports rootless mode with systemd user scope (requires lingering)
     author:
       - "David O. (oszi.dev)"
     options:
@@ -104,19 +103,19 @@ argument_specs:
                 required: false
           init_script:
             description:
-              - Script run once before installation with `bash -euo pipefail`
+              - Script run once before installation with `bash -euo pipefail` as the effective user, usually root
               - Use for first-time setup tasks like volume creation or initial configuration
             type: str
             required: false
           post_install_script:
             description:
-              - Script run after the service has changed with `bash -euo pipefail`
+              - Script run after the service has changed with `bash -euo pipefail` as the effective user, usually root
               - Use for post-install setup tasks that depend on the service being active
             type: str
             required: false
           uninstall_script:
             description:
-              - Script run after the service is uninstalled with `bash -euo pipefail`
+              - Script run after the service is uninstalled with `bash -euo pipefail` as the effective user, usually root
               - Use for cleanup with state=absent
             type: str
             required: false
@@ -132,6 +131,6 @@ argument_specs:
         description:
           - Base path to install Kubernetes spec files to
           - Overridable with absolute paths in `podman_kube_list[].path`
-          - Default is /etc/containers/kube, or ~/.config/containers/kube for rootless mode
+          - Default is /etc/containers/kube
         type: path
         required: false

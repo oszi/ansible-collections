@@ -7,7 +7,6 @@ argument_specs:
       - Manages aliases, completions, prompts, history, environment variables, PATH and more
       - Installs essential shell tools and utilities
       - Enforces skeleton files for consistent user shell environments
-      - Supports rootless mode with a single skeleton enforced user, and without package installation
     author:
       - "David O. (oszi.dev)"
     options:
@@ -75,47 +74,63 @@ argument_specs:
 
       shell_skeleton_enforced_users:
         description:
-          - List of usernames to enforce role-managed `skel` files for
-          - Ensures consistent shell configuration for all specified users
-          - Sets become and become_user based on ansible facts to isolate users from each other;
-            requires the "Become at playbook level" convention for correct facts
-          - Default is users_list + ansible_user + root, or user_id in rootless mode
+          - List of usernames to enforce role-managed `skel` files for; ensures consistent shell configuration
+            for all specified users; excludes system users with `nologin` shell
+          - Runs tasks as each user with become to isolate users from each other;
+            Ansible skips become for the connection user itself (see the Core Conventions)
+          - Default is `users_list` + `ansible_user` + `root`
         type: list
         elements: str
         required: false
 
-      shell_install_packages:
+      shell_manage_packages:
         description:
-          - Whether to install packages in O(shell_packages)
-          - Enabled when running as root, disable on immutable systems
+          - Whether to install packages in O(shell_packages), disable for immutable systems
         type: bool
         required: false
+        default: true
 
       shell_packages:
         description:
-          - Nested list of shell and essential utility packages to install when O(shell_install_packages)
+          - Nested list of shell and essential utility packages to install when O(shell_manage_packages)
           - Includes important shell packages - bash, bash-completion, zsh, and tmux
+          - Includes the acl package required for unprivileged become on Linux
           - Includes git and gnupg - configured by `oszi.general.dotfiles`, and essential CLI tools
         type: list
         elements: raw
         required: false
 
-      shell_etc_path: &shell_etc_path
+      shell_shrc_d_path: &shell_shrc_d_path
         description:
-          - Directory path where shrc entrypoint, shrc.d, and skel are installed
-          - Used in role vars `shell_shrc_d_path`, `shell_shrc_path`, and `shell_skel_path`
-          - Related fact `shell_shrc_d_export_path` contains `shell_shrc_d_path` for downstream roles
-          - Override if /etc is not writeable (e.g., /usr/local/etc)
-          - Default is /etc, or ~/.config (using ansible_facts.user_dir) in rootless mode
+          - Directory path where shrc.d files are installed, sourced by the shrc entrypoint
+          - All files in shrc.d must be owned by root and be world-readable, also in downstream integrations
+          - Override if /etc is not writeable (e.g., /usr/local/etc/shrc.d)
         type: path
         required: false
-        default: /etc
+        default: /etc/shrc.d
+
+      shell_shrc_path:
+        description:
+          - File path where the shrc entrypoint is installed, sourced by skel templates and set as `ENV`
+          - The shrc entrypoint is POSIX-compatible, owned by root and world-readable
+          - Override if /etc is not writeable (e.g., /usr/local/etc/shrc)
+        type: path
+        required: false
+        default: /etc/shrc
+
+      shell_skel_path:
+        description:
+          - Directory path where system skel templates are installed - disabled if empty
+          - All files in skel must be owned by root and be world-readable, also in downstream integrations
+          - Default is /etc/skel used by useradd, see `SKEL` in /etc/default/useradd
+        type: path
+        required: false
+        default: /etc/skel
 
       shell_local_bin_path:
         description:
           - Directory path where shell scripts and local binaries are installed
-          - Defaults to `local_bin_path` if set (should be in system PATH),
-            or ~/.local/bin (using ansible_facts.user_dir) in rootless mode
+          - Defaults to `local_bin_path` if set (should be in system PATH), or /usr/local/bin
         type: path
         required: false
 
@@ -139,12 +154,11 @@ argument_specs:
   facts:
     short_description: Facts only entrypoint
     description:
-      - Get shell role facts without changing anything; do not mix privilege levels in playbooks, variables are privilege-aware
-      - Fact `shell_shrc_d_export_path` contains `shell_shrc_d_path` for downstream roles to add shrc integrations;
-        it is set to empty string when O(shell_disabled) (guard with `is truthy`)
-      - Facts `shell_shrc_uid` and `shell_shrc_gid` contain the required owner and group IDs of shrc directories and files
+      - Get shell role facts without changing anything
+      - Fact `shell_integrations_enabled` is derived from O(shell_disabled) to guard against in downstream roles
+      - Fact `shell_integrations_shrc_d_path` contains `shell_shrc_d_path` to add shrc.d integrations in downstream roles
     options:
       shell_disabled:
         <<: *shell_disabled
-      shell_etc_path:
-        <<: *shell_etc_path
+      shell_shrc_d_path:
+        <<: *shell_shrc_d_path

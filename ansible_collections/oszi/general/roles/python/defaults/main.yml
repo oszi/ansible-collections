@@ -2,6 +2,10 @@
 # Skip setup of python3-devel, setuptools, pip, pipx, and virtualenv?
 python_disabled: false
 
+# Ensure python_distro_packages and python_devel_distro_packages are installed?
+# Disabled for running without root.
+python_manage_packages: "{{ ansible_facts.user_uid | int == 0 }}"
+
 # List of arguments to manage python packages with ansible.builtin.pip:
 # Pip should be present in python_devel_distro_packages.
 python_pip_list: []
@@ -9,10 +13,6 @@ python_pip_list: []
 # List of arguments to manage python packages with community.general.pipx:
 # Pipx should be present in python_devel_distro_packages.
 python_pipx_list: []
-
-# Ensure python_distro_packages and python_devel_distro_packages are installed?
-# Disable for running on immutable systems, or without root.
-python_install_distro_packages: "{{ ansible_facts.user_uid | int == 0 }}"
 
 # Nested list of python distro packages to install:
 # * These defaults must exist/redirect on RedHat and Debian too.

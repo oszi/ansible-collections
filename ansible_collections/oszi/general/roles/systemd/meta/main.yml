@@ -28,8 +28,3 @@ dependencies:
   - role: oszi.utils.facts
     vars:
       facts_subset: [network]
-  - role: oszi.utils.assert
-    vars:
-      assert_task_msg: "Assert root privileges"
-      assert_that:
-        - "ansible_facts.user_uid | int == 0"

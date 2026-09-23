@@ -65,14 +65,15 @@ argument_specs:
       workstation_local_bin_path:
         description:
           - Directory path where scripts for workstations are installed
-          - Defaults to `local_bin_path` if set (should be in system PATH)
+          - Defaults to `local_bin_path` if set (should be in system PATH), or /usr/local/bin
         type: path
         required: false
 
       workstation_shell_aliases_path:
         description:
           - File path to install shell aliases for workstations - disabled if empty
-          - Default is `{{ shell_shrc_d_export_path }}/workstation-aliases.sh` if `oszi.general.shell` is loaded
+          - Default is `{{ shell_integrations_shrc_d_path }}/workstation-aliases.sh`
+            if `oszi.general.shell` is included and not disabled
         type: path
         required: false
 

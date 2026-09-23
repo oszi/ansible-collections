@@ -17,35 +17,15 @@ ROLE_META_GLOB = "*/roles/*/meta/main.y*ml"
 MUTUALLY_EXCLUSIVE_TAGS = {"baselinux", "containers", "thirdparty", "toolbox", "workstation"}
 MUTUALLY_EXCLUSIVE_TAGS_STR = f"{Color.BOLD}{', '.join(sorted(MUTUALLY_EXCLUSIVE_TAGS))}{Color.CLEAR}"
 
-ACCEPTED_ASSERT_ROOT_PRIVILEGES_DEPENDENCIES = [
-    {
-        "role": "oszi.utils.assert",
-        "vars": {
-            "assert_task_msg": "Assert root privileges",
-            "assert_that": ["ansible_facts.user_uid | int == 0"],
-        },
-    },
-    {"role": "oszi.environments.baselinux"},
-]
-
 args_parser = ArgumentParser(
     usage="galaxy-tags.py [--help]",
     description="Ensure mandatory galaxy tags in the repository.",
 )
 
 
-def assert_root_privileges_dependency(meta: Dict[str, Any]) -> bool:
-    if dependencies := meta.get("dependencies"):
-        for dependency in dependencies:
-            if dependency in ACCEPTED_ASSERT_ROOT_PRIVILEGES_DEPENDENCIES:
-                return True
-    return False
-
-
 @boolean_test_decorator("galaxy-tags.py")
 def assert_role_tags() -> bool:
     rc = RC.OK
-    assert_root_privileges_noted = False
     role_count = 0
 
     for meta_path in NAMESPACE_PATH.glob(ROLE_META_GLOB):
@@ -74,22 +54,12 @@ def assert_role_tags() -> bool:
         if len(tags.intersection(MUTUALLY_EXCLUSIVE_TAGS)) != 1:
             rc = error_code(f"{role_must_have} one of the tags: {MUTUALLY_EXCLUSIVE_TAGS_STR}")
 
-        if ("rootless" not in tags) ^ assert_root_privileges_dependency(meta):
-            rc = error_code(f"{role_must_have} the rootless tag, OR assert root privileges!")
-            assert_root_privileges_noted = True
-
     if role_count > 0:
         print(f"Asserted tags on {role_count} roles in namespace:{NAMESPACE_PATH.name}.", file=sys.stderr)
     else:
         print(f"No roles in this repository in namespace:{NAMESPACE_PATH.name}.", file=sys.stderr)
 
-    if rc != RC.OK:
-        if assert_root_privileges_noted:
-            print(f"{Color.YELLOW}Accepted dependencies to assert root privileges:{Color.CLEAR}", file=sys.stderr)
-            yaml.dump(ACCEPTED_ASSERT_ROOT_PRIVILEGES_DEPENDENCIES, sys.stderr)
-
-        return False
-    return True
+    return rc == RC.OK
 
 
 def main() -> None:

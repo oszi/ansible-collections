@@ -5,7 +5,7 @@ argument_specs:
     description:
       - Manages distribution python packages and pip-installed packages
       - Installs python3 development tools, pip, pipx, and virtualenv support
-      - Supports rootless mode without distribution packages
+      - Supports rootless mode without distribution packages, see O(python_manage_packages)
     author:
       - "David O. (oszi.dev)"
     options:
@@ -15,6 +15,13 @@ argument_specs:
         type: bool
         required: false
         default: false
+
+      python_manage_packages:
+        description:
+          - Whether to install packages in O(python_distro_packages) and O(python_devel_distro_packages)
+          - Default is derived from ansible_facts.user_uid, true when running as root
+        type: bool
+        required: false
 
       python_pip_list: &python_pip_list
         description:
@@ -195,16 +202,9 @@ argument_specs:
             required: false
             default: false
 
-      python_install_distro_packages:
-        description:
-          - Whether to install packages in O(python_distro_packages) and O(python_devel_distro_packages)
-          - Enabled when running as root, disable on immutable systems
-        type: bool
-        required: false
-
       python_distro_packages:
         description:
-          - Nested list of distribution python packages to install when O(python_install_distro_packages)
+          - Nested list of distribution python packages to install when O(python_manage_packages)
           - Default includes common requirements like cryptography, jmespath, netaddr, psutil, requests, yaml
           - These packages must exist or redirect on both RedHat and Debian family distributions
         type: list
@@ -213,7 +213,7 @@ argument_specs:
 
       python_devel_distro_packages:
         description:
-          - Nested list of distribution packages for python3 development to install when O(python_install_distro_packages)
+          - Nested list of distribution packages for python3 development to install when O(python_manage_packages)
           - Default includes python3-dev/devel, pip, pipx, build essentials, and virtual environment support
           - These packages must exist or redirect on both RedHat and Debian family distributions
         type: list

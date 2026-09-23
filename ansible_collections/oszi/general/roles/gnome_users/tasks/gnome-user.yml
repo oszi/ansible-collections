@@ -14,7 +14,7 @@
       and gnome_users_info.home != '/'"]
 
 - name: Run all tasks as the user itself
-  become: "{{ gnome_users_item_become }}"
+  become: true
   become_user: "{{ gnome_users_item }}"
   block:
     - name: Install Gnome user themes

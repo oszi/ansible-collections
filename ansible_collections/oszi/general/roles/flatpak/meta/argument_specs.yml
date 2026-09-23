@@ -6,16 +6,25 @@ argument_specs:
       - Manages Flatpak remotes (repositories) and applications
       - Configures global and per-application sandboxing overrides
       - Handles application installation, overrides, and removal
-      - Supports rootless mode with Flatpak user method
+      - Supports rootless mode with Flatpak user method, see O(flatpak_method)
     author:
       - "David O. (oszi.dev)"
     options:
-      flatpak_disabled:
+      flatpak_disabled: &flatpak_disabled
         description:
-          - Whether to disable Flatpak package manager
+          - Whether to install or uninstall the Flatpak package manager when O(flatpak_method) is system
+          - Skip all other flatpak tasks if true, including the update entrypoint
         type: bool
         required: false
         default: false
+
+      flatpak_method: &flatpak_method
+        description:
+          - Flatpak installation method, system-wide or current user
+          - Default is derived from ansible_facts.user_uid, system when running as root, user otherwise
+        type: str
+        required: false
+        choices: [system, user]
 
       flatpak_remotes:
         description:
@@ -61,7 +70,7 @@ argument_specs:
       flatpak_exports_bin_aliases:
         description:
           - Dictionary of aliases to bin exports to symlink in `/var/lib/flatpak/exports/bin`,
-            or in `"$HOME"/.local/share/flatpak/exports/bin` in rootless mode
+            or in `~/.local/share/flatpak/exports/bin` when O(flatpak_method) is user
           - Keys are command names, values are relative symlinks already present in the above paths, or absolute paths
           - "Example: {chromium: org.chromium.Chromium}"
         type: dict
@@ -70,7 +79,7 @@ argument_specs:
       flatpak_exports_bin_aliases_absent:
         description:
           - List of obsolete filenames to remove from `/var/lib/flatpak/exports/bin`,
-            or from `"$HOME"/.local/share/flatpak/exports/bin` in rootless mode
+            or from `~/.local/share/flatpak/exports/bin` when O(flatpak_method) is user
         type: list
         elements: str
         required: false
@@ -78,4 +87,9 @@ argument_specs:
   update:
     short_description: Update entrypoint for flatpak packages
     description:
-      - Updates system or user flatpak packages depending on rootful vs rootless execution
+      - Updates system or user flatpak packages, depending on O(flatpak_method)
+    options:
+      flatpak_disabled:
+        <<: *flatpak_disabled
+      flatpak_method:
+        <<: *flatpak_method

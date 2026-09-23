@@ -2,8 +2,7 @@
 # Skip podman setup tasks and uninstall podman?
 podman_disabled: false
 # Ensure configured packages are installed or uninstalled (see below)?
-# Disable for running on immutable systems, or without root.
-podman_install_system: "{{ ansible_facts.user_uid | int == 0 }}"
+podman_manage_packages: true
 
 # [Un]Install podman-compose (rootless, daemonless)?
 podman_compose_enabled: "{{ not podman_disabled }}"
@@ -11,13 +10,15 @@ podman_compose_enabled: "{{ not podman_disabled }}"
 podman_toolbox_enabled: "{{ not podman_disabled and not flatpak_disabled | default(false) }}"
 # Emulate docker using podman-docker?
 podman_docker_enabled: "{{ not podman_disabled }}"
-# Install docker-compose to be used with podman-docker? HERE BE DRAGONS!
+# [Un]Install docker-compose to be used with podman-docker? HERE BE DRAGONS!
 # * For rootless mode set DOCKER_HOST to unix://${XDG_RUNTIME_DIR}/podman/podman.sock
 # * Prefer to use a virtual env instead of the distro package.
 podman_docker_compose_enabled: false
 
 # Override the graphroot from podman_graphroot_default:
 podman_graphroot: ""
+
+# Most configuration is inherited by the rootless podman of every user, overridable in ~/.config/containers
 # Contents of policy.json in YAML/JSON format.
 podman_config_policy: {}
 # Contents of containers.conf
@@ -30,9 +31,7 @@ podman_config_mounts: ""
 podman_config_toolbox: ""
 
 # Path for scripts for podman.
-podman_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
-  if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.local/bin' }}"
+podman_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
 
 # Prefer using oszi.general.podman_quadlets and oszi.general.podman_kube
 # instead of the following ansible-native deployments.

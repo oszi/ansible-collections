@@ -10,7 +10,6 @@
     - name: "Disable systemd service for podman-kube {{ podman_kube_item.path }}"
       ansible.builtin.systemd:
         name: "{{ podman_kube_service }}"
-        scope: "{{ podman_kube_systemd_scope }}"
         state: "stopped"
         enabled: false
 

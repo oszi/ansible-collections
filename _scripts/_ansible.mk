@@ -17,7 +17,7 @@ localhost: LIMIT := $(shell hostname -f)
 localhost: CONNECTION := local
 localhost: workstation
 
-baselinux containerhost toolbox workstation rootless update: %: oszi.environments.%
+baselinux containerhost toolbox workstation update: %: oszi.environments.%
 
 debug versions: %: oszi.utils.%
 

@@ -8,7 +8,7 @@
   check_mode: true
 
 - name: Enforce skel templates as the user itself
-  become: "{{ shell_user_item_become }}"
+  become: true
   become_user: "{{ shell_user_item }}"
   when: >-
     not shell_user_info.changed

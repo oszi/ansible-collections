@@ -2,6 +2,10 @@
 # Skip all ACME tasks, even account creation?
 acme_disabled: "{{ acme_certificates | length == 0 and acme_revoke_paths | length == 0 }}"
 
+# Ensure python3-cryptography is installed?
+# Disable for a virtual environment or for running without root.
+acme_install_python3_cryptography: "{{ ansible_facts.user_uid | int == 0 }}"
+
 # List of dicts of ACME certificates:
 # Example certificate item:
 # - common_name: "test.{{ acme_cloudflare_zone }}"
@@ -36,11 +40,7 @@ acme_account_key_passphrase: ""
 acme_account_email: ""
 # Path to the ACME account key - one per host:
 acme_account_key_path: "{{ '/etc/letsencrypt/account.pem' if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.letsencrypt/account.pem' }}"
-
-# Ensure python3-cryptography is installed?
-# Disable for a virtual environment or for running without root.
-acme_install_python3_cryptography: "{{ ansible_facts.user_uid | int == 0 }}"
+  else '~/.letsencrypt/account.pem' }}"
 
 # Days until expiration (usually 90) to renew a certificate.
 # * Specify the maximum (usually 90) to renew right now.

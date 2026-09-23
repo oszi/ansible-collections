@@ -7,47 +7,48 @@ argument_specs:
       - Installs podman-compose, podman-toolbox, and podman-docker emulation
       - Configures podman storage, policy, and runtime settings
       - Manages container networks, images, containers, and pods (consider podman_kube or podman_quadlets)
-      - Supports rootless mode without system installation
+      - Most configuration is inherited by the rootless podman of every user, overridable in ~/.config/containers
     author:
       - "David O. (oszi.dev)"
     options:
       podman_disabled:
         description:
-          - Whether to skip podman configuration, and uninstall podman packages when O(podman_install_system)
+          - Whether to skip podman configuration, and uninstall podman packages when O(podman_manage_packages)
         type: bool
         required: false
         default: false
 
-      podman_install_system:
+      podman_manage_packages:
         description:
-          - Whether to install (or uninstall) podman and related system packages and files
-          - Enabled when running as root, disable on immutable systems
+          - Whether to install or uninstall podman and related packages, including podman-docker emulation
+          - Configuration files in /etc/containers and scripts in O(podman_local_bin_path) are managed regardless
         type: bool
         required: false
+        default: true
 
       podman_compose_enabled:
         description:
-          - Whether to install podman-compose, a docker-compose alternative when O(podman_install_system)
+          - Whether to install or uninstall podman-compose, a docker-compose alternative when O(podman_manage_packages)
         type: bool
         required: false
 
       podman_toolbox_enabled:
         description:
-          - Whether to install toolbox from containertoolbx.org when O(podman_install_system)
+          - Whether to install or uninstall toolbox from containertoolbx.org when O(podman_manage_packages)
           - Requires flatpak to not be disabled
         type: bool
         required: false
 
       podman_docker_enabled:
         description:
-          - Whether to emulate docker using podman-docker when O(podman_install_system)
+          - Whether to emulate docker using podman-docker when O(podman_manage_packages)
           - Provides docker CLI compatibility, conflicts with docker
         type: bool
         required: false
 
       podman_docker_compose_enabled:
         description:
-          - Whether to install docker-compose when O(podman_install_system) (use with caution)
+          - Whether to install or uninstall docker-compose when O(podman_manage_packages) (use with caution)
           - For rootless mode set DOCKER_HOST to `unix://${XDG_RUNTIME_DIR}/podman/podman.sock`
           - Prefer using a virtual environment instead of the distro package
         type: bool
@@ -65,7 +66,7 @@ argument_specs:
         description:
           - Contents of policy.json in YAML/JSON format
           - Defines container image signature verification and trust policies
-          - Located at /etc/containers/policy.json or ~/.config/containers/policy.json
+          - Located at /etc/containers/policy.json
         type: dict
         required: false
 
@@ -73,7 +74,7 @@ argument_specs:
         description:
           - Contents of containers.conf configuration file
           - Configures container runtime behavior, resource limits, and defaults
-          - Located at /etc/containers/containers.conf or ~/.config/containers/containers.conf
+          - Located at /etc/containers/containers.conf
           - See also /usr/share/containers/containers.conf
         type: str
         required: false
@@ -82,7 +83,7 @@ argument_specs:
         description:
           - Contents of registries.conf configuration file
           - Configures registry resolution for relative image URLs
-          - Located at /etc/containers/registries.conf or ~/.config/containers/registries.conf
+          - Located at /etc/containers/registries.conf
         type: str
         required: false
 
@@ -90,7 +91,7 @@ argument_specs:
         description:
           - Contents of mounts.conf configuration file
           - Configures volume mounts that are automatically mounted inside containers
-          - Located at /etc/containers/mounts.conf or ~/.config/containers/mounts.conf
+          - Located at /etc/containers/mounts.conf
           - See also /usr/share/containers/mounts.conf
         type: str
         required: false
@@ -98,7 +99,7 @@ argument_specs:
       podman_config_toolbox:
         description:
           - Contents of toolbox.conf configuration file
-          - Configures toolbox container defaults when O(podman_install_system)
+          - Configures toolbox container defaults when O(podman_toolbox_enabled)
           - Located at /etc/containers/toolbox.conf
         type: str
         required: false
@@ -106,8 +107,7 @@ argument_specs:
       podman_local_bin_path:
         description:
           - Directory path where scripts for podman are installed
-          - Defaults to `local_bin_path` if set (should be in system PATH),
-            or ~/.local/bin (using ansible_facts.user_dir) in rootless mode
+          - Defaults to `local_bin_path` if set (should be in system PATH), or /usr/local/bin
         type: path
         required: false
 
@@ -149,4 +149,4 @@ argument_specs:
     description:
       - Updates labelled podman containers and pods with podman auto-update
       - Containers and pods must set the `io.containers.autoupdate` label or Kubernetes annotation
-      - Supports rootful and rootless execution
+      - Runs podman as the invoking user, with or without root privileges

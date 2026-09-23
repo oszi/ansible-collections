@@ -87,7 +87,8 @@ argument_specs:
         description:
           - System path for kubeadm ZSH completion script
           - Not ZSH-native, auto-loading does not work from site-functions
-          - Default is `{{ shell_shrc_d_export_path }}/kubeadm-completion.zsh` if `oszi.general.shell` is loaded
+          - Default is `{{ shell_integrations_shrc_d_path }}/kubeadm-completion.zsh`
+            if `oszi.general.shell` is included and not disabled
         type: path
         required: false
 

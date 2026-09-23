@@ -20,8 +20,8 @@ argument_specs:
       dotfiles_users:
         description:
           - List of usernames to install dotfiles for
-          - Sets become and become_user based on ansible facts to isolate users from each other;
-            requires the "Become at playbook level" convention for correct facts
+          - Runs tasks as each user with become to isolate users from each other;
+            Ansible skips become for the connection user itself (see the Core Conventions)
           - Works without privilege escalation with a single user
           - Default is root and ansible_user when running as root, or current user in rootless mode
         type: list

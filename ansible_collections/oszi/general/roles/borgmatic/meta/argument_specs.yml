@@ -160,6 +160,7 @@ argument_specs:
       borgmatic_shell_aliases_path:
         description:
           - File path to install shell aliases for borgmatic - disabled if empty
-          - Default is `{{ shell_shrc_d_export_path }}/borgmatic.sh` if `oszi.general.shell` is loaded
+          - Default is `{{ shell_integrations_shrc_d_path }}/borgmatic.sh`
+            if `oszi.general.shell` is included and not disabled
         type: path
         required: false

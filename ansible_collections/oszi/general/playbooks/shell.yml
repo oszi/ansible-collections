@@ -8,7 +8,7 @@
       ansible.builtin.import_role:
         name: oszi.utils.bootstrap
 
-    # "locale" (rootful) is not a dependency of "shell" (rootless) but "shell" uses "locale" facts.
+    # "locale" is not a dependency of "shell" but "shell" uses "locale" facts.
     - name: Import locale facts tasks
       ansible.builtin.import_role:
         name: oszi.general.locale

@@ -1,5 +1,5 @@
 ---
-# Do not set owner/group to use ansible_user or root!
+# Do not set owner/group to use the effective user for rootless-compatibility!
 
 - name: Ensure python3-cryptography is present
   when: acme_install_python3_cryptography

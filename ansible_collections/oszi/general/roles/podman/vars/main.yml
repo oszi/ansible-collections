@@ -1,25 +1,18 @@
 ---
-# Dynamic podman config paths...
-podman_config_base_path: "{{ '/etc/containers'
-  if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/containers' }}"
-
+# System-wide podman config paths. Most configuration is inherited by rootless podman.
+podman_config_base_path: "/etc/containers"
 podman_config_policy_path: "{{ [podman_config_base_path, 'policy.json'] | path_join }}"
 podman_config_containers_path: "{{ [podman_config_base_path, 'containers.conf'] | path_join }}"
 podman_config_registries_path: "{{ [podman_config_base_path, 'registries.conf'] | path_join }}"
 podman_config_mounts_path: "{{ [podman_config_base_path, 'mounts.conf'] | path_join }}"
 podman_config_storage_path: "{{ [podman_config_base_path, 'storage.conf'] | path_join }}"
-
-# Default graphroot to copy SELinux context from
-podman_graphroot_default: "{{ '/var/lib/containers/storage'
-  if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.local/share/containers/storage' }}"
+podman_config_toolbox_path: "{{ [podman_config_base_path, 'toolbox.conf'] | path_join }}"
 
 # Podman toolbox package - containertoolbx.org
 podman_toolbox_package: "{{ (ansible_facts.os_family == 'RedHat') | ternary('toolbox', 'podman-toolbox') }}"
 
-# Toolbox config is only relevant as root
-podman_config_toolbox_path: "/etc/containers/toolbox.conf"
+# Default graphroot to copy SELinux context from
+podman_graphroot_default: "/var/lib/containers/storage"
 
 # Shell command to list all updatable podman images
 podman_updatable_images_command: >-

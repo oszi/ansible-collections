@@ -17,7 +17,8 @@ argument_specs:
           # Extra options for the role (see downloads_rejectattr_for_get_url):
           post_install_script:
             description:
-              - Script run after the download has finished with `bash -euo pipefail`
+              - Script run after the download has finished with `bash -euo pipefail` in the destination directory
+                as the effective user, usually root
               - Use for post-setup tasks, extracting archives, generating completions, creating symlinks, etc
               - Post-install environment variables - DOWNLOADS_ITEM_DEST, DOWNLOADS_ITEM_URL, DOWNLOADS_ITEM_BACKUP_FILE,
                 DOWNLOADS_ITEM_CHECKSUM_DEST, DOWNLOADS_ITEM_CHECKSUM_SRC

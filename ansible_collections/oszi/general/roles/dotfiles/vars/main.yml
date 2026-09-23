@@ -1,7 +1,4 @@
 ---
-# Use become to isolate users from each other; tasks targeting one home must not affect another.
-dotfiles_user_item_become: "{{ ansible_facts.user_uid | int == 0 or ansible_facts.user_id != dotfiles_user_item }}"
-
 # Placeholders for loop and task variables to pass argument_specs validation.
 # Wrapping loop_var prevents "loop variable is already in use" warnings.
 # Task variables take precedence over vars/main.

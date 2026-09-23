@@ -20,7 +20,7 @@ argument_specs:
       libvirt_local_bin_path:
         description:
           - Directory path where libvirt utility scripts are installed
-          - Defaults to `local_bin_path` if set (should be in system PATH)
+          - Defaults to `local_bin_path` if set (should be in system PATH), or /usr/local/bin
         type: path
         required: false
 

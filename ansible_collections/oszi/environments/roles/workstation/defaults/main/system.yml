@@ -8,6 +8,5 @@ workstation_hid_apple_options:
   fnmode: 2  # Fix Keychron Windows mode!
 
 # File path to install shell aliases for workstations - disabled if empty:
-workstation_shell_aliases_path: "{{ [shell_shrc_d_export_path, 'workstation-aliases.sh'] | path_join
-  if shell_shrc_d_export_path | default('') is truthy
-  and shell_shrc_uid | default(-1) | int == 0 else '' }}"
+workstation_shell_aliases_path: "{{ [shell_integrations_shrc_d_path, 'workstation-aliases.sh'] | path_join
+  if shell_integrations_enabled | default(false) else '' }}"

@@ -7,7 +7,7 @@ argument_specs:
       - Supports DNS-01 validation via CloudFlare or AWS Route53
       - Handles certificate lifecycle including generation, renewal, and revocation
       - Configures post-hook scripts and reload commands for certificate updates
-      - Supports rootless mode depending on paths used and file ownerships
+      - Supports rootless mode with paths relative to the home directory, and without installing python3-cryptography
     author:
       - "David O. (oszi.dev)"
     options: &options
@@ -15,6 +15,14 @@ argument_specs:
         description:
           - Whether to skip all ACME tasks, even account creation
           - Default is true if both O(acme_certificates) and O(acme_revoke_paths) are empty
+        type: bool
+        required: false
+
+      acme_install_python3_cryptography:
+        description:
+          - Whether to ensure the python3-cryptography package is installed
+          - Default is derived from ansible_facts.user_uid, true when running as root
+          - Disable in a virtual environment or on immutable systems
         type: bool
         required: false
 
@@ -27,39 +35,49 @@ argument_specs:
         required: false
         options:
           common_name:
-            description: Common name (CN) for the certificate
+            description:
+              - Common name (CN) for the certificate
             type: str
             required: true
           subject_alt_name:
-            description: Subject Alternative Names in the format DNS:name1,DNS:name2
+            description:
+              - Subject Alternative Names in the format DNS:name1,DNS:name2
             type: str
             required: false
           select_chain:
-            description: Criteria for selecting a specific certificate chain from the ACME server
+            description:
+              - Criteria for selecting a specific certificate chain from the ACME server
             type: dict
             required: false
           live_path:
-            description: Directory path where certificate files will be stored (privkey.pem, cert.pem, fullchain.pem, req.csr)
+            description:
+              - Directory path where certificate files will be stored (privkey.pem, cert.pem, fullchain.pem, req.csr)
             type: path
             required: true
           remaining_days:
-            description: Days before expiration to trigger certificate renewal (defaults to acme_remaining_days_default)
+            description:
+              - Days before expiration to trigger certificate renewal (defaults to acme_remaining_days_default)
             type: int
             required: false
           post_hook:
-            description: Shell commands to execute after certificate issuance/renewal (e.g., convert to PKCS12)
+            description:
+              - Script run after certificate issuance/renewal (e.g., convert to PKCS12) with `bash -euo pipefail`
+                in the `live_path` directory as the effective user, usually root
             type: str
             required: false
           reload_cmd:
-            description: Command to execute to reload services using the certificate (e.g., systemctl try-restart service)
+            description:
+              - Command to execute to reload services using the certificate (e.g., systemctl try-restart service)
             type: str
             required: false
           owner:
-            description: Unix user ID or name for file ownerships (omit in rootless mode)
+            description:
+              - Unix user ID or name for file ownerships (omit in rootless mode)
             type: raw
             required: false
           group:
-            description: Unix group ID or name for file ownerships (omit in rootless mode)
+            description:
+              - Unix group ID or name for file ownerships (omit in rootless mode)
             type: raw
             required: false
 
@@ -87,13 +105,6 @@ argument_specs:
         required: false
         default: false
 
-      acme_account_key_passphrase:
-        description:
-          - Password to encrypt the ACME account private key (use ansible-vault)
-          - WARNING - Changing this password regenerates the account key
-        type: str
-        required: false
-
       acme_account_email:
         description:
           - Optional email address to register with the ACME provider
@@ -103,16 +114,16 @@ argument_specs:
 
       acme_account_key_path:
         description:
-          - Filesystem path where the ACME account key is stored
-          - One account key per host, location depends on running as root or regular user
+          - Filesystem path where the ACME account key is stored; there is one account key per host
+          - Default is /etc/letsencrypt/account.pem as root, or ~/.letsencrypt/account.pem in rootless mode
         type: path
         required: false
 
-      acme_install_python3_cryptography:
+      acme_account_key_passphrase:
         description:
-          - Whether to ensure python3-cryptography package is installed
-          - Disable when running in a virtual environment or without root privileges
-        type: bool
+          - Password to encrypt the ACME account private key (use ansible-vault)
+          - WARNING - Changing this password regenerates the account key
+        type: str
         required: false
 
       acme_remaining_days_default:

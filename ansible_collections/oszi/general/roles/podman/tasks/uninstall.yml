@@ -14,8 +14,9 @@
     paths:
       - "/etc/profile.d"
       - "/etc/systemd/system"
-    pattern: "*podman*"
     file_type: "any"
+    pattern: '.*(\b|_)podman(\b|_).*'
+    use_regex: true
   register: _podman_leftovers_found
 
 - name: Remove leftover podman system files

@@ -1,6 +1,3 @@
 ---
 # Systemd template unit of the upstream podman-kube service
 podman_kube_template_service: "podman-kube@.service"
-
-# Systemd scope for systemd module calls (one of system, user, global)
-podman_kube_systemd_scope: "{{ 'system' if ansible_facts.user_uid | int == 0 else 'user' }}"

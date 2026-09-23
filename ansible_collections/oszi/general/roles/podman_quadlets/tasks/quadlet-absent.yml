@@ -16,7 +16,6 @@
       when: not podman_quadlets_service_is_template
       ansible.builtin.systemd:
         name: "{{ podman_quadlets_service }}"
-        scope: "{{ podman_quadlets_systemd_scope }}"
         state: "stopped"
         enabled: false
 
@@ -36,7 +35,6 @@
 
     - name: "Reload systemd for quadlet {{ podman_quadlets_item.name }}"
       ansible.builtin.systemd:
-        scope: "{{ podman_quadlets_systemd_scope }}"
         daemon_reload: true
 
 - name: "Remove static files for quadlet {{ podman_quadlets_item.name }}"

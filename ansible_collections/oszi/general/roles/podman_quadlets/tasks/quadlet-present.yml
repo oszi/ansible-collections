@@ -1,6 +1,4 @@
 ---
-# Do not set owner/group to use ansible_user or root!
-
 - name: "Validate parameters for present quadlet {{ podman_quadlets_item.name }}"
   ansible.builtin.assert:
     that:
@@ -59,7 +57,6 @@
 - name: "Reload systemd for quadlet {{ podman_quadlets_item.name }}"
   when: _podman_quadlets_unit_result.changed  # Regardless of being a template.
   ansible.builtin.systemd:
-    scope: "{{ podman_quadlets_systemd_scope }}"
     daemon_reload: true
 
 # XXX: Setting enabled to false is not immutable with quadlets.
@@ -67,7 +64,6 @@
   when: not podman_quadlets_service_is_template and not podman_quadlets_service_enabled
   ansible.builtin.systemd:
     name: "{{ podman_quadlets_service }}"
-    scope: "{{ podman_quadlets_systemd_scope }}"
     enabled: false
   changed_when: false
 
@@ -75,7 +71,6 @@
   when: not podman_quadlets_service_is_template
   ansible.builtin.systemd:
     name: "{{ podman_quadlets_service }}"
-    scope: "{{ podman_quadlets_systemd_scope }}"
     state: "{{ 'stopped' if not podman_quadlets_service_enabled
       else 'restarted' if _podman_quadlets_changed else 'started' }}"
     enabled: "{{ podman_quadlets_service_enabled or omit }}"  # XXX: See previous task.

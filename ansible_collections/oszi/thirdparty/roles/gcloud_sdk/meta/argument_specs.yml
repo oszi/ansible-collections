@@ -80,7 +80,7 @@ argument_specs:
       gcloud_sdk_local_bin_path:
         description:
           - Directory path where gcloud utility scripts are installed
-          - Defaults to `local_bin_path` if set (should be in system PATH)
+          - Defaults to `local_bin_path` if set (should be in system PATH), or /usr/local/bin
         type: path
         required: false
 

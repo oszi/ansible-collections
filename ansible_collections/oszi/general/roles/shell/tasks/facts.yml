@@ -1,8 +1,7 @@
 ---
-# Do not mix privilege levels in playbooks; shell_shrc_d_path is privilege-aware!
+# Exported for downstream roles to add shrc integrations
 - name: Export shell role facts
   ansible.builtin.set_fact:
-    shell_shrc_d_export_path: "{{ shell_shrc_d_path if not shell_disabled else '' }}"
-    shell_shrc_uid: "{{ shell_shrc_uid }}"
-    shell_shrc_gid: "{{ shell_shrc_gid }}"
+    shell_integrations_enabled: "{{ not shell_disabled }}"
+    shell_integrations_shrc_d_path: "{{ shell_shrc_d_path }}"
     cacheable: true  # Persists through all plays.

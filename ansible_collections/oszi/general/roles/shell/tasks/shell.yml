@@ -1,18 +1,23 @@
 ---
-# Do not set owner/group to use ansible_user or root!
+- name: Assert that shrc.d, shrc, skel paths are valid
+  ansible.builtin.assert:
+    that:
+      - "shell_shrc_d_path is truthy and shell_shrc_d_path.startswith('/')"
+      - "shell_shrc_path is truthy and shell_shrc_path.startswith('/')"
+      - "shell_skel_path is not truthy or shell_skel_path.startswith('/')"
 
 - name: Flatten package list variables
   ansible.builtin.set_fact:
     shell_packages: "{{ shell_packages | flatten }}"
 
 - name: Ensure shell packages are installed
-  when: shell_install_packages
+  when: shell_manage_packages
   ansible.builtin.package:
     name: "{{ shell_packages }}"
     state: "present"
 
 - name: Include bat/batcat alternatives tasks
-  when: "'bat' in shell_packages"
+  when: "shell_manage_packages and 'bat' in shell_packages"
   ansible.builtin.include_tasks:
     file: bat-batcat.yml
 
@@ -20,16 +25,16 @@
   ansible.builtin.file:
     path: "{{ shell_shrc_d_path }}"
     state: "directory"
-    owner: "{{ shell_shrc_uid }}"
-    group: "{{ shell_shrc_gid }}"
+    owner: "root"
+    group: "root"
     mode: "0755"
 
 - name: Copy shrc.d directory
   ansible.builtin.copy:
     src: "etc/shrc.d/"
     dest: "{{ shell_shrc_d_path }}/"
-    owner: "{{ shell_shrc_uid }}"
-    group: "{{ shell_shrc_gid }}"
+    owner: "root"
+    group: "root"
     directory_mode: "0755"
     mode: "0644"
 
@@ -37,8 +42,8 @@
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ [shell_shrc_d_path, item | basename | regex_replace('\\.j2$', '')] | path_join }}"
-    owner: "{{ shell_shrc_uid }}"
-    group: "{{ shell_shrc_gid }}"
+    owner: "root"
+    group: "root"
     mode: "0644"
   with_fileglob:
     - "templates/etc/shrc.d/*.j2"
@@ -47,26 +52,26 @@
   ansible.builtin.template:
     src: "etc/shrc.j2"
     dest: "{{ shell_shrc_path }}"
-    owner: "{{ shell_shrc_uid }}"
-    group: "{{ shell_shrc_gid }}"
+    owner: "root"
+    group: "root"
     mode: "0644"
 
 - name: Ensure system skel directory exists
-  when: shell_skel_path_enabled
+  when: shell_skel_path is truthy
   ansible.builtin.file:
     path: "{{ shell_skel_path }}"
     state: "directory"
-    owner: "{{ shell_shrc_uid }}"
-    group: "{{ shell_shrc_gid }}"
+    owner: "root"
+    group: "root"
     mode: "0755"
 
 - name: Install system skel templates
-  when: shell_skel_path_enabled
+  when: shell_skel_path is truthy
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ [shell_skel_path, item | basename | regex_replace('\\.j2$', '')] | path_join }}"
-    owner: "{{ shell_shrc_uid }}"
-    group: "{{ shell_shrc_gid }}"
+    owner: "root"
+    group: "root"
     mode: "0644"
   with_fileglob:
     - "templates/etc/skel/.*.j2"

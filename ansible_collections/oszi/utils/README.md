@@ -17,10 +17,11 @@ podman_quadlets_list: "{{ {} | oszi.utils.update_nested_dict(podman_quadlets, 'q
   | oszi.utils.nested_dict_to_list('name') }}"  # key_attribute:name = dict key
 ```
 
-**Shell-escaped, home-dir relative path** - Transform an absolute path into `~/'path'`:
+**Shell-quoted tilde path** - Quote a path while keeping a leading `~` expandable, e.g. `~/'path'`:
 
 ```yaml
-shell_shrc_safe_path: "{{ shell_shrc_path | oszi.utils.to_quoted_tilde_path(ansible_facts.user_dir) }}"
+rolename_tilde_path: "{{ '"$HOME/.config"' | oszi.utils.home_var_to_quoted_tilde_path }}"
+rolename_tilde_path: "{{ '~/.config' | oszi.utils.quote_tilde_path }}"
 ```
 
 ## Lookup examples
@@ -42,7 +43,7 @@ dependencies:
   - role: oszi.utils.facts
     vars:
       facts_subset: [network]
-  - role: oszi.utils.assert  # if not tagged as rootless
+  - role: oszi.utils.assert  # only in oszi.environments.baselinux
     vars:
       assert_task_msg: "Assert root privileges"
       assert_that:
