@@ -2,75 +2,75 @@
 
 ## Best practices
 
-| Practice | Description |
-|---|---|
-| **Ansible best practices** | Follow official guidelines enforced by ansible-lint, roles must pass the production profile. Exceptions are allowed case-by-case (noqa comments). |
-| **Become at playbook level** | Set `become` in playbooks, not in roles; do not mix privilege levels. Some conventions depend on this. One exception: roles may loop users with `become_user`, invalidating user facts. |
-| **argument_specs.yml** | All entrypoints must have precise argument_specs for their defaults; use yaml anchors for options. |
-| **Idempotency** | Every task must be safely re-runnable. Avoid `command`/`shell` where a module exists; when unavoidable, use `creates`, `removes`, or `changed_when`. |
-| **Check mode** | Every task must support check mode if possible. `command`/`shell` must set `check_mode: false` if they do not change the host. |
-| **Strict shell scripts** | Use `set -euo pipefail` and `executable: /bin/bash` in `shell` module tasks. Use quoted environment variables to pass values from ansible. |
-| **Shell quoting** | Use `\| quote` for strings, `\| int` for integers, `\| to_quoted_tilde_path(...)` for absolute paths transformed to quoted home-dir relative paths. |
-| **Strict permissions** | Set least-privilege `mode`, `owner`, and `group`, except in rootless roles to inherit ansible_user. |
-| **Cross-role variable use** | Guard references to other roles' variables if the role must work standalone, e.g. `... if users_list is defined else []` or `podman_disabled \| default(false)`. |
-| **Cross-distro gaps** | Roles must handle both `RedHat` and `Debian` `os_family` for different packages and system paths. |
-| **Container environments** | Roles managing privileged system settings must guard against `virtualization_type` `container` if expected to work in containers (e.g. dependencies of `baselinux`). |
-| **Fact namespace** | All fact access must use `ansible_facts.fact_name`. `inject_facts_as_vars` must be disabled. |
-| **Files/templates paths** | Mirror absolute dest paths under `files/` and `templates/`, append `.j2` for templates. |
-| **Prefer handlers** | Prefer handlers for triggered tasks, avoid them with complex conditions and in loop-based roles. |
-| **Single-purpose roles** | Each role configures exactly one component. Reject creeping scope. |
-| **Supply chain** | Use pinned refs, checksums, GPG signatures, no `curl \| sh`. |
-| **Network exposure** | Non-essential network services (anything besides SSH and VPNs) must not be exposed by default. |
-| **Opt-in third-party** | Roles managing an external repo must default to disabled and leave the system clean if disabled. |
-| **Playbook hosts var** | Use a variable for host targeting: `{playbook}_hosts \| default(...)`, or target `all` hosts. |
-| **Secrets encryption** | Secrets must be encrypted with ansible-vault, using `_scripts/ansible-vault-id-client`. Vault files must match `*vault.{yml,yaml,json}`. |
-| **Secrets exposure** | Tasks handling secrets must set `no_log: true` to prevent credential exposure. |
+* **Ansible best practices** - Follow official guidelines enforced by ansible-lint, roles must pass the production
+  profile. Exceptions are allowed case-by-case (noqa comments).
+* **Become at playbook level** - Set `become` in playbooks, not in roles; do not mix privilege levels. Become settings
+  are an inventory-side responsibility. One exception: roles may loop users with `become_user`.
+* **argument_specs.yml** - Is the main source of role documentation. All entrypoints must have precise argument_specs
+  for their defaults; use yaml anchors for recurring options.
+* **Idempotency** - Every task must be safely re-runnable. Avoid `command`/`shell` where a module exists;
+  when unavoidable, use `creates`, `removes`, or `changed_when`.
+* **Check mode** - Support check mode where possible. `command`/`shell` must set `check_mode: false`
+  if they do not change the host.
+* **Strict shell scripts** - Use `set -euo pipefail` and `executable: /bin/bash` in `shell` module tasks.
+  Use quoted environment variables to pass values from ansible.
+* **Shell quoting** - Use `| quote` for strings, `| int` for integers, `oszi.utils` `tilde_path` filters for paths.
+* **Strict permissions** - Set least-privilege `mode`, `owner`, and `group`. Exceptions are allowed in rootless roles.
+* **Cross-distro gaps** - Roles must support both `RedHat` and `Debian` family for different packages and system paths.
+* **Cross-role variable use** - Guard references to other roles' variables if the role must work standalone,
+  e.g. `... if users_list is defined else []` or `podman_disabled | default(false)`.
+* **Container environments** - Roles managing privileged system settings must guard against `virtualization_type`
+  `container` if expected to work in containers (e.g. dependencies of `baselinux`).
+* **Fact namespace** - All fact access must use `ansible_facts.fact_name`. `inject_facts_as_vars` must be disabled.
+* **Files/templates paths** - Mirror absolute dest paths under `files/` and `templates/`, append `.j2` for templates.
+* **Prefer handlers** - Prefer handlers for triggered tasks, avoid with complex conditions and in loop-based roles.
+* **Single-purpose roles** - Each role configures exactly one component. Reject creeping scope.
+* **Supply chain** - Use pinned refs, checksums, GPG signatures, no `curl | sh`.
+* **Network exposure** - Non-essential network services (anything besides SSH and VPNs) must not be exposed by default.
+* **Opt-in third-party** - Roles managing external software must default to disabled and ensure the system is clean.
+* **Playbook hosts var** - Use a variable for host targeting: `{playbook}_hosts | default(...)`, or target `all` hosts.
+* **Secrets encryption** - Inventory-side secrets must be encrypted with ansible-vault, using
+  `_scripts/ansible-vault-id-client`. Vault files must match `*vault.{yml,yaml,json}`.
+* **Secrets exposure** - Tasks handling secrets must set `no_log: true` to prevent credential exposure.
 
 ## Variable naming
 
-| Pattern | Meaning |
-|---|---|
-| `{role}_disabled: false` | Primary on/off switch for `general` roles; triggers uninstall or noop when `true`. |
-| `{role}_enabled: false` | Opt-in on/off switch for `thirdparty` roles; triggers uninstall when `false`. |
-| `{role}_{feature}_enabled` | Feature flag, typically derived from `not {role}_disabled`. |
-| `{role}_{thing}_list` | List of dicts with a key attribute, produced via `\| nested_dict_to_list('key_attr')` or defined as-is. |
-| `{role}_{thing}_pt_{part}` | Component included in `{role}_{thing}` to make partial overrides easy (see `workstation` defaults). |
-| `{role}_{thing}_default` | Default value of `{role}_{thing}`; allows merging defaults in the inventory (see `gnome_users`). |
-| `{role}_{thing}_path(s)` | Variable for absolute path(s) with (list of) `path` argument_specs type; always use the suffix. |
-| `{role}_packages` | List of cross-distro packages; flatten with set_fact in the role. |
-| `_{role}_{thing}_result` | Task-registered private variable used only in that task file. |
-| `{playbook}_hosts` | Playbook host targeting override used with a default filter; not a role variable. |
+* `{role}_disabled: false` - Primary on/off switch for `general` roles; triggers uninstall or noop when `true`.
+* `{role}_enabled: false` - Opt-in on/off switch for `thirdparty` roles; triggers uninstall when `false`.
+* `{role}_{feature}_enabled` - Feature flag, typically derived from `not {role}_disabled`.
+* `{role}_manage_packages: true` - Optional package management switch; defaults to the effective user being root in
+  rootless-compatible roles. A single package that is never removed may use `{role}_install_{package}` instead.
+* `{role}_{thing}_list` - List of dicts with a key attribute, produced via `oszi.utils` `nested_dict` filters
+  or defined as-is.
+* `{role}_{thing}_pt_{part}` - Component included in `{role}_{thing}` to make partial overrides easy
+  (see `oszi.environments.workstation` defaults).
+* `{role}_{thing}_default` - Default value of `{role}_{thing}`; allows merging defaults in the inventory
+  (see `oszi.general.gnome_users` defaults).
+* `{role}_{thing}_path(s)` - Variable for absolute path(s) with (list of) `path` argument_specs type.
+* `{role}_packages` - List of cross-distro packages; flatten with set_fact in the role.
+* `_{role}_{thing}_result` - Task-registered private variable used only in that task file.
+* `{playbook}_hosts` - Playbook host targeting override used with a default filter; not a role variable.
 
 ## Privilege-aware context (rootful vs rootless)
 
-**Pre-condition:** `rootless`-tagged roles only.
-Root-only roles assert root and use system paths unconditionally.
+Rootful mode with **Become at playbook level** is the default behavior. Some roles are additionally rootless-compatible
+for downstream consumers and must carry the `rootless` galaxy tag. Their few privilege-dependent defaults (e.g.
+`{role}_manage_packages`, a user list, or a method) are derived from the effective user via `ansible_facts.user_uid`;
+tasks and vars branch on those defaults rather than on facts, so inventories can override them.
 
-Defaults must be correct in both rootful and rootless modes without the user setting anything.
-Facts as role dependencies guarantee facts exist, and are gathered with the same privilege as the role is run,
-because roles do not set `become` as per best practices. See also the **User tasks loop pattern**.
+Rootless paths are literal tilde paths (`~/`): Ansible expands them for the effective user, even when tasks are looped
+with `become_user`. Never use `ansible_facts.user_dir` for paths, never use user facts directly in tasks and vars.
 
 ```yaml
 # defaults/main.yml
-rolename_install_system: "{{ ansible_facts.user_uid | int == 0 }}"
-rolename_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true)
-  if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.local/bin' }}"
+rolename_manage_packages: "{{ ansible_facts.user_uid | int == 0 }}"
+rolename_method: "{{ 'system' if ansible_facts.user_uid | int == 0 else 'user' }}"
+rolename_base_path: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
+  else '~/.config/component' }}"
 
-# vars/main.yml
-rolename_config_base_path: "{{ '/etc/component' if ansible_facts.user_uid | int == 0
-  else ansible_facts.user_dir + '/.config/component' }}"
-```
-
-### Systemd scope in tasks
-
-**Pre-condition:** `rootless`-tagged roles only.
-Root-only roles use `scope: system` automatically.
-
-```yaml
-ansible.builtin.systemd:
-  scope: "{{ 'system' if ansible_facts.user_uid | int == 0 else 'user' }}"
-  daemon_reload: true
+# vars/main.yml - no user facts in vars
+rolename_share_path: "{{ '/usr/share/component' if rolename_method == 'system'
+  else '~/.local/share/component' }}"
 ```
 
 ## Distribution conditionals
@@ -99,7 +99,7 @@ Most `tasks/main.yml` in `general` follow a fixed structure (partially applied i
   tags: [rolename]
   block:
     - name: Include installation tasks
-      when: rolename_install_system
+      when: rolename_manage_packages
       ansible.builtin.include_tasks:
         file: "{{ (not rolename_disabled) | ternary('install', 'uninstall') }}.yml"
 
@@ -124,7 +124,7 @@ Most `tasks/main.yml` in `general` follow a fixed structure (partially applied i
 Roles managing packages or container images should have an entrypoint `tasks/update.yml` to update the packages/images
 to their latest compatible versions. For example, `package_manager`, `python`, `podman`, `flatpak`, `snap`.
 
-All `update` entrypoints must be included in the `oszi.environments.update` playbook with environment-specific host targeting.
+All `update` entrypoints must be included in the `oszi.environments.update` playbook with environment targeting.
 
 ## Loop variable pattern
 
@@ -156,17 +156,19 @@ _rolename_item_placeholder:
   url: "http://localhost/__PLACEHOLDER__"
 ```
 
-For values **computed from the loop item** use task-level `vars:` - they evaluate per iteration and need no placeholder.
+For values computed from the loop item use task-level vars, they evaluate per iteration and need no placeholder.
 
 ## User tasks loop pattern
 
-When tasks are looped per user with `become` or as root, use `ansible.builtin.user` in `check_mode` for valid per-user facts.
-Apply the **Loop variable pattern**. Become can be controlled inventory-side, tasks must follow **Strict permissions**,
+When tasks are looped per user with `become` or as root, use `ansible.builtin.user` in `check_mode` for per-user facts.
+Also apply the **Loop variable pattern**. Become is controlled inventory-side, tasks must follow **Strict permissions**,
 and always ensure user context. See roles using this pattern: `shell`, `dotfiles`, `gnome_users`.
 
-Using `become` isolates users from each other; tasks targeting one home must not affect another. However, becoming an
-unprivileged user carries risks and is not always available. Installing the `acl` package is sufficient on Linux, or
-inventories can override ansible `become` settings accordingly.
+Using `become` isolates users from each other; tasks targeting one home must not affect another. However, becoming
+an unprivileged user carries risks and is not always available. Having `setfacl` is sufficient on Linux, or inventories
+can override ansible `become` settings accordingly. Ansible skips `become` when `become_user` equals the remote user
+of the connection (`become_allow_same_user` defaults to false), so rootless-compatible roles work for the connection
+user itself, provided `ansible_user` is set in the inventory.
 
 ```yaml
 # tasks/user-item.yml
@@ -185,15 +187,10 @@ inventories can override ansible `become` settings accordingly.
       and rolename_user_info.home != '/'"]
 
 - name: Run all tasks as the user itself
-  become: "{{ rolename_user_item_become }}"
+  become: true
   become_user: "{{ rolename_user_item }}"
   block:
     # ...
-```
-
-```yaml
-# vars/main.yml - see also the Loop variable pattern
-rolename_user_item_become: "{{ ansible_facts.user_uid | int == 0 or ansible_facts.user_id != rolename_user_item }}"
 ```
 
 ## Nested dict to list pattern
@@ -239,19 +236,4 @@ dependencies:
 
 1. The collection name must be a tag: `general`, `thirdparty`, `environments`, `utils`
 2. A mutually exclusive environment tag: `baselinux`, `containers`, `thirdparty`, `toolbox`, `workstation`
-3. Rootless XOR root assertion: Roles must either add the `rootless` tag, or assert root privileges.
-
-**Accepted dependencies to assert root privileges:**  
-Root assertion also requires roles to not set `become` as per best practices.
-```yaml
-# Explicit assertion:
-- role: oszi.utils.assert
-  vars:
-    assert_task_msg: "Assert root privileges"
-    assert_that:
-      - "ansible_facts.user_uid | int == 0"
-# Or via baselinux, which asserts root in its own dependencies:
-- role: oszi.environments.baselinux
-```
-
-All roles tagged as `rootless` must be included in the `oszi.environments.rootless` playbook.
+3. Rootless-compatible roles must add the `rootless` tag, see **Privilege-aware context**.
