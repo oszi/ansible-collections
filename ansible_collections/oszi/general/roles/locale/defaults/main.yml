@@ -1,11 +1,8 @@
 ---
 # System locale in the format used by /etc/locale.conf and localectl
 # Set to an empty string to skip.
-# XXX: Remove deprecated baselinux defaults in 5.0.0
 locale_conf: |-
-  {% if baselinux_set_locale is defined -%}
-  {{ baselinux_set_locale -}}
-  {% elif 'workstations' in group_names -%}
+  {% if 'workstations' in group_names -%}
   LANG=en_US.UTF-8
   LANGUAGE=en_US
   LC_COLLATE=C.UTF-8

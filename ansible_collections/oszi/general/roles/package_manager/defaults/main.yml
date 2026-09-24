@@ -31,13 +31,11 @@ package_manager_repo_replacements_targets: "{{ [
     ['/etc/yum.repos.d/epel*.repo'] if ansible_facts.distribution != 'Fedora' else []
   ) }}"
 
-# XXX: Remove deprecated baselinux defaults in 5.0.0
-
 # Nested list of packages to install on all Linux hosts:
-package_manager_extra_packages: "{{ baselinux_extra_packages | default([]) }}"
+package_manager_extra_packages: []
 
 # Nested list of packages to remove on all Linux hosts:
-package_manager_blacklisted_packages: "{{ baselinux_blacklisted_packages | default([]) }}"
+package_manager_blacklisted_packages: []
 
 # Autoremove orphaned packages after updating?
 package_manager_update_autoremove: true
