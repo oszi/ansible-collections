@@ -14,13 +14,13 @@ HOME_VAR_RE = re.compile(r"^(\$HOME\b|\$\{HOME\})")
 HOME_VAR_QUOTED_RE = re.compile(r'^"(\$HOME\b|\$\{HOME\})([^"\\]*)"')
 
 
-def to_tilde_path(path: str, home: str, user: str = "") -> str:
+def absolute_to_tilde_path(path: str, home: str, user: str = "") -> str:
     if not isinstance(path, str) or not isabs(path):
-        raise ValueError("to_tilde_path: 'path' is not an absolute path string")
+        raise ValueError("absolute_to_tilde_path: 'path' is not an absolute path string")
     if not isinstance(home, str) or not isabs(home):
-        raise ValueError("to_tilde_path: 'home' is not an absolute path string")
+        raise ValueError("absolute_to_tilde_path: 'home' is not an absolute path string")
     if not isinstance(user, str) or (user and USERNAME_RE.fullmatch(user) is None):
-        raise ValueError("to_tilde_path: 'user' is not a valid username string")
+        raise ValueError("absolute_to_tilde_path: 'user' is not a valid username string")
 
     path_norm = normpath(path)
     home_norm = normpath(home)
@@ -52,6 +52,27 @@ def home_var_to_tilde_path(path: str, user: str = "") -> str:
     return path  # Change nothing.
 
 
+def tilde_to_absolute_path(path: str, home: str, user: str = "") -> str:
+    if not isinstance(path, str) or not path.startswith(TILDE):
+        raise ValueError("tilde_to_absolute_path: 'path' is not a tilde path string")
+    if not isinstance(home, str) or not isabs(home):
+        raise ValueError("tilde_to_absolute_path: 'home' is not an absolute path string")
+    if not isinstance(user, str) or (user and USERNAME_RE.fullmatch(user) is None):
+        raise ValueError("tilde_to_absolute_path: 'user' is not a valid username string")
+
+    basepath, sep, relpath = path.partition(SEP)
+    if user:
+        if basepath not in (TILDE, TILDE + user):
+            raise ValueError("tilde_to_absolute_path: tilde path and user do not match")
+    elif basepath != TILDE:
+        raise ValueError("tilde_to_absolute_path: tilde path with an unknown user")
+
+    home_norm = normpath(home)
+    if home_norm == SEP:
+        sep = ""
+    return home_norm + sep + relpath
+
+
 def quote_tilde_path(path: str) -> str:
     if not isinstance(path, str):
         raise ValueError("quote_tilde_path: 'path' is not a string")
@@ -61,7 +82,7 @@ def quote_tilde_path(path: str) -> str:
 
     basepath, sep, relpath = path.partition(SEP)
 
-    if basepath != TILDE:
+    if basepath != TILDE:  # ~user
         basepath = TILDE + shlex.quote(basepath[len(TILDE) :])
 
     if relpath != "":
@@ -70,8 +91,8 @@ def quote_tilde_path(path: str) -> str:
     return basepath + sep + relpath
 
 
-def to_quoted_tilde_path(path: str, home: str, user: str = "") -> str:
-    tilde_path = to_tilde_path(path, home, user)
+def absolute_to_quoted_tilde_path(path: str, home: str, user: str = "") -> str:
+    tilde_path = absolute_to_tilde_path(path, home, user)
     return quote_tilde_path(tilde_path)
 
 
@@ -84,9 +105,10 @@ def home_var_to_quoted_tilde_path(path: str, user: str = "") -> str:
 class FilterModule:
     def filters(self):
         return {
-            "to_tilde_path": to_tilde_path,
-            "to_quoted_tilde_path": to_quoted_tilde_path,
+            "absolute_to_tilde_path": absolute_to_tilde_path,
+            "absolute_to_quoted_tilde_path": absolute_to_quoted_tilde_path,
             "home_var_to_tilde_path": home_var_to_tilde_path,
             "home_var_to_quoted_tilde_path": home_var_to_quoted_tilde_path,
+            "tilde_to_absolute_path": tilde_to_absolute_path,
             "quote_tilde_path": quote_tilde_path,
         }
