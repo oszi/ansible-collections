@@ -39,7 +39,7 @@ argument_specs:
           backup:
             description:
               - Create a backup file including the timestamp information so you can get the original file back
-              - Automatically restored if the request or `post_install_script` failed
+              - Automatically restored if `post_install_script` failed
             type: bool
             required: false
             default: false
@@ -51,7 +51,7 @@ argument_specs:
           force:
             description:
               - If `true` and `dest` is not a directory, it will download the file every time and replace the file if the contents change
-              - If `true` and the request or `post_install_script` failed, without a backup file, remove the file to force retry on the next run
+              - If `true` and `post_install_script` failed, without a backup file, remove the file to force retry on the next run
             type: bool
             required: false
             default: false

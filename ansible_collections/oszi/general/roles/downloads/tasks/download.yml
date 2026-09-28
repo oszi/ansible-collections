@@ -36,6 +36,7 @@
   rescue:
     # Move backup file in one task instead of copy then remove.
     # A new backup will be made on the next run.
+    # If the request failed, backup_file is not set, dest is not touched.
     - name: "Restore backup of {{ downloads_item_result.dest }}"
       when: "downloads_item_result.backup_file | default(none) is truthy"
       ansible.builtin.command: >-
@@ -43,8 +44,11 @@
         {{ downloads_item_result.dest | quote }}
       changed_when: true
 
+    # If the request failed, dest could be a directory, dest is not resolved yet and not touched.
     - name: "To force re-download without backup, remove {{ downloads_item_result.dest }}"
-      when: "downloads_item_result.backup_file | default(none) is not truthy and downloads_item.force | default(false)"
+      when: "not downloads_item_result.failed
+        and downloads_item_result.backup_file | default(none) is not truthy
+        and downloads_item.force | default(false)"
       ansible.builtin.file:
         path: "{{ downloads_item_result.dest }}"
         state: "absent"
