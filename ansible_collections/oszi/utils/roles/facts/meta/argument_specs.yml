@@ -3,9 +3,10 @@ argument_specs:
   main:
     short_description: Fact gathering utility role
     description:
-      - Configurable fact gathering role to use as role dependencies
-      - Use one subset per dependency to take advantage of dependency deduplication
-      - Compatible with implicit gathering, including `all` subset
+      - Configurable fact gathering role to use as role dependencies; requires roles to not set `become`
+        according to Core Conventions (Become at playbook level) for correct user facts
+      - Use one subset per dependency to take advantage of dependency deduplication;
+        compatible with implicit gathering, including `all` subset
     author:
       - "David O. (oszi.dev)"
     options: &options
