@@ -3,13 +3,13 @@
   when: cloudflare_dns_host_record is truthy
   block:
     - name: Set cloudflare_dns_host_record_a_value
-      when: cloudflare_dns_host_record_a_value is none
+      when: cloudflare_dns_host_record_a_value is not truthy
       ansible.builtin.set_fact:
         cloudflare_dns_host_record_a_value: "{{ ansible_host
           if ansible_host and ansible_host | ansible.utils.ipv4
           else ansible_facts.default_ipv4.address
           if ansible_facts.default_ipv4.address is defined
-          else none }}"
+          else '' }}"
 
     - name: Set host public IPv4 record in CloudFlare
       when: cloudflare_dns_host_record_a_value is truthy
@@ -23,13 +23,13 @@
         api_token: "{{ cloudflare_dns_api_token }}"
 
     - name: Set cloudflare_dns_host_record_aaaa_value
-      when: cloudflare_dns_host_record_aaaa_value is none
+      when: cloudflare_dns_host_record_aaaa_value is not truthy
       ansible.builtin.set_fact:
         cloudflare_dns_host_record_aaaa_value: "{{ ansible_host
           if ansible_host and ansible_host | ansible.utils.ipv6
           else ansible_facts.default_ipv6.address
           if ansible_facts.default_ipv6.address is defined
-          else none }}"
+          else '' }}"
 
     - name: Set host public IPv6 record in CloudFlare
       when: cloudflare_dns_host_record_aaaa_value is truthy
@@ -59,7 +59,7 @@
   community.general.cloudflare_dns:
     type: "MX"
     zone: "{{ cloudflare_dns_zone }}"
-    record: "{{ item.record | default(cloudflare_dns_host_record | default('@')) }}"
+    record: "{{ item.record | default(cloudflare_dns_host_record | default('@', true)) }}"
     value: "{{ item.value if item is mapping else item }}"
     priority: "{{ item.priority | default(omit) }}"
     solo: "{{ item.solo | default(omit) }}"
@@ -72,7 +72,7 @@
   community.general.cloudflare_dns:
     type: "TXT"
     zone: "{{ cloudflare_dns_zone }}"
-    record: "{{ item.record | default(cloudflare_dns_host_record | default('@')) }}"
+    record: "{{ item.record | default(cloudflare_dns_host_record | default('@', true)) }}"
     value: "{{ item.value if item is mapping else item }}"
     solo: "{{ item.solo | default(omit) }}"
     ttl: "{{ item.ttl | default(omit) }}"

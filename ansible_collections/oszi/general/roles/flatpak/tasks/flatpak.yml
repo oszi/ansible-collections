@@ -30,6 +30,7 @@
   changed_when: false
 
 - name: Ensure global flatpak overrides are set
+  when: flatpak_global_overrides is truthy
   ansible.builtin.command: >-
     flatpak override --{{ flatpak_method }} {% for option in flatpak_global_overrides
     %} {{ option | quote }} {% endfor %}
