@@ -1,4 +1,8 @@
 ---
+# Absolute path of the default XDG_CONFIG_HOME - the user environment is unknown to ansible.
+# * Tasks from dotfiles-user.yml are run as dotfiles_user_item!
+dotfiles_xdg_config_path: "{{ [dotfiles_user_info.home, '.config'] | path_join }}"
+
 # Placeholders for loop and task variables to pass argument_specs validation.
 # Wrapping loop_var prevents "loop variable is already in use" warnings.
 # Task variables take precedence over vars/main.

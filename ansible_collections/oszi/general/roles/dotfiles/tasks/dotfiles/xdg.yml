@@ -1,0 +1,25 @@
+---
+- name: "Check XDG_CONFIG_HOME for user:{{ dotfiles_user_item }}"
+  ansible.builtin.stat:
+    path: "{{ dotfiles_xdg_config_path }}"
+  register: _dotfiles_xdg_config_path_result
+
+# Keep the owner and mode of an existing directory!
+- name: "Create missing XDG_CONFIG_HOME for user:{{ dotfiles_user_item }}"
+  when: not _dotfiles_xdg_config_path_result.stat.exists
+  ansible.builtin.file:
+    path: "{{ dotfiles_xdg_config_path }}"
+    owner: "{{ dotfiles_user_info.uid }}"
+    group: "{{ dotfiles_user_info.group }}"
+    mode: "0700"
+    state: "directory"
+
+- name: "Install XDG user-dirs for user:{{ dotfiles_user_item }}"
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ dotfiles_xdg_config_path }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: "{{ dotfiles_user_info.uid }}"
+    group: "{{ dotfiles_user_info.group }}"
+    mode: "0640"
+  with_fileglob:
+    - "templates/dotfiles/config/user-dirs.*.j2"

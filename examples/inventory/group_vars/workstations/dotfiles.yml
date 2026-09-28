@@ -31,3 +31,15 @@ dotfiles_files:
     ControlPath ~/.ssh/S.%r@%h:%p
     ControlMaster auto
     ControlPersist 7200s
+
+# XDG user-dirs shell-escaped, homedir-relative paths:
+# * man user-dirs.dirs.5
+dotfiles_xdg_user_dirs:
+  DESKTOP: "$HOME/Desktop"
+  DOWNLOAD: "$HOME/Downloads"
+  DOCUMENTS: "$HOME/Documents"
+  MUSIC: "$HOME/Music"
+  PICTURES: "$HOME/Pictures"
+  VIDEOS: "$HOME/Videos"
+  # TEMPLATES: "$HOME/Templates"
+  # PUBLICSHARE: "$HOME/Public"

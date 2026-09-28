@@ -33,7 +33,3 @@
       when: gnome_users_screenshots_path is truthy
       ansible.builtin.include_tasks:
         file: gnome-user/screenshots.yml
-
-    - name: Import XDG user-dirs tasks
-      ansible.builtin.import_tasks:
-        file: gnome-user/xdg.yml

@@ -11,9 +11,6 @@ gnome_users_dconf_ptyxis_terminal_profiles_prefix: "/org/gnome/Ptyxis/Profiles/"
 gnome_users_xdg_pictures_screenshots_path: "{{ gnome_users_info.home }}/Pictures/Screenshots"
 gnome_users_xdg_videos_screencasts_path: "{{ gnome_users_info.home }}/Videos/Screencasts"
 
-# Relative to HOME. Always use the default XDG_CONFIG_HOME.
-gnome_users_xdg_config_directory: ".config"
-
 # Placeholders for loop and task variables to pass argument_specs validation.
 # Wrapping loop_var prevents "loop variable is already in use" warnings.
 # Task variables take precedence over vars/main.

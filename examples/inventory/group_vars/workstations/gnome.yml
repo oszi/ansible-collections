@@ -33,7 +33,7 @@ gnome_users_dconf_ptyxis_terminal_default_profile_vars:
   limit-scrollback: "true"
   palette: "'gnome'"
 
-# See the defaults in oszi/general/roles/gnome/defaults/main/gnome-user.yml
+# See the defaults in oszi/general/roles/gnome_users/defaults/main.yml
 gnome_users_dconf_vars: "{{ gnome_users_dconf_vars_default | combine(gnome_users_dconf_vars_extra) }}"
 gnome_users_dconf_vars_extra:
   # Apple Magick KB: Emulate PrintScrn, Numpad with dot, lv3:ralt_alt (Shift+R_Alt) is patched as Compose Key.
@@ -43,15 +43,3 @@ gnome_users_dconf_vars_extra:
   /org/gnome/Ptyxis/restore-window-size: "false"
   /org/gnome/Ptyxis/default-columns: "uint32 120"
   /org/gnome/Ptyxis/default-rows: "uint32 25"
-
-# XDG user-dirs shell-escaped, homedir-relative paths:
-# * man xdg-user-dir
-gnome_users_xdg_user_dirs:
-  desktop: "$HOME/Desktop"
-  download: "$HOME/Downloads"
-  documents: "$HOME/Documents"
-  music: "$HOME/Music"
-  pictures: "$HOME/Pictures"
-  videos: "$HOME/Videos"
-  # templates: "$HOME/Templates"
-  # publicshare: "$HOME/Public"

@@ -4,7 +4,7 @@ argument_specs:
     short_description: User dotfiles management
     description:
       - Manages user dotfiles and configuration files for multiple users
-      - Provides built-in templates for GnuPG and Git, and supports custom dotfile templates
+      - Provides built-in templates for GnuPG, Git, XDG user directories, and supports custom templates
       - Supports rootless mode with a single dotfiles user, or multiple users in rootful mode
     author:
       - "David O. (oszi.dev)"
@@ -60,6 +60,13 @@ argument_specs:
       dotfiles_git_enabled:
         description:
           - Whether to enable built-in Git configuration templates
+          - Defaults to true for non-root workstation users
+        type: bool
+        required: false
+
+      dotfiles_xdg_enabled:
+        description:
+          - Whether to enable built-in XDG user-dirs templates (user-dirs.dirs, user-dirs.conf, user-dirs.locale)
           - Defaults to true for non-root workstation users
         type: bool
         required: false
@@ -190,3 +197,51 @@ argument_specs:
           - Use for custom Git configuration sections
         type: str
         required: false
+
+      dotfiles_xdg_user_dirs:
+        description:
+          - XDG user-dirs configuration; see man user-dirs.dirs.5
+          - Values should be shell-escaped home-dir relative paths in the format `$HOME/Downloads`, or absolute paths
+        type: dict
+        required: false
+        options:
+          DESKTOP:
+            description: XDG_DESKTOP_DIR
+            type: path
+            required: false
+          DOWNLOAD:
+            description: XDG_DOWNLOAD_DIR
+            type: path
+            required: false
+          TEMPLATES:
+            description: XDG_TEMPLATES_DIR
+            type: path
+            required: false
+          PUBLICSHARE:
+            description: XDG_PUBLICSHARE_DIR
+            type: path
+            required: false
+          DOCUMENTS:
+            description: XDG_DOCUMENTS_DIR
+            type: path
+            required: false
+          MUSIC:
+            description: XDG_MUSIC_DIR
+            type: path
+            required: false
+          PICTURES:
+            description: XDG_PICTURES_DIR
+            type: path
+            required: false
+          VIDEOS:
+            description: XDG_VIDEOS_DIR
+            type: path
+            required: false
+
+      dotfiles_xdg_user_dirs_locale:
+        description:
+          - Locale for XDG user directory naming
+          - Controls the language used for directory names
+        type: str
+        required: false
+        default: "en_US"

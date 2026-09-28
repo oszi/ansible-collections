@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+
+# Format is XDG_xxx_DIR="$HOME/yyy", where yyy is a shell-escaped
+# homedir-relative path, or XDG_xxx_DIR="/yyy", where /yyy is an
+# absolute path. No other format is supported.
+
+{% for key, value in dotfiles_xdg_user_dirs.items() %}
+{# Use to_json for double quotes to preserve shell interpolation. #}
+XDG_{{ key | upper }}_DIR={{ value | to_json(ensure_ascii=False) }}
+{% endfor %}
