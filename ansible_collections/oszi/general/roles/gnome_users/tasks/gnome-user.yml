@@ -9,9 +9,9 @@
 
 - name: "Assert that the Gnome user is valid"
   ansible.builtin.assert:
-    that: ["not gnome_users_info.changed
-      and not gnome_users_info.shell.endswith('/nologin')
-      and gnome_users_info.home != '/'"]
+    that:
+      - "not gnome_users_info.changed"
+      - "gnome_users_info | oszi.utils.is_login_user"
 
 - name: Run all tasks as the user itself
   become: true

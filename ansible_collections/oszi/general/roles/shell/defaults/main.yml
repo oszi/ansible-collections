@@ -23,7 +23,7 @@ shell_search_paths: "{{ (['/var/lib/flatpak/exports/bin', '~/.local/share/flatpa
 
 # List of users to enforce skel templates for:
 shell_skeleton_enforced_users: "{{ (['root', ansible_user | default('root')]
-  + (users_list | map(attribute='name') | list if users_list is defined else [])) | unique }}"
+  + users_list | default([]) | oszi.utils.login_users_list | map(attribute='name') | list) | unique }}"
 
 # Ensure shell_packages are installed? Disable for immutable systems.
 shell_manage_packages: true

@@ -7,13 +7,11 @@
   register: shell_user_info
   check_mode: true
 
-- name: Enforce skel templates as the user itself
+# Newly created users will copy /etc/skel later.
+- name: Enforce skel templates as the user itself for existing users
   become: true
   become_user: "{{ shell_user_item }}"
-  when: >-
-    not shell_user_info.changed
-    and not shell_user_info.shell.endswith('/nologin')
-    and shell_user_info.home != '/'
+  when: "not shell_user_info.changed and shell_user_info | oszi.utils.is_login_user"
   block:
     - name: "Enforce skel templates for user:{{ shell_user_item }}"
       ansible.builtin.template:

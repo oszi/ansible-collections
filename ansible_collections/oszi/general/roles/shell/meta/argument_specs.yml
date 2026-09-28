@@ -78,7 +78,7 @@ argument_specs:
             for all specified users; excludes system users with `nologin` shell
           - Runs tasks as each user with become to isolate users from each other;
             Ansible skips become for the connection user itself (see the Core Conventions)
-          - Default is `users_list` + `ansible_user` + `root`
+          - Default is login users of `users_list` + `ansible_user` + `root`
         type: list
         elements: str
         required: false
