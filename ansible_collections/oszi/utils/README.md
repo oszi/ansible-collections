@@ -19,7 +19,8 @@ podman_quadlets_list: "{{ {} | oszi.utils.update_nested_dict(podman_quadlets, 'q
 
 **Login users** - Select login users from a list of users for ansible.builtin.user:
 ```yaml
-gnome_users: "{{ users_list | oszi.utils.login_users_list | map(attribute='name') | list }}"
+gnome_users: "{{ users_list | default([]) | oszi.utils.login_users_list
+  | map(attribute='name') | reject('equalto', 'root') | list }}"
 ```
 
 **Shell-quoted tilde path** - Quote a path while keeping a leading `~` expandable, e.g. `~/'path'`:
