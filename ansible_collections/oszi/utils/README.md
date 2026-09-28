@@ -17,6 +17,11 @@ podman_quadlets_list: "{{ {} | oszi.utils.update_nested_dict(podman_quadlets, 'q
   | oszi.utils.nested_dict_to_list('name') }}"  # key_attribute:name = dict key
 ```
 
+**Login users** - Select login users from a list of users for ansible.builtin.user:
+```yaml
+gnome_users: "{{ users_list | oszi.utils.login_users_list | map(attribute='name') | list }}"
+```
+
 **Shell-quoted tilde path** - Quote a path while keeping a leading `~` expandable, e.g. `~/'path'`:
 
 ```yaml
