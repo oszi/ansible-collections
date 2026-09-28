@@ -3,7 +3,7 @@ namespace: oszi
 name: thirdparty
 
 # Versioned by _scripts/galaxy-release.sh
-version: "5.1.0"
+version: "5.1.1"
 
 description: "Ansible collection for software from third-party sources."
 repository: "https://github.com/oszi/ansible-collections.git"
@@ -16,7 +16,7 @@ license:
 
 dependencies:
   # Pinned by _scripts/galaxy-release.sh
-  "oszi.utils": "==5.1.0"
+  "oszi.utils": "==5.1.1"
 
 tags:
   - thirdparty
