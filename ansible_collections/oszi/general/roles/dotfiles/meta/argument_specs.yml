@@ -201,42 +201,52 @@ argument_specs:
       dotfiles_xdg_user_dirs:
         description:
           - XDG user-dirs configuration; see man user-dirs.dirs.5
-          - Values should be shell-escaped home-dir relative paths in the format `$HOME/Downloads`, or absolute paths
+          - Values must be shell-escaped, home-dir relative paths in the format `$HOME/Downloads`, or absolute paths
+          - Default is O(dotfiles_xdg_user_dirs_default), inventories must specify all to not leave any unset
+        type: dict
+        required: false
+        options: &dotfiles_xdg_user_dirs_options
+          DESKTOP:
+            description: Value of XDG_DESKTOP_DIR
+            type: str
+            required: false
+          DOWNLOAD:
+            description: Value of XDG_DOWNLOAD_DIR
+            type: str
+            required: false
+          TEMPLATES:
+            description: Value of XDG_TEMPLATES_DIR
+            type: str
+            required: false
+          PUBLICSHARE:
+            description: Value of XDG_PUBLICSHARE_DIR
+            type: str
+            required: false
+          DOCUMENTS:
+            description: Value of XDG_DOCUMENTS_DIR
+            type: str
+            required: false
+          MUSIC:
+            description: Value of XDG_MUSIC_DIR
+            type: str
+            required: false
+          PICTURES:
+            description: Value of XDG_PICTURES_DIR
+            type: str
+            required: false
+          VIDEOS:
+            description: Value of XDG_VIDEOS_DIR
+            type: str
+            required: false
+
+      dotfiles_xdg_user_dirs_default:
+        description:
+          - Contains all standard user-dirs relative to $HOME, included in O(dotfiles_xdg_user_dirs)
+          - Do not set this variable directly, use it with `combine` in inventories
         type: dict
         required: false
         options:
-          DESKTOP:
-            description: XDG_DESKTOP_DIR
-            type: path
-            required: false
-          DOWNLOAD:
-            description: XDG_DOWNLOAD_DIR
-            type: path
-            required: false
-          TEMPLATES:
-            description: XDG_TEMPLATES_DIR
-            type: path
-            required: false
-          PUBLICSHARE:
-            description: XDG_PUBLICSHARE_DIR
-            type: path
-            required: false
-          DOCUMENTS:
-            description: XDG_DOCUMENTS_DIR
-            type: path
-            required: false
-          MUSIC:
-            description: XDG_MUSIC_DIR
-            type: path
-            required: false
-          PICTURES:
-            description: XDG_PICTURES_DIR
-            type: path
-            required: false
-          VIDEOS:
-            description: XDG_VIDEOS_DIR
-            type: path
-            required: false
+          <<: *dotfiles_xdg_user_dirs_options
 
       dotfiles_xdg_user_dirs_locale:
         description:
