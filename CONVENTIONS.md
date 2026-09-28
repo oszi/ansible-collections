@@ -182,9 +182,9 @@ user itself, provided `ansible_user` is set in the inventory.
 
 - name: "Assert that the user is valid"
   ansible.builtin.assert:
-    that: ["not rolename_user_info.changed
-      and not rolename_user_info.shell.endswith('/nologin')
-      and rolename_user_info.home != '/'"]
+    that:
+      - "not rolename_user_info.changed"
+      - "rolename_user_info | oszi.utils.is_login_user"
 
 - name: Run all tasks as the user itself
   become: true
