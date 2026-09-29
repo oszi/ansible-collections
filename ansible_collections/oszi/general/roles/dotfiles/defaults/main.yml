@@ -63,9 +63,7 @@ dotfiles_git_config_extra: ""  # Appended to .gitconfig
 
 # XDG user-dirs shell-escaped, homedir-relative paths for config/user-dirs.dirs.j2:
 # * man user-dirs.dirs.5
-# XXX: Remove backwards-compatibility for gnome_users_xdg_user_dirs
-dotfiles_xdg_user_dirs: "{{ dict(gnome_users_xdg_user_dirs.keys() | map('upper') | zip(gnome_users_xdg_user_dirs.values()))
-  if gnome_users_xdg_user_dirs is defined else dotfiles_xdg_user_dirs_default }}"
+dotfiles_xdg_user_dirs: "{{ dotfiles_xdg_user_dirs_default }}"
 dotfiles_xdg_user_dirs_default:
   DESKTOP: "$HOME/Desktop"
   DOWNLOAD: "$HOME/Downloads"
@@ -77,5 +75,4 @@ dotfiles_xdg_user_dirs_default:
   VIDEOS: "$HOME/Videos"
 
 # Contents of user-dirs.locale for directory naming
-# XXX: Remove backwards-compatibility for gnome_users_xdg_user_dirs_locale
-dotfiles_xdg_user_dirs_locale: "{{ gnome_users_xdg_user_dirs_locale | default('en_US') }}"
+dotfiles_xdg_user_dirs_locale: "en_US"

@@ -205,7 +205,7 @@ argument_specs:
           - Default is O(dotfiles_xdg_user_dirs_default), inventories must specify all to not leave any unset
         type: dict
         required: false
-        options: &dotfiles_xdg_user_dirs_options
+        options:
           DESKTOP:
             description: Value of XDG_DESKTOP_DIR
             type: str
@@ -241,12 +241,10 @@ argument_specs:
 
       dotfiles_xdg_user_dirs_default:
         description:
-          - Contains all standard user-dirs relative to $HOME, included in O(dotfiles_xdg_user_dirs)
+          - Contains all standard user-dirs relative to $HOME, included in O(dotfiles_xdg_user_dirs) by default
           - Do not set this variable directly, use it with `combine` in inventories
         type: dict
         required: false
-        options:
-          <<: *dotfiles_xdg_user_dirs_options
 
       dotfiles_xdg_user_dirs_locale:
         description:
