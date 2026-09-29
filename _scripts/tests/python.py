@@ -6,7 +6,7 @@ import sys
 from argparse import ArgumentParser
 from tempfile import TemporaryDirectory
 
-from testlib import Color, RC, run_shell_get_lines, run_tests
+from testlib import RC, run_shell_get_lines, run_tests, run_tests_parallel, print_hint
 
 GIT_LS_FILES = r"""
 set -euo pipefail
@@ -38,6 +38,8 @@ def main() -> None:
         tempdir = TemporaryDirectory(prefix="ansible-python-tests-")  # pylint: disable=consider-using-with
         env["XDG_CACHE_HOME"] = tempdir.name
 
+    # Run black live if asked explicitly, otherwise run it in a thread pool one by one which works
+    # in restrictive sandboxes that disallow python process pools; see run_tests_parallel.
     if app_args.black:
         black_cmd = BLACK_CMD.copy()
         black_cmd.remove("--check")
@@ -45,9 +47,9 @@ def main() -> None:
         sys.exit(rc_black)
 
     rc_pylint = run_tests(PYLINT_CMD, paths, env=env)
-    rc_black = run_tests(BLACK_CMD, paths, env=env)
+    rc_black = run_tests_parallel(BLACK_CMD, paths, quiet=True, env=env)
     if rc_black != RC.OK:
-        print(f"{Color.BLUE}Run: {Color.BOLD}{sys.argv[0]} --black{Color.CLEAR}", file=sys.stderr)
+        print_hint(f"{sys.argv[0]} --black")
 
     sys.exit(rc_pylint | rc_black)
 

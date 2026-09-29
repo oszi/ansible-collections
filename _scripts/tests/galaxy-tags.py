@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 import yaml
 
-from testlib import Color, RC, boolean_test_decorator, error_code
+from testlib import Color, RC, boolean_test_decorator, print_error
 
 # Relative path to skip checking tags in a parent repository.
 NAMESPACE_PATH = Path("ansible_collections") / "oszi"
@@ -39,20 +39,24 @@ def assert_role_tags() -> bool:
             with meta_path.open("r", encoding="utf-8") as f:
                 meta: Dict[str, Any] = yaml.safe_load(f)
         except (OSError, yaml.YAMLError):
-            rc = error_code(f"{role_must_have} a valid meta/main yaml file!")
+            print_error(f"{role_must_have} a valid meta/main yaml file!")
+            rc = RC.ERROR
             continue
 
         try:
             tags = set(meta["galaxy_info"]["galaxy_tags"])
         except (KeyError, TypeError):
-            rc = error_code(f"{role_must_have} galaxy tags, there are none!")
+            print_error(f"{role_must_have} galaxy tags, there are none!")
+            rc = RC.ERROR
             continue
 
         if collection_name not in tags:
-            rc = error_code(f"{role_must_have} the tag: {Color.BOLD}{collection_name}{Color.CLEAR}")
+            print_error(f"{role_must_have} the tag: {Color.BOLD}{collection_name}{Color.CLEAR}")
+            rc = RC.ERROR
 
         if len(tags.intersection(MUTUALLY_EXCLUSIVE_TAGS)) != 1:
-            rc = error_code(f"{role_must_have} one of the tags: {MUTUALLY_EXCLUSIVE_TAGS_STR}")
+            print_error(f"{role_must_have} one of the tags: {MUTUALLY_EXCLUSIVE_TAGS_STR}")
+            rc = RC.ERROR
 
     if role_count > 0:
         print(f"Asserted tags on {role_count} roles in namespace:{NAMESPACE_PATH.name}.", file=sys.stderr)

@@ -5,6 +5,7 @@ import subprocess as sp
 import sys
 import traceback
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, IO, List, NoReturn, Optional, ParamSpec
 
 assert sys.version_info >= (3, 11)
@@ -27,7 +28,7 @@ def io_is_tty(io: IO | Any) -> bool:
 
 
 DEBUG = getenv_bool("TESTLIB_DEBUG")
-DEBUG_HELP = "HINT: Set env TESTLIB_DEBUG=True for traceback."
+DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
 
 
 class Color:
@@ -63,18 +64,43 @@ class RC:
         return rc > 128 or rc == RC.TIMEOUT
 
 
-def error_code(message: str, rc: int = RC.ERROR) -> int:
-    if not isinstance(rc, int):
-        raise TypeError("testlib.error_code called with non-integer rc")
-    if rc == RC.OK:
-        raise ValueError("testlib.error_code called with RC.OK")
+def success(subject: str) -> int:
+    print(f"{Color.GREEN}{subject} passed!{Color.CLEAR}", file=sys.stderr)
+    return RC.OK
 
+
+def print_error(message: str, rc: int = RC.ERROR) -> None:
     if RC.is_early_exit(rc):
         color = Color.MAGENTA
     else:
         color = Color.RED
 
     print(f"{color}{message}{Color.CLEAR}", file=sys.stderr)
+
+
+def print_warning(message: str) -> None:
+    print(f"{Color.YELLOW}WARNING: {message}{Color.CLEAR}", file=sys.stderr)
+
+
+def print_hint(message: str) -> None:
+    print(f"{Color.BLUE}HINT: {message}{Color.CLEAR}", file=sys.stderr)
+
+
+def print_test_cmd(cmd: List[str], paths: Optional[List[str]] = None) -> None:
+    message = f"{Color.CYAN}Running test: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
+    if paths:
+        message += f" # {len(paths)} path(s)"
+
+    print(message, file=sys.stderr)
+
+
+def error_code(message: str, rc: int = RC.ERROR) -> int:
+    if not isinstance(rc, int):
+        raise TypeError("testlib.error_code called with non-integer rc")
+    if rc == RC.OK:
+        raise ValueError("testlib.error_code called with RC.OK")
+
+    print_error(message, rc)
     return rc
 
 
@@ -98,26 +124,9 @@ def error_code_exc(subject: str, err: BaseException) -> int:
     if DEBUG:
         traceback.print_exception(err)
     elif not RC.is_early_exit(rc):
-        print(DEBUG_HELP, file=sys.stderr)
+        print_hint(DEBUG_HELP)
 
     return error_code(message, rc)
-
-
-def success(subject: str) -> int:
-    print(f"{Color.GREEN}{subject} passed!{Color.CLEAR}", file=sys.stderr)
-    return RC.OK
-
-
-def print_warning(message: str) -> None:
-    print(f"{Color.YELLOW}WARNING: {message}{Color.CLEAR}", file=sys.stderr)
-
-
-def print_test_cmd(cmd: List[str], paths: Optional[List[str]] = None) -> None:
-    message = f"{Color.CYAN}Running test: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
-    if paths:
-        message += f" # {len(paths)} path(s)"
-
-    print(message, file=sys.stderr)
 
 
 def run_shell_get_lines(shell_cmd: str, unique: bool = False, **kwargs) -> List[str]:
@@ -158,6 +167,57 @@ def run_tests(cmd: List[str], paths: List[str], timeout: Optional[float] = None,
 
     except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
         return error_code_exc(cmd[0], err)
+
+
+def run_tests_parallel(
+    cmd: List[str],
+    paths: List[str],
+    timeout: Optional[float] = None,
+    quiet: bool = False,
+    max_workers: Optional[int] = None,
+    **kwargs,
+) -> int:
+    if not isinstance(cmd, list):
+        raise TypeError("cmd is not a list")
+    if not isinstance(paths, list):
+        raise TypeError("paths is not a list")
+    if not paths:
+        return run_tests(cmd, paths, timeout, **kwargs)
+
+    print_test_cmd(cmd, paths)
+
+    def run_test(path: str) -> sp.CompletedProcess[str]:
+        output = sp.DEVNULL if quiet else sp.PIPE
+        return sp.run(cmd + [path], stdout=output, stderr=output, text=True, timeout=timeout, check=False, **kwargs)
+
+    try:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            try:
+                results = list(executor.map(run_test, paths))
+            except (sp.TimeoutExpired, KeyboardInterrupt):
+                executor.shutdown(wait=True, cancel_futures=True)
+                raise
+
+    except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
+        return error_code_exc(cmd[0], err)
+
+    rc = RC.OK
+    for result in results:
+        if result.returncode != RC.OK:
+            rc |= result.returncode
+            if quiet:
+                # Target path of the subprocess, see print_test_cmd
+                print_error(result.args[-1])
+
+        if not quiet:
+            sys.stdout.write(result.stdout)
+            sys.stdout.flush()
+            sys.stderr.write(result.stderr)
+            sys.stderr.flush()
+
+    if rc == RC.OK:
+        return success(cmd[0])
+    return error_code(f"{cmd[0]} failed!", rc)
 
 
 _PARAMS = ParamSpec("_PARAMS")
