@@ -1,5 +1,5 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,missing-module-docstring
-from posixpath import normpath, sep as SEP
+from posixpath import basename, normpath, sep as SEP
 from typing import Any, Dict, List
 
 from ansible.module_utils.parsing.convert_bool import boolean
@@ -7,7 +7,8 @@ from ansible.module_utils.parsing.convert_bool import boolean
 # List of dictionaries for ansible.builtin.user, see oszi.general.users
 NestedList = List[Dict[str, Any]]
 
-NOLOGIN_SUFFIXES = (f"{SEP}nologin", f"{SEP}false")
+NON_LOGIN_SHELLS = ("nologin", "false", "true")
+NON_LOGIN_HOMES = ("", "bin", "sbin", "nonexistent")  # Normalized and left-stripped.
 
 
 # Supports output of ansible.builtin.user as input.
@@ -15,16 +16,16 @@ def is_login_user(user: Dict[str, Any]) -> bool:
     if not isinstance(user, dict):
         raise TypeError("Input variable 'user' is not a dictionary")
 
-    # ansible.builtin.user omits "system" for existing users.
+    # ansible.builtin.user omits "system" for existing users; ignore invalid values.
     if boolean(user.get("system", False), strict=False):
         return False
 
     if (shell := user.get("shell")) is not None:
-        if shell.endswith(NOLOGIN_SUFFIXES):
+        if basename(shell) in NON_LOGIN_SHELLS:
             return False
 
     if (home := user.get("home")) is not None:
-        if normpath(home).strip(SEP) == "":
+        if normpath(home).lstrip(SEP) in NON_LOGIN_HOMES:
             return False
 
     return True
