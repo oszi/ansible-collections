@@ -1,6 +1,6 @@
 ---
 # Skip all ACME tasks, even account creation?
-acme_disabled: "{{ acme_certificates | length == 0 and acme_revoke_paths | length == 0 }}"
+acme_disabled: "{{ acme_certificates is not truthy and acme_revoke_paths is not truthy }}"
 
 # Ensure python3-cryptography is installed?
 # Disable for a virtual environment or for running without root.

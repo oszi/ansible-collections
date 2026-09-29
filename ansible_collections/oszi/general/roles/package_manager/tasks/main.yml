@@ -5,15 +5,15 @@
     - name: Include package-manager config tasks
       when: >-
         not package_manager_disabled
-        and ((_pkg_mgr == 'apt' and package_manager_apt_conf | length > 0)
-        or (_pkg_mgr == 'dnf' and package_manager_dnf_conf | length > 0))
+        and ((_pkg_mgr == 'apt' and package_manager_apt_conf is truthy)
+        or (_pkg_mgr == 'dnf' and package_manager_dnf_conf is truthy))
       ansible.builtin.include_tasks:
         file: "config/{{ _pkg_mgr }}.yml"
       vars:
         _pkg_mgr: "{{ ansible_facts.pkg_mgr | replace('dnf5', 'dnf') }}"
 
     - name: Include repo replacements tasks
-      when: "not package_manager_disabled and package_manager_repo_replacements | length > 0"
+      when: not package_manager_disabled and package_manager_repo_replacements is truthy
       ansible.builtin.include_tasks:
         file: repo-replacements.yml
 

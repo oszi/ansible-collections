@@ -7,6 +7,6 @@
         file: "{{ ansible_facts.os_family | lower }}/{{ hashicorp_enabled | ternary('install', 'uninstall') }}.yml"
 
     - name: Include Hashicorp package setup tasks
-      when: "hashicorp_packages | length > 0 or hashicorp_blacklisted_packages | length > 0"
+      when: hashicorp_packages is truthy or hashicorp_blacklisted_packages is truthy
       ansible.builtin.include_tasks:
         file: packages.yml

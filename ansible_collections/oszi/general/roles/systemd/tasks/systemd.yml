@@ -28,7 +28,7 @@
   with_dict: "{{ systemd_system_units }}"
 
 - name: Ensure directory /etc/systemd/system-preset exists
-  when: "systemd_system_presets | length > 0"
+  when: systemd_system_presets is truthy
   ansible.builtin.file:
     path: "/etc/systemd/system-preset"
     state: "directory"

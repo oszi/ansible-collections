@@ -7,12 +7,12 @@
   with_dict: "{{ gnome_users_dconf_vars }}"
 
 - name: "Include dconf custom keybindings tasks for user:{{ gnome_users_item }}"
-  when: "gnome_users_dconf_custom_keybindings | length > 0"
+  when: gnome_users_dconf_custom_keybindings is truthy
   ansible.builtin.include_tasks:
     file: gnome-user/dconf-custom-keybindings.yml
 
 - name: Set dconf vars for Ptyxis default profile
-  when: "gnome_users_dconf_ptyxis_terminal_default_profile_vars | length > 0"
+  when: gnome_users_dconf_ptyxis_terminal_default_profile_vars is truthy
   block:
     - name: "Read Ptyxis default profile UUID for user:{{ gnome_users_item }}"
       community.general.dconf:

@@ -97,7 +97,7 @@
       tags: [containers]
 
     - name: Print container system versions
-      when: "_container_system_versions.stdout_lines | length > 0"
+      when: _container_system_versions.stdout_lines is truthy
       ansible.builtin.debug:
         msg: "{{ _container_system_versions.stdout_lines }}"
       tags: [containers]

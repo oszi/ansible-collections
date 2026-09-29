@@ -33,6 +33,6 @@
         file: dotfiles/xdg.yml
 
     - name: "Include extra dotfiles for user:{{ dotfiles_user_item }}"
-      when: "dotfiles_files | length > 0"
+      when: dotfiles_files is truthy
       ansible.builtin.include_tasks:
         file: dotfiles/files.yml

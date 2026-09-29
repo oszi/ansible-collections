@@ -7,7 +7,7 @@
   ansible.builtin.assert:
     that:
       - "'=' in locale_conf"
-      - "locale_conf.splitlines() | map('regex_search', locale_conf_line_regex) | select('none') | length == 0"
+      - "locale_conf.splitlines() | map('regex_search', locale_conf_line_regex) | select('none') is not truthy"
       - "'LC_ALL=' not in locale_conf"
     fail_msg: "locale_conf must contain LANG/LANGUAGE/LC_* settings but not LC_ALL (man locale.conf.5); no comments or empty lines"
     success_msg: "locale_conf seems to be valid"
