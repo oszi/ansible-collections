@@ -31,6 +31,8 @@ ssh_allow_groups: []
 
 # Harden SSHD crypto settings?
 ssh_harden_crypto: true
+# Enable post-quantum algorithms?
+ssh_harden_crypto_post_quantum_enabled: true
 # Enable legacy RSA algorithms?
 ssh_harden_crypto_rsa_enabled: "{{ ssh_host_keys | map('basename') | join(' ')
   | regex_findall('(?:\\b|_)rsa(?:\\b|_)') is truthy }}"

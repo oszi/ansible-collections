@@ -93,6 +93,13 @@ argument_specs:
         required: false
         default: true
 
+      ssh_harden_crypto_post_quantum_enabled:
+        description:
+          - Whether to enable post-quantum algorithms in hardened SSH cryptographic settings
+        type: bool
+        required: false
+        default: true
+
       ssh_harden_crypto_rsa_enabled:
         description:
           - Whether to enable RSA algorithms in hardened SSH cryptographic settings

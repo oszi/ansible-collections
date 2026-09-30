@@ -21,10 +21,11 @@ ssh_harden_crypto_macs:
 
 # Key Exchange: Curve25519 + post-quantum hybrid.
 ssh_harden_crypto_kex_algos:
-  # OpenSSH 9.9+ - IETF ML-KEM (FIPS 203)
-  - mlkem768x25519-sha256
-  # OpenSSH 8.5+ - NTRU Prime
-  - sntrup761x25519-sha512
+  - "{{ [
+      'mlkem768x25519-sha256',
+      'sntrup761x25519-sha512',
+    ]
+    if ssh_harden_crypto_post_quantum_enabled else [] }}"
   - curve25519-sha256
   - "{{ [
       'diffie-hellman-group-exchange-sha256',
