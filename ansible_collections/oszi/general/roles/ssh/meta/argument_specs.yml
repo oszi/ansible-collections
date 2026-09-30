@@ -102,9 +102,10 @@ argument_specs:
 
       ssh_host_keys:
         description:
-          - List of SSH host key file paths to configure (defaults to Ed25519 only)
-          - Must contain at least one Ed25519 host key for modern cryptography
-          - Only listed, pre-existing host keys will be active on the server
+          - List of SSH host key files to configure; must contain at least one Ed25519 host key for modern cryptography
+          - Missing keys are auto generated based on word-boundary or underscore-delimited `ed25519`, `rsa`, or `ecdsa`
+            components in the file names; -sk keys are not supported as host keys
+          - Default is Ed25519 only; only listed host keys will be active on the server
         type: list
         elements: path
         required: false

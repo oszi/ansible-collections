@@ -45,6 +45,24 @@
   with_items: "{{ _ssh_authorized_keys_check.results | map(attribute='keyfile') }}"
   changed_when: _ssh_authorized_keys_check.changed
 
+- name: Generate missing SSH host keys
+  when: ssh_server_config_overridable
+  ansible.builtin.command:
+    argv:
+      - "ssh-keygen"
+      - "-q"
+      - "-t"
+      - "{{ (item | basename | regex_findall(_ssh_key_type_regex) | first) | default('ed25519') }}"
+      - "-N"
+      - ""
+      - "-f"
+      - "{{ item }}"
+    creates: "{{ item }}"
+  vars:
+    _ssh_key_type_regex: '(?:\b|_)(ed25519|rsa|ecdsa)(?:\b|_)'
+  with_items: "{{ ssh_host_keys }}"
+  notify: "Restart sshd service"
+
 - name: Install the sshd server config file
   when: ssh_server_config_overridable
   ansible.builtin.template:
