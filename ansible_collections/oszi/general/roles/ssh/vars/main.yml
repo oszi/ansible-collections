@@ -7,3 +7,38 @@ ssh_port: "{{ bootstrap_ssh_port | default(ansible_port | default(22)) | int }}"
 # On RedHat, internal-sftp is blocked by SELinux, use the distribution default sftp-server.
 # Use this variable in ssh_authorized_keys for sftp-only command restriction.
 ssh_sftp_subsystem: "{{ '/usr/libexec/openssh/sftp-server' if ansible_facts.os_family == 'RedHat' else 'internal-sftp' }}"
+
+# Ciphers: AEAD only.
+ssh_harden_crypto_ciphers:
+  - chacha20-poly1305@openssh.com
+  - aes256-gcm@openssh.com
+
+# MACs: Encrypt-then-MAC only; prevents CBC padding oracle attacks.
+# Only takes effect for non-AEAD ciphers.
+ssh_harden_crypto_macs:
+  - hmac-sha2-512-etm@openssh.com
+  - hmac-sha2-256-etm@openssh.com
+
+# Key Exchange: Curve25519 + post-quantum hybrid.
+ssh_harden_crypto_kex_algos:
+  # OpenSSH 9.9+ - IETF ML-KEM (FIPS 203)
+  - mlkem768x25519-sha256
+  # OpenSSH 8.5+ - NTRU Prime
+  - sntrup761x25519-sha512
+  - curve25519-sha256
+  - "{{ [
+      'diffie-hellman-group-exchange-sha256',
+    ]
+    if ssh_harden_crypto_rsa_enabled else [] }}"
+
+# Host key algorithms: Ed25519 only and its certificate variant.
+ssh_harden_crypto_host_key_algos:
+  - ssh-ed25519
+  - ssh-ed25519-cert-v01@openssh.com
+  - "{{ [
+      'rsa-sha2-256',
+      'rsa-sha2-256-cert-v01@openssh.com',
+      'rsa-sha2-512',
+      'rsa-sha2-512-cert-v01@openssh.com',
+    ]
+    if ssh_harden_crypto_rsa_enabled else [] }}"

@@ -88,18 +88,43 @@ argument_specs:
       ssh_harden_crypto:
         description:
           - Whether to harden SSH cryptographic settings in sshd_config
-          - Restricts to strong ciphers, MACs, and key exchange algorithms
+          - Restricts to strong ciphers, MACs, and key exchange algorithms; ECDSA is disabled
         type: bool
         required: false
         default: true
 
+      ssh_harden_crypto_rsa_enabled:
+        description:
+          - Whether to enable RSA algorithms in hardened SSH cryptographic settings
+          - Default is true if there is an `rsa` key in O(ssh_host_keys)
+        type: bool
+        required: false
+
       ssh_host_keys:
         description:
-          - List of SSH host key file paths to configure (defaults to Ed25519 and RSA)
-          - Only listed host keys will be active on the server
+          - List of SSH host key file paths to configure (defaults to Ed25519 only)
+          - Must contain at least one Ed25519 host key for modern cryptography
+          - Only listed, pre-existing host keys will be active on the server
         type: list
         elements: path
         required: false
+
+      ssh_server_log_level:
+        description:
+          - Log level of the ssh server
+        type: str
+        required: false
+        default: VERBOSE
+        choices:
+          - QUIET
+          - FATAL
+          - ERROR
+          - INFO
+          - VERBOSE
+          - DEBUG
+          - DEBUG1
+          - DEBUG2
+          - DEBUG3
 
       ssh_server_config_extra:
         description:

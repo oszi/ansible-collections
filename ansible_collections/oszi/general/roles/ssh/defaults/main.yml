@@ -20,6 +20,8 @@ ssh_authorized_keys_immutable: false
 
 # Override the distro sshd_config?
 ssh_server_config_overridable: true
+# LogLevel directive in sshd_config
+ssh_server_log_level: "VERBOSE"
 # Extra lines for sshd_config
 ssh_server_config_extra: ""
 # List of SSH allowed users
@@ -29,7 +31,11 @@ ssh_allow_groups: []
 
 # Harden SSHD crypto settings?
 ssh_harden_crypto: true
+# Enable legacy RSA algorithms?
+ssh_harden_crypto_rsa_enabled: "{{ ssh_host_keys | map('basename') | join(' ')
+  | regex_findall('(?:\\b|_)rsa(?:\\b|_)') is truthy }}"
+
 # List of existing host keys:
 ssh_host_keys:
   - /etc/ssh/ssh_host_ed25519_key
-  - /etc/ssh/ssh_host_rsa_key
+  # - /etc/ssh/ssh_host_rsa_key

@@ -8,14 +8,18 @@ AllowGroups {{ ssh_allow_groups | join(' ') }}
 {% endif %}
 
 {% if ssh_harden_crypto %}
-KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
-Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr
-MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
+Ciphers {{ ssh_harden_crypto_ciphers | flatten | join(',') }}
+MACs {{ ssh_harden_crypto_macs | flatten | join(',') }}
+KexAlgorithms {{ ssh_harden_crypto_kex_algos | flatten | join(',') }}
+HostKeyAlgorithms {{ ssh_harden_crypto_host_key_algos | flatten | join(',') }}
+RekeyLimit 1G 1h
+
 {% endif %}
 {% for item in ssh_host_keys %}
 HostKey {{ item }}
 {% endfor %}
 
+LogLevel {{ ssh_server_log_level }}
 Subsystem sftp {{ ssh_sftp_subsystem }}
 UsePAM yes
 UseDNS no
