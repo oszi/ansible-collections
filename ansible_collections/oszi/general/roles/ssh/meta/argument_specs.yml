@@ -87,7 +87,7 @@ argument_specs:
 
       ssh_harden_crypto:
         description:
-          - Whether to harden SSH cryptographic settings in sshd_config
+          - Whether to harden SSH server cryptographic settings in sshd_config
           - Restricts to strong ciphers, MACs, and key exchange algorithms; ECDSA is disabled
         type: bool
         required: false
@@ -95,27 +95,30 @@ argument_specs:
 
       ssh_harden_crypto_post_quantum_enabled:
         description:
-          - Whether to enable post-quantum algorithms in hardened SSH cryptographic settings
+          - Whether to enable post-quantum algorithms in hardened SSH server cryptographic settings
         type: bool
         required: false
         default: true
 
       ssh_harden_crypto_rsa_enabled:
         description:
-          - Whether to enable RSA algorithms in hardened SSH cryptographic settings
-          - Default is true if there is an `rsa` key in O(ssh_host_keys)
+          - Whether to enable RSA algorithms in hardened SSH server cryptographic settings
+          - Default is true if there is an `rsa{BITS}` key in O(ssh_host_keys)
         type: bool
         required: false
 
       ssh_host_keys:
         description:
-          - List of SSH host key files to configure; must contain at least one Ed25519 host key for modern cryptography
-          - Missing keys are auto generated based on word-boundary or underscore-delimited `ed25519`, `rsa`, or `ecdsa`
-            components in the file names; -sk keys are not supported as host keys
+          - List of SSH host key paths; should contain at least one Ed25519 host key for modern cryptography
+          - Missing keys are auto generated based on word-boundary or underscore-delimited `ed25519`, `rsa{BITS}`,
+            or `ecdsa{BITS}` components in the file names; -sk keys are not supported as host keys;
+            turn off O(ssh_harden_crypto) to allow ECDSA algorithms
           - Default is Ed25519 only; only listed host keys will be active on the server
         type: list
         elements: path
         required: false
+        default:
+          - /etc/ssh/ssh_host_ed25519_key
 
       ssh_server_log_level:
         description:

@@ -35,9 +35,9 @@ ssh_harden_crypto: true
 ssh_harden_crypto_post_quantum_enabled: true
 # Enable legacy RSA algorithms?
 ssh_harden_crypto_rsa_enabled: "{{ ssh_host_keys | map('basename') | join(' ')
-  | regex_findall('(?:\\b|_)rsa(?:\\b|_)') is truthy }}"
+  | regex_search(ssh_host_key_regex_rsa) is not none }}"
 
-# List of existing host keys:
+# List of host keys (see ssh_host_key_regex_all):
 ssh_host_keys:
   - /etc/ssh/ssh_host_ed25519_key
-  # - /etc/ssh/ssh_host_rsa_key
+  # - /etc/ssh/ssh_host_rsa4096_key
