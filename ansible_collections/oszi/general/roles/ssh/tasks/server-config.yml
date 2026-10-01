@@ -1,0 +1,35 @@
+---
+- name: Assert that SSH host key paths match
+  ansible.builtin.assert:
+    that:
+      - "ssh_host_keys | map('basename') | map('regex_search', ssh_host_key_regex_all) | select('none') is not truthy"
+    fail_msg: "SSH host key filenames must match {{ ssh_host_key_regex_all | quote }}"
+
+- name: Generate missing SSH host keys
+  ansible.builtin.command:
+    argv: "{{ _ssh_keygen_argv + _ssh_keygen_type_argv }}"
+    creates: "{{ item }}"
+  vars:
+    _ssh_keygen_argv:
+      - "ssh-keygen"
+      - "-q"
+      - "-f"
+      - "{{ item }}"
+      - "-N"
+      - ""
+    _ssh_keygen_type_argv: "{{ ['-t', '-b'] | zip(item | basename | regex_search(ssh_host_key_regex_all, '\\1', '\\2')
+      | reject('equalto', '')) | flatten }}"
+  with_items: "{{ ssh_host_keys }}"
+  notify: "Restart sshd service"
+
+- name: Install the sshd server config file
+  ansible.builtin.template:
+    src: "etc/ssh/sshd_config.j2"
+    dest: "/etc/ssh/sshd_config"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+    validate: "sshd -t -f %s"
+  notify:
+    - "Restart sshd service"
+    - "Set ansible_port to ssh_port"

@@ -1,0 +1,18 @@
+---
+- name: Ensure openssh-server is installed
+  ansible.builtin.package:
+    name: "openssh-server"
+    state: "present"
+  notify: "Restart sshd service"
+
+- name: Import authorized keys tasks
+  ansible.builtin.import_tasks:
+    file: authorized-keys.yml
+
+- name: Import server config tasks
+  when: ssh_server_config_overridable
+  ansible.builtin.import_tasks:
+    file: server-config.yml
+
+- name: Run handlers immediately
+  ansible.builtin.meta: flush_handlers

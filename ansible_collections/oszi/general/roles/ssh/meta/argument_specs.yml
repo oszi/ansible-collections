@@ -89,6 +89,7 @@ argument_specs:
         description:
           - Whether to harden SSH server cryptographic settings in sshd_config
           - Restricts to strong ciphers, MACs, and key exchange algorithms; ECDSA is disabled
+          - See related O(ssh_harden_crypto_post_quantum_enabled) and O(ssh_harden_crypto_rsa_enabled)
         type: bool
         required: false
         default: true
@@ -102,7 +103,7 @@ argument_specs:
 
       ssh_harden_crypto_rsa_enabled:
         description:
-          - Whether to enable RSA algorithms in hardened SSH server cryptographic settings
+          - Whether to enable RSA host key and Diffie-Hellman key exchange algorithms in hardened cryptographic settings
           - Default is true if there is an `rsa{BITS}` key in O(ssh_host_keys)
         type: bool
         required: false
@@ -111,7 +112,7 @@ argument_specs:
         description:
           - List of SSH host key paths; should contain at least one Ed25519 host key for modern cryptography
           - Missing keys are auto generated based on word-boundary or underscore-delimited `ed25519`, `rsa{BITS}`,
-            or `ecdsa{BITS}` components in the file names; -sk keys are not supported as host keys;
+            or `ecdsa{BITS}` components in the filenames; -sk keys are not supported as host keys;
             turn off O(ssh_harden_crypto) to allow ECDSA algorithms
           - Default is Ed25519 only; only listed host keys will be active on the server
         type: list

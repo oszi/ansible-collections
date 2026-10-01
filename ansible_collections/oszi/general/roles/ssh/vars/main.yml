@@ -45,6 +45,6 @@ ssh_harden_crypto_host_key_algos:
     ]
     if ssh_harden_crypto_rsa_enabled else [] }}"
 
-# Regex to detect host key type (\1) and bits (\2) based on file names.
+# Regex to detect host key type (\1) and bits (\2) based on filenames.
 ssh_host_key_regex_all: '(?:\b|_)(ed25519|rsa|ecdsa)[-_.]?(\d*)(?:\b|_)'
 ssh_host_key_regex_rsa: '(?:\b|_)(rsa)[-_.]?(\d*)(?:\b|_)'

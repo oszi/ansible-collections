@@ -3,15 +3,8 @@
   tags: [ssh]
   block:
     - name: Include SSH configuration tasks
-      when: not ssh_server_disabled
       ansible.builtin.include_tasks:
-        file: ssh.yml
-
-    - name: Ensure openssh-server is NOT installed
-      when: ssh_server_disabled
-      ansible.builtin.package:
-        name: "openssh-server"
-        state: "absent"
+        file: "{{ (not ssh_server_disabled) | ternary('install', 'uninstall') }}.yml"
 
     - name: SSH role completed
       ansible.builtin.assert:

@@ -1,10 +1,4 @@
 ---
-- name: Ensure openssh-server is installed
-  ansible.builtin.package:
-    name: "openssh-server"
-    state: "present"
-  notify: "Restart sshd service"
-
 - name: Check SSH authorized keys
   ansible.posix.authorized_key:
     user: "{{ item.key }}"
@@ -44,37 +38,3 @@
     attr: "+i"
   with_items: "{{ _ssh_authorized_keys_check.results | map(attribute='keyfile') }}"
   changed_when: _ssh_authorized_keys_check.changed
-
-- name: Generate missing SSH host keys
-  when: ssh_server_config_overridable
-  ansible.builtin.command:
-    argv: "{{ _ssh_keygen_argv + _ssh_keygen_type_argv }}"
-    creates: "{{ item }}"
-  vars:
-    _ssh_keygen_argv:
-      - "ssh-keygen"
-      - "-q"
-      - "-f"
-      - "{{ item }}"
-      - "-N"
-      - ""
-    _ssh_keygen_type_argv: "{{ ['-t', '-b'] | zip(item | basename | regex_search(ssh_host_key_regex_all, '\\1', '\\2')
-      | default(['ed25519', ''], true) | reject('equalto', '')) | flatten }}"
-  with_items: "{{ ssh_host_keys }}"
-  notify: "Restart sshd service"
-
-- name: Install the sshd server config file
-  when: ssh_server_config_overridable
-  ansible.builtin.template:
-    src: "etc/ssh/sshd_config.j2"
-    dest: "/etc/ssh/sshd_config"
-    owner: "root"
-    group: "root"
-    mode: "0600"
-    validate: "sshd -t -f %s"
-  notify:
-    - "Restart sshd service"
-    - "Set ansible_port to ssh_port"
-
-- name: Run handlers immediately
-  ansible.builtin.meta: flush_handlers
