@@ -1,10 +1,10 @@
 ---
-# Disable and uninstall(!) OpenSSH server?
+# Disable sshd and uninstall openssh-server if ssh_manage_packages?
 ssh_server_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
-
-# Space-separated list of one or more comma-separated authentication methods...
-# publickey password hostbased keyboard-interactive none
-ssh_auth_methods: "publickey"
+# Install openssh-server and extra packages, or uninstall the server?
+ssh_manage_packages: true
+# whether to configure ssh_authorized_keys?
+ssh_authorized_keys_enabled: "{{ not ssh_server_disabled }}"
 
 # Dict of authorized keys by user
 # Multiple keys can be separated by new lines, for example:
@@ -24,6 +24,10 @@ ssh_server_config_overridable: true
 ssh_server_log_level: "VERBOSE"
 # Extra lines for sshd_config
 ssh_server_config_extra: ""
+
+# Space-separated list of one or more comma-separated authentication methods...
+# publickey password hostbased keyboard-interactive none
+ssh_auth_methods: "publickey"
 # List of SSH allowed users
 ssh_allow_users: []
 # List of SSH allowed groups
@@ -41,3 +45,8 @@ ssh_harden_crypto_rsa_enabled: "{{ ssh_host_keys | map('basename') | join(' ')
 ssh_host_keys:
   - /etc/ssh/ssh_host_ed25519_key
   # - /etc/ssh/ssh_host_rsa4096_key
+
+# List of extra packages besides openssh-server:
+ssh_extra_packages:
+  - "{{ ['openssh-client'] if ansible_facts.os_family == 'Debian' else [] }}"
+  - "{{ ['openssh-clients'] if ansible_facts.os_family == 'RedHat' else [] }}"

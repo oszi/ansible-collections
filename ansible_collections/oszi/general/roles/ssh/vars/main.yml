@@ -48,3 +48,7 @@ ssh_harden_crypto_host_key_algos:
 # Regex to detect host key type (\1) and bits (\2) based on filenames.
 ssh_host_key_regex_all: '(?:\b|_)(ed25519|rsa|ecdsa)[-_.]?(\d*)(?:\b|_)'
 ssh_host_key_regex_rsa: '(?:\b|_)(rsa)[-_.]?(\d*)(?:\b|_)'
+
+# OpenSSH server package and service name without .service/.socket:
+ssh_server_package: openssh-server
+ssh_server_service_name: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"

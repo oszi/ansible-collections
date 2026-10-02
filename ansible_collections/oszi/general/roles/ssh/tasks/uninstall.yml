@@ -1,6 +1,5 @@
 ---
-- name: Ensure openssh-server is NOT installed
-  when: ssh_server_disabled
+- name: Ensure OpenSSH server is NOT installed
   ansible.builtin.package:
-    name: "openssh-server"
+    name: "{{ ssh_server_package }}"
     state: "absent"
