@@ -83,13 +83,9 @@ if multiple_matching_devices; then
     device_address_xml="
     <address bus=\"${busnum}\" device=\"${devnum}\"/>"
 else
-    device_address_xpath="and (
-        not(source/address)
-        or source/address[
-            number(@bus)=${busnum}
-            and number(@device)=${devnum}
-        ]
-    )"
+    # With a single host device of this vendor and product, every matching entry in the domain XML
+    # is either this device or a stale copy left behind after it re-enumerated on the host.
+    device_address_xpath=""
     device_address_xml=""
 fi
 
@@ -131,18 +127,34 @@ else
     COLOR_CYAN=""
 fi
 
+function printf_command() {
+    local action="$1"
+    local device="$2"
+    local preposition="$3"
+    local domain="$4"
+    local suffix="$5"
+
+    printf "%s ${COLOR_GREEN}%s${COLOR_CLEAR} %s ${COLOR_CYAN}%s${COLOR_CLEAR}${suffix}" \
+        "$action" "$device" "$preposition" "$domain" >&2
+}
+
+
 for domain in "${domains[@]}"; do
-    if "${virsh[@]}" dumpxml "$domain" | xmllint --xpath "$device_xpath" - >/dev/null 2>&1; then
-        printf "Detach ${COLOR_GREEN}%s${COLOR_CLEAR} from ${COLOR_CYAN}%s${COLOR_CLEAR}? [Y/n]" "$device_desc" "$domain" >&2
+    # A request without an address detaches the first entry with this vendor and product, which may be a stale one;
+    # repeat until no entry matches; prompt the user at each iteration.
+    while "${virsh[@]}" dumpxml "$domain" | xmllint --xpath "$device_xpath" - >/dev/null 2>&1; do
+        printf_command Detach "$device_desc" from "$domain" "? [Y/n]"
         read -r answer || {
             printf "\nCould not read answer from stdin.\n" >&2
             exit 1
         }
 
-        if ! [[ "$answer" =~ ^[Nn] ]]; then
-            virsh_command detach "$domain" || enter_to_exit
+        if [[ "$answer" =~ ^[Nn] ]]; then
+            break
         fi
-    fi
+
+        virsh_command detach "$domain" || enter_to_exit
+    done
 done
 
 if [[ "$command" == attach ]]; then
@@ -156,6 +168,6 @@ if [[ "$command" == attach ]]; then
         fi
     fi
 
-    printf "Attach ${COLOR_GREEN}%s${COLOR_CLEAR} to ${COLOR_CYAN}%s${COLOR_CLEAR} ...\n" "$device_desc" "$domain" >&2
+    printf_command Attach "$device_desc" to "$domain" "... \n"
     virsh_command attach "$domain" || enter_to_exit
 fi
