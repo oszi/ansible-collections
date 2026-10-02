@@ -19,7 +19,7 @@ ssh_harden_crypto_macs:
   - hmac-sha2-512-etm@openssh.com
   - hmac-sha2-256-etm@openssh.com
 
-# Key Exchange: Curve25519 + post-quantum hybrid + strong RSA.
+# Key Exchange: Curve25519 + post-quantum hybrid + DH for strong RSA.
 ssh_harden_crypto_kex_algos:
   # OpenSSH 9.9+
   - "{{ [
@@ -40,10 +40,15 @@ ssh_harden_crypto_host_key_algos:
   - ssh-ed25519
   - ssh-ed25519-cert-v01@openssh.com
   - "{{ [
+      'rsa-sha2-256',
+      'rsa-sha2-256-cert-v01@openssh.com',
       'rsa-sha2-512',
       'rsa-sha2-512-cert-v01@openssh.com',
     ]
     if ssh_harden_crypto_rsa_enabled else [] }}"
+
+# Min RSA key size for host keys and clients; OpenSSH 9.1+
+ssh_harden_crypto_required_rsa_size: 3072
 
 # Regex to detect host key type (\1) and bits (\2) based on filenames.
 ssh_host_key_regex_all: '(?:\b|_)(ed25519|rsa|ecdsa)[-_.]?(\d*)(?:\b|_)'
