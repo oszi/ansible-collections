@@ -3,3 +3,10 @@
   ansible.builtin.package:
     name: "{{ ssh_server_package }}"
     state: "absent"
+
+# Leave pre-existing host keys alone, only remove easy to restore sshd_config.
+- name: Ensure sshd_config is absent
+  when: ssh_server_config_overridable
+  ansible.builtin.file:
+    path: "{{ ssh_server_config_path }}"
+    state: "absent"

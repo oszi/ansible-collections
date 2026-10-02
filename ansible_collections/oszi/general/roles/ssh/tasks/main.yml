@@ -2,10 +2,11 @@
 - name: SSH configuration tasks
   tags: [ssh]
   block:
-    - name: Include SSH package tasks
-      when: ssh_manage_packages
+    - name: Include SSH server install/uninstall/disable tasks
+      when: ssh_manage_packages or ssh_server_disabled
       ansible.builtin.include_tasks:
-        file: "{{ (not ssh_server_disabled) | ternary('install', 'uninstall') }}.yml"
+        file: "{{ 'install.yml' if not ssh_server_disabled else 'uninstall.yml'
+          if ssh_manage_packages else 'disable.yml' }}"
 
     - name: Include SSH authorized keys tasks
       when: ssh_authorized_keys_enabled
@@ -19,6 +20,13 @@
 
     - name: Run handlers immediately
       ansible.builtin.meta: flush_handlers
+
+    - name: Ensure sshd is enabled if it should be
+      when: not ssh_server_disabled
+      ansible.builtin.service:
+        name: "{{ ssh_server_service_name }}"
+        state: "started"
+        enabled: true
 
     - name: SSH role completed
       ansible.builtin.assert:
