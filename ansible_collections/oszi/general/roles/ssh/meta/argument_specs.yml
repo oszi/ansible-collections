@@ -12,7 +12,8 @@ argument_specs:
     options:
       ssh_server_disabled:
         description:
-          - Whether to uninstall OpenSSH server when O(ssh_manage_packages) is true, or disable sshd service and socket
+          - Whether to uninstall OpenSSH server when O(ssh_manage_packages) is true, or disable the sshd service;
+            the sshd socket service is always disabled in favor of the sshd service
           - Default is true for containers; false otherwise (install and configure sshd)
         type: bool
         required: false

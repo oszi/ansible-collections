@@ -1,9 +1,11 @@
 ---
 - name: Restart sshd service
-  ansible.builtin.service:
-    name: "{{ ssh_server_service_name }}"
+  when: not ssh_server_disabled  # If triggered by sshd socket
+  ansible.builtin.systemd:
+    name: "{{ ssh_server_service_name }}.service"
     state: "restarted"
     enabled: true
+    masked: false
 
 - name: Ensure the configured SSH port is used
   ansible.builtin.set_fact:

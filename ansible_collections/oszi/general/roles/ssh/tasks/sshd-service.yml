@@ -1,0 +1,29 @@
+---
+# In restricted containers, both ssh_server_disabled and ssh_manage_packages should be true,
+# in which case, uninstalling openssh-server removes the sshd service and socket.
+# The socket service complicates handlers, unit dependencies, custom ports...
+
+- name: Ensure sshd socket service is disabled
+  when: not ssh_server_disabled or not ssh_manage_packages
+  ansible.builtin.systemd:
+    name: "{{ ssh_server_service_name }}.socket"
+    state: "stopped"
+    enabled: false
+  register: _ssh_sshd_socket_result
+  failed_when: "_ssh_sshd_socket_result.failed
+    and not _ssh_sshd_socket_result.msg.startswith('Could not find ')"
+  notify: "Restart sshd service"
+
+- name: Run handlers immediately
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure sshd is started or disabled
+  when: not ssh_server_disabled or not ssh_manage_packages
+  ansible.builtin.systemd:
+    name: "{{ ssh_server_service_name }}.service"
+    state: "{{ (not ssh_server_disabled) | ternary('started', 'stopped') }}"
+    enabled: "{{ not ssh_server_disabled }}"
+    masked: "{{ (not ssh_server_disabled) | ternary(false, omit) }}"
+  register: _ssh_sshd_service_result
+  failed_when: "_ssh_sshd_service_result.failed
+    and not (ssh_server_disabled and _ssh_sshd_service_result.msg.startswith('Could not find '))"
