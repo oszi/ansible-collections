@@ -3,20 +3,18 @@
 ssh_server_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
 # Install openssh-server and extra packages, or uninstall the server?
 ssh_manage_packages: true
-# whether to configure ssh_authorized_keys?
-ssh_authorized_keys_enabled: "{{ not ssh_server_disabled }}"
 
-# Dict of authorized keys by user
-# Multiple keys can be separated by new lines, for example:
+# Whether to configure ssh_authorized_keys?
+ssh_authorized_keys_enabled: "{{ not ssh_server_disabled and ssh_authorized_keys is truthy }}"
+# Dict of authorized keys by user:
+# Multiple pubkeys can be separated by new lines, for example:
 # from="0.0.0.0/0",restrict,pty ssh-ed25519 AAAA... mobile-biometric
 # from="0.0.0.0/0",restrict,command="{{ ssh_sftp_subsystem }}" ssh-ed25519 AAAA... mobile-sftp-only
 ssh_authorized_keys: {}
 # Remove keys that were not configured here?
 ssh_authorized_keys_exclusive: true
-# Make authorized_keys files immutable to protect restrictions?
-# NOTE: Without making ~/.ssh append-only (+a) this can still be worked around!
-# But that breaks some legitimate use-cases - e.g. cleaning up control sockets.
-ssh_authorized_keys_immutable: false
+# Change authorized_keys files location to ssh_authorized_keys_d_path (root-owned)?
+ssh_authorized_keys_immutable: "{{ ssh_authorized_keys_exclusive and ssh_server_config_overridable }}"
 
 # Override the distro sshd_config?
 ssh_server_config_overridable: true
@@ -33,11 +31,11 @@ ssh_allow_users: []
 # List of SSH allowed groups
 ssh_allow_groups: []
 
-# Harden SSHD crypto settings?
+# Harden sshd crypto settings?
 ssh_harden_crypto: true
-# Enable post-quantum algorithms?
+# Enable post-quantum Kex algorithms?
 ssh_harden_crypto_post_quantum_enabled: true
-# Enable legacy RSA algorithms?
+# Enable legacy DH Kex and RSA host key algorithms?
 ssh_harden_crypto_rsa_enabled: "{{ ssh_host_keys | map('basename') | join(' ')
   | regex_search(ssh_host_key_regex_rsa) is not none }}"
 

@@ -29,7 +29,8 @@ argument_specs:
       ssh_authorized_keys_enabled:
         description:
           - Whether to configure SSH authorized keys set in O(ssh_authorized_keys)
-          - Default is true when O(ssh_server_disabled) is false; can be enabled regardless of the server
+          - Default is true when O(ssh_server_disabled) is false and O(ssh_authorized_keys) is not empty; can be enabled
+            regardless of the server, but O(ssh_authorized_keys_immutable) is incompatible with a disabled SSH server
         type: bool
         required: false
 
@@ -51,19 +52,21 @@ argument_specs:
       ssh_authorized_keys_exclusive:
         description:
           - Whether to remove authorized keys that were not configured here
-          - When true, only keys specified in ssh_authorized_keys are allowed
+          - When true, only keys specified in O(ssh_authorized_keys) are allowed
         type: bool
         required: false
         default: true
 
       ssh_authorized_keys_immutable:
         description:
-          - Whether to make authorized_keys files immutable to protect restrictions
-          - Note - Without making ~/.ssh append-only (+a) this can still be worked around
-          - Making ~/.ssh append-only breaks some legitimate use cases like cleaning up control sockets
+          - Whether to make authorized_keys files immutable to prevent unauthorized changes by changing `AuthorizedKeysFile`
+            to `/etc/ssh/authorized_keys.d/%u` (root-owned) from the default `.ssh/authorized_keys`; only ansible managed
+            keys will be active when migrating from one location to the other
+          - Requires O(ssh_server_config_overridable) to be true to change the locations; ansible_user must be part of
+            O(ssh_authorized_keys) to prevent an accidental lockout
+          - Default is true if O(ssh_authorized_keys_exclusive) and O(ssh_server_config_overridable) are both true
         type: bool
         required: false
-        default: false
 
       ssh_server_config_overridable:
         description:

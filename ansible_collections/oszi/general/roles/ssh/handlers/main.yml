@@ -15,3 +15,22 @@
 - name: Check connectivity
   ansible.builtin.ping:
   listen: "Set ansible_port to ssh_port"
+
+# XXX: Kept for migrating away from immutable files. Remove in a few releases.
+- name: Ensure home-dir relative authorized_keys files are NOT immutable
+  when: ssh_authorized_keys_enabled and ssh_authorized_keys_immutable
+  ansible.builtin.file:
+    path: "~{{ item }}/.ssh/authorized_keys"
+    attr: "-i"
+  with_items: "{{ ssh_authorized_keys.keys() }}"
+  changed_when: false
+  failed_when: false
+  listen: "Clean up home-dir relative authorized_keys files"
+
+- name: Ensure home-dir relative authorized_keys files are absent
+  when: ssh_authorized_keys_enabled and ssh_authorized_keys_immutable
+  ansible.builtin.file:
+    path: "~{{ item }}/.ssh/authorized_keys"
+    state: "absent"
+  with_items: "{{ ssh_authorized_keys.keys() }}"
+  listen: "Clean up home-dir relative authorized_keys files"

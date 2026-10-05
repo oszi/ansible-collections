@@ -1,0 +1,50 @@
+---
+- name: Assert prerequisites for immutable authorized_keys
+  ansible.builtin.assert:
+    that:
+      # # To change AuthorizedKeysFile to ssh_authorized_keys_d_path.
+      - not ssh_server_disabled and ssh_server_config_overridable
+      # To prevent lockout with an unprepared inventory.
+      - ssh_authorized_keys is truthy
+      # To prevent lockout after changing AuthorizedKeysFile.
+      - ansible_user is undefined or ansible_user in ssh_authorized_keys
+
+- name: Ensure root-owned authorized_keys directory exists
+  ansible.builtin.file:
+    path: "{{ ssh_authorized_keys_d_path }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    # Users must be able to read their authorized_keys files.
+    mode: "0711"
+
+- name: Manage SSH authorized_keys files
+  ansible.posix.authorized_key:
+    user: "{{ item.key }}"
+    key: "{{ item.value }}"
+    exclusive: "{{ ssh_authorized_keys_exclusive }}"
+    path: "{{ [ssh_authorized_keys_d_path, item.key] | path_join }}"
+    manage_dir: false
+  with_dict: "{{ ssh_authorized_keys }}"
+
+- name: Ensure authorized_keys files are root-owned
+  when: not ansible_check_mode
+  ansible.builtin.file:
+    path: "{{ [ssh_authorized_keys_d_path, item] | path_join }}"
+    owner: "root"
+    # Leave the group as set by ansible.posix.authorized_key.
+    mode: "0640"
+  with_items: "{{ ssh_authorized_keys.keys() }}"
+
+- name: Find all root-owned authorized_keys files
+  ansible.builtin.find:
+    paths: ["{{ ssh_authorized_keys_d_path }}/"]
+    file_type: "file"
+  register: _ssh_authorized_keys_found
+
+- name: Remove leftover root-owned authorized_keys files
+  ansible.builtin.file:
+    path: "{{ [ssh_authorized_keys_d_path, item] | path_join }}"
+    state: "absent"
+  with_items: "{{ _ssh_authorized_keys_found.files | map(attribute='path')
+    | map('basename') | reject('in', ssh_authorized_keys.keys()) }}"

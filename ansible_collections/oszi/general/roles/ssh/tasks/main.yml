@@ -7,10 +7,10 @@
       ansible.builtin.include_tasks:
         file: "{{ (not ssh_server_disabled) | ternary('install', 'uninstall') }}.yml"
 
-    - name: Include SSH authorized keys tasks
+    - name: Include SSH authorized_keys tasks
       when: ssh_authorized_keys_enabled
       ansible.builtin.include_tasks:
-        file: authorized-keys.yml
+        file: "authorized-keys-{{ ssh_authorized_keys_immutable | ternary('immutable', 'default') }}.yml"
 
     - name: Include SSH server config tasks
       when: not ssh_server_disabled and ssh_server_config_overridable

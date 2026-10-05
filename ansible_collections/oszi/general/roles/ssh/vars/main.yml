@@ -58,3 +58,6 @@ ssh_host_key_regex_rsa: '(?:\b|_)(rsa)[-_.]?(\d*)(?:\b|_)'
 ssh_server_package: openssh-server
 ssh_server_service_name: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"
 ssh_server_config_path: /etc/ssh/sshd_config
+
+# Directory path for authorized_keys files if ssh_authorized_keys_immutable is true.
+ssh_authorized_keys_d_path: "/etc/ssh/authorized_keys.d"

@@ -23,6 +23,10 @@ HostKey {{ item }}
 
 {% endif %}
 {% endfor %}
+{% if ssh_authorized_keys_enabled and ssh_authorized_keys_immutable %}
+AuthorizedKeysFile {{ ssh_authorized_keys_d_path }}/%u
+
+{% endif %}
 LogLevel {{ ssh_server_log_level }}
 Subsystem sftp {{ ssh_sftp_subsystem }}
 UsePAM yes
