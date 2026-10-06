@@ -7,28 +7,29 @@ AllowUsers {{ ssh_allow_users | join(' ') }}
 {% if ssh_allow_groups %}
 AllowGroups {{ ssh_allow_groups | join(' ') }}
 {% endif %}
-
+{% if ssh_authorized_keys_enabled and ssh_authorized_keys_immutable %}
+AuthorizedKeysFile {{ [ssh_authorized_keys_d_path, '%u'] | path_join }}
+{% endif %}
+{% for item in ssh_host_keys %}
+HostKey {{ item }}
+{% endfor %}
 {% if ssh_harden_crypto %}
+
 Ciphers {{ ssh_harden_crypto_ciphers | flatten | join(',') }}
 MACs {{ ssh_harden_crypto_macs | flatten | join(',') }}
 KexAlgorithms {{ ssh_harden_crypto_kex_algos | flatten | join(',') }}
 HostKeyAlgorithms {{ ssh_harden_crypto_host_key_algos | flatten | join(',') }}
 RequiredRSASize {{ ssh_harden_crypto_required_rsa_size }}
 RekeyLimit 1G 1h
-
 {% endif %}
-{% for item in ssh_host_keys %}
-HostKey {{ item }}
-{% if loop.last %}
 
-{% endif %}
-{% endfor %}
-{% if ssh_authorized_keys_enabled and ssh_authorized_keys_immutable %}
-AuthorizedKeysFile {{ ssh_authorized_keys_d_path }}/%u
-
-{% endif %}
 LogLevel {{ ssh_server_log_level }}
 Subsystem sftp {{ ssh_sftp_subsystem }}
+LoginGraceTime 30
+ClientAliveInterval 60
+ClientAliveCountMax 3
+PermitUserEnvironment no
+PermitUserRC no
 UsePAM yes
 UseDNS no
 {% if ssh_server_config_extra %}
