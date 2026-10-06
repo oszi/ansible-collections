@@ -1,13 +1,4 @@
 ---
-# XXX: Kept for migrating away from immutable files. Remove in a few releases.
-- name: Ensure home-dir relative authorized_keys files are NOT immutable
-  ansible.builtin.file:
-    path: "~{{ item }}/.ssh/authorized_keys"
-    attr: "-i"
-  with_items: "{{ ssh_authorized_keys.keys() }}"
-  changed_when: false
-  failed_when: false
-
 - name: Manage SSH authorized_keys files (default paths)
   ansible.posix.authorized_key:
     user: "{{ item.key }}"
