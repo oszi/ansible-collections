@@ -37,12 +37,14 @@
   with_items: "{{ ssh_authorized_keys.keys() }}"
 
 - name: Find all root-owned authorized_keys files
+  when: ssh_authorized_keys_exclusive
   ansible.builtin.find:
     paths: ["{{ ssh_authorized_keys_d_path }}/"]
     file_type: "file"
   register: _ssh_authorized_keys_found
 
 - name: Remove leftover root-owned authorized_keys files
+  when: ssh_authorized_keys_exclusive
   ansible.builtin.file:
     path: "{{ [ssh_authorized_keys_d_path, item] | path_join }}"
     state: "absent"

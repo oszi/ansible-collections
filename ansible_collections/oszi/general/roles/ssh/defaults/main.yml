@@ -27,7 +27,8 @@ ssh_server_config_extra: ""
 # publickey password hostbased keyboard-interactive none
 ssh_auth_methods: "publickey"
 # List of SSH allowed users
-ssh_allow_users: []
+ssh_allow_users: "{{ ssh_authorized_keys.keys() if ssh_authorized_keys_enabled and ssh_authorized_keys_exclusive
+  and ssh_authorized_keys_immutable and ssh_allow_groups is not truthy else [] }}"
 # List of SSH allowed groups
 ssh_allow_groups: []
 

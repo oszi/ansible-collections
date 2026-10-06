@@ -1,4 +1,10 @@
 ---
+- name: Assert prerequisites to prevent a lockout
+  ansible.builtin.assert:
+    that:
+      - "ssh_allow_users is not truthy or ansible_user is undefined or ansible_user in ssh_allow_users"
+    fail_msg: "ansible_user must be explicitly included in ssh_allow_users without patterns"
+
 - name: Assert that SSH host key paths match
   ansible.builtin.assert:
     that:

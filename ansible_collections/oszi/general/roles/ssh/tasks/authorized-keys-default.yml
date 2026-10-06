@@ -1,4 +1,7 @@
 ---
+# Unmanaged users retain their existing authorized_keys,
+# there is no need to check lockout conditions here.
+
 - name: Manage SSH authorized_keys files (default paths)
   ansible.posix.authorized_key:
     user: "{{ item.key }}"
