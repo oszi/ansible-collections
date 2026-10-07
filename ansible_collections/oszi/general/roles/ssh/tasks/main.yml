@@ -17,9 +17,9 @@
       ansible.builtin.include_tasks:
         file: server-config.yml
 
-    - name: Import sshd service tasks
+    - name: Import SSH server reconciliation tasks
       ansible.builtin.import_tasks:
-        file: sshd-service.yml
+        file: server-reconciliation.yml
 
     - name: SSH role completed
       ansible.builtin.assert:

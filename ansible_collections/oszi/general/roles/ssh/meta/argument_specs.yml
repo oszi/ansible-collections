@@ -65,7 +65,8 @@ argument_specs:
             would be set to all users in O(ssh_authorized_keys)
           - Requires O(ssh_server_config_overridable) to be true to change the locations; ansible_user must be part of
             O(ssh_authorized_keys) to prevent an accidental lockout
-          - Default is true when O(ssh_authorized_keys_exclusive) and O(ssh_server_config_overridable) are both true
+          - Default is true when O(ssh_authorized_keys_exclusive) and O(ssh_server_config_overridable) are both true,
+            and O(ssh_server_disabled) is false
         type: bool
         required: false
 
@@ -105,8 +106,8 @@ argument_specs:
         description:
           - Space-separated list of one or more comma-separated authentication methods that must be successfully completed
             for a user to be granted access; authentication requires completion of exactly one complete AND-logic method listed
-          - Known authentication methods - `publickey` `password` `hostbased` `keyboard-interactive` `none`
-          - For example, `publickey,password publickey,keyboard-interactive`, `publickey,publickey` to require two different public keys
+          - Known authentication methods - `publickey` `password` `hostbased` `keyboard-interactive` `none`; for example,
+            `publickey,password publickey,keyboard-interactive`, `publickey,publickey` to require two different public keys
         type: str
         required: false
         default: publickey

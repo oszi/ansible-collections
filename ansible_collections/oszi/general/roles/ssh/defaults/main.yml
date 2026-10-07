@@ -14,7 +14,8 @@ ssh_authorized_keys: {}
 # Remove keys that were not configured here?
 ssh_authorized_keys_exclusive: true
 # Change authorized_keys files location to ssh_authorized_keys_d_path (root-owned)?
-ssh_authorized_keys_immutable: "{{ ssh_authorized_keys_exclusive and ssh_server_config_overridable }}"
+ssh_authorized_keys_immutable: "{{ not ssh_server_disabled and ssh_server_config_overridable
+  and ssh_authorized_keys_exclusive }}"
 
 # Override the distro sshd_config?
 ssh_server_config_overridable: true
@@ -26,10 +27,11 @@ ssh_server_config_extra: ""
 # Space-separated list of one or more comma-separated authentication methods...
 # publickey password hostbased keyboard-interactive none
 ssh_auth_methods: "publickey"
-# List of SSH allowed users
-ssh_allow_users: "{{ ssh_authorized_keys.keys() if ssh_authorized_keys_enabled and ssh_authorized_keys_exclusive
-  and ssh_authorized_keys_immutable and ssh_allow_groups is not truthy else [] }}"
-# List of SSH allowed groups
+# List of SSH allowed users (conditions evaluate to true by default):
+ssh_allow_users: "{{ ssh_authorized_keys.keys() | list if ssh_authorized_keys_enabled
+  and ssh_authorized_keys_exclusive and ssh_authorized_keys_immutable
+  and ssh_allow_groups is not truthy else [] }}"
+# List of SSH allowed groups:
 ssh_allow_groups: []
 
 # Harden sshd crypto settings?

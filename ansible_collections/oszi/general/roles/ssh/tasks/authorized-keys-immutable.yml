@@ -2,7 +2,7 @@
 - name: Assert prerequisites for immutable authorized_keys
   ansible.builtin.assert:
     that:
-      # # To change AuthorizedKeysFile to ssh_authorized_keys_d_path.
+      # To change AuthorizedKeysFile to ssh_authorized_keys_d_path.
       - not ssh_server_disabled and ssh_server_config_overridable
       # To prevent lockout with an unprepared inventory.
       - ssh_authorized_keys is truthy
