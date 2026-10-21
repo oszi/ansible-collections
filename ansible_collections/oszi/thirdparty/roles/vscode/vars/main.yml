@@ -29,5 +29,5 @@ vscode_deb_repo: |
   URIs: {{ vscode_deb_baseurl }}
   Suites: stable
   Components: main
-  Architectures: {{ vscode_deb_arch }}
+  Architectures: {{ vscode_deb_arch | replace(',', ' ') }}
   Signed-By: {{ vscode_deb_gpgkey_path }}

@@ -39,5 +39,5 @@ google_chrome_deb_repo: |
   URIs: {{ google_chrome_deb_baseurl }}
   Suites: stable
   Components: main
-  Architectures: {{ google_chrome_deb_arch }}
+  Architectures: {{ google_chrome_deb_arch | replace(',', ' ') }}
   Signed-By: {{ google_chrome_deb_gpgkey_path }}
