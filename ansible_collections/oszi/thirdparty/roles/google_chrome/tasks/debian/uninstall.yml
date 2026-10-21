@@ -1,15 +1,26 @@
 ---
-- name: Ensure google-chrome.list is NOT immutable
+- name: Stat legacy Google Chrome deb repository
+  ansible.builtin.stat:
+    path: "{{ google_chrome_deb_repo_legacy_path }}"
+  register: _google_chrome_deb_repo_legacy_stat
+
+# XXX: Earlier role versions owned this file and made it immutable.
+- name: Ensure legacy google-chrome.list is NOT immutable
+  when: "_google_chrome_deb_repo_legacy_stat.stat.exists
+    and 'immutable' in _google_chrome_deb_repo_legacy_stat.stat.attributes"
   ansible.builtin.file:
-    path: "{{ google_chrome_deb_repo_path }}"
+    path: "{{ google_chrome_deb_repo_legacy_path }}"
     attr: "-i"
-  failed_when: false
 
 - name: Uninstall Google Chrome deb repository
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
   with_items:
-    - "{{ google_chrome_deb_gpgkey_path }}"
-    - "{{ google_chrome_deb_gpgkey_vendored_path }}"
     - "{{ google_chrome_deb_repo_path }}"
+    - "{{ google_chrome_deb_repo_legacy_path }}"
+    - "{{ google_chrome_deb_repo_vendored_path }}"
+    - "{{ google_chrome_deb_gpgkey_path }}"
+    - "{{ google_chrome_deb_gpgkey_legacy_path }}"
+    - "{{ google_chrome_deb_gpgkey_vendored_path }}"
+    - "{{ google_chrome_defaults_path }}"

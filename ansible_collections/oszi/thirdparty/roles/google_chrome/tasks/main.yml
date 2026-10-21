@@ -2,18 +2,24 @@
 - name: Google Chrome tasks
   tags: [google-chrome]
   block:
+    # Must exist before the package installs: a missing file makes the
+    # vendor scripts add their own repository and signing key.
+    - name: Disable repository management by Google Chrome packages
+      when: google_chrome_enabled
+      ansible.builtin.copy:
+        dest: "{{ google_chrome_defaults_path }}"
+        content: |
+          repo_add_once="false"
+          repo_reenable_on_distupgrade="false"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
     - name: Google Chrome repository
       ansible.builtin.include_tasks:
         file: "{{ ansible_facts.os_family | lower }}/{{ google_chrome_enabled | ternary('install', 'uninstall') }}.yml"
 
-    - name: Ensure Google Chrome Stable is installed
-      when: google_chrome_enabled
+    - name: Ensure Google Chrome is present or absent
       ansible.builtin.package:
-        name: "google-chrome-stable"
-        state: "present"
-
-    - name: Ensure Google Chrome is NOT installed
-      when: not google_chrome_enabled
-      ansible.builtin.package:
-        name: "{{ google_chrome_rpm_includepkgs }}"
-        state: "absent"
+        name: "{{ google_chrome_enabled | ternary(google_chrome_package, google_chrome_rpm_includepkgs) }}"
+        state: "{{ google_chrome_enabled | ternary('present', 'absent') }}"

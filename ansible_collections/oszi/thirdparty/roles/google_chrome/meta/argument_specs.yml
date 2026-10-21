@@ -3,8 +3,8 @@ argument_specs:
   main:
     short_description: Google Chrome browser installation
     description:
-      - Manages Google Chrome installation from Google's official repositories
-      - Manages package sources for Debian and RPM-based systems
+      - Manages Google Chrome installation from Google's official repositories for Debian and RedHat systems
+      - Manages the repository under a different filename from upstream and disables vendor repository management
       - Supports custom repository mirrors
     author:
       - "David O. (oszi.dev)"

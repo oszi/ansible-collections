@@ -1,13 +1,23 @@
 ---
+# Google Chrome packages install and rewrite repository files at fixed paths
+# (google-chrome.sources, google-chrome.list, google-chrome.repo) and
+# consult /etc/default/google-chrome before adding them. The role owns
+# the repository under a different filename, which the vendor scripts
+# never touch, and removes the vendor-managed files instead.
+google_chrome_defaults_path: "/etc/default/google-chrome"
+
+google_chrome_package: "google-chrome-stable"
+
 google_chrome_rpm_gpgkey_path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome"
-google_chrome_rpm_repo_path: "/etc/yum.repos.d/google-chrome.repo"
+google_chrome_rpm_repo_path: "/etc/yum.repos.d/google-chrome-ansible-managed.repo"
+google_chrome_rpm_repo_vendored_path: "/etc/yum.repos.d/google-chrome.repo"
 google_chrome_rpm_includepkgs:
   - "google-chrome-beta"
   - "google-chrome-stable"
   - "google-chrome-unstable"
 
 google_chrome_rpm_repo_args:
-  file: "google-chrome"
+  file: "{{ google_chrome_rpm_repo_path | basename | splitext | first }}"
   name: "google-chrome"
   description: "Google Chrome"
   includepkgs: "{{ google_chrome_rpm_includepkgs }}"
@@ -18,8 +28,16 @@ google_chrome_rpm_repo_args:
   enabled: true
 
 google_chrome_deb_gpgkey_path: "/etc/apt/keyrings/google-chrome.gpg"
-google_chrome_deb_gpgkey_vendored_path: "/etc/apt/trusted.gpg.d/google-chrome.gpg"
-google_chrome_deb_repo_path: "/etc/apt/sources.list.d/google-chrome.list"
-google_chrome_deb_repo: >-
-  deb [arch={{ google_chrome_deb_arch }} signed-by={{ google_chrome_deb_gpgkey_path }}]
-  {{ google_chrome_deb_baseurl }} stable main
+google_chrome_deb_gpgkey_legacy_path: "/etc/apt/trusted.gpg.d/google-chrome.gpg"
+google_chrome_deb_gpgkey_vendored_path: "/usr/share/keyrings/google-chrome.gpg"
+google_chrome_deb_repo_path: "/etc/apt/sources.list.d/google-chrome-ansible-managed.sources"
+google_chrome_deb_repo_legacy_path: "/etc/apt/sources.list.d/google-chrome.list"
+google_chrome_deb_repo_vendored_path: "/etc/apt/sources.list.d/google-chrome.sources"
+
+google_chrome_deb_repo: |
+  Types: deb
+  URIs: {{ google_chrome_deb_baseurl }}
+  Suites: stable
+  Components: main
+  Architectures: {{ google_chrome_deb_arch }}
+  Signed-By: {{ google_chrome_deb_gpgkey_path }}
