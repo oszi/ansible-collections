@@ -21,8 +21,9 @@ vscode_rpm_repo_args:
   enabled: true
 
 vscode_deb_gpgkey_path: "/etc/apt/keyrings/packages.microsoft.gpg"
+vscode_deb_gpgkey_legacy_path: "/etc/apt/trusted.gpg.d/microsoft.gpg"
 vscode_deb_repo_path: "/etc/apt/sources.list.d/vscode.sources"
-vscode_deb_repo_path_legacy: "/etc/apt/sources.list.d/vscode.list"
+vscode_deb_repo_legacy_path: "/etc/apt/sources.list.d/vscode.list"
 vscode_deb_repo: |
   Types: deb
   URIs: {{ vscode_deb_baseurl }}

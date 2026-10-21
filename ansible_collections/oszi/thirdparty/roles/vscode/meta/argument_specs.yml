@@ -3,8 +3,7 @@ argument_specs:
   main:
     short_description: Visual Studio Code installation from Microsoft
     description:
-      - Manages Visual Studio Code installation from Microsoft's official repository
-      - Manages package sources for Debian and RPM-based systems
+      - Manages Visual Studio Code installation from Microsoft's official repository for Debian and RedHat systems
       - Supports custom repository mirrors
     author:
       - "David O. (oszi.dev)"

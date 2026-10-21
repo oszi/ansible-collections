@@ -1,9 +1,15 @@
 ---
+- name: Stat VS Code RPM repository
+  ansible.builtin.stat:
+    path: "{{ vscode_rpm_repo_path }}"
+  register: _vscode_rpm_repo_stat
+
+# XXX: Earlier role versions made this file immutable.
 - name: Ensure vscode.repo is NOT immutable
+  when: "_vscode_rpm_repo_stat.stat.exists and 'immutable' in _vscode_rpm_repo_stat.stat.attributes"
   ansible.builtin.file:
     path: "{{ vscode_rpm_repo_path }}"
     attr: "-i"
-  failed_when: false
 
 - name: Uninstall VS Code RPM repository
   ansible.builtin.file:
