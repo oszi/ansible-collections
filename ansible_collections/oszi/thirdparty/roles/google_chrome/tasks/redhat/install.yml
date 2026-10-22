@@ -7,19 +7,6 @@
     group: "root"
     mode: "0644"
 
-- name: Stat vendor-managed Google Chrome RPM repository
-  ansible.builtin.stat:
-    path: "{{ google_chrome_rpm_repo_vendored_path }}"
-  register: _google_chrome_rpm_repo_vendored_stat
-
-# XXX: Earlier role versions owned this file and made it immutable.
-- name: Ensure google-chrome.repo is NOT immutable
-  when: "_google_chrome_rpm_repo_vendored_stat.stat.exists
-    and 'immutable' in _google_chrome_rpm_repo_vendored_stat.stat.attributes"
-  ansible.builtin.file:
-    path: "{{ google_chrome_rpm_repo_vendored_path }}"
-    attr: "-i"
-
 - name: Remove vendor-managed Google Chrome RPM repository
   ansible.builtin.file:
     path: "{{ google_chrome_rpm_repo_vendored_path }}"

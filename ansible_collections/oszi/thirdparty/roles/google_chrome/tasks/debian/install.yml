@@ -15,19 +15,6 @@
     group: "root"
     mode: "0644"
 
-- name: Stat legacy Google Chrome deb repository
-  ansible.builtin.stat:
-    path: "{{ google_chrome_deb_repo_legacy_path }}"
-  register: _google_chrome_deb_repo_legacy_stat
-
-# XXX: Earlier role versions owned this file and made it immutable.
-- name: Ensure legacy google-chrome.list is NOT immutable
-  when: "_google_chrome_deb_repo_legacy_stat.stat.exists
-    and 'immutable' in _google_chrome_deb_repo_legacy_stat.stat.attributes"
-  ansible.builtin.file:
-    path: "{{ google_chrome_deb_repo_legacy_path }}"
-    attr: "-i"
-
 - name: Remove legacy and vendor-managed Google Chrome deb repository files
   ansible.builtin.file:
     path: "{{ item }}"
