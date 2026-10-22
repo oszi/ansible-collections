@@ -53,7 +53,7 @@ argument_specs:
       k8s_pkgs_rpm_gpgkey_checksum:
         description:
           - Checksum in algo:hash format for O(k8s_pkgs_rpm_gpgkey_url)
-          - Empty by default because the key depends on O(k8s_pkgs_version)
+          - Set to an empty string to skip verification
         type: str
         required: false
 
@@ -82,7 +82,7 @@ argument_specs:
       k8s_pkgs_deb_gpgkey_checksum:
         description:
           - Checksum in algo:hash format for O(k8s_pkgs_deb_gpgkey_url)
-          - Empty by default because the key depends on O(k8s_pkgs_version)
+          - Set to an empty string to skip verification
         type: str
         required: false
 

@@ -15,6 +15,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+  register: _k8s_pkgs_deb_gpgkey_result
 
 - name: Remove unmanaged Kubernetes deb files
   ansible.builtin.file:
@@ -41,6 +42,7 @@
     mode: "0644"
 
 - name: Update apt cache
-  when: _k8s_pkgs_deb_cleanup_result.changed or _k8s_pkgs_deb_repo_result.changed
+  when: _k8s_pkgs_deb_gpgkey_result.changed or _k8s_pkgs_deb_cleanup_result.changed
+    or _k8s_pkgs_deb_repo_result.changed
   ansible.builtin.apt:
     update_cache: true

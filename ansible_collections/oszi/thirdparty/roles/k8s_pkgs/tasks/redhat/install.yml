@@ -10,12 +10,4 @@
 
 - name: Install Kubernetes RPM repository
   ansible.builtin.yum_repository:
-    file: "kubernetes"
-    name: "kubernetes"
-    description: "Kubernetes community packages"
-    includepkgs: "{{ k8s_pkgs_rpm_includepkgs }}"
-    baseurl: "{{ k8s_pkgs_rpm_baseurl }}"
-    gpgkey: "file://{{ k8s_pkgs_rpm_gpgkey_path }}"
-    gpgcheck: true
-    repo_gpgcheck: false
-    enabled: true
+  args: "{{ k8s_pkgs_rpm_repo_args }}"

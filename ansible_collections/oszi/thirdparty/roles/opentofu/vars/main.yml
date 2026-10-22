@@ -12,6 +12,17 @@ opentofu_rpm_repo_path: "/etc/yum.repos.d/opentofu.repo"
 opentofu_rpm_includepkgs:
   - "tofu"
 
+opentofu_rpm_repo_args:
+  file: "{{ (opentofu_rpm_repo_path | basename).removesuffix('.repo') }}"
+  name: "opentofu"
+  description: "OpenTofu Upstream"
+  includepkgs: "{{ opentofu_rpm_includepkgs }}"
+  baseurl: "{{ opentofu_rpm_baseurl }}"
+  gpgkey: "{{ opentofu_rpm_gpgkey_paths | map('regex_replace', '^(.*)$', 'file://\\1') | list }}"
+  gpgcheck: true
+  repo_gpgcheck: false
+  enabled: true
+
 opentofu_deb_gpgkey_list:
   - path: "/etc/apt/keyrings/opentofu.{{ opentofu_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
     url: "{{ opentofu_deb_gpgkey_url }}"

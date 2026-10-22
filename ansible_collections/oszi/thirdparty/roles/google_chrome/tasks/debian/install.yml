@@ -15,6 +15,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+  register: _google_chrome_deb_gpgkey_result
 
 - name: Remove unmanaged Google Chrome deb files
   ansible.builtin.file:
@@ -33,6 +34,7 @@
   register: _google_chrome_deb_repo_result
 
 - name: Update apt cache
-  when: _google_chrome_deb_cleanup_result.changed or _google_chrome_deb_repo_result.changed
+  when: _google_chrome_deb_gpgkey_result.changed or _google_chrome_deb_cleanup_result.changed
+    or _google_chrome_deb_repo_result.changed
   ansible.builtin.apt:
     update_cache: true

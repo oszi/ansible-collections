@@ -14,6 +14,28 @@ hashicorp_rpm_includepkgs:
   - vault
   - waypoint
 
+hashicorp_rpm_repo_args:
+  file: "{{ (hashicorp_rpm_repo_path | basename).removesuffix('.repo') }}"
+  name: "hashicorp"
+  description: "Hashicorp Stable - $basearch"
+  includepkgs: "{{ hashicorp_rpm_includepkgs }}"
+  baseurl: "{{ hashicorp_rpm_baseurl }}/stable"
+  gpgkey: "file://{{ hashicorp_rpm_gpgkey_path }}"
+  gpgcheck: true
+  repo_gpgcheck: false
+  enabled: true
+
+hashicorp_rpm_repo_test_args:
+  file: "{{ (hashicorp_rpm_repo_path | basename).removesuffix('.repo') }}"
+  name: "hashicorp-test"
+  description: "Hashicorp Test - $basearch"
+  includepkgs: "{{ hashicorp_rpm_includepkgs }}"
+  baseurl: "{{ hashicorp_rpm_baseurl }}/test"
+  gpgkey: "file://{{ hashicorp_rpm_gpgkey_path }}"
+  gpgcheck: true
+  repo_gpgcheck: false
+  enabled: false
+
 hashicorp_deb_gpgkey_path: "/etc/apt/keyrings/hashicorp.{{ hashicorp_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
 hashicorp_deb_absent_paths:
   - "/etc/apt/keyrings/hashicorp.{{ hashicorp_deb_gpgkey_armored | ternary('gpg', 'asc') }}"

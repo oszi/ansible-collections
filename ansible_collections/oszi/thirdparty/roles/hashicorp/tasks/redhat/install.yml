@@ -10,24 +10,8 @@
 
 - name: Install Hashicorp RPM repository
   ansible.builtin.yum_repository:
-    file: "hashicorp"
-    name: "hashicorp"
-    description: "Hashicorp Stable - $basearch"
-    includepkgs: "{{ hashicorp_rpm_includepkgs }}"
-    baseurl: "{{ hashicorp_rpm_baseurl }}/stable"
-    gpgkey: "file://{{ hashicorp_rpm_gpgkey_path }}"
-    gpgcheck: true
-    repo_gpgcheck: false
-    enabled: true
+  args: "{{ hashicorp_rpm_repo_args }}"
 
 - name: Install Hashicorp test RPM repository
   ansible.builtin.yum_repository:
-    file: "hashicorp"
-    name: "hashicorp-test"
-    description: "Hashicorp Test - $basearch"
-    includepkgs: "{{ hashicorp_rpm_includepkgs }}"
-    baseurl: "{{ hashicorp_rpm_baseurl }}/test"
-    gpgkey: "file://{{ hashicorp_rpm_gpgkey_path }}"
-    gpgcheck: true
-    repo_gpgcheck: false
-    enabled: false
+  args: "{{ hashicorp_rpm_repo_test_args }}"

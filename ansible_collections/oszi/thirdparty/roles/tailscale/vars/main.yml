@@ -4,6 +4,17 @@ tailscale_rpm_repo_path: "/etc/yum.repos.d/tailscale.repo"
 tailscale_rpm_includepkgs:
   - "tailscale"
 
+tailscale_rpm_repo_args:
+  file: "{{ (tailscale_rpm_repo_path | basename).removesuffix('.repo') }}"
+  name: "tailscale"
+  description: "Tailscale stable"
+  includepkgs: "{{ tailscale_rpm_includepkgs }}"
+  baseurl: "{{ tailscale_rpm_baseurl }}"
+  gpgkey: "file://{{ tailscale_rpm_gpgkey_path }}"
+  gpgcheck: true
+  repo_gpgcheck: false
+  enabled: true
+
 tailscale_deb_gpgkey_path: "/etc/apt/keyrings/tailscale-archive-keyring.{{ tailscale_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
 tailscale_deb_absent_paths:
   - "/etc/apt/keyrings/tailscale-archive-keyring.{{ tailscale_deb_gpgkey_armored | ternary('gpg', 'asc') }}"

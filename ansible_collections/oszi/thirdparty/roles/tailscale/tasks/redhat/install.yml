@@ -10,12 +10,4 @@
 
 - name: Install Tailscale RPM repository
   ansible.builtin.yum_repository:
-    file: "tailscale"
-    name: "tailscale"
-    description: "Tailscale stable"
-    includepkgs: "{{ tailscale_rpm_includepkgs }}"
-    baseurl: "{{ tailscale_rpm_baseurl }}"
-    gpgkey: "file://{{ tailscale_rpm_gpgkey_path }}"
-    gpgcheck: true
-    repo_gpgcheck: false
-    enabled: true
+  args: "{{ tailscale_rpm_repo_args }}"

@@ -10,24 +10,8 @@
 
 - name: Install GCloud SDK RPM repository
   ansible.builtin.yum_repository:
-    file: "google-cloud-sdk"
-    name: "google-cloud-sdk"
-    description: "GCloud SDK"
-    includepkgs: "{{ gcloud_sdk_rpm_includepkgs }}"
-    baseurl: "{{ gcloud_sdk_rpm_baseurl }}"
-    gpgkey: "file://{{ gcloud_sdk_rpm_gpgkey_path }}"
-    gpgcheck: true
-    repo_gpgcheck: false
-    enabled: true
+  args: "{{ gcloud_sdk_rpm_repo_args }}"
 
 - name: Install GCloud SDK unstable RPM repository
   ansible.builtin.yum_repository:
-    file: "google-cloud-sdk"
-    name: "google-cloud-sdk-unstable"
-    description: "GCloud SDK - Unstable"
-    includepkgs: "{{ gcloud_sdk_rpm_includepkgs }}"
-    baseurl: "{{ gcloud_sdk_rpm_baseurl }}-unstable"
-    gpgkey: "file://{{ gcloud_sdk_rpm_gpgkey_path }}"
-    gpgcheck: true
-    repo_gpgcheck: false
-    enabled: false
+  args: "{{ gcloud_sdk_rpm_repo_unstable_args }}"

@@ -11,12 +11,4 @@
 
 - name: Install OpenTofu RPM repository
   ansible.builtin.yum_repository:
-    file: "opentofu"
-    name: "opentofu"
-    description: "OpenTofu Upstream"
-    includepkgs: "{{ opentofu_rpm_includepkgs }}"
-    baseurl: "{{ opentofu_rpm_baseurl }}"
-    gpgkey: "{{ opentofu_rpm_gpgkey_paths | map('regex_replace', '^(.*)$', 'file://\\1') | list }}"
-    gpgcheck: true
-    repo_gpgcheck: false
-    enabled: true
+  args: "{{ opentofu_rpm_repo_args }}"

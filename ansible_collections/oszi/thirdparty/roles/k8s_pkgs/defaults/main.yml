@@ -19,9 +19,10 @@ k8s_pkgs_deb_gpgkey_url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version 
 # Whether the deb key is ASCII-armored - selects the .asc or .gpg keyring name apt requires
 k8s_pkgs_deb_gpgkey_armored: true
 
-# Checksums (algo:hash) for GPG public key downloads - empty because the key depends on the version
-k8s_pkgs_rpm_gpgkey_checksum: ""
-k8s_pkgs_deb_gpgkey_checksum: ""
+# Checksums (algo:hash) for GPG public key downloads - set to "" to skip verification
+# The key is identical for every version and both package formats
+k8s_pkgs_rpm_gpgkey_checksum: "sha256:7627818cf7bae52f9008c93e8b1f961f53dea11d40891778de216fb1b43be54d"
+k8s_pkgs_deb_gpgkey_checksum: "sha256:7627818cf7bae52f9008c93e8b1f961f53dea11d40891778de216fb1b43be54d"
 
 # System completion paths for Bash and ZSH (kubeadm completion is not ZSH-native):
 k8s_pkgs_kubectl_bash_completion_path: "/etc/bash_completion.d/kubectl"

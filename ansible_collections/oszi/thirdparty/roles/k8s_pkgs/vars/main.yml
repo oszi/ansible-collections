@@ -5,6 +5,17 @@ k8s_pkgs_rpm_includepkgs:
   - "kube*"
   - "cri-tools"
 
+k8s_pkgs_rpm_repo_args:
+  file: "{{ (k8s_pkgs_rpm_repo_path | basename).removesuffix('.repo') }}"
+  name: "kubernetes"
+  description: "Kubernetes community packages"
+  includepkgs: "{{ k8s_pkgs_rpm_includepkgs }}"
+  baseurl: "{{ k8s_pkgs_rpm_baseurl }}"
+  gpgkey: "file://{{ k8s_pkgs_rpm_gpgkey_path }}"
+  gpgcheck: true
+  repo_gpgcheck: false
+  enabled: true
+
 k8s_pkgs_deb_gpgkey_path: "/etc/apt/keyrings/kubernetes-apt-keyring.{{ k8s_pkgs_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
 k8s_pkgs_deb_absent_paths:
   - "/etc/apt/keyrings/kubernetes-apt-keyring.{{ k8s_pkgs_deb_gpgkey_armored | ternary('gpg', 'asc') }}"

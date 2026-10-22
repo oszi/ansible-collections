@@ -17,6 +17,7 @@
     group: "root"
     mode: "0644"
   with_items: "{{ opentofu_deb_gpgkey_list }}"
+  register: _opentofu_deb_gpgkey_result
 
 - name: Remove unmanaged OpenTofu deb files
   ansible.builtin.file:
@@ -35,6 +36,7 @@
   register: _opentofu_deb_repo_result
 
 - name: Update apt cache
-  when: _opentofu_deb_cleanup_result.changed or _opentofu_deb_repo_result.changed
+  when: _opentofu_deb_gpgkey_result.changed or _opentofu_deb_cleanup_result.changed
+    or _opentofu_deb_repo_result.changed
   ansible.builtin.apt:
     update_cache: true
