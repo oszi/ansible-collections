@@ -5,14 +5,49 @@
     name: "epel-release"
     state: "present"
 
-- name: Install RPMFusion repositories
+- name: Ensure distribution-gpg-keys is installed
+  when: not ansible_check_mode
+  ansible.builtin.dnf:
+    name: "distribution-gpg-keys"
+    state: "present"
+
+- name: Import RPM Fusion signing keys from distribution-gpg-keys
+  when: not ansible_check_mode
+  ansible.builtin.rpm_key:
+    key: "{{ item }}"
+    state: "present"
+  loop: "{{ rpmfusion_rpm_release_list | map(attribute='gpgkey') }}"
+
+- name: Query installed RPM Fusion release packages
   ansible.builtin.command:
-    argv: ["dnf", "--assumeyes", "install", "{{ rpmfusion_url }}"]
-  args:
-    creates: "/etc/yum.repos.d/rpmfusion-{{ item }}.repo"
-  vars:
-    rpmfusion_url: "https://mirrors.rpmfusion.org/{{ item }}/{{
-      (ansible_facts.distribution == 'Fedora') | ternary('fedora', 'el')
-      }}/rpmfusion-{{ item }}-release-{{
-      ansible_facts.distribution_major_version }}.noarch.rpm"
-  with_items: ["free", "nonfree"]
+    argv: "{{ ['rpm', '-q', '--qf', '%{NAME}\n'] + rpmfusion_rpm_release_list | map(attribute='name') | list }}"
+  register: _rpmfusion_rpm_query_result
+  # rpm exits with the number of missing packages.
+  failed_when: "_rpmfusion_rpm_query_result.rc > rpmfusion_rpm_release_list | length"
+  changed_when: false
+  check_mode: false
+
+# dnf verifies local and remote RPM files against the imported keys (localpkg_gpgcheck).
+- name: Bootstrap RPM Fusion release packages from upstream
+  when: "item.name not in _rpmfusion_rpm_query_result.stdout_lines"
+  ansible.builtin.dnf:
+    name: "{{ item.url }}"
+    state: "present"
+    disable_gpg_check: false
+    validate_certs: true
+  loop: "{{ rpmfusion_rpm_release_list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Ensure RPM Fusion release packages are present
+  when: not ansible_check_mode
+  ansible.builtin.dnf:
+    name: "{{ rpmfusion_rpm_release_list | map(attribute='name') | list }}"
+    state: "present"
+
+- name: Ensure RPM Fusion tainted release packages are present or absent
+  when: "not ansible_check_mode and rpmfusion_rpm_release_tainted_packages
+    | intersect((rpmfusion_packages + rpmfusion_blacklisted_packages) | flatten) is not truthy"
+  ansible.builtin.dnf:
+    name: "{{ rpmfusion_rpm_release_tainted_packages }}"
+    state: "{{ rpmfusion_tainted_enabled | ternary('present', 'absent') }}"

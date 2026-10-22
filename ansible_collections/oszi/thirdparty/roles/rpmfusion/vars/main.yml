@@ -1,1 +1,26 @@
 ---
+# Signing keys are also shipped by the distribution-gpg-keys package for bootstrapping.
+rpmfusion_rpm_gpgkey_dir: "/usr/share/distribution-gpg-keys/rpmfusion"
+rpmfusion_rpm_distro: "{{ (ansible_facts.distribution == 'Fedora') | ternary('fedora', 'el') }}"
+
+rpmfusion_rpm_release_list:
+  - name: "rpmfusion-free-release"
+    url: "{{ rpmfusion_bootstrap_mirror }}/free/{{ rpmfusion_rpm_distro }}/rpmfusion-free-release-{{
+      ansible_facts.distribution_major_version }}.noarch.rpm"
+    gpgkey: "{{ rpmfusion_rpm_gpgkey_dir }}/RPM-GPG-KEY-rpmfusion-free-{{ rpmfusion_rpm_distro }}-{{
+      ansible_facts.distribution_major_version }}"
+
+  - name: "rpmfusion-nonfree-release"
+    url: "{{ rpmfusion_bootstrap_mirror }}/nonfree/{{ rpmfusion_rpm_distro }}/rpmfusion-nonfree-release-{{
+      ansible_facts.distribution_major_version }}.noarch.rpm"
+    gpgkey: "{{ rpmfusion_rpm_gpgkey_dir }}/RPM-GPG-KEY-rpmfusion-nonfree-{{ rpmfusion_rpm_distro }}-{{
+      ansible_facts.distribution_major_version }}"
+
+# Tainted subpackages depend on the release packages and are shipped by the repositories.
+rpmfusion_rpm_release_tainted_packages:
+  - "rpmfusion-free-release-tainted"
+  - "rpmfusion-nonfree-release-tainted"
+
+rpmfusion_rpm_appstream_packages:
+  - "rpmfusion-free-appstream-data"
+  - "rpmfusion-nonfree-appstream-data"

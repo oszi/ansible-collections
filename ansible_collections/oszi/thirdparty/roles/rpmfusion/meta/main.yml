@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  description: "Configure the RPMFusion repository."
+  description: "Configure the RPM Fusion repository."
   author: "David O. (oszi.dev)"
   license: "BSD-3-Clause"
   min_ansible_version: "2.20.0"

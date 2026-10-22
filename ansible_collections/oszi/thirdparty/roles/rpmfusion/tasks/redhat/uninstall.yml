@@ -1,14 +1,11 @@
 ---
-- name: Ensure RPMFusion is NOT installed
-  ansible.builtin.package:
-    name:
-      - "rpmfusion-free-release-{{ ansible_facts.distribution_major_version }}"
-      - "rpmfusion-free-appstream-data-{{ ansible_facts.distribution_major_version }}"
-      - "rpmfusion-nonfree-release-{{ ansible_facts.distribution_major_version }}"
-      - "rpmfusion-nonfree-appstream-data-{{ ansible_facts.distribution_major_version }}"
+- name: Ensure RPM Fusion release, tainted, and appstream packages are absent
+  ansible.builtin.dnf:
+    name: "{{ rpmfusion_rpm_release_list | map(attribute='name') | list
+      + rpmfusion_rpm_release_tainted_packages + rpmfusion_rpm_appstream_packages }}"
     state: "absent"
 
-- name: Find leftover RPMFusion repository files
+- name: Find leftover RPM Fusion repository files
   ansible.builtin.find:
     paths:
       - "/etc/yum.repos.d"
@@ -17,7 +14,7 @@
     file_type: "any"
   register: _rpmfusion_leftovers_found
 
-- name: Remove leftover RPMFusion repository files
+- name: Remove leftover RPM Fusion repository files
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"

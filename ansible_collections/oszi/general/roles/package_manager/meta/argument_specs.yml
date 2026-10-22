@@ -68,7 +68,7 @@ argument_specs:
       package_manager_repo_replacements_targets:
         description:
           - List of glob patterns targeted by O(package_manager_repo_replacements)
-          - Default matches Debian, Ubuntu, Fedora, and most EL repo files, also RPMFusion
+          - Default matches Debian, Ubuntu, Fedora, and most EL repo files, also RPM Fusion
         type: list
         elements: str
         required: false

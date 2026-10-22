@@ -1,10 +1,19 @@
 ---
-# Enable RPMFusion repositories on RedHat family? (Off by default!)
+# Enable RPM Fusion repositories on RedHat family? (Off by default!)
 rpmfusion_enabled: false
+
+# Install the tainted repositories too? (Legally restricted software, e.g. libdvdcss)
+# Ignored if the tainted release packages are listed in the package lists below.
+rpmfusion_tainted_enabled: false
+
 # Run dnf with --allowerasing to override e.g. ffmpeg-free with ffmpeg?
 rpmfusion_dnf_allowerasing: false
 
-# Nested list of packages to install from RPMFusion:
+# Mirror serving the signed release RPMs; repository files use their own metalink
+rpmfusion_bootstrap_mirror: "https://mirrors.rpmfusion.org"
+
+# Nested list of packages to install from RPM Fusion:
 rpmfusion_packages: []
-# RPMFusion packages to always uninstall:
+
+# RPM Fusion packages to always uninstall:
 rpmfusion_blacklisted_packages: []

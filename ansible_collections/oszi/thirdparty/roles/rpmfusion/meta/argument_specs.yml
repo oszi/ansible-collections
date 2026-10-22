@@ -3,7 +3,9 @@ argument_specs:
   main:
     short_description: RPM Fusion repository configuration for RHEL and Fedora
     description:
-      - Manages RPM Fusion free and non-free repositories on RedHat family distributions
+      - Manages RPM Fusion free and nonfree repositories on RedHat family distributions
+      - Installs the upstream release packages, verified with the signing keys from the distribution-gpg-keys
+        package of Fedora or EPEL; installs EPEL on RedHat family distributions other than Fedora
       - Supports allowerasing for package replacements (e.g., ffmpeg-free to ffmpeg)
     author:
       - "David O. (oszi.dev)"
@@ -17,6 +19,15 @@ argument_specs:
         required: false
         default: false
 
+      rpmfusion_tainted_enabled:
+        description:
+          - Whether to install the tainted repositories, which carry legally restricted software (e.g., libdvdcss)
+          - Removed when disabled; requires O(rpmfusion_enabled); ignored when the tainted release packages are listed
+            in O(rpmfusion_packages) or O(rpmfusion_blacklisted_packages), which take precedence
+        type: bool
+        required: false
+        default: false
+
       rpmfusion_dnf_allowerasing:
         description:
           - Whether to run dnf with --allowerasing flag
@@ -25,6 +36,14 @@ argument_specs:
         type: bool
         required: false
         default: false
+
+      rpmfusion_bootstrap_mirror:
+        description:
+          - Base URL of the mirror serving the signed release RPM files, used to bootstrap the repositories
+          - The repository files ship their own metalink; use oszi.general.package_manager replacements for mirrors,
+            but beware of the chicken-and-egg problem
+        type: str
+        required: false
 
       rpmfusion_packages:
         description:
