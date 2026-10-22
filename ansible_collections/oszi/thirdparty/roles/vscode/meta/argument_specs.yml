@@ -32,7 +32,7 @@ argument_specs:
 
       vscode_deb_arch:
         description:
-          - Comma-separated list of Debian repository architectures to enable
+          - Space or comma-separated list of Debian repository architectures to enable
         type: str
         required: false
 

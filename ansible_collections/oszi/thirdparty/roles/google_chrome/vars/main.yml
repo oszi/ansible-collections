@@ -1,26 +1,27 @@
 ---
 # Google Chrome packages install and rewrite repository files at fixed paths
 # (google-chrome.sources, google-chrome.list, google-chrome.repo) and
-# consult /etc/default/google-chrome before adding them. The role owns
+# consult /etc/default/google-chrome before adding them. The role manages
 # the repository under a different filename, which the vendor scripts
 # never touch, and removes the vendor-managed files instead.
+
 google_chrome_defaults_path: "/etc/default/google-chrome"
 
 google_chrome_package: "google-chrome-stable"
-
-google_chrome_rpm_gpgkey_path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome"
-google_chrome_rpm_repo_path: "/etc/yum.repos.d/google-chrome-ansible-managed.repo"
-google_chrome_rpm_repo_vendored_path: "/etc/yum.repos.d/google-chrome.repo"
-google_chrome_rpm_includepkgs:
+google_chrome_all_packages:
   - "google-chrome-beta"
   - "google-chrome-stable"
   - "google-chrome-unstable"
 
+google_chrome_rpm_gpgkey_path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome"
+google_chrome_rpm_repo_path: "/etc/yum.repos.d/google-chrome-ansible-managed.repo"
+google_chrome_rpm_repo_vendored_path: "/etc/yum.repos.d/google-chrome.repo"
+
 google_chrome_rpm_repo_args:
-  file: "{{ google_chrome_rpm_repo_path | basename | splitext | first }}"
+  file: "{{ (google_chrome_rpm_repo_path | basename).removesuffix('.repo') }}"
   name: "google-chrome"
   description: "Google Chrome"
-  includepkgs: "{{ google_chrome_rpm_includepkgs }}"
+  includepkgs: "{{ google_chrome_all_packages }}"
   baseurl: "{{ google_chrome_rpm_baseurl }}"
   gpgkey: "file://{{ google_chrome_rpm_gpgkey_path }}"
   gpgcheck: true

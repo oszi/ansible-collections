@@ -21,5 +21,5 @@
 
     - name: Ensure Google Chrome is present or absent
       ansible.builtin.package:
-        name: "{{ google_chrome_enabled | ternary(google_chrome_package, google_chrome_rpm_includepkgs) }}"
+        name: "{{ google_chrome_enabled | ternary(google_chrome_package, google_chrome_all_packages) }}"
         state: "{{ google_chrome_enabled | ternary('present', 'absent') }}"

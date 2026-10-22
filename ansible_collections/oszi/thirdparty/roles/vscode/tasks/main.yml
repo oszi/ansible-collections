@@ -8,5 +8,5 @@
 
     - name: Ensure Code is present or absent
       ansible.builtin.package:
-        name: "code"
+        name: "{{ vscode_enabled | ternary(vscode_package, vscode_all_packages) }}"
         state: "{{ vscode_enabled | ternary('present', 'absent') }}"
