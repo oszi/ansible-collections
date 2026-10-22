@@ -17,8 +17,12 @@ hashicorp_rpm_includepkgs:
 hashicorp_deb_gpgkey_path: "/etc/apt/keyrings/hashicorp.{{ hashicorp_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
 hashicorp_deb_absent_paths:
   - "/etc/apt/keyrings/hashicorp.{{ hashicorp_deb_gpgkey_armored | ternary('gpg', 'asc') }}"
+  - "/etc/apt/sources.list.d/hashicorp.list"
 
-hashicorp_deb_repo_path: "/etc/apt/sources.list.d/hashicorp.list"
-hashicorp_deb_repo: >-
-  deb [signed-by={{ hashicorp_deb_gpgkey_path }}]
-  {{ hashicorp_deb_baseurl }} {{ ansible_facts.distribution_release }} main
+hashicorp_deb_repo_path: "/etc/apt/sources.list.d/hashicorp.sources"
+hashicorp_deb_repo: |
+  Types: deb
+  URIs: {{ hashicorp_deb_baseurl }}
+  Suites: {{ ansible_facts.distribution_release }}
+  Components: main
+  Signed-By: {{ hashicorp_deb_gpgkey_path }}

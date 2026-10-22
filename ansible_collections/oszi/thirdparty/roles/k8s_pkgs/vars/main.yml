@@ -8,10 +8,14 @@ k8s_pkgs_rpm_includepkgs:
 k8s_pkgs_deb_gpgkey_path: "/etc/apt/keyrings/kubernetes-apt-keyring.{{ k8s_pkgs_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
 k8s_pkgs_deb_absent_paths:
   - "/etc/apt/keyrings/kubernetes-apt-keyring.{{ k8s_pkgs_deb_gpgkey_armored | ternary('gpg', 'asc') }}"
+  - "/etc/apt/sources.list.d/kubernetes.list"
 
-k8s_pkgs_deb_repo_path: "/etc/apt/sources.list.d/kubernetes.list"
-k8s_pkgs_deb_repo: >-
-  deb [signed-by={{ k8s_pkgs_deb_gpgkey_path }}] {{ k8s_pkgs_deb_baseurl }} /
+k8s_pkgs_deb_repo_path: "/etc/apt/sources.list.d/kubernetes.sources"
+k8s_pkgs_deb_repo: |
+  Types: deb
+  URIs: {{ k8s_pkgs_deb_baseurl }}
+  Suites: /
+  Signed-By: {{ k8s_pkgs_deb_gpgkey_path }}
 
 k8s_pkgs_deb_preferences_path: "/etc/apt/preferences.d/kubernetes"
 k8s_pkgs_deb_preferences: |

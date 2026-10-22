@@ -24,8 +24,12 @@ opentofu_deb_gpgkey_paths: "{{ opentofu_deb_gpgkey_list | map(attribute='path') 
 opentofu_deb_absent_paths:
   - "/etc/apt/keyrings/opentofu.{{ opentofu_deb_gpgkey_armored | ternary('gpg', 'asc') }}"
   - "/etc/apt/keyrings/opentofu-repo.{{ opentofu_deb_repo_gpgkey_armored | ternary('gpg', 'asc') }}"
+  - "/etc/apt/sources.list.d/opentofu.list"
 
-opentofu_deb_repo_path: "/etc/apt/sources.list.d/opentofu.list"
-opentofu_deb_repo: >-
-  deb [signed-by={{ ','.join(opentofu_deb_gpgkey_paths) }}]
-  {{ opentofu_deb_baseurl }} any main
+opentofu_deb_repo_path: "/etc/apt/sources.list.d/opentofu.sources"
+opentofu_deb_repo: |
+  Types: deb deb-src
+  URIs: {{ opentofu_deb_baseurl }}
+  Suites: any
+  Components: main
+  Signed-By: {{ ' '.join(opentofu_deb_gpgkey_paths) }}

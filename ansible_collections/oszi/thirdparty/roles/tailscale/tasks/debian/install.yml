@@ -21,6 +21,7 @@
     path: "{{ item }}"
     state: "absent"
   with_items: "{{ tailscale_deb_absent_paths }}"
+  register: _tailscale_deb_cleanup_result
 
 - name: Install Tailscale deb repository
   ansible.builtin.copy:
@@ -32,6 +33,6 @@
   register: _tailscale_deb_repo_result
 
 - name: Update apt cache
-  when: _tailscale_deb_repo_result.changed
+  when: _tailscale_deb_cleanup_result.changed or _tailscale_deb_repo_result.changed
   ansible.builtin.apt:
     update_cache: true

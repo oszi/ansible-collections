@@ -23,19 +23,18 @@
     path: "{{ item }}"
     state: "absent"
   with_items: "{{ opentofu_deb_absent_paths }}"
+  register: _opentofu_deb_cleanup_result
 
 - name: Install OpenTofu deb repository
   ansible.builtin.copy:
     dest: "{{ opentofu_deb_repo_path }}"
-    content: |
-      {{ opentofu_deb_repo }}
-      {{ opentofu_deb_repo | regex_replace('^deb (.*)$', 'deb-src \1') }}
+    content: "{{ opentofu_deb_repo }}"
     owner: "root"
     group: "root"
     mode: "0644"
   register: _opentofu_deb_repo_result
 
 - name: Update apt cache
-  when: _opentofu_deb_repo_result.changed
+  when: _opentofu_deb_cleanup_result.changed or _opentofu_deb_repo_result.changed
   ansible.builtin.apt:
     update_cache: true

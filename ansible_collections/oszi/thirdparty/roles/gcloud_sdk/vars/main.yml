@@ -5,11 +5,15 @@ gcloud_sdk_rpm_includepkgs: "{{ ['google-cloud-*']
   + (['kubectl'] if gcloud_sdk_kubectl_enabled else []) }}"
 
 gcloud_sdk_deb_gpgkey_path: "/etc/apt/keyrings/google-cloud-sdk.{{ gcloud_sdk_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
-gcloud_sdk_deb_repo_path: "/etc/apt/sources.list.d/google-cloud-sdk.list"
-gcloud_sdk_deb_repo: >-
-  deb [signed-by={{ gcloud_sdk_deb_gpgkey_path }}]
-  {{ gcloud_sdk_deb_baseurl }} cloud-sdk main
-
 gcloud_sdk_deb_absent_paths:
   - "/etc/apt/keyrings/google-cloud-sdk.{{ gcloud_sdk_deb_gpgkey_armored | ternary('gpg', 'asc') }}"
   - "/etc/apt/sources.list.d/gce_sdk.list"
+  - "/etc/apt/sources.list.d/google-cloud-sdk.list"
+
+gcloud_sdk_deb_repo_path: "/etc/apt/sources.list.d/google-cloud-sdk.sources"
+gcloud_sdk_deb_repo: |
+  Types: deb
+  URIs: {{ gcloud_sdk_deb_baseurl }}
+  Suites: cloud-sdk
+  Components: main
+  Signed-By: {{ gcloud_sdk_deb_gpgkey_path }}
