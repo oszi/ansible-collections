@@ -7,13 +7,20 @@
     group: "root"
     mode: "0755"
 
-- name: Copy Hashicorp deb signing key
-  ansible.builtin.copy:
-    src: "{{ hashicorp_deb_gpgkey_path.lstrip('/') }}"
+- name: Download Hashicorp deb signing key
+  ansible.builtin.get_url:
+    url: "{{ hashicorp_deb_gpgkey_url }}"
     dest: "{{ hashicorp_deb_gpgkey_path }}"
+    checksum: "{{ hashicorp_deb_gpgkey_checksum | default(omit, true) }}"
     owner: "root"
     group: "root"
     mode: "0644"
+
+- name: Remove unmanaged Hashicorp deb files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ hashicorp_deb_absent_paths }}"
 
 - name: Install Hashicorp deb repository
   ansible.builtin.copy:

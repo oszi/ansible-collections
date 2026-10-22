@@ -7,19 +7,21 @@
     group: "root"
     mode: "0755"
 
-- name: Copy VS Code deb signing key
-  ansible.builtin.copy:
-    src: "{{ vscode_deb_gpgkey_path.lstrip('/') }}"
+- name: Download VS Code deb signing key
+  ansible.builtin.get_url:
+    url: "{{ vscode_deb_gpgkey_url }}"
     dest: "{{ vscode_deb_gpgkey_path }}"
+    checksum: "{{ vscode_deb_gpgkey_checksum | default(omit, true) }}"
     owner: "root"
     group: "root"
     mode: "0644"
 
-- name: Remove legacy Microsoft deb signing key
-  when: not vscode_microsoft_gpgkey_used_elsewhere
+- name: Remove unmanaged VS Code deb files
   ansible.builtin.file:
-    path: "{{ vscode_deb_gpgkey_legacy_path }}"
+    path: "{{ item }}"
     state: "absent"
+  with_items: "{{ vscode_deb_absent_paths }}"
+  register: _vscode_deb_cleanup_result
 
 # Must be answered before the package installs: the postinst otherwise
 # rewrites vscode.sources and installs its own keyring.
@@ -29,12 +31,6 @@
     question: "code/add-microsoft-repo"
     vtype: "boolean"
     value: "false"
-
-- name: Remove legacy VS Code deb repository
-  ansible.builtin.file:
-    path: "{{ vscode_deb_repo_legacy_path }}"
-    state: "absent"
-  register: _vscode_deb_repo_legacy_result
 
 - name: Install VS Code deb repository
   ansible.builtin.copy:
@@ -46,6 +42,6 @@
   register: _vscode_deb_repo_result
 
 - name: Update apt cache
-  when: _vscode_deb_repo_legacy_result.changed or _vscode_deb_repo_result.changed
+  when: _vscode_deb_cleanup_result.changed or _vscode_deb_repo_result.changed
   ansible.builtin.apt:
     update_cache: true

@@ -3,15 +3,10 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  with_items:
-    - "{{ vscode_deb_repo_path }}"
-    - "{{ vscode_deb_repo_legacy_path }}"
+  with_items: "{{ [vscode_deb_repo_path] + vscode_deb_absent_paths }}"
 
-- name: Uninstall Microsoft deb signing keys
+- name: Uninstall Microsoft deb signing key
   when: not vscode_microsoft_gpgkey_used_elsewhere
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ vscode_deb_gpgkey_path }}"
     state: "absent"
-  with_items:
-    - "{{ vscode_deb_gpgkey_path }}"
-    - "{{ vscode_deb_gpgkey_legacy_path }}"

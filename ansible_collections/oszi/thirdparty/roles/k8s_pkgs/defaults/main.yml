@@ -16,8 +16,10 @@ k8s_pkgs_deb_baseurl: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version }}/
 # GPG public key URLs - change for custom mirrors
 k8s_pkgs_rpm_gpgkey_url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version }}/rpm/repodata/repomd.xml.key"
 k8s_pkgs_deb_gpgkey_url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_pkgs_version }}/deb/Release.key"
+# Whether the deb key is ASCII-armored - selects the .asc or .gpg keyring name apt requires
+k8s_pkgs_deb_gpgkey_armored: true
 
-# Optional checksums (algo:hash) for GPG public key downloads
+# Checksums (algo:hash) for GPG public key downloads - empty because the key depends on the version
 k8s_pkgs_rpm_gpgkey_checksum: ""
 k8s_pkgs_deb_gpgkey_checksum: ""
 

@@ -6,5 +6,15 @@ google_chrome_enabled: false
 google_chrome_rpm_baseurl: "https://dl-ssl.google.com/linux/chrome/rpm/stable/$basearch"
 google_chrome_deb_baseurl: "https://dl-ssl.google.com/linux/chrome/deb"
 
+# GPG public key URLs - change for custom mirrors
+google_chrome_rpm_gpgkey_url: "https://dl.google.com/linux/linux_signing_key.pub"
+google_chrome_deb_gpgkey_url: "https://dl.google.com/linux/linux_signing_key.pub"
+# Whether the deb key is ASCII-armored - selects the .asc or .gpg keyring name apt requires
+google_chrome_deb_gpgkey_armored: true
+
+# Checksums (algo:hash) for GPG public key downloads - set to "" to skip verification
+google_chrome_rpm_gpgkey_checksum: "sha256:54dea5f6c2a26091578cf52a999cebc6b64df478d37ad4dce96376b711e3b27c"
+google_chrome_deb_gpgkey_checksum: "sha256:54dea5f6c2a26091578cf52a999cebc6b64df478d37ad4dce96376b711e3b27c"
+
 # Comma-separated list of deb repo architectures:
 google_chrome_deb_arch: "amd64"

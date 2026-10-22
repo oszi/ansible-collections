@@ -31,6 +31,44 @@ argument_specs:
         type: str
         required: false
 
+      google_chrome_rpm_gpgkey_url:
+        description:
+          - URL of the GPG public key for the Google Chrome RPM repository
+          - Google publishes one signing key for both package formats
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      google_chrome_rpm_gpgkey_checksum:
+        description:
+          - Checksum in algo:hash format for O(google_chrome_rpm_gpgkey_url)
+          - Set to an empty string to skip verification
+        type: str
+        required: false
+
+      google_chrome_deb_gpgkey_url:
+        description:
+          - URL of the GPG public key for the Google Chrome Debian/Ubuntu repository
+          - Google publishes one signing key for both package formats
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      google_chrome_deb_gpgkey_armored:
+        description:
+          - Whether the key at O(google_chrome_deb_gpgkey_url) is ASCII-armored
+          - Selects the .asc or .gpg keyring name apt requires for that format
+        type: bool
+        required: false
+        default: true
+
+      google_chrome_deb_gpgkey_checksum:
+        description:
+          - Checksum in algo:hash format for O(google_chrome_deb_gpgkey_url)
+          - Set to an empty string to skip verification
+        type: str
+        required: false
+
       google_chrome_deb_arch:
         description:
           - Space or comma-separated list of Debian repository architectures to enable

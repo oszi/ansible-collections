@@ -10,6 +10,18 @@ tailscale_rpm_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distr
   }}/{{ (ansible_facts.distribution != 'Fedora') | ternary('$releasever/$basearch', '$basearch') }}"
 tailscale_deb_baseurl: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower }}"
 
+# GPG public key URLs - change for custom mirrors
+tailscale_rpm_gpgkey_url: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower | replace('redhat', 'rhel')
+  }}/{{ (ansible_facts.distribution != 'Fedora') | ternary(ansible_facts.distribution_major_version ~ '/', '') }}repo.gpg"
+tailscale_deb_gpgkey_url: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower
+  }}/{{ ansible_facts.distribution_release }}.noarmor.gpg"
+# Whether the deb key is ASCII-armored - selects the .asc or .gpg keyring name apt requires
+tailscale_deb_gpgkey_armored: false
+
+# Checksums (algo:hash) for GPG public key downloads - set to "" to skip verification
+tailscale_rpm_gpgkey_checksum: "sha256:53c6f7dfbd774839d9f37e6c5022ba952108aba9a0e556a56f292a9eb605d7cf"
+tailscale_deb_gpgkey_checksum: "sha256:3e03dacf222698c60b8e2f990b809ca1b3e104de127767864284e6c228f1fb39"
+
 # Systemd service drop-in content for tailscaled:
 # # /etc/default/tailscaled is not present on every system [Fedora]
 # # Clear the EnvironmentFile to be cross-compatible.

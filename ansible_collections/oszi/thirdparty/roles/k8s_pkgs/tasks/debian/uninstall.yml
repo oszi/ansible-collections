@@ -3,8 +3,5 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  with_items:
-    - "{{ k8s_pkgs_deb_gpgkey_path }}"
-    - "{{ k8s_pkgs_deb_gpgkey_source_path }}"
-    - "{{ k8s_pkgs_deb_preferences_path }}"
-    - "{{ k8s_pkgs_deb_repo_path }}"
+  with_items: "{{ [k8s_pkgs_deb_gpgkey_path, k8s_pkgs_deb_preferences_path, k8s_pkgs_deb_repo_path]
+    + k8s_pkgs_deb_absent_paths }}"

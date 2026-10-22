@@ -1,8 +1,9 @@
 ---
-- name: Copy Hashicorp RPM signing key
-  ansible.builtin.copy:
-    src: "{{ hashicorp_rpm_gpgkey_path.lstrip('/') }}"
+- name: Download Hashicorp RPM signing key
+  ansible.builtin.get_url:
+    url: "{{ hashicorp_rpm_gpgkey_url }}"
     dest: "{{ hashicorp_rpm_gpgkey_path }}"
+    checksum: "{{ hashicorp_rpm_gpgkey_checksum | default(omit, true) }}"
     owner: "root"
     group: "root"
     mode: "0644"

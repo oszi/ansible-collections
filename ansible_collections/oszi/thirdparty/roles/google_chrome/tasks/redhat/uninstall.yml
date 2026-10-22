@@ -3,8 +3,5 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: "absent"
-  with_items:
-    - "{{ google_chrome_rpm_repo_path }}"
-    - "{{ google_chrome_rpm_repo_vendored_path }}"
-    - "{{ google_chrome_rpm_gpgkey_path }}"
-    - "{{ google_chrome_defaults_path }}"
+  with_items: "{{ [google_chrome_rpm_repo_path, google_chrome_rpm_gpgkey_path,
+    google_chrome_defaults_path] + google_chrome_rpm_absent_paths }}"

@@ -14,7 +14,10 @@ hashicorp_rpm_includepkgs:
   - vault
   - waypoint
 
-hashicorp_deb_gpgkey_path: "/etc/apt/keyrings/hashicorp.gpg"
+hashicorp_deb_gpgkey_path: "/etc/apt/keyrings/hashicorp.{{ hashicorp_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
+hashicorp_deb_absent_paths:
+  - "/etc/apt/keyrings/hashicorp.{{ hashicorp_deb_gpgkey_armored | ternary('gpg', 'asc') }}"
+
 hashicorp_deb_repo_path: "/etc/apt/sources.list.d/hashicorp.list"
 hashicorp_deb_repo: >-
   deb [signed-by={{ hashicorp_deb_gpgkey_path }}]

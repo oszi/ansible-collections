@@ -40,6 +40,45 @@ argument_specs:
         type: str
         required: false
 
+      tailscale_rpm_gpgkey_url:
+        description:
+          - URL of the GPG public key for the Tailscale RPM repository
+          - Automatically adjusts path based on distribution (Fedora vs RHEL)
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      tailscale_rpm_gpgkey_checksum:
+        description:
+          - Checksum in algo:hash format for O(tailscale_rpm_gpgkey_url)
+          - Set to an empty string to skip verification
+        type: str
+        required: false
+
+      tailscale_deb_gpgkey_url:
+        description:
+          - URL of the GPG public key for the Tailscale Debian/Ubuntu repository
+          - Automatically adjusts path based on distribution and release
+          - The key is identical for every supported release
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      tailscale_deb_gpgkey_armored:
+        description:
+          - Whether the key at O(tailscale_deb_gpgkey_url) is ASCII-armored
+          - Selects the .asc or .gpg keyring name apt requires for that format
+        type: bool
+        required: false
+        default: false
+
+      tailscale_deb_gpgkey_checksum:
+        description:
+          - Checksum in algo:hash format for O(tailscale_deb_gpgkey_url)
+          - Set to an empty string to skip verification
+        type: str
+        required: false
+
       tailscale_systemd_service_override:
         description:
           - Systemd service drop-in content for tailscaled daemon

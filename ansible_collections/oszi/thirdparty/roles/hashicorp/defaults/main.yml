@@ -13,3 +13,13 @@ hashicorp_blacklisted_packages: []
 hashicorp_rpm_baseurl: "https://rpm.releases.hashicorp.com/{{
   (ansible_facts.distribution == 'Fedora') | ternary('fedora', 'RHEL') }}/$releasever/$basearch"
 hashicorp_deb_baseurl: "https://apt.releases.hashicorp.com"
+
+# GPG public key URLs - change for custom mirrors
+hashicorp_rpm_gpgkey_url: "https://rpm.releases.hashicorp.com/gpg"
+hashicorp_deb_gpgkey_url: "https://apt.releases.hashicorp.com/gpg"
+# Whether the deb key is ASCII-armored - selects the .asc or .gpg keyring name apt requires
+hashicorp_deb_gpgkey_armored: true
+
+# Checksums (algo:hash) for GPG public key downloads - set to "" to skip verification
+hashicorp_rpm_gpgkey_checksum: "sha256:1df7d66b79352bab45388511079f74987568672a8ed6395053a050b61f6c5430"
+hashicorp_deb_gpgkey_checksum: "sha256:1df7d66b79352bab45388511079f74987568672a8ed6395053a050b61f6c5430"

@@ -52,7 +52,8 @@ argument_specs:
 
       k8s_pkgs_rpm_gpgkey_checksum:
         description:
-          - Optional checksum in algo:hash format for O(k8s_pkgs_rpm_gpgkey_url)
+          - Checksum in algo:hash format for O(k8s_pkgs_rpm_gpgkey_url)
+          - Empty by default because the key depends on O(k8s_pkgs_version)
         type: str
         required: false
 
@@ -70,9 +71,18 @@ argument_specs:
         type: str
         required: false
 
+      k8s_pkgs_deb_gpgkey_armored:
+        description:
+          - Whether the key at O(k8s_pkgs_deb_gpgkey_url) is ASCII-armored
+          - Selects the .asc or .gpg keyring name apt requires for that format
+        type: bool
+        required: false
+        default: true
+
       k8s_pkgs_deb_gpgkey_checksum:
         description:
-          - Optional checksum in algo:hash format for O(k8s_pkgs_deb_gpgkey_url)
+          - Checksum in algo:hash format for O(k8s_pkgs_deb_gpgkey_url)
+          - Empty by default because the key depends on O(k8s_pkgs_version)
         type: str
         required: false
 

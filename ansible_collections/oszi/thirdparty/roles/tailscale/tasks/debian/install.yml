@@ -7,13 +7,20 @@
     group: "root"
     mode: "0755"
 
-- name: Copy Tailscale deb signing keys
-  ansible.builtin.copy:
-    src: "{{ tailscale_deb_gpgkey_path.lstrip('/') }}"
+- name: Download Tailscale deb signing key
+  ansible.builtin.get_url:
+    url: "{{ tailscale_deb_gpgkey_url }}"
     dest: "{{ tailscale_deb_gpgkey_path }}"
+    checksum: "{{ tailscale_deb_gpgkey_checksum | default(omit, true) }}"
     owner: "root"
     group: "root"
     mode: "0644"
+
+- name: Remove unmanaged Tailscale deb files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items: "{{ tailscale_deb_absent_paths }}"
 
 - name: Install Tailscale deb repository
   ansible.builtin.copy:

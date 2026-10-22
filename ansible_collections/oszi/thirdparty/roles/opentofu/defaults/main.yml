@@ -10,3 +10,19 @@ opentofu_upstream_enabled: "{{ opentofu_enabled and ansible_facts.distribution !
 # Repo base URLs - change for custom mirrors
 opentofu_rpm_baseurl: "https://packages.opentofu.org/opentofu/tofu/rpm_any/rpm_any/$basearch"
 opentofu_deb_baseurl: "https://packages.opentofu.org/opentofu/tofu/any/"
+
+# GPG public key URLs - change for custom mirrors
+# OpenTofu signs packages with its own key, the repository host (packagecloud) with a second key.
+opentofu_rpm_gpgkey_url: "https://get.opentofu.org/opentofu.asc"
+opentofu_rpm_repo_gpgkey_url: "https://packages.opentofu.org/opentofu/tofu/gpgkey"
+opentofu_deb_gpgkey_url: "https://get.opentofu.org/opentofu.gpg"
+opentofu_deb_repo_gpgkey_url: "https://packages.opentofu.org/opentofu/tofu/gpgkey"
+# Whether the deb keys are ASCII-armored - selects the .asc or .gpg keyring names apt requires
+opentofu_deb_gpgkey_armored: false
+opentofu_deb_repo_gpgkey_armored: true
+
+# Checksums (algo:hash) for GPG public key downloads - set to "" to skip verification
+opentofu_rpm_gpgkey_checksum: "sha256:3b20a1ef48c34c1ecfdafbe14133e19a4fe5770472f5650d701744b4f6d9450f"
+opentofu_rpm_repo_gpgkey_checksum: "sha256:b918b1cf7302a9088568140505c0b4f1a2d534df650b4c5ef3ad6a9984ec710a"
+opentofu_deb_gpgkey_checksum: "sha256:55fcff8ee506ffc46a37a70af5b76b4181f2f5e24b18387013a8629144c02fdf"
+opentofu_deb_repo_gpgkey_checksum: "sha256:b918b1cf7302a9088568140505c0b4f1a2d534df650b4c5ef3ad6a9984ec710a"

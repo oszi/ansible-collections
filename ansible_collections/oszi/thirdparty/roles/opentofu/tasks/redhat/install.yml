@@ -1,12 +1,13 @@
 ---
-- name: Copy OpenTofu RPM signing keys
-  ansible.builtin.copy:
-    src: "{{ item.lstrip('/') }}"
-    dest: "{{ item }}"
+- name: Download OpenTofu RPM signing keys
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.path }}"
+    checksum: "{{ item.checksum | default(omit, true) }}"
     owner: "root"
     group: "root"
     mode: "0644"
-  with_items: "{{ opentofu_rpm_gpgkey_paths }}"
+  with_items: "{{ opentofu_rpm_gpgkey_list }}"
 
 - name: Install OpenTofu RPM repository
   ansible.builtin.yum_repository:

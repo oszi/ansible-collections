@@ -45,3 +45,40 @@ argument_specs:
           - Change for custom mirrors or proxies
         type: str
         required: false
+
+      hashicorp_rpm_gpgkey_url:
+        description:
+          - URL of the GPG public key for the HashiCorp RPM repository
+          - Shared by the stable and test repository entries
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      hashicorp_rpm_gpgkey_checksum:
+        description:
+          - Checksum in algo:hash format for O(hashicorp_rpm_gpgkey_url)
+          - Set to an empty string to skip verification
+        type: str
+        required: false
+
+      hashicorp_deb_gpgkey_url:
+        description:
+          - URL of the GPG public key for the HashiCorp Debian/Ubuntu repository
+          - Change for custom mirrors or proxies
+        type: str
+        required: false
+
+      hashicorp_deb_gpgkey_armored:
+        description:
+          - Whether the key at O(hashicorp_deb_gpgkey_url) is ASCII-armored
+          - Selects the .asc or .gpg keyring name apt requires for that format
+        type: bool
+        required: false
+        default: true
+
+      hashicorp_deb_gpgkey_checksum:
+        description:
+          - Checksum in algo:hash format for O(hashicorp_deb_gpgkey_url)
+          - Set to an empty string to skip verification
+        type: str
+        required: false

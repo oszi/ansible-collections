@@ -15,7 +15,8 @@ google_chrome_all_packages:
 
 google_chrome_rpm_gpgkey_path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome"
 google_chrome_rpm_repo_path: "/etc/yum.repos.d/google-chrome-ansible-managed.repo"
-google_chrome_rpm_repo_vendored_path: "/etc/yum.repos.d/google-chrome.repo"
+google_chrome_rpm_absent_paths:
+  - "/etc/yum.repos.d/google-chrome.repo"
 
 google_chrome_rpm_repo_args:
   file: "{{ (google_chrome_rpm_repo_path | basename).removesuffix('.repo') }}"
@@ -28,12 +29,14 @@ google_chrome_rpm_repo_args:
   repo_gpgcheck: false
   enabled: true
 
-google_chrome_deb_gpgkey_path: "/etc/apt/keyrings/google-chrome.gpg"
-google_chrome_deb_gpgkey_legacy_path: "/etc/apt/trusted.gpg.d/google-chrome.gpg"
-google_chrome_deb_gpgkey_vendored_path: "/usr/share/keyrings/google-chrome.gpg"
+google_chrome_deb_gpgkey_path: "/etc/apt/keyrings/google-chrome.{{ google_chrome_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
 google_chrome_deb_repo_path: "/etc/apt/sources.list.d/google-chrome-ansible-managed.sources"
-google_chrome_deb_repo_legacy_path: "/etc/apt/sources.list.d/google-chrome.list"
-google_chrome_deb_repo_vendored_path: "/etc/apt/sources.list.d/google-chrome.sources"
+google_chrome_deb_absent_paths:
+  - "/etc/apt/keyrings/google-chrome.{{ google_chrome_deb_gpgkey_armored | ternary('gpg', 'asc') }}"
+  - "/etc/apt/trusted.gpg.d/google-chrome.gpg"
+  - "/etc/apt/sources.list.d/google-chrome.list"
+  - "/etc/apt/sources.list.d/google-chrome.sources"
+  # - "/usr/share/keyrings/google-chrome.gpg"
 
 google_chrome_deb_repo: |
   Types: deb

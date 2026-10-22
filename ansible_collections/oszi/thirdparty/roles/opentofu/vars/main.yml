@@ -1,14 +1,30 @@
 ---
-opentofu_rpm_gpgkey_paths:
-  - "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu"
-  - "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo"
+opentofu_rpm_gpgkey_list:
+  - path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu"
+    url: "{{ opentofu_rpm_gpgkey_url }}"
+    checksum: "{{ opentofu_rpm_gpgkey_checksum }}"
+  - path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo"
+    url: "{{ opentofu_rpm_repo_gpgkey_url }}"
+    checksum: "{{ opentofu_rpm_repo_gpgkey_checksum }}"
+
+opentofu_rpm_gpgkey_paths: "{{ opentofu_rpm_gpgkey_list | map(attribute='path') }}"
 opentofu_rpm_repo_path: "/etc/yum.repos.d/opentofu.repo"
 opentofu_rpm_includepkgs:
   - "tofu"
 
-opentofu_deb_gpgkey_paths:
-  - "/etc/apt/keyrings/opentofu.gpg"
-  - "/etc/apt/keyrings/opentofu-repo.gpg"
+opentofu_deb_gpgkey_list:
+  - path: "/etc/apt/keyrings/opentofu.{{ opentofu_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
+    url: "{{ opentofu_deb_gpgkey_url }}"
+    checksum: "{{ opentofu_deb_gpgkey_checksum }}"
+  - path: "/etc/apt/keyrings/opentofu-repo.{{ opentofu_deb_repo_gpgkey_armored | ternary('asc', 'gpg') }}"
+    url: "{{ opentofu_deb_repo_gpgkey_url }}"
+    checksum: "{{ opentofu_deb_repo_gpgkey_checksum }}"
+
+opentofu_deb_gpgkey_paths: "{{ opentofu_deb_gpgkey_list | map(attribute='path') }}"
+opentofu_deb_absent_paths:
+  - "/etc/apt/keyrings/opentofu.{{ opentofu_deb_gpgkey_armored | ternary('gpg', 'asc') }}"
+  - "/etc/apt/keyrings/opentofu-repo.{{ opentofu_deb_repo_gpgkey_armored | ternary('gpg', 'asc') }}"
+
 opentofu_deb_repo_path: "/etc/apt/sources.list.d/opentofu.list"
 opentofu_deb_repo: >-
   deb [signed-by={{ ','.join(opentofu_deb_gpgkey_paths) }}]

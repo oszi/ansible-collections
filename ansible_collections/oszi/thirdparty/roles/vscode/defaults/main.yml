@@ -6,6 +6,16 @@ vscode_enabled: false
 vscode_rpm_baseurl: "https://packages.microsoft.com/yumrepos/vscode"
 vscode_deb_baseurl: "https://packages.microsoft.com/repos/code"
 
+# GPG public key URLs - change for custom mirrors
+vscode_rpm_gpgkey_url: "https://packages.microsoft.com/keys/microsoft.asc"
+vscode_deb_gpgkey_url: "https://packages.microsoft.com/keys/microsoft.asc"
+# Whether the deb key is ASCII-armored - selects the .asc or .gpg keyring name apt requires
+vscode_deb_gpgkey_armored: true
+
+# Checksums (algo:hash) for GPG public key downloads - set to "" to skip verification
+vscode_rpm_gpgkey_checksum: "sha256:2fa9c05d591a1582a9aba276272478c262e95ad00acf60eaee1644d93941e3c6"
+vscode_deb_gpgkey_checksum: "sha256:2fa9c05d591a1582a9aba276272478c262e95ad00acf60eaee1644d93941e3c6"
+
 # Comma-separated list of deb repo architectures:
 vscode_deb_arch: "amd64"
 
