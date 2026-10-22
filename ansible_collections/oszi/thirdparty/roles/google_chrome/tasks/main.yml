@@ -5,7 +5,7 @@
     # Must exist before the package installs: a missing file makes the
     # vendor scripts add their own repository and signing key.
     - name: Disable repository management by Google Chrome packages
-      when: google_chrome_enabled
+      when: google_chrome_manage_repository and google_chrome_enabled
       ansible.builtin.copy:
         dest: "{{ google_chrome_defaults_path }}"
         content: |
@@ -17,7 +17,8 @@
 
     - name: Google Chrome repository
       ansible.builtin.include_tasks:
-        file: "{{ ansible_facts.os_family | lower }}/{{ google_chrome_enabled | ternary('install', 'uninstall') }}.yml"
+        file: "{{ ansible_facts.os_family | lower }}/{{ 'uninstall' if not google_chrome_enabled
+          else 'install' if google_chrome_manage_repository else 'vendor' }}.yml"
 
     - name: Ensure Google Chrome is present or absent
       ansible.builtin.package:

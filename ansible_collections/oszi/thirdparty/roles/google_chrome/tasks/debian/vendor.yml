@@ -1,0 +1,12 @@
+---
+# Leave /etc/default/google-chrome and GPG keys alone to avoid conflicts.
+- name: Uninstall ansible managed Google Chrome deb repository
+  ansible.builtin.file:
+    path: "{{ google_chrome_deb_repo_path }}"
+    state: "absent"
+  register: _google_chrome_deb_repo_result
+
+- name: Update apt cache
+  when: _google_chrome_deb_repo_result.changed
+  ansible.builtin.apt:
+    update_cache: true

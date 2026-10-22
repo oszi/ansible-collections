@@ -2,6 +2,10 @@
 # Install Chrome from Google? (Off by default!)
 google_chrome_enabled: false
 
+# Enable repo management tasks, or disable to allow vendor managed repo?
+# WARNING: If disabled, the user must bootstrap the repository!
+google_chrome_manage_repository: true
+
 # Repo base URLs - change for custom mirrors
 google_chrome_rpm_baseurl: "https://dl-ssl.google.com/linux/chrome/rpm/stable/$basearch"
 google_chrome_deb_baseurl: "https://dl-ssl.google.com/linux/chrome/deb"

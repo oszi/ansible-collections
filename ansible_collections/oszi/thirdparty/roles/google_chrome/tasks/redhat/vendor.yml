@@ -1,0 +1,6 @@
+---
+# Leave /etc/default/google-chrome and GPG keys alone to avoid conflicts.
+- name: Uninstall ansible managed Google Chrome RPM repository
+  ansible.builtin.file:
+    path: "{{ google_chrome_rpm_repo_path }}"
+    state: "absent"
