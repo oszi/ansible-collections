@@ -54,9 +54,10 @@ argument_specs:
         elements: raw
         required: false
 
-      workstation_blacklisted_packages_pt_anaconda:
+      workstation_blacklisted_packages_pt_redhat:
         description:
           - RedHat/Fedora installer components to remove [avoid directly using this variable]
+          - Includes fedora-workstation-repositories - use oszi.thirdparty.rpmfusion and oszi.thirdparty.google_chrome instead
           - Unnecessary on most systems after installation is complete
         type: list
         elements: raw

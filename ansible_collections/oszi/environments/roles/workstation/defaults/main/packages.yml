@@ -47,7 +47,7 @@ workstation_packages_pt_default:
 workstation_blacklisted_packages:
   - "{{ workstation_blacklisted_packages_pt_to_sandbox }}"
   - "{{ workstation_blacklisted_packages_pt_office }}"
-  - "{{ workstation_blacklisted_packages_pt_anaconda if (ansible_facts.os_family == 'RedHat') else [] }}"
+  - "{{ workstation_blacklisted_packages_pt_redhat if (ansible_facts.os_family == 'RedHat') else [] }}"
 
 # Use flatpak or snap with hardened configurations.
 # On Debian, the default firefox-esr cannot be removed without installing another browser.
@@ -88,7 +88,7 @@ workstation_blacklisted_packages_pt_office:
   - papers-thumbnailer
 
 # RedHat/Fedora installer components - unnecessary on an installed system most of the time.
-workstation_blacklisted_packages_pt_anaconda:
+workstation_blacklisted_packages_pt_redhat:
   - anaconda
   - anaconda-core
   - anaconda-gui
@@ -96,3 +96,5 @@ workstation_blacklisted_packages_pt_anaconda:
   - anaconda-tui
   - anaconda-webui  # requires Firefox
   - kdump-anaconda-addon
+  # Use oszi.thirdparty.rpmfusion and oszi.thirdparty.google_chrome instead.
+  - "{{ ['fedora-workstation-repositories'] if (ansible_facts.distribution == 'Fedora') else [] }}"
