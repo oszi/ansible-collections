@@ -11,7 +11,7 @@
   ansible.builtin.get_url:
     url: "{{ k8s_pkgs_deb_gpgkey_url }}"
     dest: "{{ k8s_pkgs_deb_gpgkey_path }}"
-    checksum: "{{ k8s_pkgs_deb_gpgkey_checksum | default(omit, true) }}"
+    checksum: "{{ k8s_pkgs_deb_gpgkey_checksum }}"
     owner: "root"
     group: "root"
     mode: "0644"

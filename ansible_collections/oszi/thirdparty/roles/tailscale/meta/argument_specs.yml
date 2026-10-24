@@ -50,8 +50,7 @@ argument_specs:
 
       tailscale_rpm_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(tailscale_rpm_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(tailscale_rpm_gpgkey_url)
         type: str
         required: false
 
@@ -74,8 +73,7 @@ argument_specs:
 
       tailscale_deb_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(tailscale_deb_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(tailscale_deb_gpgkey_url)
         type: str
         required: false
 

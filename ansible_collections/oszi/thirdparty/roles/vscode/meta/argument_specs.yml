@@ -40,8 +40,7 @@ argument_specs:
 
       vscode_rpm_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(vscode_rpm_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(vscode_rpm_gpgkey_url)
         type: str
         required: false
 
@@ -63,8 +62,7 @@ argument_specs:
 
       vscode_deb_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(vscode_deb_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(vscode_deb_gpgkey_url)
         type: str
         required: false
 

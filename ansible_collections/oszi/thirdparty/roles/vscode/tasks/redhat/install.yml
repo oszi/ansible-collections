@@ -3,7 +3,7 @@
   ansible.builtin.get_url:
     url: "{{ vscode_rpm_gpgkey_url }}"
     dest: "{{ vscode_rpm_gpgkey_path }}"
-    checksum: "{{ vscode_rpm_gpgkey_checksum | default(omit, true) }}"
+    checksum: "{{ vscode_rpm_gpgkey_checksum }}"
     owner: "root"
     group: "root"
     mode: "0644"

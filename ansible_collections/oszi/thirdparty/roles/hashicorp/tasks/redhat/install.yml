@@ -3,7 +3,7 @@
   ansible.builtin.get_url:
     url: "{{ hashicorp_rpm_gpgkey_url }}"
     dest: "{{ hashicorp_rpm_gpgkey_path }}"
-    checksum: "{{ hashicorp_rpm_gpgkey_checksum | default(omit, true) }}"
+    checksum: "{{ hashicorp_rpm_gpgkey_checksum }}"
     owner: "root"
     group: "root"
     mode: "0644"

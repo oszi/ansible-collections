@@ -87,8 +87,7 @@ argument_specs:
 
       gcloud_sdk_rpm_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(gcloud_sdk_rpm_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(gcloud_sdk_rpm_gpgkey_url)
         type: str
         required: false
 
@@ -109,8 +108,7 @@ argument_specs:
 
       gcloud_sdk_deb_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(gcloud_sdk_deb_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(gcloud_sdk_deb_gpgkey_url)
         type: str
         required: false
 

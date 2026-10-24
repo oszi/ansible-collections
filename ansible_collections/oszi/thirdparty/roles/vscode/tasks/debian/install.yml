@@ -11,7 +11,7 @@
   ansible.builtin.get_url:
     url: "{{ vscode_deb_gpgkey_url }}"
     dest: "{{ vscode_deb_gpgkey_path }}"
-    checksum: "{{ vscode_deb_gpgkey_checksum | default(omit, true) }}"
+    checksum: "{{ vscode_deb_gpgkey_checksum }}"
     owner: "root"
     group: "root"
     mode: "0644"

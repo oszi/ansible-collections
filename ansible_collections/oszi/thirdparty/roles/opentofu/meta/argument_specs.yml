@@ -48,8 +48,7 @@ argument_specs:
 
       opentofu_rpm_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(opentofu_rpm_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(opentofu_rpm_gpgkey_url)
         type: str
         required: false
 
@@ -70,8 +69,7 @@ argument_specs:
 
       opentofu_deb_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(opentofu_deb_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(opentofu_deb_gpgkey_url)
         type: str
         required: false
 
@@ -84,8 +82,7 @@ argument_specs:
 
       opentofu_rpm_repo_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(opentofu_rpm_repo_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(opentofu_rpm_repo_gpgkey_url)
         type: str
         required: false
 
@@ -106,7 +103,6 @@ argument_specs:
 
       opentofu_deb_repo_gpgkey_checksum:
         description:
-          - Checksum in algo:hash format for O(opentofu_deb_repo_gpgkey_url)
-          - Set to an empty string to skip verification
+          - Checksum in algo:hash or algo:URL format for O(opentofu_deb_repo_gpgkey_url)
         type: str
         required: false

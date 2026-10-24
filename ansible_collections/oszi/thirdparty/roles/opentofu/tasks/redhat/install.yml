@@ -3,7 +3,7 @@
   ansible.builtin.get_url:
     url: "{{ item.url }}"
     dest: "{{ item.path }}"
-    checksum: "{{ item.checksum | default(omit, true) }}"
+    checksum: "{{ item.checksum }}"
     owner: "root"
     group: "root"
     mode: "0644"

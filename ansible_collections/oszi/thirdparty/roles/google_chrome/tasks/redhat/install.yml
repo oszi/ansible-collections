@@ -3,7 +3,7 @@
   ansible.builtin.get_url:
     url: "{{ google_chrome_rpm_gpgkey_url }}"
     dest: "{{ google_chrome_rpm_gpgkey_path }}"
-    checksum: "{{ google_chrome_rpm_gpgkey_checksum | default(omit, true) }}"
+    checksum: "{{ google_chrome_rpm_gpgkey_checksum }}"
     owner: "root"
     group: "root"
     mode: "0644"

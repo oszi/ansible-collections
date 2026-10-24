@@ -3,7 +3,7 @@
   ansible.builtin.get_url:
     url: "{{ tailscale_rpm_gpgkey_url }}"
     dest: "{{ tailscale_rpm_gpgkey_path }}"
-    checksum: "{{ tailscale_rpm_gpgkey_checksum | default(omit, true) }}"
+    checksum: "{{ tailscale_rpm_gpgkey_checksum }}"
     owner: "root"
     group: "root"
     mode: "0644"
