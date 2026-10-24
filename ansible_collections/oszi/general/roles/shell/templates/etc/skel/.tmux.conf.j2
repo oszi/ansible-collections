@@ -30,6 +30,9 @@ set -g focus-events on
 # Reduce ESC latency for modal editors
 set -sg escape-time {{ 10 if 'workstations' in group_names else 100 }}
 
+# Use terminal colors instead of light/dark themes
+set -sq theme terminal
+
 # Customize pane border with status; pane_width - 7 (ellipsis + 2 spaces + border lines)
 %hidden pane_border_title_limit='#{?#{e|>|:#{pane_width},7},#{e|-|:#{pane_width},7},1}'
 %hidden pane_border_title='#{window_index}.#{pane_index}:#{pane_current_command} #{pane_title}'
