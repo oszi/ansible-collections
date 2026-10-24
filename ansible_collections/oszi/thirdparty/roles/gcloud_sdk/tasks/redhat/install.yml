@@ -12,6 +12,6 @@
   ansible.builtin.yum_repository:
   args: "{{ gcloud_sdk_rpm_repo_args }}"
 
-- name: Install GCloud SDK unstable RPM repository
+- name: Uninstall obsolete GCloud SDK unstable RPM repository
   ansible.builtin.yum_repository:
   args: "{{ gcloud_sdk_rpm_repo_unstable_args }}"

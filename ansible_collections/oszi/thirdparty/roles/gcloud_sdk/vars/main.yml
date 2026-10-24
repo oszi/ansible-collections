@@ -18,13 +18,7 @@ gcloud_sdk_rpm_repo_args:
 gcloud_sdk_rpm_repo_unstable_args:
   file: "{{ (gcloud_sdk_rpm_repo_path | basename).removesuffix('.repo') }}"
   name: "google-cloud-sdk-unstable"
-  description: "GCloud SDK - Unstable"
-  includepkgs: "{{ gcloud_sdk_rpm_includepkgs }}"
-  baseurl: "{{ gcloud_sdk_rpm_baseurl }}-unstable"
-  gpgkey: "file://{{ gcloud_sdk_rpm_gpgkey_path }}"
-  gpgcheck: true
-  repo_gpgcheck: false
-  enabled: false
+  state: "absent"
 
 gcloud_sdk_deb_gpgkey_path: "/etc/apt/keyrings/google-cloud-sdk.{{ gcloud_sdk_deb_gpgkey_armored | ternary('asc', 'gpg') }}"
 gcloud_sdk_deb_absent_paths:
