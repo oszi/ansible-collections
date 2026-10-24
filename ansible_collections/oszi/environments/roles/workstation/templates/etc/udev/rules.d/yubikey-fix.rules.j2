@@ -1,3 +1,19 @@
 # {{ ansible_managed }}
-ACTION=="add|change", {{ workstation_yubikey_udev_attrs }}, TAG+="uaccess", GROUP="plugdev", MODE="0660"
-ACTION=="add|remove", {{ workstation_yubikey_udev_attrs }}, RUN+="{{ workstation_local_bin_path }}/yubikey-fix"
+{% set vendor_id = "1050" %}
+{% set product_ids = "0113|0114|0115|0116|0120|0121|0200|0402|0403|0406|0407|0410" %}
+{# Hidraw nodes of Yubikeys; sysfs attributes exist on add only. #}
+{% set hidraw_attrs -%}
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="{{ vendor_id }}", ATTRS{idProduct}=="{{ product_ids }}"
+{%- endset %}
+{# Hidraw node of the first HID interface of Yubikeys, once per key.
+Interfaces are also re-bound when a key returns from a VM, while the USB device itself stays. #}
+{% set hidraw_props -%}
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ENV{ID_VENDOR_ID}=="{{ vendor_id }}", ENV{ID_MODEL_ID}=="{{ product_ids }}", ENV{ID_USB_INTERFACE_NUM}=="00"
+{%- endset %}
+{# USB device of Yubikeys; properties are read from the udev database, so they also match on remove. #}
+{% set device_props -%}
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ENV{ID_VENDOR_ID}=="{{ vendor_id }}", ENV{ID_MODEL_ID}=="{{ product_ids }}"
+{%- endset %}
+ACTION=="add|change", {{ hidraw_attrs }}, TAG+="uaccess", GROUP="plugdev", MODE="0660"
+ACTION=="add", {{ hidraw_props }}, RUN+="{{ workstation_local_bin_path }}/yubikey-fix"
+ACTION=="remove", {{ device_props }}, RUN+="{{ workstation_local_bin_path }}/yubikey-fix"

@@ -160,12 +160,9 @@ done
 if [[ "$command" == attach ]]; then
     domain="$(printf '%s\n' "${domains[@]}" | fzf --header="Attach ${device_desc} to ..." --no-multi --no-sort --tac)"
 
-    if [[ "$manufacturer" == *Yubi* ]]; then
-        echo "Yubikey must be released by ssh-agent, gpg-agent, scdaemon and pcscd ..." >&2
-        killall ssh-agent gpg-agent scdaemon ||:
-        if systemctl is-active pcscd >/dev/null 2>&1; then
-            sudo systemctl stop pcscd ||:
-        fi
+    if [[ "$manufacturer" == *Yubi* ]] && command -v yubikey-fix >/dev/null 2>&1; then
+        trap 'yubikey-fix --start-only ||:' EXIT
+        yubikey-fix --stop-only ||:
     fi
 
     printf_command Attach "$device_desc" to "$domain" "... \n"

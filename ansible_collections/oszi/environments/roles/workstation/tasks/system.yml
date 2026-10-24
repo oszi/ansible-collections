@@ -29,6 +29,10 @@
     group: "root"
     mode: "0644"
 
+- name: Ensure plugdev group exists
+  ansible.builtin.group:
+    name: plugdev
+
 - name: Copy /etc/sudoers.d/plugdev-pcscd
   ansible.builtin.copy:
     src: "etc/sudoers.d/plugdev-pcscd"
@@ -46,6 +50,7 @@
     group: "root"
     mode: "0644"
     validate: "udevadm verify %s"
+  notify: "Reload udev rules"
 
 - name: Copy /etc/pipewire/media-session.d/bluez-monitor.conf
   ansible.builtin.copy:
