@@ -3,7 +3,7 @@ namespace: oszi
 name: environments
 
 # Versioned by _scripts/galaxy-release.sh
-version: "5.8.1"
+version: "5.9.0"
 
 description: "Ansible collection for personal, high-level environment roles."
 repository: "https://github.com/oszi/ansible-collections.git"
@@ -17,7 +17,7 @@ license:
 dependencies:
   # Pinned by _scripts/galaxy-release.sh
   "oszi.general": "==5.8.0"
-  "oszi.thirdparty": "==5.8.1"
+  "oszi.thirdparty": "==5.9.0"
   "oszi.utils": "==5.2.0"
 
 tags:
