@@ -1,0 +1,88 @@
+#!/bin/bash
+# See /etc/sudoers.d/plugdev-pcscd /etc/udev/rules.d/70-smartcard-restart.rules
+set -uo pipefail
+# Tolerate errors for all commands.
+set +e
+
+exit_help() {
+    echo "${0} [--stop-only|--start-only|--status-only]" >&2
+    exit 2
+}
+
+if [[ $# -eq 0 ]]; then
+    stop=1
+    start=1
+
+    if [[ -t 0 ]]; then  # stdin
+        status=1
+    else
+        status=0
+    fi
+elif [[ $# -eq 1 ]]; then
+    case "$1" in
+        --stop-only) stop=1; start=0; status=0;;
+        --start-only) stop=0; start=1; status=0;;
+        --status-only) stop=0; start=0; status=1;;
+        *) exit_help;;
+    esac
+else
+    exit_help
+fi
+
+if [[ -t 2 ]]; then  # stderr
+    COLOR_CLEAR="\033[0m"
+    COLOR_RED="\033[31m"
+    COLOR_GREEN="\033[32m"
+    COLOR_YELLOW="\033[33m"
+else
+    COLOR_CLEAR=""
+    COLOR_RED=""
+    COLOR_GREEN=""
+    COLOR_YELLOW=""
+fi
+
+print_stop() {
+    printf "${COLOR_RED}%s${COLOR_CLEAR}\n" "$1" >&2
+}
+
+print_start() {
+    printf "${COLOR_YELLOW}%s${COLOR_CLEAR}\n" "$1" >&2
+}
+
+print_status() {
+    printf "${COLOR_GREEN}%s${COLOR_CLEAR}\n" "$1" >&2
+}
+
+if [[ "$stop" -ne 0 ]]; then
+    # Kill all agents as root when triggered by udev.
+    # Kill only our own when run as a user.
+    print_stop "Kill SSH and GPG agents as UID:${UID}..."
+    killall ssh-agent gpg-agent scdaemon
+
+    # Stop pcscd to release devices, together with its socket. PKCS#11 clients such as gsd-smartcard
+    # with opensc re-activate it immediately, and pcscd re-claims the CCID interface.
+    if systemctl is-active pcscd.socket pcscd.service >/dev/null 2>&1; then
+        print_stop "Stop pcscd to release devices..."
+        sudo systemctl stop pcscd.socket pcscd.service
+    fi
+fi
+
+if [[ "$start" -ne 0 ]]; then
+    print_start "Reset failed pcscd triggered by repeated hits..."
+    sudo systemctl reset-failed pcscd.socket pcscd.service
+    if systemctl is-enabled pcscd.socket >/dev/null 2>&1; then
+        print_start "Start pcscd.socket..."
+        sudo systemctl start pcscd.socket
+    elif systemctl is-enabled pcscd.service >/dev/null 2>&1; then
+        print_start "Start pcscd.service..."
+        sudo systemctl start pcscd.service
+    fi
+fi
+
+if [[ "$status" -ne 0 ]]; then
+    print_status "Delete leftover SSH control sockets..."
+    find ~/.ssh/ -type s -name '*@*:*' -delete
+
+    print_status "Get GPG card status and auto start agents..."
+    gpg --card-status
+fi

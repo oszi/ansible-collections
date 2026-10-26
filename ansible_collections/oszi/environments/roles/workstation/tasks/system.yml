@@ -20,6 +20,13 @@
     directory_mode: "0755"
     mode: "0755"
 
+- name: Symlink yubikey-fix to smartcard-restart
+  ansible.builtin.file:
+    src: "smartcard-restart"
+    dest: "{{ workstation_local_bin_path }}/yubikey-fix"
+    force: true
+    state: "link"
+
 - name: Install shell aliases for workstations
   when: workstation_shell_aliases_path is truthy
   ansible.builtin.template:
