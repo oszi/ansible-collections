@@ -154,6 +154,7 @@ for domain in "${domains[@]}"; do
         fi
 
         virsh_command detach "$domain" || enter_to_exit
+        udevadm settle --timeout=5 ||:
     done
 done
 

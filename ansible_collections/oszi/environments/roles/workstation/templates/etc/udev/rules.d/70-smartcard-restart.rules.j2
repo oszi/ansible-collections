@@ -1,14 +1,23 @@
 # {{ ansible_managed }}
 {% set yubikey_vendor_id = "1050" %}
-{% set yubikey_product_ids = "0113|0114|0115|0116|0120|0121|0200|0402|0403|0406|0407|0410" %}
-# Hidraw nodes of Yubikeys; ATTRS read sysfs, which is already gone on remove.
-# The uaccess tag only counts before 73-seat-late.rules, hence the numeric prefix.
-ACTION=="add|change", KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="{{ yubikey_vendor_id }}", ATTRS{idProduct}=="{{ yubikey_product_ids }}", TAG+="uaccess", GROUP="plugdev", MODE="0660"
-# Hidraw nodes get USB properties from 60-persistent-hidraw.rules only since systemd 258; import them otherwise.
-ACTION=="add|change", KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="{{ yubikey_vendor_id }}", ENV{ID_BUS}=="", IMPORT{builtin}="usb_id"
+{% set smartcard_restart_path = [workstation_local_bin_path, "smartcard-restart"] | path_join %}
 
-# Hidraw node of the first HID interface of Yubikeys, once per key.
+# Hidraw nodes get USB properties from 60-persistent-hidraw.rules only since systemd 258; import them otherwise.
+# ATTRS read sysfs, which is already gone on remove; ENV properties below come from this import.
+ACTION=="add|change", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="{{ yubikey_vendor_id }}", ENV{ID_BUS}=="", \
+    IMPORT{builtin}="usb_id"
+
+# Hidraw nodes of Yubikeys; the uaccess tag only counts before 73-seat-late.rules, hence the numeric prefix 70.
+ACTION=="add|change", SUBSYSTEM=="hidraw", ENV{ID_VENDOR_ID}=="{{ yubikey_vendor_id }}", \
+    TAG+="uaccess", GROUP="plugdev", MODE="0660"
+
+# Hidraw node of the first HID interface of Yubikeys with a CCID interface, once per key.
 # Interfaces are also re-bound when a key returns from a VM, while the USB device itself stays.
-ACTION=="add", KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ENV{ID_VENDOR_ID}=="{{ yubikey_vendor_id }}", ENV{ID_MODEL_ID}=="{{ yubikey_product_ids }}", ENV{ID_USB_INTERFACE_NUM}=="00", RUN+="{{ workstation_local_bin_path }}/smartcard-restart"
-# USB device of Yubikeys; properties are read from the udev database, so they also match on remove.
-ACTION=="remove", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ENV{ID_VENDOR_ID}=="{{ yubikey_vendor_id }}", ENV{ID_MODEL_ID}=="{{ yubikey_product_ids }}", RUN+="{{ workstation_local_bin_path }}/smartcard-restart"
+# Keys with both OTP and FIDO disabled have no hidraw nodes and do not trigger a restart.
+ACTION=="add", SUBSYSTEM=="hidraw", ENV{ID_VENDOR_ID}=="{{ yubikey_vendor_id }}", \
+    ENV{ID_USB_INTERFACES}=="*:0b0000:*", ENV{ID_USB_INTERFACE_NUM}=="00", \
+    RUN+="{{ smartcard_restart_path }}"
+
+# USB device of Yubikeys with a CCID interface; properties are read from the udev database, so they match on remove.
+ACTION=="remove", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ENV{ID_VENDOR_ID}=="{{ yubikey_vendor_id }}", \
+    ENV{ID_USB_INTERFACES}=="*:0b0000:*", RUN+="{{ smartcard_restart_path }}"

@@ -54,13 +54,16 @@ print_status() {
 }
 
 if [[ "$stop" -ne 0 ]]; then
-    # Kill all agents as root when triggered by udev.
-    # Kill only our own when run as a user.
-    print_stop "Kill SSH and GPG agents as UID:${UID}..."
-    killall ssh-agent gpg-agent scdaemon
+    print_stop "Kill scdaemon as UID:${UID}..."
+    if [[ "$UID" -eq 0 ]] || ! command -v gpgconf >/dev/null 2>&1; then
+        # SIGTERM is ignored while gpg-agent holds the pipe; agents respawn scdaemon on demand.
+        killall -KILL scdaemon
+    else
+        gpgconf --kill scdaemon
+    fi
 
     # Stop pcscd to release devices, together with its socket. PKCS#11 clients such as gsd-smartcard
-    # with opensc re-activate it immediately, and pcscd re-claims the CCID interface.
+    # with opensc re-activate it immediately, and pcscd would re-claim the CCID interface.
     if systemctl is-active pcscd.socket pcscd.service >/dev/null 2>&1; then
         print_stop "Stop pcscd to release devices..."
         sudo systemctl stop pcscd.socket pcscd.service
