@@ -38,7 +38,9 @@
 
 - name: Ensure plugdev group exists
   ansible.builtin.group:
-    name: plugdev
+    name: "plugdev"
+    state: "present"
+    system: true
 
 - name: Copy /etc/sudoers.d/plugdev-pcscd
   ansible.builtin.copy:
