@@ -25,6 +25,7 @@ dotfiles_files:
   .ssh/config: |
     # Ansible managed
     {% if dotfiles_gnupg_sshcontrol_keygrips %}
+    # systemctl --user enable gpg-agent.socket gpg-agent-ssh.socket
     IdentityAgent /run/user/{{ dotfiles_user_info.uid }}/gnupg/S.gpg-agent.ssh
 
     {% endif %}
