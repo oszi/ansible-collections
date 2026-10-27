@@ -98,6 +98,7 @@ toolbox_packages_pt_default:
   - gawk
   - gcc
   - git
+  - git-lfs
   - gnupg
   - grep
   - hdparm

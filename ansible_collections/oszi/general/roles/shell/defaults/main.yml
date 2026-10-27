@@ -42,6 +42,7 @@ shell_packages:
   - "{{ ['git-delta'] if ansible_facts.os_family != 'RedHat'
     or ansible_facts.distribution == 'Fedora' else [] }}"
   - git
+  - git-lfs
   - gnupg
   # Essential tools
   - bat
