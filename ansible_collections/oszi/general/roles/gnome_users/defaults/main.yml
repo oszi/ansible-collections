@@ -12,6 +12,8 @@ gnome_users: "{{ [ansible_facts.user_id] if ansible_facts.user_uid | int != 0
 # gnome_users_screenshots_path to gnome_users_xdg_pictures_screenshots_path ($XDG_PICTURES_DIR)
 # and to gnome_users_xdg_videos_screencasts_path ($XDG_VIDEOS_DIR).
 gnome_users_screenshots_path: ""
+# Restore Screenshots and Screencasts directories if they are symlinks?
+gnome_users_screenshots_restore: false
 
 # Keep in mind that the dconf CLI tool, which this module wraps around, utilizes an unusual syntax
 # for the values (GVariant). For example, if you wanted to provide a string value, the correct syntax

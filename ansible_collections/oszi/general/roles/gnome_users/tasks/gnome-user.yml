@@ -30,6 +30,6 @@
         file: gnome-user/dconf.yml
 
     - name: "Include Screenshots tasks for user:{{ gnome_users_item }}"
-      when: gnome_users_screenshots_path is truthy
+      when: gnome_users_screenshots_path is truthy or gnome_users_screenshots_restore
       ansible.builtin.include_tasks:
-        file: gnome-user/screenshots.yml
+        file: "gnome-user/screenshots-{{ 'restore' if gnome_users_screenshots_restore else 'symlinks' }}.yml"

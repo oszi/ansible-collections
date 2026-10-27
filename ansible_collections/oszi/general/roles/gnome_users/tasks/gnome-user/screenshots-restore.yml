@@ -1,0 +1,44 @@
+---
+- name: Check XDG Gnome Screenshots directory
+  ansible.builtin.stat:
+    path: "{{ gnome_users_xdg_pictures_screenshots_path }}"
+  register: _gnome_users_xdg_pictures_screenshots_path_result
+
+- name: Restore Gnome Screenshots directory
+  when: "_gnome_users_xdg_pictures_screenshots_path_result.stat.islnk | default(false)"
+  block:
+    - name: Remove Gnome Screenshots directory symlink
+      ansible.builtin.file:
+        path: "{{ gnome_users_xdg_pictures_screenshots_path }}"
+        state: "absent"
+
+    - name: Ensure Gnome Screenshots directory exists
+      when: not ansible_check_mode
+      ansible.builtin.file:
+        path: "{{ gnome_users_xdg_pictures_screenshots_path }}"
+        owner: "{{ gnome_users_info.uid }}"
+        group: "{{ gnome_users_info.group }}"
+        mode: "0750"
+        state: "directory"
+
+- name: Check XDG Gnome Screencasts directory
+  ansible.builtin.stat:
+    path: "{{ gnome_users_xdg_videos_screencasts_path }}"
+  register: _gnome_users_xdg_videos_screencasts_path_result
+
+- name: Restore Gnome Screencasts directory
+  when: "_gnome_users_xdg_videos_screencasts_path_result.stat.islnk | default(false)"
+  block:
+    - name: Remove Gnome Screencasts directory symlink
+      ansible.builtin.file:
+        path: "{{ gnome_users_xdg_videos_screencasts_path }}"
+        state: "absent"
+
+    - name: Ensure Gnome Screencasts directory exists
+      when: not ansible_check_mode
+      ansible.builtin.file:
+        path: "{{ gnome_users_xdg_videos_screencasts_path }}"
+        owner: "{{ gnome_users_info.uid }}"
+        group: "{{ gnome_users_info.group }}"
+        mode: "0750"
+        state: "directory"

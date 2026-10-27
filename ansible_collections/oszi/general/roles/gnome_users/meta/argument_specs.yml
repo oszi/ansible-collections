@@ -28,6 +28,14 @@ argument_specs:
         type: path
         required: false
 
+      gnome_users_screenshots_restore:
+        description:
+          - When set to true, restores empty Screenshots and Screencasts directories if they are symlinks
+          - Takes precedent over O(gnome_users_screenshots_path)
+        type: bool
+        required: false
+        default: false
+
       gnome_users_dconf_custom_keybindings:
         description:
           - List of dictionaries of custom keyboard shortcuts
