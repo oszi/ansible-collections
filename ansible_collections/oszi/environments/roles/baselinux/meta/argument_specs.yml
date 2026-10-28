@@ -87,6 +87,27 @@ argument_specs:
             description: Mount point path on the filesystem
             type: path
             required: true
+          path_args:
+            description: File module arguments for mounted mount point paths after being mounted
+            type: dict
+            required: false
+            options:
+              attributes:
+                description: Attributes of the destination directory, as would be fed to `chattr`
+                type: str
+                required: false
+              owner:
+                description: Name or UID of the user that should own the directory, as would be fed to `chown`
+                type: raw
+                required: false
+              group:
+                description: Name or GID of the group that should own the directory, as would be fed to `chown`
+                type: raw
+                required: false
+              mode:
+                description: Permissions of the destination directory, as would be fed to `chmod`
+                type: raw
+                required: false
           src:
             description: Device or remote filesystem source (UUID, device path, NFS share, etc.)
             type: str
@@ -96,7 +117,7 @@ argument_specs:
             type: str
             required: false
           state:
-            description: Desired mount state (mounted, unmounted, remounted, present, absent, ephemeral)
+            description: Desired mount state; 'mounted' auto creates the mount point path; 'present' only modifies fstab
             type: str
             required: true
             choices: ['absent', 'absent_from_fstab', 'present', 'mounted', 'unmounted', 'remounted', 'ephemeral']

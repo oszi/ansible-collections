@@ -47,22 +47,23 @@
     validate: "visudo -csf %s"
   with_dict: "{{ baselinux_sudoers_rules_default | combine(baselinux_sudoers_rules) }}"
 
-- name: Ensure system mount points exist
-  # Do not set permissions as they could be changed by the users.
-  ansible.builtin.file:  # noqa: risky-file-permissions
-    path: "{{ item }}"
-    state: "directory"
-  # It could be a fuse mount point, not a directory.
-  ignore_errors: true  # noqa: ignore-errors
-  loop: "{{ baselinux_posix_mounts | map(attribute='path') }}"
-
+# State 'mounted' auto creates the mount point path.
 - name: Create system mounts - fstab entries
   ansible.posix.mount:
-  args: "{{ item }}"
+  args: "{{ item | dict2items | rejectattr('key', 'equalto', 'path_args') | items2dict }}"
   loop: "{{ baselinux_posix_mounts }}"
   loop_control:
     label: "{{ item.path }}"
   notify: "oszi.general.systemd : Reload systemd"
+
+- name: Ensure permissions and ownerships for mounted mount point paths
+  ansible.builtin.file:
+  args: "{{ item.path_args | combine({'path': item.path, 'state': 'directory'}) }}"
+  # state is a required choice option.
+  loop: "{{ baselinux_posix_mounts | selectattr('state', 'in', ['mounted', 'remounted', 'ephemeral'])
+    | selectattr('path_args', 'defined') }}"
+  loop_control:
+    label: "{{ item.path }}"
 
 - name: Include swap file configuration tasks
   when: baselinux_swapfile_path is truthy and baselinux_swapfile_size is truthy
