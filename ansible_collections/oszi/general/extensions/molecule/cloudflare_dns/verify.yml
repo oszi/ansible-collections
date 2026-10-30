@@ -1,0 +1,22 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+- name: Verify the cloudflare_dns no-op path
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    # Public, so the role defaults are visible to the assertion below.
+    - name: Include the cloudflare_dns role
+      ansible.builtin.include_role:
+        name: oszi.general.cloudflare_dns
+        public: true
+
+    # The controller-side tasks set this fact from ansible_host or the default IPv4 address first.
+    - name: Assert that the CloudFlare tasks were skipped
+      ansible.builtin.assert:
+        that:
+          - "cloudflare_dns_host_record_a_value == ''"
+          - "cloudflare_dns_host_record_aaaa_value == ''"
+        quiet: true

@@ -1,0 +1,41 @@
+---
+# Molecule scenario for the update entrypoint of oszi.general.python; shared settings come from
+# ../config.yml. The main entrypoint installs the toolchain and the packages, then the update entrypoint
+# upgrades them. Updates are not idempotent by nature, so the test sequence has no idempotence step.
+# The pip and pipx entries need network access to PyPI.
+scenario:
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # The update entrypoint upgrades present entries to the latest release and skips absent ones.
+        python_pip_list:
+          - name: [six]
+            virtualenv: /opt/molecule-venv
+          - name: [idna]
+            virtualenv: /opt/molecule-venv
+            state: absent
+        python_pipx_list:
+          - name: pycowsay
+            global: true
+        molecule_converge_roles:
+          - {name: oszi.general.python}
+          - {name: oszi.general.python, tasks_from: update}
+        molecule_verify_commands:
+          - {cmd: "/opt/molecule-venv/bin/python -c 'import six'"}
+          - cmd: >-
+              /opt/molecule-venv/bin/python -m pip list --outdated --format=json
+              | python3 -c 'import json, sys; print(sum(package["name"].lower() == "six" for package in json.load(sys.stdin)))'
+            stdout: "0"
+          - {cmd: "! /opt/molecule-venv/bin/python -c 'import idna' 2>/dev/null"}
+          - {cmd: "pycowsay molecule", stdout_contains: "< molecule >"}

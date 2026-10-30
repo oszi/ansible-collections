@@ -1,0 +1,35 @@
+---
+# Molecule scenario for oszi.general.gnome; shared settings come from ../config.yml.
+# The default package set (GNOME Shell and apps) is about 1 GB per platform, so both lists are reduced
+# to a few small packages in the same nested, distro-conditional structure as the role defaults.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        gnome_packages:
+          - "{{ ['dconf'] if (ansible_facts.os_family == 'RedHat') else [] }}"
+          - "{{ ['dconf-cli'] if (ansible_facts.os_family == 'Debian') else [] }}"
+          - gsettings-desktop-schemas
+          - acl
+          # Also blacklisted: the blacklist must win (the name does not even exist on Fedora).
+          - totem-common
+        # prepare.yml installs the first two entries from the role's default blacklist; gnome-tour is
+        # not installed and stays a no-op.
+        gnome_blacklisted_packages:
+          - "{{ ['fedora-chromium-config'] if (ansible_facts.distribution == 'Fedora') else [] }}"
+          - totem-common
+          - gnome-tour
+        molecule_verify_commands:
+          - {cmd: "command -v dconf getfacl"}
+          # The compiled schemas list the GNOME desktop settings (gsettings itself is not pulled in on Debian).
+          - {cmd: "grep -qa org.gnome.desktop.interface /usr/share/glib-2.0/schemas/gschemas.compiled"}
+      fedora:
+        molecule_gnome_blacklisted_package: fedora-chromium-config
+        molecule_verify_packages:
+          present: [dconf, gsettings-desktop-schemas, acl]
+          absent: [fedora-chromium-config, totem-common, gnome-tour]
+      debian:
+        molecule_gnome_blacklisted_package: totem-common
+        molecule_verify_packages:
+          present: [dconf-cli, gsettings-desktop-schemas, acl]
+          absent: [totem-common, gnome-tour]

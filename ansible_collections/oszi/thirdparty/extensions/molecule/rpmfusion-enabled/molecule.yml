@@ -1,0 +1,30 @@
+---
+# Molecule scenario for oszi.thirdparty.rpmfusion with rpmfusion_enabled: true.
+# Needs network access to mirrors.rpmfusion.org on Fedora; the role is a no-op on the Debian family,
+# which the idempotence step and the absence checks cover there. Tainted repositories stay disabled.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        rpmfusion_enabled: true
+      fedora:
+        # The role manages the tainted repositories through their release packages only; nothing to seed.
+        molecule_seed_paths: []
+        molecule_verify_paths:
+          - {path: /etc/yum.repos.d/rpmfusion-free.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/yum.repos.d/rpmfusion-free-updates.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/yum.repos.d/rpmfusion-nonfree.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/yum.repos.d/rpmfusion-nonfree-updates.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/yum.repos.d/rpmfusion-free-tainted.repo, state: absent}
+          - {path: /etc/yum.repos.d/rpmfusion-nonfree-tainted.repo, state: absent}
+        molecule_verify_commands:
+          - {cmd: "rpm -q rpmfusion-free-release rpmfusion-nonfree-release"}
+          # Both signing keys were imported from distribution-gpg-keys before the release packages.
+          - {cmd: "rpm -q gpg-pubkey --qf '%{SUMMARY}\\n' | grep -c 'RPM Fusion'", stdout: "2"}
+          - {cmd: "dnf5 repo list --enabled", stdout_contains: "rpmfusion-nonfree-updates"}
+        molecule_verify_packages:
+          present: [distribution-gpg-keys, rpmfusion-free-release, rpmfusion-nonfree-release]
+          absent: [rpmfusion-free-release-tainted, rpmfusion-nonfree-release-tainted]
+      debian:
+        molecule_verify_commands:
+          - {cmd: "! grep -rqi rpmfusion /etc/apt"}

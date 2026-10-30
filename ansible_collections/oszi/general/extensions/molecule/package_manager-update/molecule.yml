@@ -1,0 +1,31 @@
+---
+# Molecule scenario for the update entrypoint of oszi.general.package_manager; shared settings come from
+# ../config.yml. Updates are not idempotent by nature, so the test sequence has no idempotence step.
+scenario:
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_converge_roles:
+          - {name: oszi.general.package_manager, tasks_from: update}
+        # prepare.yml installs tree and marks it as automatically installed, so autoremove must remove it.
+        molecule_verify_packages:
+          absent: [tree]
+      fedora:
+        molecule_verify_commands:
+          # Exit code 100 would mean pending updates.
+          - {cmd: "dnf --quiet check-upgrade"}
+      debian:
+        molecule_verify_commands:
+          - {cmd: "apt-get --simulate dist-upgrade | grep -c '^Inst' || true", stdout: "0"}
+          - {cmd: "apt-get --simulate autoremove | grep -c '^Remv' || true", stdout: "0"}

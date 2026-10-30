@@ -1,0 +1,35 @@
+---
+# Molecule scenario for the oszi.general.podman update entrypoint, applied after the main entrypoint.
+# Nested containers cannot run without CAP_SYS_ADMIN, so there are no images or containers to update:
+# this checks that the image listing, podman auto-update and the image prune run cleanly.
+# Update entrypoints are not idempotent by design, hence no idempotence step.
+scenario:
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # Only the core packages; the docker emulation and the extras are covered by the podman scenario.
+        podman_toolbox_enabled: false
+        podman_compose_enabled: false
+        podman_docker_enabled: false
+        molecule_converge_roles:
+          - name: oszi.general.podman
+          - name: oszi.general.podman
+            tasks_from: update
+        molecule_verify_commands:
+          - {cmd: "podman image list --quiet", stdout: ""}
+          - {cmd: "podman auto-update", stdout: ""}
+        molecule_verify_units:
+          - {name: podman.socket, enabled: disabled}
+        molecule_verify_packages:
+          present: [podman, buildah, skopeo]
+          absent: [podman-compose, podman-docker]

@@ -1,0 +1,15 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# python_devel_distro_packages lists python3-pip for the RedHat family only; on Debian and Ubuntu,
+# pip is only available inside virtualenvs.
+- name: Verify the system pip on the RedHat family
+  hosts: redhat
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Check the system pip
+      ansible.builtin.command:
+        cmd: "python3 -m pip --version"
+      changed_when: false

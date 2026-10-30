@@ -1,0 +1,36 @@
+---
+# Molecule scenario for oszi.general.wireguard with a wg-quick config; shared settings come from ../config.yml.
+# prepare.yml generates a throwaway private key inside each container; converge.yml reads it into
+# molecule_wireguard_private_key without logging. Interfaces need CAP_NET_ADMIN and the host kernel module,
+# so no wg-quick services are started.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        wireguard_quick_services: []
+        wireguard_quick_configs:
+          wg0: |
+            [Interface]
+            PrivateKey = {{ molecule_wireguard_private_key }}
+            Address = 192.0.2.1/24
+            ListenPort = 51820
+        molecule_wireguard_key_path: /root/molecule-wg0.key
+        molecule_verify_paths:
+          - {path: /etc/wireguard, state: directory, mode: "0700", owner: root, group: root}
+          - {path: /etc/wireguard/wg0.conf, mode: "0600", owner: root, group: root}
+        molecule_verify_commands:
+          - {cmd: "wg --version", stdout_contains: "wireguard-tools v"}
+          # wg-quick parses the config; the key in it matches the generated one (compared as public keys).
+          - {cmd: "[[ \"$$(wg-quick strip wg0 | sed -n 's/^PrivateKey = //p' | wg pubkey)\"
+              == \"$$(wg pubkey < /root/molecule-wg0.key)\" ]]"}
+          - {cmd: "wg-quick strip wg0 | grep -Fx 'ListenPort = 51820'"}
+        molecule_verify_units:
+          - {name: wg-quick@wg0.service, active: inactive, enabled: disabled}
+      redhat:
+        molecule_wireguard_tools_package: wireguard-tools
+        molecule_verify_packages:
+          present: [wireguard-tools]
+      debian:
+        molecule_wireguard_tools_package: wireguard-tools
+        molecule_verify_packages:
+          present: [wireguard, wireguard-tools]

@@ -1,0 +1,61 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+- name: Verify shell role specifics
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import facts role
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+
+    - name: Check the installed shell files with shellcheck and the shells' parsers
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          shellcheck -- /etc/shrc /etc/shrc.d/* /root/.bashrc /root/.bash_profile /root/.profile /root/.zshrc \
+            /root/.zprofile /home/tester/.bashrc /home/tester/.profile /home/tester/.zshrc
+          for f in /etc/shrc /etc/shrc.d/*.sh /root/.profile; do sh -n "$f"; done
+          for f in /etc/shrc.d/*.bash /root/.bashrc /root/.bash_profile; do bash -n "$f"; done
+          for f in /etc/shrc.d/*.zsh /root/.zshrc /root/.zprofile /home/tester/.zshrc; do zsh -n "$f"; done
+        executable: "/bin/bash"
+      changed_when: false
+
+    - name: Check the tmux configuration
+      become: true
+      become_user: tester
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          tmux -L molecule -f ~/.tmux.conf start-server \; show-options -gv history-limit \; kill-server
+        executable: "/bin/bash"
+      changed_when: false
+      register: _shell_tmux_result
+      failed_when: "_shell_tmux_result.stdout | trim != '100000'"
+
+    - name: Check the bat/batcat alternative symlink
+      ansible.builtin.stat:
+        path: "{{ (ansible_facts.os_family == 'Debian') | ternary('/usr/local/bin/bat', '/usr/local/bin/batcat') }}"
+      register: _shell_bat_link
+
+    - name: Assert the bat/batcat alternative symlink
+      ansible.builtin.assert:
+        that:
+          - "_shell_bat_link.stat.islnk"
+          - "_shell_bat_link.stat.lnk_target == (ansible_facts.os_family == 'Debian')
+            | ternary('/usr/bin/batcat', '/usr/bin/bat')"
+        quiet: true
+
+    - name: Import shell facts tasks
+      ansible.builtin.import_role:
+        name: oszi.general.shell
+        tasks_from: facts
+
+    - name: Assert the exported shell facts
+      ansible.builtin.assert:
+        that:
+          - "shell_integrations_enabled is true"
+          - "shell_integrations_shrc_d_path == '/etc/shrc.d'"
+        quiet: true

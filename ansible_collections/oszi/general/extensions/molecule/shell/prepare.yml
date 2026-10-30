@@ -1,0 +1,13 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Install test tools for the shell scenario
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure shellcheck is installed
+      ansible.builtin.package:
+        name: "shellcheck"
+        state: "present"

@@ -1,0 +1,30 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# molecule_chrome_gpgkey (group_vars) names the bootstrapped key file and the role default holding its checksum,
+# so the expected hash is read from the role instead of being duplicated here; the role must not touch it.
+- name: Verify the google_chrome bootstrapped signing key
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Load the role defaults
+      ansible.builtin.include_vars:
+        file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/roles/google_chrome/defaults/main.yml"
+        name: _molecule_role_defaults
+
+    - name: Stat the signing key
+      ansible.builtin.stat:
+        path: "{{ molecule_chrome_gpgkey.path }}"
+        checksum_algorithm: "sha256"
+      register: _molecule_gpgkey_stat
+
+    - name: Assert the signing key checksum
+      ansible.builtin.assert:
+        that:
+          - "_molecule_gpgkey_stat.stat.exists"
+          - "'sha256:' ~ _molecule_gpgkey_stat.stat.checksum
+            == _molecule_role_defaults[molecule_chrome_gpgkey.checksum_var]"
+        fail_msg: "{{ molecule_chrome_gpgkey.path }} does not match {{ molecule_chrome_gpgkey.checksum_var }}"
+        quiet: true

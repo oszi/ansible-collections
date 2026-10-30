@@ -1,0 +1,40 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# Placeholders for the files of an earlier installation; the role removes them by path.
+- name: Seed borgmatic files
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the seeded directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0700"
+      loop:
+        - "/opt/borgmatic/bin"
+        - "/etc/borgmatic"
+
+    - name: Seed the borgmatic files
+      ansible.builtin.copy:
+        content: "{{ item.content }}"
+        dest: "{{ item.dest }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      loop:
+        - {dest: /opt/borgmatic/bin/borgmatic, content: "#!/bin/sh\n"}
+        - {dest: /etc/borgmatic/config.yaml, content: "source_directories: [/etc]\n"}
+        - {dest: /etc/profile.d/borgmatic.sh, content: "alias borg1='borg --remote-path=borg1'\n"}
+        - {dest: /etc/systemd/system/borg.service, content: "[Service]\nType=oneshot\nExecStart=/bin/true\n"}
+        - {dest: /etc/systemd/system/borg.timer, content: "[Timer]\nOnCalendar=daily\n"}
+      loop_control:
+        label: "{{ item.dest }}"
+
+    - name: Reload systemd to load the seeded units
+      ansible.builtin.systemd:
+        daemon_reload: true

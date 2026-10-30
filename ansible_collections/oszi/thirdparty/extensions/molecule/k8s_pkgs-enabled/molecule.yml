@@ -1,0 +1,57 @@
+---
+# Molecule scenario for oszi.thirdparty.k8s_pkgs installing kubectl from pkgs.k8s.io.
+# Needs network access to pkgs.k8s.io and its package CDN.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        k8s_pkgs_enabled: true
+        k8s_pkgs_packages: [kubectl]
+        # Cross-role variables of oszi.general.shell: the role's argument_specs description templates
+        # shell_integrations_shrc_d_path, so validation fails with "is undefined" without it.
+        shell_integrations_enabled: false
+        shell_integrations_shrc_d_path: /etc/shrc.d
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /etc/bash_completion.d/kubectl, mode: "0644", owner: root, group: root}
+          - {path: /usr/local/share/zsh/site-functions/_kubectl, mode: "0644", owner: root, group: root}
+          # kubeadm is not requested, so its completions are not installed.
+          - {path: /etc/bash_completion.d/kubeadm, state: absent}
+          - {path: /etc/shrc.d/kubeadm-completion.zsh, state: absent}
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_distro }}"
+        molecule_verify_commands_common:
+          - {cmd: "kubectl version --client", stdout_contains: "Client Version: v1.36."}
+          - {cmd: "bash -c 'source /etc/bash_completion.d/kubectl && complete -p kubectl'", stdout_contains: "kubectl"}
+          - {cmd: "head -n 1 /usr/local/share/zsh/site-functions/_kubectl", stdout: "#compdef kubectl"}
+        molecule_verify_packages:
+          present: [kubectl]
+      redhat:
+        molecule_verify_gpgkey:
+          path: /etc/pki/rpm-gpg/RPM-GPG-KEY-kubernetes
+          checksum_var: k8s_pkgs_rpm_gpgkey_checksum
+        molecule_verify_paths_distro:
+          - {path: /etc/yum.repos.d/kubernetes.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-kubernetes, mode: "0644", owner: root, group: root}
+        molecule_verify_commands_distro:
+          - {cmd: "grep -Fx 'baseurl = https://pkgs.k8s.io/core:/stable:/v1.36/rpm/' /etc/yum.repos.d/kubernetes.repo"}
+          - {cmd: "grep -Fx 'includepkgs = kube* cri-tools' /etc/yum.repos.d/kubernetes.repo"}
+          # Installed from pkgs.k8s.io, not Fedora's kubernetes-client.
+          - {cmd: "dnf repoquery --installed --qf '%{from_repo}\\n' kubectl", stdout: kubernetes}
+      debian:
+        molecule_verify_gpgkey:
+          path: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+          checksum_var: k8s_pkgs_deb_gpgkey_checksum
+        molecule_verify_paths_distro:
+          - {path: /etc/apt/sources.list.d/kubernetes.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/preferences.d/kubernetes, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/kubernetes-apt-keyring.asc, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg, state: absent}
+          - {path: /etc/apt/sources.list.d/kubernetes.list, state: absent}
+        molecule_verify_commands_distro:
+          - {cmd: "grep -Fx 'URIs: https://pkgs.k8s.io/core:/stable:/v1.36/deb/' /etc/apt/sources.list.d/kubernetes.sources"}
+          - cmd: "grep -Fx 'Signed-By: /etc/apt/keyrings/kubernetes-apt-keyring.asc'
+              /etc/apt/sources.list.d/kubernetes.sources"
+          - {cmd: "grep -Fx 'Pin: origin pkgs.k8s.io' /etc/apt/preferences.d/kubernetes"}
+          # The installed version has the pinned priority (above the distribution's kubectl on Debian)
+          # and comes from pkgs.k8s.io.
+          - cmd: "apt-cache policy kubectl | grep -A1 -E '^ [*]{3} [^ ]+ 1001$$' | grep -F https://pkgs.k8s.io/"

@@ -1,0 +1,77 @@
+---
+# Molecule scenario for oszi.thirdparty.tailscale with tailscale_enabled: true.
+# Needs network access to pkgs.tailscale.com on Debian and Ubuntu; Fedora installs the distribution
+# package and keeps the upstream repository uninstalled. tailscale up is never run: the daemon stays
+# in NeedsLogin. prepare.yml seeds molecule_seed_paths, which the role must remove.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        tailscale_enabled: true
+        # Without /dev/net/tun and CAP_NET_ADMIN, tailscaled only runs with userspace networking.
+        # The Debian unit passes $$FLAGS from /etc/default/tailscaled, the Fedora unit has no FLAGS,
+        # so ExecStart is replaced; a bare command name resolves on both /usr/sbin and /usr/bin.
+        tailscale_systemd_service_override: |
+          [Service]
+          EnvironmentFile=
+          Environment=PORT=41641
+          ExecStart=
+          ExecStart=tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --port=$${PORT} --tun=userspace-networking
+        molecule_role_defaults_file: "${MOLECULE_PROJECT_DIRECTORY}/roles/tailscale/defaults/main.yml"
+        molecule_verify_paths_common:
+          - {path: /etc/systemd/system/tailscaled.service.d/override.conf, mode: "0644", owner: root, group: root}
+          - {path: /etc/bash_completion.d/tailscale, mode: "0644", owner: root, group: root}
+          - {path: /usr/local/share/zsh/site-functions/_tailscale, mode: "0644", owner: root, group: root}
+        molecule_verify_commands_common:
+          # The first line of the output is the bare version.
+          - {cmd: "[[ $$(tailscale version) =~ ^[0-9]+[.][0-9]+[.][0-9]+ ]]"}
+          - cmd: "tailscale status --json | python3 -c 'import json, sys; print(json.load(sys.stdin)[\"BackendState\"])'"
+            stdout: "NeedsLogin"
+          # The override is live: the running daemon uses userspace networking and the configured port.
+          - cmd: "tr '\\0' ' ' < /proc/$$(systemctl show --property=MainPID --value tailscaled.service)/cmdline"
+            stdout_contains: "--port=41641 --tun=userspace-networking"
+          - {cmd: "bash -n /etc/bash_completion.d/tailscale && grep -q tailscale /etc/bash_completion.d/tailscale"}
+          - {cmd: "head -n 1 /usr/local/share/zsh/site-functions/_tailscale", stdout: "#compdef tailscale"}
+        molecule_verify_units:
+          - {name: tailscaled.service, active: active, enabled: enabled}
+      redhat:
+        # tailscale_upstream_enabled defaults to false on Fedora: the upstream files must be removed.
+        molecule_seed_paths:
+          - /etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale
+          - /etc/yum.repos.d/tailscale.repo
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_rpm }}"
+        molecule_verify_paths_rpm:
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale, state: absent}
+          - {path: /etc/yum.repos.d/tailscale.repo, state: absent}
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_rpm }}"
+        molecule_verify_commands_rpm:
+          - {cmd: "rpm -q --qf '%{VENDOR}' tailscale", stdout: "Fedora Project"}
+        molecule_verify_packages:
+          present: [tailscale]
+      debian:
+        # The keyring with the other extension and the legacy one-line source.
+        molecule_seed_paths:
+          - /etc/apt/keyrings/tailscale-archive-keyring.asc
+          - /etc/apt/sources.list.d/tailscale.list
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_deb }}"
+        molecule_verify_paths_deb:
+          - {path: /etc/apt/keyrings/tailscale-archive-keyring.gpg, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/sources.list.d/tailscale.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/tailscale-archive-keyring.asc, state: absent}
+          - {path: /etc/apt/sources.list.d/tailscale.list, state: absent}
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_deb }}"
+        molecule_verify_commands_deb:
+          - {cmd: "out=$$(apt-get update 2>&1); ! grep -E '^(W|E):' <<<\"$$out\""}
+        molecule_verify_packages:
+          present: [tailscale]
+        # The upstream key is published in binary form as {release}.noarmor.gpg.
+        molecule_verify_keyrings:
+          - {path: /etc/apt/keyrings/tailscale-archive-keyring.gpg, checksum: tailscale_deb_gpgkey_checksum, armored: false}
+        molecule_verify_repo_files:
+          - path: /etc/apt/sources.list.d/tailscale.sources
+            content: |
+              Types: deb
+              URIs: {{ molecule_role_defaults.tailscale_deb_baseurl }}
+              Suites: {{ ansible_facts.distribution_release }}
+              Components: main
+              Signed-By: /etc/apt/keyrings/tailscale-archive-keyring.gpg

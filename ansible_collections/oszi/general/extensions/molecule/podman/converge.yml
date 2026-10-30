@@ -1,0 +1,4 @@
+---
+# No production playbook exists for podman; the shared converge applies oszi.general.podman.
+- name: Import the shared converge playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.converge

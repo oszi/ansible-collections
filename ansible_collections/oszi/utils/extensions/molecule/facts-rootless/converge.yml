@@ -1,0 +1,39 @@
+---
+# Custom converge: the facts role only sets facts on the controller, so the assertions run in the same play.
+- name: Converge the facts role as the test user
+  hosts: all
+  become: true
+  become_user: "{{ molecule_become_user }}"
+  gather_facts: false
+  tasks:
+    - name: Import facts role with the default subset
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+
+    - name: Assert the user facts of the effective user
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache == ['min', 'virtual']"
+          - "ansible_facts.user_id == 'tester'"
+          - "ansible_facts.user_uid | int != 0"
+          - "ansible_facts.user_dir == '/home/tester'"
+          # /proc/1/environ is root-only: the type comes from /run/systemd/container instead, so guards
+          # on virtualization_type == 'container' miss as non-root; virtualization_tech_guest is reliable.
+          - "ansible_facts.virtualization_type != 'container'"
+          - "ansible_facts.virtualization_role == 'guest'"
+          - "'container' in ansible_facts.virtualization_tech_guest"
+        quiet: true
+
+    - name: Import facts entrypoint with the hardware subset
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+        tasks_from: facts
+      vars:
+        facts_subset: [hardware]
+
+    - name: Assert the hardware subset
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache == ['hardware', 'min', 'virtual']"
+          - "ansible_facts.memtotal_mb | int > 0"
+        quiet: true

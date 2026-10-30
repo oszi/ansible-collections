@@ -1,0 +1,19 @@
+---
+# Molecule scenario for oszi.general.borgmatic with the default borgmatic_enabled: false.
+# prepare.yml seeds the files of an earlier installation so the uninstall path has work to do.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # Exported by oszi.general.shell in production. The role cannot run without the path: its argument
+        # spec description of borgmatic_shell_aliases_path templates it during validation.
+        shell_integrations_enabled: true
+        shell_integrations_shrc_d_path: /etc/shrc.d
+        molecule_verify_paths:
+          - {path: /opt/borgmatic, state: absent}
+          - {path: /etc/borgmatic/config.yaml, state: absent}
+          - {path: /etc/profile.d/borgmatic.sh, state: absent}
+          - {path: /etc/systemd/system/borg.service, state: absent}
+          - {path: /etc/systemd/system/borg.timer, state: absent}
+        molecule_verify_commands:
+          - {cmd: "! systemctl cat borg.timer"}

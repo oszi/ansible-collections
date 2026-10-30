@@ -1,0 +1,69 @@
+---
+# Molecule scenario for oszi.thirdparty.gcloud_sdk disabled (uninstall path).
+# Offline apart from the distribution mirrors: no task reaches the vendor hosts.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # The default follows ansible_facts.system_vendor, which containers inherit from the host DMI.
+        gcloud_sdk_enabled: false
+        molecule_seed_files_common:
+          - path: /usr/local/bin/gcloud-entrypoint.sh
+            mode: "0755"
+        molecule_seed_files: "{{ molecule_seed_files_common + molecule_seed_files_distro }}"
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /usr/local/bin/gcloud-entrypoint.sh, state: absent}
+        # Current package names; the role removes the old google-cloud-sdk-* names, which only RPM provides.
+        molecule_verify_packages:
+          absent:
+            - google-cloud-cli
+            - google-cloud-cli-gke-gcloud-auth-plugin
+            - google-cloud-cli-minikube
+      redhat:
+        # Disabled sections keep dnf from fetching the seeded repository in the converge cache refresh.
+        molecule_seed_files_distro:
+          - path: /etc/yum.repos.d/google-cloud-sdk.repo
+            content: |
+              [google-cloud-sdk]
+              name=GCloud SDK
+              baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el10-$$basearch
+              enabled=0
+              gpgcheck=1
+              gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-google-cloud-sdk
+
+              [google-cloud-sdk-unstable]
+              name=GCloud SDK Unstable
+              baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el10-$$basearch-unstable
+              enabled=0
+              gpgcheck=1
+              gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-google-cloud-sdk
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-cloud-sdk
+        molecule_verify_paths_distro:
+          - {path: /etc/yum.repos.d/google-cloud-sdk.repo, state: absent}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-cloud-sdk, state: absent}
+      debian:
+        # The legacy lists use other suites: apt rejects conflicting Signed-By values for one source,
+        # which would fail every apt call before the role runs.
+        molecule_seed_files_distro:
+          - path: /etc/apt/sources.list.d/google-cloud-sdk.sources
+            content: |
+              Types: deb
+              URIs: https://packages.cloud.google.com/apt
+              Suites: cloud-sdk
+              Components: main
+              Signed-By: /etc/apt/keyrings/google-cloud-sdk.asc
+          - path: /etc/apt/sources.list.d/google-cloud-sdk.list
+            content: |
+              deb [signed-by=/etc/apt/keyrings/google-cloud-sdk.gpg] https://packages.cloud.google.com/apt cloud-sdk-legacy main
+          - path: /etc/apt/sources.list.d/gce_sdk.list
+            content: |
+              deb [signed-by=/etc/apt/keyrings/google-cloud-sdk.gpg] https://packages.cloud.google.com/apt cloud-sdk-gce main
+          - path: /etc/apt/keyrings/google-cloud-sdk.asc
+          - path: /etc/apt/keyrings/google-cloud-sdk.gpg
+        molecule_verify_paths_distro:
+          - {path: /etc/apt/sources.list.d/google-cloud-sdk.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/google-cloud-sdk.list, state: absent}
+          - {path: /etc/apt/sources.list.d/gce_sdk.list, state: absent}
+          - {path: /etc/apt/keyrings/google-cloud-sdk.asc, state: absent}
+          - {path: /etc/apt/keyrings/google-cloud-sdk.gpg, state: absent}

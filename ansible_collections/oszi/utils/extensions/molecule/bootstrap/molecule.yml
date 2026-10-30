@@ -1,0 +1,15 @@
+---
+# Molecule scenario for oszi.utils.bootstrap; shared settings come from ../config.yml.
+# The custom converge.yml asserts the bootstrap facts in the same play. bootstrap_package_update_cache
+# is true in the base inventory, so the package cache task runs as well. The podman connection is not
+# SSH, so the SSH port fallback is skipped.
+provisioner:
+  inventory:
+    group_vars:
+      fedora:
+        molecule_verify_commands:
+          # The images ship without package metadata; the role's cache update downloads it.
+          - {cmd: "compgen -G '/var/cache/libdnf5/*/repodata/*primary*'"}
+      debian:
+        molecule_verify_commands:
+          - {cmd: "compgen -G '/var/lib/apt/lists/*_Packages*'"}

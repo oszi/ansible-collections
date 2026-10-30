@@ -1,0 +1,25 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Generate a throwaway WireGuard private key
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure wireguard-tools is installed for wg genkey
+      ansible.builtin.package:
+        name: "{{ molecule_wireguard_tools_package }}"
+        state: "present"
+
+    # The key goes straight to a root-only file and never appears in the output.
+    - name: Generate the private key inside the container
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          umask 077
+          wg genkey > "$KEY_PATH"
+        executable: "/bin/bash"
+        creates: "{{ molecule_wireguard_key_path }}"
+      environment:
+        KEY_PATH: "{{ molecule_wireguard_key_path }}"

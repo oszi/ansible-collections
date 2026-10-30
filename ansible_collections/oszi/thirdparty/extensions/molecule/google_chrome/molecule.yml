@@ -1,0 +1,76 @@
+---
+# Molecule scenario for oszi.thirdparty.google_chrome with the default google_chrome_enabled: false (uninstall path).
+# Offline apart from the distribution mirrors: no task reaches the vendor hosts.
+# Seeds the role-managed files and the files Google's package scripts write under fixed names.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_seed_files_common:
+          - path: /etc/default/google-chrome
+            content: |
+              repo_add_once="false"
+              repo_reenable_on_distupgrade="false"
+        molecule_seed_files: "{{ molecule_seed_files_common + molecule_seed_files_distro }}"
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /etc/default/google-chrome, state: absent}
+        molecule_verify_packages:
+          absent: [google-chrome-stable, google-chrome-beta, google-chrome-unstable]
+      redhat:
+        # Disabled sections keep dnf from fetching the seeded repositories in the converge cache refresh.
+        molecule_seed_files_distro:
+          - path: /etc/yum.repos.d/google-chrome-ansible-managed.repo
+            content: |
+              [google-chrome]
+              name=Google Chrome
+              baseurl=https://dl-ssl.google.com/linux/chrome/rpm/stable/$$basearch
+              enabled=0
+              gpgcheck=1
+              gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome
+          - path: /etc/yum.repos.d/google-chrome.repo
+            content: |
+              [google-chrome-vendor]
+              name=google-chrome
+              baseurl=https://dl.google.com/linux/chrome/rpm/stable/x86_64
+              enabled=0
+              gpgcheck=1
+              gpgkey=https://dl.google.com/linux/linux_signing_key.pub
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome
+        molecule_verify_paths_distro:
+          - {path: /etc/yum.repos.d/google-chrome-ansible-managed.repo, state: absent}
+          - {path: /etc/yum.repos.d/google-chrome.repo, state: absent}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome, state: absent}
+      debian:
+        # Each seeded source uses another suite or URI: apt rejects conflicting Signed-By values for one
+        # source, which would fail every apt call before the role runs.
+        molecule_seed_files_distro:
+          - path: /etc/apt/sources.list.d/google-chrome-ansible-managed.sources
+            content: |
+              Types: deb
+              URIs: https://dl-ssl.google.com/linux/chrome/deb
+              Suites: stable
+              Components: main
+              Architectures: amd64
+              Signed-By: /etc/apt/keyrings/google-chrome.asc
+          - path: /etc/apt/sources.list.d/google-chrome.sources
+            content: |
+              Types: deb
+              URIs: https://dl.google.com/linux/chrome-stable/deb/
+              Suites: stable
+              Components: main
+              Architectures: amd64
+              Signed-By: /usr/share/keyrings/google-chrome.gpg
+          - path: /etc/apt/sources.list.d/google-chrome.list
+            content: |
+              deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main
+          - path: /etc/apt/keyrings/google-chrome.asc
+          - path: /etc/apt/keyrings/google-chrome.gpg
+          - path: /etc/apt/trusted.gpg.d/google-chrome.gpg
+        molecule_verify_paths_distro:
+          - {path: /etc/apt/sources.list.d/google-chrome-ansible-managed.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/google-chrome.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/google-chrome.list, state: absent}
+          - {path: /etc/apt/keyrings/google-chrome.asc, state: absent}
+          - {path: /etc/apt/keyrings/google-chrome.gpg, state: absent}
+          - {path: /etc/apt/trusted.gpg.d/google-chrome.gpg, state: absent}

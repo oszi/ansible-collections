@@ -1,0 +1,13 @@
+---
+# Rootless molecule scenario for oszi.utils.facts; shared settings come from ../config.yml.
+# The custom converge.yml gathers facts as tester and asserts the user facts in the same play.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester, which must not update the package cache.
+        bootstrap_package_update_cache: false

@@ -1,0 +1,43 @@
+---
+# Molecule scenario for oszi.general.flatpak; shared settings come from ../config.yml.
+# No remotes or apps: installing them needs flathub access and bubblewrap, which cannot run without
+# CAP_SYS_ADMIN. Overrides do not need the app to be installed.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        flatpak_global_overrides:
+          - "--nofilesystem=host"
+          - "--nofilesystem=home"
+        flatpak_app_overrides:
+          org.example.Molecule:
+            - "--nofilesystem=home"
+            - "--filesystem=/srv/molecule data:ro"
+            - "--env=MOLECULE=1"
+        # Absolute alias target; relative targets would point at app exports.
+        flatpak_exports_bin_aliases:
+          molecule-bash: /usr/bin/bash
+        # prepare.yml creates this file; the role must remove it.
+        flatpak_exports_bin_aliases_absent:
+          - molecule-obsolete
+        molecule_verify_paths:
+          - {path: /var/lib/flatpak/exports/bin, state: directory, mode: "0755", owner: root, group: root}
+          - {path: /var/lib/flatpak/exports/bin/molecule-bash, state: link, src: /usr/bin/bash}
+          - {path: /var/lib/flatpak/exports/bin/molecule-obsolete, state: absent}
+          - {path: /var/lib/flatpak/overrides/global, mode: "0644", owner: root, group: root}
+          - {path: /var/lib/flatpak/overrides/org.example.Molecule, mode: "0644", owner: root, group: root}
+        molecule_verify_commands:
+          - {cmd: "flatpak --version", stdout_contains: "Flatpak "}
+          - {cmd: "/var/lib/flatpak/exports/bin/molecule-bash -c 'echo alias-ok'", user: tester, stdout: "alias-ok"}
+          # flatpak parses the override files it wrote; it does not keep the order of the filesystems.
+          - cmd: "flatpak override --system --show | sed -n 's/^filesystems=//p' | tr ';' '\\n' | grep . | sort | paste -sd ,"
+            stdout: "!home,!host"
+          - cmd: "flatpak override --system --show org.example.Molecule | sed -n 's/^filesystems=//p' | tr ';' '\\n' | grep . | sort | paste -sd ,"
+            stdout: "!home,/srv/molecule data:ro"
+          - cmd: "flatpak override --system --show org.example.Molecule | sed -n '/^\\[Environment\\]/,/^\\[/p'"
+            stdout: "[Environment]\nMOLECULE=1"
+        molecule_verify_packages:
+          present: [flatpak]
+        users_list:
+          - name: tester
+            shell: /bin/bash

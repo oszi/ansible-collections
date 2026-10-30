@@ -1,0 +1,32 @@
+---
+# Molecule scenario for oszi.thirdparty.hashicorp installing terraform from the vendor repository.
+# Needs network access to rpm.releases.hashicorp.com, apt.releases.hashicorp.com and their package CDN.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        hashicorp_enabled: true
+        hashicorp_packages: [terraform]
+        molecule_verify_packages:
+          present: [terraform]
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_distro }}"
+        molecule_verify_commands_common:
+          - {cmd: "terraform version", stdout_contains: "Terraform v"}
+      redhat:
+        molecule_verify_gpgkey:
+          path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp
+          checksum_var: hashicorp_rpm_gpgkey_checksum
+        molecule_verify_paths:
+          - {path: /etc/yum.repos.d/hashicorp.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp, mode: "0644", owner: root, group: root}
+        molecule_verify_commands_distro:
+          - {cmd: "dnf repoquery --installed --qf '%{from_repo}\\n' terraform", stdout: hashicorp}
+      debian:
+        molecule_verify_gpgkey:
+          path: /etc/apt/keyrings/hashicorp.asc
+          checksum_var: hashicorp_deb_gpgkey_checksum
+        molecule_verify_paths:
+          - {path: /etc/apt/sources.list.d/hashicorp.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/hashicorp.asc, mode: "0644", owner: root, group: root}
+        molecule_verify_commands_distro:
+          - {cmd: "apt-cache policy terraform | grep -A1 -F '***' | grep -F apt.releases.hashicorp.com"}

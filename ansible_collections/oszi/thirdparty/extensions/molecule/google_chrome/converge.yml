@@ -1,0 +1,4 @@
+---
+# Thirdparty roles have no production playbook: the shared converge applies the role named like the scenario.
+- name: Import the shared converge playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.converge

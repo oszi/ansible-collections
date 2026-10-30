@@ -1,0 +1,60 @@
+---
+# A small dconf set replaces the role's long default list; prepare.yml installs what the dconf module needs.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        gnome_users: [tester]
+        gnome_users_dconf_vars:
+          /org/gnome/desktop/interface/clock-format: "'24h'"
+          /org/gnome/desktop/input-sources/xkb-options: ['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']
+          /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"
+          /org/gnome/desktop/session/idle-delay: "uint32 {{ 1800 if ansible_facts.virtualization_role != 'guest' else 0 }}"
+          /org/gnome/desktop/thumbnailers/disable-all: "{{ (ansible_facts.virtualization_role != 'guest') | lower }}"
+          /org/gnome/desktop/wm/keybindings/show-desktop: "@as []"
+          /org/gnome/shell/extensions/user-theme/name: "'transparent'"
+        gnome_users_dconf_custom_keybindings:
+          - binding: "'<Super>Return'"
+            command: "'ptyxis --new-window'"
+            name: "'Terminal'"
+        # prepare.yml creates ~/Pictures only, so the Screencasts symlink is skipped (no ~/Videos).
+        gnome_users_screenshots_path: /home/tester/Captures
+        molecule_verify_paths:
+          - {path: /home/tester/.themes, state: directory, owner: tester, group: tester}
+          - path: /home/tester/.themes/transparent/gnome-shell/gnome-shell.css
+            mode: "0644"
+            owner: tester
+            group: tester
+          - {path: /home/tester/.config/dconf/user, owner: tester, group: tester}
+          - {path: /home/tester/Captures, state: directory, mode: "0750", owner: tester, group: tester}
+          - {path: /home/tester/Pictures/Screenshots, state: link, src: /home/tester/Captures, owner: tester}
+          - {path: /home/tester/Videos, state: absent}
+          # Nothing is written for root.
+          - {path: /root/.config/dconf, state: absent}
+        molecule_verify_commands:
+          # Plain values, lists, tuples, typed values and fact-dependent defaults (containers are guests).
+          - {cmd: "dconf read /org/gnome/desktop/interface/clock-format", user: tester, stdout: "'24h'"}
+          - cmd: "dconf read /org/gnome/desktop/input-sources/xkb-options"
+            user: tester
+            stdout: "['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']"
+          - {cmd: "dconf read /org/gnome/desktop/input-sources/sources", user: tester, stdout: "[('xkb', 'us'), ('xkb', 'hu')]"}
+          - {cmd: "dconf read /org/gnome/desktop/session/idle-delay", user: tester, stdout: "uint32 0"}
+          - {cmd: "dconf read /org/gnome/desktop/thumbnailers/disable-all", user: tester, stdout: "false"}
+          - {cmd: "dconf read /org/gnome/desktop/wm/keybindings/show-desktop", user: tester, stdout: "@as []"}
+          - {cmd: "dconf read /org/gnome/shell/extensions/user-theme/name", user: tester, stdout: "'transparent'"}
+          # Custom keybinding attributes and the key-map helper pointing at them.
+          - cmd: "dconf read /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
+            user: tester
+            stdout: "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+          - cmd: "dconf dump /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+            user: tester
+            stdout: "[/]\nbinding='<Super>Return'\ncommand='ptyxis --new-window'\nname='Terminal'"
+          # The theme's CSS is the role's file, not an empty copy.
+          - {cmd: "grep -q '#panel' /home/tester/.themes/transparent/gnome-shell/gnome-shell.css", user: tester}
+      fedora:
+        molecule_gnome_users_packages: [dconf, dbus-daemon, python3-psutil, python3-gobject-base]
+      debian:
+        molecule_gnome_users_packages: [dconf-cli, dconf-service, dbus-bin, python3-psutil, python3-gi]

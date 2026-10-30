@@ -1,0 +1,27 @@
+---
+# Molecule scenario for oszi.thirdparty.tailscale with the default tailscale_enabled: false (uninstall path).
+# prepare.yml seeds every path listed as absent below, including the post-setup files; the role must remove them.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_verify_commands:
+          - {cmd: "! command -v tailscale && ! command -v tailscaled"}
+        molecule_verify_packages:
+          absent: [tailscale]
+      redhat:
+        molecule_verify_paths:
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale, state: absent}
+          - {path: /etc/yum.repos.d/tailscale.repo, state: absent}
+          - &override_absent {path: /etc/systemd/system/tailscaled.service.d/override.conf, state: absent}
+          - &bash_completion_absent {path: /etc/bash_completion.d/tailscale, state: absent}
+          - &zsh_completion_absent {path: /usr/local/share/zsh/site-functions/_tailscale, state: absent}
+      debian:
+        molecule_verify_paths:
+          - {path: /etc/apt/keyrings/tailscale-archive-keyring.gpg, state: absent}
+          - {path: /etc/apt/keyrings/tailscale-archive-keyring.asc, state: absent}
+          - {path: /etc/apt/sources.list.d/tailscale.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/tailscale.list, state: absent}
+          - *override_absent
+          - *bash_completion_absent
+          - *zsh_completion_absent

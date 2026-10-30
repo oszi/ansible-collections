@@ -1,0 +1,73 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# Keyrings must match the role's default checksums, read from its defaults file so hashes are not
+# duplicated here, and be in the format their extension promises: apt dearmors only .asc keyrings.
+# Repository files must match the content rendered from the role defaults.
+- name: Verify keyrings and repository files
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import facts role
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+
+    - name: Load the role defaults
+      ansible.builtin.include_vars:
+        file: "{{ molecule_role_defaults_file }}"
+        name: "molecule_role_defaults"
+
+    - name: Stat the keyrings
+      ansible.builtin.stat:
+        path: "{{ item.path }}"
+        checksum_algorithm: "sha256"
+      loop: "{{ molecule_verify_keyrings | default([]) }}"
+      loop_control:
+        label: "{{ item.path }}"
+      register: _molecule_keyring_stat_results
+
+    - name: Slurp the keyrings
+      ansible.builtin.slurp:
+        src: "{{ item.path }}"
+      loop: "{{ molecule_verify_keyrings | default([]) }}"
+      loop_control:
+        label: "{{ item.path }}"
+      register: _molecule_keyring_results
+
+    # Base64 of an armored key starts with "-----BEGIN PGP"; a binary key starts with an OpenPGP
+    # public key packet tag (0x98, 0x99 or 0xC6), whose first base64 character is "m" or "x".
+    - name: Assert the keyring checksums and formats
+      vars:
+        _molecule_keyring_stat: "{{ _molecule_keyring_stat_results.results[_molecule_keyring_index].stat }}"
+      ansible.builtin.assert:
+        that:
+          - "'sha256:' ~ _molecule_keyring_stat.checksum == molecule_role_defaults[item.item.checksum]"
+          - "item.content.startswith('LS0tLS1CRUdJTiBQR1A') == item.item.armored"
+          - "item.item.armored or item.content[0] in ['m', 'x']"
+        fail_msg: "{{ item.item }} does not match: sha256:{{ _molecule_keyring_stat.checksum }}"
+        quiet: true
+      loop: "{{ _molecule_keyring_results.results }}"
+      loop_control:
+        index_var: _molecule_keyring_index
+        label: "{{ item.item.path }}"
+
+    - name: Slurp the repository files
+      ansible.builtin.slurp:
+        src: "{{ item.path }}"
+      loop: "{{ molecule_verify_repo_files | default([]) }}"
+      loop_control:
+        label: "{{ item.path }}"
+      register: _molecule_repo_results
+
+    - name: Assert the repository file contents
+      ansible.builtin.assert:
+        that:
+          - "item.item.content is not defined or item.content | b64decode == item.item.content"
+          - "item.item.lines | default([]) | difference(item.content | b64decode | split('\n')) == []"
+        fail_msg: "{{ item.item.path }} does not match: {{ item.content | b64decode }}"
+        quiet: true
+      loop: "{{ _molecule_repo_results.results }}"
+      loop_control:
+        label: "{{ item.item.path }}"

@@ -1,0 +1,36 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# Seeds molecule_seed_paths, by default every path the verify step expects absent, so the role must remove them.
+# Repository files are disabled stubs: the package manager never reads a seeded source.
+- name: Seed vendor and legacy files
+  hosts: all
+  become: true
+  gather_facts: false
+  vars:
+    molecule_seed_files: "{{ molecule_seed_paths | default(molecule_verify_paths | default([])
+      | selectattr('state', 'defined') | selectattr('state', 'eq', 'absent') | map(attribute='path')) }}"
+    molecule_seed_repo_content: |
+      [molecule-seed]
+      name=Molecule seed
+      baseurl=file:///nonexistent
+      enabled=0
+  tasks:
+    - name: Ensure seeded file directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+      loop: "{{ molecule_seed_files | map('dirname') | unique }}"
+
+    - name: Seed files the role must remove
+      ansible.builtin.copy:
+        dest: "{{ item }}"
+        content: "{{ molecule_seed_repo_content if item.endswith('.repo') else '# Seeded by molecule\n' }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      loop: "{{ molecule_seed_files }}"

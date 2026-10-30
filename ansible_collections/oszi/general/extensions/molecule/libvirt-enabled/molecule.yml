@@ -1,0 +1,25 @@
+---
+# Molecule scenario for oszi.general.libvirt enabled in a container with a minimal package list:
+# the client, the QEMU driver that ships /etc/libvirt/qemu.conf, and the tools the scripts need.
+# No daemon, domain, network or pool is managed; virtualization is not available in the container.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        libvirt_disabled: false
+        molecule_verify_paths:
+          - {path: /usr/local/bin/virsh-usb, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/virt-viewer-fzf, mode: "0755", owner: root, group: root}
+          - {path: /etc/libvirt/qemu.conf}
+        molecule_verify_commands:
+          - {cmd: "bash -n /usr/local/bin/virsh-usb && bash -n /usr/local/bin/virt-viewer-fzf"}
+          - {cmd: "grep -Ec '^\\s*nographics_allow_host_audio\\s*=' /etc/libvirt/qemu.conf", stdout: "1"}
+          - {cmd: "grep -Fx 'nographics_allow_host_audio = 1' /etc/libvirt/qemu.conf"}
+          - {cmd: "command -v virsh fzf xmllint"}
+          # The usage check runs before any libvirt connection.
+          - {cmd: "/usr/local/bin/virsh-usb invalid 2>&1 || test $$? -eq 2", stdout_contains: "Usage:"}
+          - {cmd: "/usr/local/bin/virt-viewer-fzf --help 2>&1", stdout_contains: "virt-viewer-fzf defaults:"}
+      fedora:
+        libvirt_packages: [libvirt-client, libvirt-daemon-driver-qemu, libxml2, fzf]
+      debian:
+        libvirt_packages: [libvirt-clients, libvirt-daemon-driver-qemu, libxml2-utils, fzf]

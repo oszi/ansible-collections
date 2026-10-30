@@ -1,0 +1,30 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# molecule_verify_gpgkey (group_vars) names the managed key file and the role default holding its checksum,
+# so the expected hash is read from the role instead of being duplicated here.
+- name: Verify the gcloud_sdk signing key
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Load the role defaults
+      ansible.builtin.include_vars:
+        file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/roles/gcloud_sdk/defaults/main.yml"
+        name: _molecule_role_defaults
+
+    - name: Stat the signing key
+      ansible.builtin.stat:
+        path: "{{ molecule_verify_gpgkey.path }}"
+        checksum_algorithm: "sha256"
+      register: _molecule_gpgkey_stat
+
+    - name: Assert the signing key checksum
+      ansible.builtin.assert:
+        that:
+          - "_molecule_gpgkey_stat.stat.exists"
+          - "'sha256:' ~ _molecule_gpgkey_stat.stat.checksum
+            == _molecule_role_defaults[molecule_verify_gpgkey.checksum_var]"
+        fail_msg: "{{ molecule_verify_gpgkey.path }} does not match {{ molecule_verify_gpgkey.checksum_var }}"
+        quiet: true

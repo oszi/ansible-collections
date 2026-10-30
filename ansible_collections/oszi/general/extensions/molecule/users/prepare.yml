@@ -1,0 +1,22 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# Accounts that the role must remove.
+- name: Create the accounts to remove in the users scenario
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the group to remove exists
+      ansible.builtin.group:
+        name: molecule-old
+        state: present
+
+    - name: Ensure the user to remove exists
+      ansible.builtin.user:
+        name: olduser
+        shell: /bin/bash
+        groups: [molecule-old]
+        create_home: true
+        state: present

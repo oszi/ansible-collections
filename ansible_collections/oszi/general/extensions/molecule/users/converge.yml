@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the users role.
+- name: Import the users playbook
+  ansible.builtin.import_playbook: oszi.general.users

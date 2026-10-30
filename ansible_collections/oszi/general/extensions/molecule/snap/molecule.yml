@@ -1,0 +1,18 @@
+---
+# Molecule scenario for oszi.general.snap with the role defaults; shared settings come from ../config.yml.
+# snap_disabled defaults to false on the Debian family (snapd installed) and true elsewhere (snapd absent).
+# Installing snaps is not possible: snapd cannot mount squashfs images without CAP_SYS_ADMIN.
+provisioner:
+  inventory:
+    group_vars:
+      fedora:
+        molecule_verify_packages:
+          absent: [snapd]
+        molecule_verify_commands:
+          - {cmd: "! command -v snap"}
+      debian:
+        molecule_verify_packages:
+          present: [snapd]
+        molecule_verify_commands:
+          # The first line is the snap client version; sed reads the whole output, so snap never gets SIGPIPE.
+          - {cmd: "snap version | sed -n 1p", stdout_contains: "snap "}

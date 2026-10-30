@@ -1,0 +1,40 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+- name: Verify locale role specifics
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import locale facts tasks
+      ansible.builtin.import_role:
+        name: oszi.general.locale
+        tasks_from: facts
+
+    - name: Assert the exported locale facts
+      ansible.builtin.assert:
+        that:
+          - "locale_charmap == 'UTF-8'"
+        fail_msg: "locale_charmap is {{ locale_charmap }}"
+        quiet: true
+
+    # A login shell reads the system locale through pam_env or /etc/profile.d depending on the distribution,
+    # so the file is sourced explicitly as the facts tasks do, in an empty environment because Ansible sets
+    # its own locale variables. Quoted values are derived from LANG, unquoted ones are set explicitly.
+    - name: Check the locale settings as seen by programs
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          env -i /bin/bash -c 'set -a; . /etc/locale.conf; locale' \
+            | grep -Ex 'LANG=C.UTF-8|LC_COLLATE=C|LC_CTYPE="C.UTF-8"' | sort
+        executable: /bin/bash
+      changed_when: false
+      register: _locale_programs_result
+
+    - name: Assert the locale settings as seen by programs
+      ansible.builtin.assert:
+        that:
+          - "_locale_programs_result.stdout_lines == ['LANG=C.UTF-8', 'LC_COLLATE=C', 'LC_CTYPE=\"C.UTF-8\"']"
+        fail_msg: "{{ _locale_programs_result.stdout_lines }}"
+        quiet: true

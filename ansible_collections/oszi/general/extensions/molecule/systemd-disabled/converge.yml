@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the systemd role.
+- name: Import the systemd playbook
+  ansible.builtin.import_playbook: oszi.general.systemd

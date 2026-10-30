@@ -1,0 +1,49 @@
+---
+# Molecule scenario for oszi.general.users; shared settings come from ../config.yml.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_groups_list:
+          - {name: molecule-admins, gid: 4242}
+          - {name: molecule-svc, system: true}
+          # Created by prepare.yml.
+          - {name: molecule-old, state: absent}
+        # Users are given as the users_users dict, which the role's users_list default converts. users_list itself
+        # stays undefined, so the shared prepare does not create these users and the converge must.
+        users_users:
+          tester:
+            comment: "Molecule Tester"
+            shell: /bin/bash
+            groups: [molecule-admins]
+          svc-molecule:
+            system: true
+            group: molecule-svc
+            shell: /usr/sbin/nologin
+            home: /nonexistent
+            create_home: false
+          # Created by prepare.yml.
+          olduser:
+            state: absent
+            remove: true
+        users_sudo_nopasswd_groups: [molecule-admins]
+        molecule_verify_paths:
+          - {path: /home/tester, state: directory, owner: tester, group: tester}
+          - {path: /nonexistent, state: absent}
+          - {path: /home/olduser, state: absent}
+          - {path: /etc/sudoers.d/nopasswd_groups, mode: "0440", owner: root, group: root}
+        molecule_verify_commands:
+          - {cmd: "getent group molecule-admins", stdout: "molecule-admins:x:4242:tester"}
+          - {cmd: "id -nG tester", stdout: "tester molecule-admins"}
+          - {cmd: "getent passwd tester | cut -d: -f5-7", stdout: "Molecule Tester:/home/tester:/bin/bash"}
+          - {cmd: "getent passwd svc-molecule | cut -d: -f6-7", stdout: "/nonexistent:/usr/sbin/nologin"}
+          - {cmd: "id -gn svc-molecule", stdout: "molecule-svc"}
+          # System accounts and groups are allocated below the login ID range.
+          - {cmd: "[ \"$$(id -u svc-molecule)\" -lt 1000 ] && [ \"$$(getent group molecule-svc | cut -d: -f3)\" -lt 1000 ]"}
+          - {cmd: "[ \"$$(id -u tester)\" -ge 1000 ]"}
+          - {cmd: "! getent passwd olduser && ! getent group olduser && ! getent group molecule-old"}
+          - {cmd: "cat /etc/sudoers.d/nopasswd_groups", stdout: "%molecule-admins ALL=(ALL) NOPASSWD: ALL"}
+          - {cmd: "visudo -c"}
+          # Passwordless sudo works for the group member and not for others.
+          - {cmd: "sudo -n id -u", user: tester, stdout: "0"}
+          - {cmd: "! sudo -n -l -U svc-molecule | grep -F NOPASSWD"}

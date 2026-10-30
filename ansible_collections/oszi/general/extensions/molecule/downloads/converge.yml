@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the downloads role.
+- name: Import the downloads playbook
+  ansible.builtin.import_playbook: oszi.general.downloads

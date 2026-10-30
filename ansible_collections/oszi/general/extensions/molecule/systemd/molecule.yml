@@ -1,0 +1,52 @@
+---
+# Molecule scenario for oszi.general.systemd with units, a drop-in and a preset; shared settings come
+# from ../config.yml. networkd, resolved and NetworkManager stay off by default (no network units or
+# resolved options); /etc/resolv.conf is a podman bind mount in the containers.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # Overrides the container guard; units, drop-ins and presets only need systemd as PID 1.
+        systemd_disabled: false
+        systemd_system_units:
+          molecule-test.service: |
+            [Unit]
+            Description=Molecule test oneshot
+
+            [Service]
+            Type=oneshot
+            RemainAfterExit=true
+            Environment=MOLECULE_UNIT=unit
+            ExecStart=/bin/true
+
+            [Install]
+            WantedBy=multi-user.target
+          molecule-test.service.d/override.conf: |
+            [Service]
+            Environment=MOLECULE_DROPIN=override
+        systemd_system_presets:
+          00-molecule.preset: |
+            enable molecule-test.service
+        molecule_verify_paths:
+          # Common unit installed by the role in every run.
+          - {path: /etc/systemd/system/cpuacct-cpu-patch.service, mode: "0644", owner: root, group: root}
+          - {path: /etc/systemd/system/molecule-test.service, mode: "0644", owner: root, group: root}
+          - {path: /etc/systemd/system/molecule-test.service.d, state: directory, mode: "0755", owner: root, group: root}
+          - {path: /etc/systemd/system/molecule-test.service.d/override.conf, mode: "0644", owner: root, group: root}
+          - {path: /etc/systemd/system-preset, state: directory, mode: "0755", owner: root, group: root}
+          - {path: /etc/systemd/system-preset/00-molecule.preset, mode: "0644", owner: root, group: root}
+          # Obsolete path seeded by prepare.yml and removed by the role.
+          - {path: /etc/systemd/system/swapfile.service, state: absent}
+        molecule_verify_commands:
+          # The drop-in is merged into the loaded unit, which proves the daemon-reload handler ran.
+          - {cmd: "systemctl show --property=Environment --value molecule-test.service",
+             stdout: "MOLECULE_UNIT=unit MOLECULE_DROPIN=override"}
+          - {cmd: "systemctl show --property=NeedDaemonReload --value molecule-test.service", stdout: "no"}
+          - {cmd: "systemctl show --property=NeedDaemonReload --value cpuacct-cpu-patch.service", stdout: "no"}
+          - {cmd: "systemctl show --property=LoadState --value swapfile.service", stdout: "not-found"}
+          # The preset policy applies to the unit; the role installs presets without running systemctl preset.
+          - {cmd: "systemctl show --property=UnitFilePreset --value molecule-test.service", stdout: "enabled"}
+          - {cmd: "systemd-analyze verify /etc/systemd/system/molecule-test.service"}
+        molecule_verify_units:
+          - {name: molecule-test.service, active: inactive, enabled: disabled}
+          - {name: cpuacct-cpu-patch.service, active: inactive, enabled: disabled}

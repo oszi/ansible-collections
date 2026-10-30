@@ -1,0 +1,87 @@
+---
+# Molecule scenario for oszi.thirdparty.google_chrome with google_chrome_manage_repository: false (amd64 only).
+# The role then only removes its own repository file and installs the package; prepare.yml bootstraps the
+# repository, the signing key and /etc/default/google-chrome as the user must, and the role leaves them alone.
+# Needs network access to dl.google.com.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        google_chrome_enabled: true
+        google_chrome_manage_repository: false
+        # Marker line: proves the role does not rewrite a user-provided defaults file.
+        molecule_chrome_defaults_content: |
+          # bootstrapped by molecule
+          repo_add_once="false"
+          repo_reenable_on_distupgrade="false"
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /etc/default/google-chrome, mode: "0644", owner: root, group: root}
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_distro }}"
+        molecule_verify_commands_common:
+          - {cmd: "head -n 1 /etc/default/google-chrome", stdout: "# bootstrapped by molecule"}
+          - {cmd: "google-chrome-stable --version", stdout_contains: "Google Chrome"}
+        molecule_verify_packages:
+          present: [google-chrome-stable]
+      redhat:
+        molecule_chrome_gpgkey:
+          path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome
+          checksum_var: google_chrome_rpm_gpgkey_checksum
+        molecule_seed_files:
+          - path: /etc/yum.repos.d/google-chrome.repo
+            content: |
+              [google-chrome]
+              name=google-chrome
+              baseurl=https://dl.google.com/linux/chrome/rpm/stable/x86_64
+              enabled=1
+              gpgcheck=1
+              gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome
+          # A leftover of the managed mode, which the role removes.
+          - path: /etc/yum.repos.d/google-chrome-ansible-managed.repo
+            content: |
+              [google-chrome-managed]
+              name=Google Chrome
+              baseurl=https://dl-ssl.google.com/linux/chrome/rpm/stable/$$basearch
+              enabled=0
+              gpgcheck=1
+              gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome
+        molecule_verify_paths_distro:
+          - {path: /etc/yum.repos.d/google-chrome.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome, mode: "0644", owner: root, group: root}
+          - {path: /etc/yum.repos.d/google-chrome-ansible-managed.repo, state: absent}
+        molecule_verify_commands_distro:
+          - {cmd: "dnf repoquery --installed --qf '%{from_repo}\\n' google-chrome-stable", stdout: google-chrome}
+      debian:
+        molecule_chrome_gpgkey:
+          path: /etc/apt/keyrings/google-chrome.asc
+          checksum_var: google_chrome_deb_gpgkey_checksum
+        molecule_seed_files:
+          - path: /etc/apt/sources.list.d/google-chrome.sources
+            content: |
+              Types: deb
+              URIs: https://dl.google.com/linux/chrome/deb/
+              Suites: stable
+              Components: main
+              Architectures: amd64
+              Signed-By: /etc/apt/keyrings/google-chrome.asc
+          # A leftover of the managed mode, which the role removes; another URI than the vendor source
+          # because apt rejects conflicting Signed-By values for one source.
+          - path: /etc/apt/sources.list.d/google-chrome-ansible-managed.sources
+            content: |
+              Types: deb
+              URIs: https://dl-ssl.google.com/linux/chrome/deb
+              Suites: stable
+              Components: main
+              Architectures: amd64
+              Signed-By: /etc/apt/keyrings/google-chrome.asc
+        # The package keeps managing google-chrome.sources: it rewrites the file with its own keyring.
+        molecule_verify_paths_distro:
+          - {path: /etc/apt/sources.list.d/google-chrome.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/google-chrome.asc, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/sources.list.d/google-chrome-ansible-managed.sources, state: absent}
+        # The postinst rewrites the bootstrapped source with its own URI and keyring; the lists then stay
+        # stale until the next update, which must succeed from that source alone.
+        molecule_verify_commands_distro:
+          - {cmd: "grep -Fx 'Signed-By: /usr/share/keyrings/google-chrome.gpg' /etc/apt/sources.list.d/google-chrome.sources"}
+          - cmd: "out=\"$$(apt-get update -o Dir::Etc::SourceList=/etc/apt/sources.list.d/google-chrome.sources
+              -o Dir::Etc::SourceParts=- 2>&1)\" && ! grep -E '^(W|E):' <<<\"$$out\""

@@ -1,0 +1,52 @@
+---
+# Molecule scenario for oszi.thirdparty.k8s_pkgs with the default k8s_pkgs_enabled: false (uninstall path).
+# Offline apart from the distribution mirrors: no task reaches the vendor hosts.
+# The role never removes packages (they may come from other repositories), so only files are verified.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # Cross-role variable of oszi.general.shell: the role's argument_specs description templates it,
+        # so validation fails with "'shell_integrations_shrc_d_path' is undefined" without it.
+        shell_integrations_shrc_d_path: /etc/shrc.d
+      redhat:
+        # Disabled sections keep dnf from fetching the seeded repository in the converge cache refresh.
+        molecule_seed_files:
+          - path: /etc/yum.repos.d/kubernetes.repo
+            content: |
+              [kubernetes]
+              name=Kubernetes
+              baseurl=https://pkgs.k8s.io/core:/stable:/v1.35/rpm/
+              enabled=0
+              gpgcheck=1
+              gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-kubernetes
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-kubernetes
+        molecule_verify_paths:
+          - {path: /etc/yum.repos.d/kubernetes.repo, state: absent}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-kubernetes, state: absent}
+      debian:
+        # The legacy list uses another version path: apt rejects conflicting Signed-By values for one
+        # source, which would fail every apt call before the role runs.
+        molecule_seed_files:
+          - path: /etc/apt/sources.list.d/kubernetes.sources
+            content: |
+              Types: deb
+              URIs: https://pkgs.k8s.io/core:/stable:/v1.36/deb/
+              Suites: /
+              Signed-By: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+          - path: /etc/apt/sources.list.d/kubernetes.list
+            content: |
+              deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /
+          - path: /etc/apt/preferences.d/kubernetes
+            content: |
+              Package: kube*
+              Pin: origin pkgs.k8s.io
+              Pin-Priority: 1001
+          - path: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+          - path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        molecule_verify_paths:
+          - {path: /etc/apt/sources.list.d/kubernetes.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/kubernetes.list, state: absent}
+          - {path: /etc/apt/preferences.d/kubernetes, state: absent}
+          - {path: /etc/apt/keyrings/kubernetes-apt-keyring.asc, state: absent}
+          - {path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg, state: absent}

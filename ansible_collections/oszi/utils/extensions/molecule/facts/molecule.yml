@@ -1,0 +1,11 @@
+---
+# Molecule scenario for oszi.utils.facts; shared settings come from ../config.yml.
+# The custom converge.yml gathers subsets through both entrypoints and asserts the facts in the same play,
+# because gathered facts and the subset cache only live in the controller's memory during one run.
+provisioner:
+  inventory:
+    group_vars:
+      fedora:
+        molecule_facts_iproute_package: iproute
+      debian:
+        molecule_facts_iproute_package: iproute2

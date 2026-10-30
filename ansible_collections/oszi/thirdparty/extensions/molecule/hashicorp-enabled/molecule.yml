@@ -1,0 +1,50 @@
+---
+# Molecule scenario for oszi.thirdparty.hashicorp with the repository only (hashicorp_packages: []).
+# Needs network access to rpm.releases.hashicorp.com and apt.releases.hashicorp.com.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        hashicorp_enabled: true
+      redhat:
+        molecule_verify_gpgkey:
+          path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp
+          checksum_var: hashicorp_rpm_gpgkey_checksum
+        molecule_verify_paths:
+          - {path: /etc/yum.repos.d/hashicorp.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp, mode: "0644", owner: root, group: root}
+        molecule_verify_commands:
+          # Both sections in one file; the test repository stays disabled.
+          - {cmd: "grep -Fx '[hashicorp]' /etc/yum.repos.d/hashicorp.repo"}
+          - {cmd: "grep -Fx '[hashicorp-test]' /etc/yum.repos.d/hashicorp.repo"}
+          - cmd: "grep -Fx 'baseurl = https://rpm.releases.hashicorp.com/fedora/$$releasever/$$basearch/stable'
+              /etc/yum.repos.d/hashicorp.repo"
+          - {cmd: "grep -Fx 'gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp' /etc/yum.repos.d/hashicorp.repo"}
+          - {cmd: "dnf repolist --enabled | grep -E '^hashicorp[[:space:]]'"}
+          - {cmd: "! dnf repolist --enabled | grep -E '^hashicorp-test[[:space:]]'"}
+          # The repository metadata for this Fedora release loads and lists the packages.
+          - {cmd: "dnf makecache --repo hashicorp"}
+          - {cmd: "dnf repoquery --repo hashicorp --latest-limit 1 --qf '%{name}\\n' terraform", stdout: terraform}
+        molecule_verify_packages:
+          absent: [terraform]
+      debian:
+        molecule_verify_gpgkey:
+          path: /etc/apt/keyrings/hashicorp.asc
+          checksum_var: hashicorp_deb_gpgkey_checksum
+        molecule_verify_paths:
+          - {path: /etc/apt/sources.list.d/hashicorp.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/hashicorp.asc, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/hashicorp.gpg, state: absent}
+          - {path: /etc/apt/sources.list.d/hashicorp.list, state: absent}
+        molecule_verify_commands:
+          - {cmd: "grep -Fx 'URIs: https://apt.releases.hashicorp.com' /etc/apt/sources.list.d/hashicorp.sources"}
+          - {cmd: "grep -Fx 'Signed-By: /etc/apt/keyrings/hashicorp.asc' /etc/apt/sources.list.d/hashicorp.sources"}
+          # Suites follow the distribution codename.
+          - cmd: ". /etc/os-release && grep -Fx \"Suites: $${VERSION_CODENAME}\"
+              /etc/apt/sources.list.d/hashicorp.sources"
+          # Update from this source only; signature or missing-suite problems surface as W: or E: lines.
+          - cmd: "out=\"$$(apt-get update -o Dir::Etc::SourceList=/etc/apt/sources.list.d/hashicorp.sources
+              -o Dir::Etc::SourceParts=- 2>&1)\" && ! grep -E '^(W|E):' <<<\"$$out\""
+          - {cmd: "apt-cache madison terraform | grep -F apt.releases.hashicorp.com"}
+        molecule_verify_packages:
+          absent: [terraform]

@@ -1,0 +1,14 @@
+---
+# Rootless molecule scenario for oszi.utils.bootstrap; shared settings come from ../config.yml.
+# The custom converge.yml runs the role as tester and asserts the bootstrap facts in the same play.
+# The podman connection is not SSH, so the SSH port fallback is skipped.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester, which must not update the package cache.
+        bootstrap_package_update_cache: false

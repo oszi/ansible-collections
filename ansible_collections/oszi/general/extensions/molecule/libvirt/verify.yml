@@ -1,0 +1,18 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+- name: Verify libvirt role specifics
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import facts role
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+
+    - name: Assert that the libvirt_disabled default applies
+      ansible.builtin.assert:
+        that:
+          - "ansible_facts.virtualization_role == 'guest'"
+        quiet: true

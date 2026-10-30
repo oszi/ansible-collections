@@ -1,0 +1,22 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Seed an obsolete unit for the role to remove
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Create the obsolete swapfile.service
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          Description=Obsolete molecule fixture
+
+          [Service]
+          Type=oneshot
+          ExecStart=/bin/true
+        dest: "/etc/systemd/system/swapfile.service"
+        owner: "root"
+        group: "root"
+        mode: "0644"

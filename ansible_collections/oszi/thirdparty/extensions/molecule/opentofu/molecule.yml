@@ -1,0 +1,24 @@
+---
+# Molecule scenario for oszi.thirdparty.opentofu with the default opentofu_enabled: false (uninstall path).
+# prepare.yml seeds every path listed as absent below; the role must remove them.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_verify_commands:
+          - {cmd: "! command -v tofu"}
+        molecule_verify_packages:
+          absent: [tofu, opentofu]
+      redhat:
+        molecule_verify_paths:
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu, state: absent}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo, state: absent}
+          - {path: /etc/yum.repos.d/opentofu.repo, state: absent}
+      debian:
+        molecule_verify_paths:
+          - {path: /etc/apt/keyrings/opentofu.gpg, state: absent}
+          - {path: /etc/apt/keyrings/opentofu.asc, state: absent}
+          - {path: /etc/apt/keyrings/opentofu-repo.asc, state: absent}
+          - {path: /etc/apt/keyrings/opentofu-repo.gpg, state: absent}
+          - {path: /etc/apt/sources.list.d/opentofu.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/opentofu.list, state: absent}

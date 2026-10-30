@@ -1,0 +1,39 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+- name: Verify that the dotfiles role rejects non-login users
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Apply the dotfiles role to the nologin user
+      block:
+        - name: Include the dotfiles role for the nologin user
+          ansible.builtin.include_role:
+            name: oszi.general.dotfiles
+          vars:
+            dotfiles_users: [service]
+
+        - name: Fail because the nologin user was accepted
+          ansible.builtin.fail:
+            msg: "The dotfiles role accepted the nologin user"
+      rescue:
+        - name: Assert that the user assertion rejected the nologin user
+          ansible.builtin.assert:
+            that: "ansible_failed_task.name == 'Assert that the dotfiles user is valid'"
+            fail_msg: "Unexpected failure: {{ ansible_failed_task.name }}: {{ ansible_failed_result.msg }}"
+            quiet: true
+
+    - name: Find the files in the nologin user's home
+      ansible.builtin.find:
+        paths: /home/service
+        hidden: true
+        file_type: any
+      register: _dotfiles_service_home
+
+    - name: Assert that nothing was written for the nologin user
+      ansible.builtin.assert:
+        that: "_dotfiles_service_home.files | map(attribute='path') | select('search', '/\\.(gnupg|config|git)') is not truthy"
+        fail_msg: "{{ _dotfiles_service_home.files | map(attribute='path') }}"
+        quiet: true

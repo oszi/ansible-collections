@@ -1,0 +1,14 @@
+---
+# Rootless molecule scenario for oszi.utils.assert; shared settings come from ../config.yml.
+# The custom converge.yml evaluates passing and failing assertions as tester; the role does not alter hosts.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester, which must not update the package cache.
+        bootstrap_package_update_cache: false
+        molecule_assert_fail_msg: "Molecule expected failure"

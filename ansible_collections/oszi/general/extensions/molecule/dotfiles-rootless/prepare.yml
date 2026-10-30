@@ -1,0 +1,20 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The role only writes configuration files; the tools parse them in verify.yml.
+- name: Install test tools for the dotfiles scenario as root
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import bootstrap role with the package cache update
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+      vars:
+        bootstrap_package_update_cache: true
+
+    - name: Ensure git and GnuPG are installed
+      ansible.builtin.package:
+        name: "{{ molecule_rootless_packages }}"
+        state: "present"

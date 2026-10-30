@@ -1,0 +1,9 @@
+---
+# Molecule scenario for oszi.utils.assert; shared settings come from ../config.yml.
+# The custom converge.yml exercises passing and failing assertions through both entrypoints;
+# the role does not alter hosts, so the shared verify has nothing to check.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_assert_fail_msg: "Molecule expected failure"

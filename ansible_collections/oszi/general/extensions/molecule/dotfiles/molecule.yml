@@ -1,0 +1,87 @@
+---
+# Molecule scenario for oszi.general.dotfiles; shared settings come from ../config.yml.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # Users created by the shared prepare playbook; the nologin system user is not a dotfiles user,
+        # verify.yml checks that the role rejects it.
+        users_list:
+          - name: tester
+            shell: /bin/bash
+          - name: service
+            shell: /usr/sbin/nologin
+            system: true
+        dotfiles_users: [root, tester]
+        # The built-in templates default to the workstations group; these are the same flags without it,
+        # so git and XDG stay off for root as designed.
+        dotfiles_gnupg_enabled: true
+        dotfiles_git_enabled: "{{ dotfiles_user_item != 'root' }}"
+        dotfiles_xdg_enabled: "{{ dotfiles_user_item != 'root' }}"
+        dotfiles_git_default_branch: "main"
+        dotfiles_gnupg_agent_options:
+          - "default-cache-ttl 600"
+        # Top-level file only: entries with a missing parent directory fail in tasks/dotfiles/files.yml
+        # ("Create missing directories"), which reads item.invocation from registered stat results that
+        # ansible-core does not return.
+        dotfiles_files:
+          .molecule.conf: |
+            user={{ dotfiles_user_item }} uid={{ dotfiles_user_info.uid }}
+        molecule_verify_paths:
+          - {path: /home/tester/.gnupg, state: directory, mode: "0700", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/gpg.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/gpg-agent.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/dirmngr.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/scdaemon.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/sshcontrol, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gitconfig, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.gitignore, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.config, state: directory, mode: "0700", owner: tester, group: tester}
+          - {path: /home/tester/.config/user-dirs.dirs, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.config/user-dirs.conf, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.config/user-dirs.locale, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.molecule.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /root/.gnupg, state: directory, mode: "0700", owner: root, group: root}
+          - {path: /root/.gnupg/gpg.conf, mode: "0600", owner: root, group: root}
+          - {path: /root/.gnupg/gpg-agent.conf, mode: "0600", owner: root, group: root}
+          - {path: /root/.molecule.conf, mode: "0600", owner: root, group: root}
+          # Git and XDG are disabled for root.
+          - {path: /root/.gitconfig, state: absent}
+          - {path: /root/.gitignore, state: absent}
+          - {path: /root/.config, state: absent}
+          # The nologin user is not in dotfiles_users.
+          - {path: /home/service/.gnupg, state: absent}
+          - {path: /home/service/.config, state: absent}
+        molecule_verify_commands:
+          - {cmd: "git config -f ~/.gitconfig user.name", user: tester, stdout: "tester"}
+          - {cmd: "git config -f ~/.gitconfig user.email", user: tester, stdout: "tester@{{ inventory_hostname }}"}
+          - {cmd: "git config -f ~/.gitconfig init.defaultBranch", user: tester, stdout: "main"}
+          - {cmd: "git config --global core.excludesfile", user: tester, stdout: "~/.gitignore"}
+          # No signing key is configured and git-delta is not installed.
+          - {cmd: "! git config --global commit.gpgSign && ! git config --global core.pager", user: tester}
+          # The global excludes file applies in a fresh repository.
+          - cmd: "cd \"$$(mktemp -d)\" && git init -q && git check-ignore notes.swp .claude/settings.json keep.txt || true"
+            user: tester
+            stdout: "notes.swp\n.claude/settings.json"
+          - cmd: ". ~/.config/user-dirs.dirs && echo \"$$XDG_DOWNLOAD_DIR|$$XDG_DESKTOP_DIR|$$XDG_VIDEOS_DIR\""
+            user: tester
+            stdout: "/home/tester/Downloads|/home/tester/Desktop|/home/tester/Videos"
+          - {cmd: "cat ~/.config/user-dirs.locale", user: tester, stdout: "en_US"}
+          - {cmd: "grep -Fx enabled=False ~/.config/user-dirs.conf", user: tester}
+          # GnuPG parses every rendered configuration file.
+          - cmd: "for c in gpg gpg-agent dirmngr scdaemon; do gpgconf --check-options \"$$c\"; done"
+            user: tester
+          - cmd: "gpgconf --list-options gpg-agent | awk -F: '$$1 == \"default-cache-ttl\" {print $$10}'"
+            user: tester
+            stdout: "600"
+          - cmd: "gpgconf --list-options dirmngr | awk -F: '$$1 == \"keyserver\" {print $$10}'"
+            user: tester
+            stdout_contains: "keys.openpgp.org"
+          - {cmd: "for c in gpg gpg-agent; do gpgconf --check-options \"$$c\"; done"}
+          - cmd: "[ \"$$(cat ~/.molecule.conf)\" = \"user=$$(id -un) uid=$$(id -u)\" ]"
+            user: tester
+          - {cmd: "[ \"$$(cat ~/.molecule.conf)\" = \"user=$$(id -un) uid=$$(id -u)\" ]"}
+      redhat:
+        molecule_dotfiles_packages: [git, gnupg2, gnupg2-scdaemon]
+      debian:
+        molecule_dotfiles_packages: [git, gnupg, dirmngr, scdaemon]

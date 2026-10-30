@@ -1,0 +1,13 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Install fail2ban for the uninstall path
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure fail2ban is installed
+      ansible.builtin.package:
+        name: "fail2ban"
+        state: "present"

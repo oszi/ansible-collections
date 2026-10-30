@@ -1,0 +1,11 @@
+---
+# Molecule scenario for oszi.general.selinux with the defaults; shared settings come from ../config.yml.
+# SELinux state cannot change in a container: selinux_disabled defaults to true in containers and on
+# non-RedHat distributions, so the role is a no-op on every platform. Idempotence proves it changes nothing.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # The role installs no SELinux tooling when disabled, so getenforce is not needed.
+        molecule_verify_packages:
+          absent: [selinux-policy-targeted, python3-policycoreutils]

@@ -1,0 +1,17 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The borgmatic role installs its shell aliases into the directory owned by oszi.general.shell.
+- name: Prepare the shell integrations directory
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the shell integrations directory exists
+      ansible.builtin.file:
+        path: "{{ shell_integrations_shrc_d_path }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"

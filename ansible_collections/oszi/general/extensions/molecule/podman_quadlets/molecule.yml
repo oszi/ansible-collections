@@ -1,0 +1,80 @@
+---
+# Molecule scenario for oszi.general.podman_quadlets after oszi.general.podman.
+# Nested containers cannot run without CAP_SYS_ADMIN, so no quadlet service is ever started: the items
+# are present_disabled or templates, and verification relies on the generator dry-run and systemctl cat.
+# The absent item is seeded by prepare.yml to exercise the uninstall path.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # Keep the podman role light: core packages only.
+        podman_toolbox_enabled: false
+        podman_compose_enabled: false
+        podman_docker_enabled: false
+        molecule_converge_roles:
+          - name: oszi.general.podman
+          - name: oszi.general.podman_quadlets
+        podman_quadlets_list:
+          - name: test.network
+            state: present_disabled
+            quadlet: |
+              [Network]
+              Label=app=molecule
+          - name: test.container
+            state: present_disabled
+            quadlet: |
+              [Unit]
+              Description=Molecule test container
+
+              [Container]
+              Image=quay.io/podman/hello:latest
+              Network=test.network
+              Volume=/srv/test/config.txt:/config.txt:ro,Z
+
+              [Install]
+              WantedBy=multi-user.target
+            files:
+              - dest: /srv/test/config.txt
+                content: "molecule\n"
+                owner: root
+                group: root
+                mode: "0640"
+          # Templates are never enabled or started by the role, regardless of the state.
+          - name: test-web@.container
+            quadlet: |
+              [Unit]
+              Description=Molecule test template %i
+
+              [Container]
+              Image=quay.io/podman/hello:latest
+              ContainerName=test-web-%i
+          - name: old.container
+            state: absent
+            uninstall_script: "rm -f /srv/old.marker"
+            files:
+              - dest: /srv/old
+            uninstall_files: true
+        molecule_verify_paths:
+          - {path: /etc/containers/systemd, state: directory, mode: "0755", owner: root, group: root}
+          - {path: /etc/containers/systemd/test.network, mode: "0644", owner: root, group: root}
+          - {path: /etc/containers/systemd/test.container, mode: "0644", owner: root, group: root}
+          - {path: "/etc/containers/systemd/test-web@.container", mode: "0644", owner: root, group: root}
+          - {path: /srv/test/config.txt, mode: "0640", owner: root, group: root}
+          - {path: /etc/containers/systemd/old.container, state: absent}
+          - {path: /srv/old, state: absent}
+          - {path: /srv/old.marker, state: absent}
+        molecule_verify_commands:
+          # The generator prints every generated unit between ---NAME--- separators.
+          - cmd: |
+              out="$$(/usr/lib/systemd/system-generators/podman-system-generator -dryrun)"
+              for unit in test.service test-network.service test-web@.service; do
+                grep -Fxq -- "---$${unit}---" <<<"$$out"
+              done
+              ! grep -Fq -- '---old.service---' <<<"$$out"
+          - {cmd: "systemctl cat test.service | grep -Fx 'Description=Molecule test container'"}
+          - {cmd: "systemctl cat test-network.service | grep -F 'podman network create'"}
+          - {cmd: "systemctl cat test-web@molecule.service | grep -Fx 'Description=Molecule test template %i'"}
+          - {cmd: "! systemctl cat old.service"}
+        molecule_verify_units:
+          - {name: test.service, active: inactive, enabled: generated}
+          - {name: test-network.service, active: inactive, enabled: generated}

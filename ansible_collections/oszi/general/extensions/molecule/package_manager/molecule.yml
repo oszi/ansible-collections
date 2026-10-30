@@ -1,0 +1,76 @@
+---
+# Molecule scenario for oszi.general.package_manager; shared settings come from ../config.yml.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        package_manager_apt_conf:
+          Acquire::Retries: 3
+          APT::Get::Show-Versions: "true"
+        package_manager_dnf_conf:
+          max_parallel_downloads: 10
+          defaultyes: "True"
+        # Nested lists exercise the flatten step; tree is installed by prepare.yml, blacklisted,
+        # and also requested here to prove the blacklist wins over the extra packages.
+        package_manager_extra_packages:
+          - file
+          - [less, tree]
+        package_manager_blacklisted_packages:
+          - [tree]
+        molecule_verify_packages:
+          present: [file, less]
+          absent: [tree]
+      # molecule_verify_commands is defined per group: group_vars replace lists, they do not merge.
+      fedora:
+        # Comment-only change in the shipped repo files: the replace and makecache path runs
+        # without altering any active repository setting.
+        package_manager_repo_replacements:
+          - regexp: '^#baseurl=http://download\.example/'
+            replace: '#baseurl=https://download.example/'
+        molecule_verify_paths:
+          - {path: /etc/dnf/dnf.conf, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/apt.conf.d/99-ansible-managed.conf, state: absent}
+        molecule_verify_commands:
+          - {cmd: "command -v file less"}
+          - {cmd: "! command -v tree"}
+          # Options land in [main] next to the shipped tsflags and are parsed by dnf itself.
+          - {cmd: "grep -Fx max_parallel_downloads=10 /etc/dnf/dnf.conf && grep -Fx tsflags=nodocs /etc/dnf/dnf.conf"}
+          - {cmd: "dnf --dump-main-config | grep -E '^(max_parallel_downloads|defaultyes) '", stdout_contains: "max_parallel_downloads = 10"}
+          - {cmd: "dnf --dump-main-config | grep -E '^defaultyes '", stdout: "defaultyes = 1"}
+          - {cmd: "! grep -l '^#baseurl=http://download\\.example/' /etc/yum.repos.d/fedora*.repo"}
+          - {cmd: "grep -c '^#baseurl=https://download\\.example/' /etc/yum.repos.d/fedora.repo", stdout: "3"}
+          - {cmd: "grep -q '^metalink=https://mirrors.fedoraproject.org/' /etc/yum.repos.d/fedora.repo"}
+      debian:
+        # Molecule interpolates dollar signs in molecule.yml, hence the doubled regexp anchors.
+        # A trailing slash on the URIs is equivalent for apt; the cache update after the change proves it.
+        package_manager_repo_replacements:
+          - regexp: '^(URIs: \S*[^/\s])$$'
+            replace: '\1/'
+        molecule_verify_paths:
+          - {path: /etc/apt/apt.conf.d, state: directory, mode: "0755", owner: root, group: root}
+          - {path: /etc/apt/apt.conf.d/99-ansible-managed.conf, mode: "0644", owner: root, group: root}
+        molecule_verify_commands:
+          - {cmd: "command -v file less"}
+          - {cmd: "! command -v tree"}
+          - cmd: "cat /etc/apt/apt.conf.d/99-ansible-managed.conf"
+            stdout: "Acquire::Retries \"3\";\nAPT::Get::Show-Versions \"true\";"
+          - cmd: "apt-config shell RETRIES Acquire::Retries SHOWV APT::Get::Show-Versions"
+            stdout: "RETRIES='3'\nSHOWV='true'"
+          - cmd: "grep '^URIs:' /etc/apt/sources.list.d/debian.sources"
+            stdout: "URIs: http://deb.debian.org/debian/\nURIs: http://deb.debian.org/debian-security/"
+          - {cmd: "apt-get update -qq"}
+      ubuntu:
+        # The shipped Ubuntu URIs already end with a slash, so drop it instead; equivalent for apt.
+        package_manager_repo_replacements:
+          - regexp: '^(URIs: \S+)/$$'
+            replace: '\1'
+        molecule_verify_commands:
+          - {cmd: "command -v file less"}
+          - {cmd: "! command -v tree"}
+          - cmd: "cat /etc/apt/apt.conf.d/99-ansible-managed.conf"
+            stdout: "Acquire::Retries \"3\";\nAPT::Get::Show-Versions \"true\";"
+          - cmd: "apt-config shell RETRIES Acquire::Retries SHOWV APT::Get::Show-Versions"
+            stdout: "RETRIES='3'\nSHOWV='true'"
+          - cmd: "grep '^URIs:' /etc/apt/sources.list.d/ubuntu.sources"
+            stdout: "URIs: http://archive.ubuntu.com/ubuntu\nURIs: http://security.ubuntu.com/ubuntu"
+          - {cmd: "apt-get update -qq"}

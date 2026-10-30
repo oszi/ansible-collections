@@ -1,0 +1,4 @@
+---
+# The role has no production playbook; the shared converge applies oszi.thirdparty.rpmfusion.
+- name: Import the shared converge playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.converge

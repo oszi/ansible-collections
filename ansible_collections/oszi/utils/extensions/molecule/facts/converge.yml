@@ -1,0 +1,88 @@
+---
+# Custom converge: the facts role only sets facts on the controller, so the assertions run in the same play.
+- name: Converge the facts role
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Assert that no facts are gathered before the role runs
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache is not defined"
+          - "ansible_facts.virtualization_type is not defined"
+        quiet: true
+
+    - name: Import facts role with the default subset
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+
+    - name: Assert the default subset
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache == ['min', 'virtual']"
+          - "ansible_facts.virtualization_type == 'container'"
+          - "ansible_facts.pkg_mgr in ['dnf5', 'apt']"
+          - "ansible_facts.os_family in ['RedHat', 'Debian']"
+          - "ansible_facts.user_uid | int == 0"
+          - "ansible_facts.default_ipv4 is not defined"
+        quiet: true
+
+    - name: Import facts role with the network subset
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+      vars:
+        facts_subset: [network]
+
+    - name: Assert the network subset
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache == ['min', 'network', 'virtual']"
+          - "ansible_facts.default_ipv4 is defined"
+          - "ansible_facts.default_ipv4.address is match('^[0-9.]+$')"
+          # min stays gathered: the role excludes only subsets already in the cache.
+          - "ansible_facts.virtualization_type == 'container'"
+        quiet: true
+
+    - name: Import facts entrypoint with the hardware subset
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+        tasks_from: facts
+      vars:
+        facts_subset: [hardware]
+
+    - name: Assert the hardware subset
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache == ['hardware', 'min', 'network', 'virtual']"
+          - "ansible_facts.memtotal_mb | int > 0"
+          - "ansible_facts.default_ipv4 is defined"
+        quiet: true
+
+    # Already cached subsets are skipped, so the cache stays the same.
+    - name: Import facts role with cached subsets
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+      vars:
+        facts_subset: [min, network]
+
+    - name: Assert the unchanged subset cache
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache == ['hardware', 'min', 'network', 'virtual']"
+        quiet: true
+
+    # A filtered gather is not recorded in the cache, which describes complete subsets only.
+    - name: Import facts entrypoint with a filter
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+        tasks_from: facts
+      vars:
+        facts_subset: [date_time]
+        facts_filter: ["ansible_date_time"]
+
+    - name: Assert the filtered gather
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache == ['hardware', 'min', 'network', 'virtual']"
+          - "ansible_facts.date_time.epoch | int > 0"
+        quiet: true

@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the cloudflare_dns role.
+- name: Import the cloudflare_dns playbook
+  ansible.builtin.import_playbook: oszi.general.cloudflare_dns

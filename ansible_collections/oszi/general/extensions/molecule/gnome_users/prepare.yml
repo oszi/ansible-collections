@@ -1,0 +1,24 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Prepare the gnome_users scenario
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    # community.general.dconf needs dconf, dbus-run-session (no session bus under become),
+    # psutil and PyGObject on the target.
+    - name: Ensure the dconf module requirements are installed
+      ansible.builtin.package:
+        name: "{{ molecule_gnome_users_packages }}"
+        state: "present"
+
+    # The Screenshots symlink is only created when its parent directory exists.
+    - name: Ensure the test user's Pictures directory exists
+      ansible.builtin.file:
+        path: "/home/tester/Pictures"
+        state: "directory"
+        owner: "tester"
+        group: "tester"
+        mode: "0755"

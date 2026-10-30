@@ -1,0 +1,64 @@
+---
+# Molecule scenario for oszi.thirdparty.vscode with vscode_enabled: true (amd64 only).
+# Needs network access to packages.microsoft.com. prepare.yml seeds molecule_seed_paths, which the role
+# must remove; the debconf preseed must keep the code package from writing its own source and keyring.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        vscode_enabled: true
+        molecule_role_defaults_file: "${MOLECULE_PROJECT_DIRECTORY}/roles/vscode/defaults/main.yml"
+        # Electron refuses to run as root without a sandbox opt-out; --version works as a regular user.
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_verify_commands_common:
+          - {cmd: "[[ $$(code --version) =~ ^[0-9]+[.][0-9]+[.][0-9]+ ]]", user: tester}
+        molecule_verify_packages:
+          present: [code]
+          absent: [code-exploration, code-insiders]
+      redhat:
+        molecule_verify_paths:
+          - {path: /etc/yum.repos.d/vscode.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft, mode: "0644", owner: root, group: root}
+        molecule_verify_commands: "{{ molecule_verify_commands_common }}"
+        molecule_verify_keyrings:
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft, checksum: vscode_rpm_gpgkey_checksum, armored: true}
+        molecule_verify_repo_files:
+          - path: /etc/yum.repos.d/vscode.repo
+            lines:
+              - "[vscode]"
+              - "baseurl = {{ molecule_role_defaults.vscode_rpm_baseurl }}"
+              - "gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft"
+              - "gpgcheck = 1"
+              - "repo_gpgcheck = 0"
+              - "enabled = 1"
+      debian:
+        # The legacy one-line source and keyrings with the other extension or at the legacy path.
+        molecule_seed_paths:
+          - /etc/apt/sources.list.d/vscode.list
+          - /etc/apt/keyrings/packages.microsoft.gpg
+          - /etc/apt/trusted.gpg.d/microsoft.gpg
+        molecule_verify_paths:
+          - {path: /etc/apt/sources.list.d/vscode.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/packages.microsoft.asc, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/sources.list.d/vscode.list, state: absent}
+          - {path: /etc/apt/keyrings/packages.microsoft.gpg, state: absent}
+          - {path: /etc/apt/trusted.gpg.d/microsoft.gpg, state: absent}
+          # Written by the code postinst unless the debconf preseed is in place before the install.
+          - {path: /usr/share/keyrings/microsoft.gpg, state: absent}
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_deb }}"
+        molecule_verify_commands_deb:
+          - {cmd: "debconf-show code", stdout_contains: "code/add-microsoft-repo: false"}
+          - {cmd: "out=$$(apt-get update 2>&1); ! grep -E '^(W|E):' <<<\"$$out\""}
+        molecule_verify_keyrings:
+          - {path: /etc/apt/keyrings/packages.microsoft.asc, checksum: vscode_deb_gpgkey_checksum, armored: true}
+        molecule_verify_repo_files:
+          - path: /etc/apt/sources.list.d/vscode.sources
+            content: |
+              Types: deb
+              URIs: {{ molecule_role_defaults.vscode_deb_baseurl }}
+              Suites: stable
+              Components: main
+              Architectures: amd64
+              Signed-By: /etc/apt/keyrings/packages.microsoft.asc

@@ -1,0 +1,33 @@
+---
+# Molecule scenario for oszi.general.borgmatic, enabled with the default empty passphrase: the borgmatic
+# virtualenv is installed from PyPI (network access to pypi.org), the configuration tasks are skipped
+# because no passphrase is set and the role skips them in containers anyway.
+# The python dependency installs the development toolchain.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        borgmatic_enabled: true
+        # Exported by oszi.general.shell in production; prepare.yml creates the directory. The role cannot run
+        # without the path: the argument spec description of borgmatic_shell_aliases_path templates it.
+        shell_integrations_enabled: true
+        shell_integrations_shrc_d_path: /etc/shrc.d
+        molecule_verify_paths:
+          - {path: /opt/borgmatic, state: directory, owner: root, group: root}
+          - {path: /opt/borgmatic/bin/borgmatic, owner: root, group: root}
+          - {path: /etc/shrc.d/borgmatic.sh, mode: "0644", owner: root, group: root}
+          - {path: /etc/borgmatic/config.yaml, state: absent}
+          - {path: /etc/systemd/system/borg.service, state: absent}
+          - {path: /etc/systemd/system/borg.timer, state: absent}
+        molecule_verify_commands:
+          - {cmd: "/opt/borgmatic/bin/borgmatic --version"}
+          - {cmd: "borg --version", stdout_contains: "borg"}
+          # The virtualenv must use the system python3 minor version (checked by the role on every run).
+          - cmd: >-
+              test "$$(/opt/borgmatic/bin/python3 -c 'import sys; print(sys.version_info[:2])')"
+              = "$$(python3 -c 'import sys; print(sys.version_info[:2])')"
+          - {cmd: "sh -n /etc/shrc.d/borgmatic.sh"}
+          - {cmd: "bash -c '. /etc/shrc.d/borgmatic.sh; shopt -s expand_aliases; alias borg1'",
+             stdout: "alias borg1='borg --remote-path=borg1'"}
+        molecule_verify_packages:
+          present: [borgbackup]

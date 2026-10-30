@@ -1,0 +1,20 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The role skips its distro packages without root, so the tools for pip and pipx are installed here.
+- name: Install pipx and venv support as root
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import bootstrap role with the package cache update
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+      vars:
+        bootstrap_package_update_cache: true
+
+    - name: Ensure pipx and venv support are installed
+      ansible.builtin.package:
+        name: "{{ molecule_rootless_packages }}"
+        state: "present"

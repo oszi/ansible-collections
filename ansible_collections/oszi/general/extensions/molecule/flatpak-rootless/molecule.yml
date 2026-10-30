@@ -1,0 +1,48 @@
+---
+# Rootless molecule scenario for oszi.general.flatpak: the shared converge runs the role as tester,
+# so flatpak_method defaults to user and the package is not managed (prepare.yml installs it).
+# No remotes or apps: installing them needs flathub access and bubblewrap, which cannot run without
+# CAP_SYS_ADMIN. Overrides do not need the app to be installed.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
+        bootstrap_package_update_cache: false
+        flatpak_global_overrides:
+          - "--nofilesystem=host"
+        flatpak_app_overrides:
+          org.example.Molecule:
+            - "--nofilesystem=home"
+            - "--env=MOLECULE=1"
+        # Absolute alias target; relative targets would point at app exports.
+        flatpak_exports_bin_aliases:
+          molecule-bash: /usr/bin/bash
+        # prepare.yml creates this file; the role must remove it.
+        flatpak_exports_bin_aliases_absent:
+          - molecule-obsolete
+        molecule_verify_paths:
+          - path: /home/tester/.local/share/flatpak/exports/bin
+            state: directory
+            mode: "0755"
+            owner: tester
+            group: tester
+          - {path: /home/tester/.local/share/flatpak/exports/bin/molecule-bash, state: link, src: /usr/bin/bash}
+          - {path: /home/tester/.local/share/flatpak/exports/bin/molecule-obsolete, state: absent}
+          - {path: /home/tester/.local/share/flatpak/overrides/global, owner: tester, group: tester}
+          - {path: /home/tester/.local/share/flatpak/overrides/org.example.Molecule, owner: tester, group: tester}
+          - {path: /var/lib/flatpak/overrides, state: absent}
+          - {path: /var/lib/flatpak/exports/bin/molecule-bash, state: absent}
+          - {path: /root/.local/share/flatpak, state: absent}
+        molecule_verify_commands:
+          - cmd: "flatpak override --user --show | sed -n 's/^filesystems=//p'"
+            user: tester
+            stdout: "!host;"
+          - cmd: "flatpak override --user --show org.example.Molecule | sed -n '/^\\[Environment\\]/,/^\\[/p'"
+            user: tester
+            stdout: "[Environment]\nMOLECULE=1"
+          - {cmd: "~/.local/share/flatpak/exports/bin/molecule-bash -c 'echo alias-ok'", user: tester, stdout: "alias-ok"}

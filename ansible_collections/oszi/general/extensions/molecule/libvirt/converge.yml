@@ -1,0 +1,4 @@
+---
+# No production playbook exists for libvirt; the shared converge applies oszi.general.libvirt.
+- name: Import the shared converge playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.converge

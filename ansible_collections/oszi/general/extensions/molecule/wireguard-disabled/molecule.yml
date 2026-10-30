@@ -1,0 +1,19 @@
+---
+# Molecule scenario for oszi.general.wireguard disabled; shared settings come from ../config.yml.
+# The prepare playbook installs the role's packages first so the uninstall path has something to remove.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        wireguard_disabled: true
+        molecule_verify_paths:
+          - {path: /etc/wireguard/wg0.conf, state: absent}
+      redhat:
+        molecule_wireguard_packages: [wireguard-tools]
+        molecule_verify_packages:
+          absent: [wireguard-tools]
+      debian:
+        molecule_wireguard_packages: [wireguard]
+        # Only the metapackage is in wireguard_packages; wireguard-tools stays as its former dependency.
+        molecule_verify_packages:
+          absent: [wireguard]

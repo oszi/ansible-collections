@@ -1,0 +1,59 @@
+---
+# Molecule scenario for oszi.general.podman: packages, configuration files, scripts and podman.socket.
+# Nested containers cannot run without CAP_SYS_ADMIN, so the deploy lists stay empty and the update
+# entrypoint is not part of this scenario. Toolbox is disabled to keep the converge light.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        podman_toolbox_enabled: false
+        # podman-docker plus podman.socket enablement for the system and global user scopes.
+        podman_docker_enabled: true
+        podman_config_policy:
+          default:
+            - type: "insecureAcceptAnything"
+          transports:
+            docker-daemon:
+              "":
+                - type: "insecureAcceptAnything"
+        podman_config_containers: |
+          [engine]
+          events_logger = "file"
+        podman_config_registries: |
+          unqualified-search-registries = ["quay.io"]
+          short-name-mode = "enforcing"
+        molecule_verify_paths:
+          - {path: /etc/containers, state: directory, owner: root, group: root}
+          - {path: /etc/containers/policy.json, mode: "0644", owner: root, group: root}
+          - {path: /etc/containers/containers.conf, mode: "0644", owner: root, group: root}
+          - {path: /etc/containers/registries.conf, mode: "0644", owner: root, group: root}
+          - {path: /etc/containers/toolbox.conf, state: absent}
+          - {path: /usr/local/bin/podman-containers, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/podman-images, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/podman-ipaddress, mode: "0755", owner: root, group: root}
+          - {path: /etc/systemd/user/sockets.target.wants/podman.socket, state: link}
+        molecule_verify_commands:
+          - {cmd: "podman --version", stdout_contains: "podman version"}
+          - {cmd: "command -v buildah skopeo podman-compose docker"}
+          # podman-docker wraps the podman CLI.
+          - {cmd: "docker --version", stdout_contains: "podman version"}
+          - cmd: >-
+              python3 -c 'import json, sys; p = json.load(open(sys.argv[1]));
+              print(p["default"][0]["type"])' /etc/containers/policy.json
+            stdout: "insecureAcceptAnything"
+          - {cmd: "grep -Fx 'events_logger = \"file\"' /etc/containers/containers.conf"}
+          - {cmd: "grep -Fx 'unqualified-search-registries = [\"quay.io\"]' /etc/containers/registries.conf"}
+          - {cmd: "grep -Fx 'short-name-mode = \"enforcing\"' /etc/containers/registries.conf"}
+          - {cmd: "for f in /usr/local/bin/podman-{containers,images,ipaddress}; do sh -n \"$$f\"; done"}
+          - {cmd: "systemctl --global is-enabled podman.socket", stdout: "enabled"}
+        molecule_verify_units:
+          - {name: podman.socket, enabled: enabled}
+      # The toolbox package name differs between the distribution families.
+      fedora:
+        molecule_verify_packages:
+          present: [podman, buildah, skopeo, podman-compose, podman-docker]
+          absent: [docker-compose, toolbox]
+      debian:
+        molecule_verify_packages:
+          present: [podman, buildah, skopeo, podman-compose, podman-docker]
+          absent: [docker-compose, podman-toolbox]

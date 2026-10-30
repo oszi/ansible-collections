@@ -1,0 +1,10 @@
+---
+# Molecule scenario for oszi.general.cloudflare_dns; shared settings come from ../config.yml.
+# The CloudFlare API is external, so only the no-op path with an empty zone is tested.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        cloudflare_dns_zone: ""
+        # A host record alone must not reach the API tasks or the fact lookups; the empty zone gates them.
+        cloudflare_dns_host_record: "molecule"

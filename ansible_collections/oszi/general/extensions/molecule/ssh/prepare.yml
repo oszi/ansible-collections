@@ -1,0 +1,19 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Install the SSH server for the uninstall path
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure openssh-server is installed
+      ansible.builtin.package:
+        name: "openssh-server"
+        state: "present"
+
+    # Fedora generates host keys when sshd starts, the Debian family at package installation.
+    - name: Ensure an Ed25519 host key exists
+      ansible.builtin.command:
+        cmd: "ssh-keygen -q -t ed25519 -N '' -f /etc/ssh/ssh_host_ed25519_key"
+        creates: "/etc/ssh/ssh_host_ed25519_key"

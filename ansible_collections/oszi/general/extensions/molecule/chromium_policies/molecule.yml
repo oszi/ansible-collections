@@ -1,0 +1,25 @@
+---
+# Molecule scenario for oszi.general.chromium_policies with the role defaults; shared settings come from ../config.yml.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # flatpak_disabled, snap_disabled and google_chrome_enabled stay undefined, as for the role applied
+        # standalone: the Flatpak and Snap paths are then managed on every distribution, Google Chrome's is not.
+        molecule_chromium_policies_bases: "{{ molecule_chromium_policies_bases_common
+          + molecule_chromium_policies_bases_distro }}"
+        molecule_chromium_policies_bases_common:
+          - /etc/chromium/policies
+          - /var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies
+          - /var/snap/chromium/current/policies
+      redhat:
+        molecule_chromium_policies_bases_distro: []
+        molecule_verify_paths:
+          - &chrome_absent {path: /etc/opt/chrome, state: absent}
+          - {path: /etc/chromium-browser, state: absent}
+      debian:
+        # Ubuntu's chromium-browser and the Debian family share this path.
+        molecule_chromium_policies_bases_distro:
+          - /etc/chromium-browser/policies
+        molecule_verify_paths:
+          - *chrome_absent

@@ -1,0 +1,53 @@
+---
+# Rootless molecule scenario for oszi.general.dotfiles: the shared converge runs the role as tester,
+# so dotfiles_users defaults to the effective user and nothing is written for root.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
+        bootstrap_package_update_cache: false
+        # The built-in templates default to the workstations group.
+        dotfiles_gnupg_enabled: true
+        dotfiles_git_enabled: true
+        dotfiles_xdg_enabled: true
+        dotfiles_git_default_branch: "main"
+        dotfiles_files:
+          .molecule.conf: |
+            user={{ dotfiles_user_item }} uid={{ dotfiles_user_info.uid }}
+        molecule_verify_paths:
+          - {path: /home/tester/.gnupg, state: directory, mode: "0700", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/gpg.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/gpg-agent.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/dirmngr.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/scdaemon.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gnupg/sshcontrol, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.gitconfig, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.gitignore, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.config, state: directory, mode: "0700", owner: tester, group: tester}
+          - {path: /home/tester/.config/user-dirs.dirs, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.config/user-dirs.conf, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.config/user-dirs.locale, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.molecule.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /root/.gnupg, state: absent}
+          - {path: /root/.gitconfig, state: absent}
+          - {path: /root/.config, state: absent}
+          - {path: /root/.molecule.conf, state: absent}
+        molecule_verify_commands:
+          - {cmd: "git config --global user.name", user: tester, stdout: "tester"}
+          - {cmd: "git config --global init.defaultBranch", user: tester, stdout: "main"}
+          - cmd: ". ~/.config/user-dirs.dirs && echo \"$$XDG_DOWNLOAD_DIR\""
+            user: tester
+            stdout: "/home/tester/Downloads"
+          - cmd: "for c in gpg gpg-agent dirmngr scdaemon; do gpgconf --check-options \"$$c\"; done"
+            user: tester
+          - cmd: "[ \"$$(cat ~/.molecule.conf)\" = \"user=$$(id -un) uid=$$(id -u)\" ]"
+            user: tester
+      redhat:
+        molecule_rootless_packages: [git, gnupg2, gnupg2-scdaemon]
+      debian:
+        molecule_rootless_packages: [git, gnupg, dirmngr, scdaemon]

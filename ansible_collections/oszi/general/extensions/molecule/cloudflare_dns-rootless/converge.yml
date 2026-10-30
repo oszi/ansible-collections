@@ -1,0 +1,4 @@
+---
+# The shared converge runs the whole play as molecule_become_user.
+- name: Import the shared converge playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.converge

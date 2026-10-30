@@ -1,0 +1,23 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Prepare the flatpak scenario
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the flatpak exports directory exists
+      ansible.builtin.file:
+        path: "/var/lib/flatpak/exports/bin"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
+    # Listed in flatpak_exports_bin_aliases_absent, so the role must remove it.
+    - name: Ensure an obsolete alias exists
+      ansible.builtin.file:
+        src: "/usr/bin/true"
+        dest: "/var/lib/flatpak/exports/bin/molecule-obsolete"
+        state: "link"

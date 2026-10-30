@@ -1,0 +1,45 @@
+---
+# Molecule scenario for oszi.general.downloads; shared settings come from ../config.yml.
+# prepare.yml serves the test files from http://127.0.0.1:8000 inside each instance, so no internet access is needed.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # sha256 of the fixed payload written by prepare.yml.
+        molecule_downloads_payload_sha256: "17e03c4d745c02935c88952c3a7a1fdde1ff7e42bee3a3be17c2692dca7a0287"
+        # get_url reports checksum_src as sha1.
+        molecule_downloads_payload_sha1: "ee41d71f2cfe247f7f8eea44659a9a26bb1dfff4"
+        downloads_list:
+          # Fixed checksum and a missing parent directory; the scripts append one line per run.
+          # The scripts use the environment variables only: Jinja in post_install_script is rendered with the
+          # placeholder downloads_item when the inventory list is templated, and DOWNLOADS_ITEM_CHECKSUM_DEST
+          # is the string "None" for new files (default('') does not replace the null checksum_dest).
+          - dest: /opt/molecule/downloads/payload.txt
+            url: http://127.0.0.1:8000/payload.txt
+            checksum: "sha256:{{ molecule_downloads_payload_sha256 }}"
+            owner: root
+            group: root
+            mode: "0640"
+            directory_mode: "0750"
+            post_install_script: |
+              printf '%s %s %s\n' "$$DOWNLOADS_ITEM_DEST" "$$DOWNLOADS_ITEM_URL" "$$DOWNLOADS_ITEM_CHECKSUM_SRC" >> post-install.log
+          # Directory destination with a checksum file URL; the script extracts the archive.
+          - dest: /opt/molecule/tool/
+            url: http://127.0.0.1:8000/tool.tar.gz
+            checksum: "sha256:http://127.0.0.1:8000/SHA256SUMS"
+            mode: "0644"
+            post_install_script: |
+              tar -xzf "$$DOWNLOADS_ITEM_DEST"
+              echo "$$DOWNLOADS_ITEM_DEST" >> extract.log
+        molecule_verify_paths:
+          - {path: /opt/molecule/downloads, state: directory, mode: "0750", owner: root, group: root}
+          - {path: /opt/molecule/downloads/payload.txt, mode: "0640", owner: root, group: root}
+          - {path: /opt/molecule/tool/tool.tar.gz, mode: "0644", owner: root, group: root}
+          - {path: /opt/molecule/tool/bin/tool, mode: "0755"}
+        molecule_verify_commands:
+          - cmd: "echo '{{ molecule_downloads_payload_sha256 }}  /opt/molecule/downloads/payload.txt' | sha256sum -c --quiet"
+          # One line each: the second converge found matching checksums and did not re-run the scripts.
+          - cmd: "cat /opt/molecule/downloads/post-install.log"
+            stdout: "/opt/molecule/downloads/payload.txt http://127.0.0.1:8000/payload.txt {{ molecule_downloads_payload_sha1 }}"
+          - {cmd: "cat /opt/molecule/tool/extract.log", stdout: "/opt/molecule/tool/tool.tar.gz"}
+          - {cmd: "/opt/molecule/tool/bin/tool", stdout: "molecule tool"}

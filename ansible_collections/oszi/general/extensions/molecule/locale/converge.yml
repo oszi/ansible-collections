@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the locale role.
+- name: Import the locale playbook
+  ansible.builtin.import_playbook: oszi.general.locale

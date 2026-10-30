@@ -1,0 +1,20 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The role skips its package task without root, so the prerequisites are installed here.
+- name: Install the acme prerequisites as root
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import bootstrap role with the package cache update
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+      vars:
+        bootstrap_package_update_cache: true
+
+    - name: Ensure python3-cryptography is installed
+      ansible.builtin.package:
+        name: "{{ molecule_rootless_packages }}"
+        state: "present"

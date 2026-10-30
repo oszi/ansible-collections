@@ -1,0 +1,47 @@
+---
+# Molecule scenario for oszi.thirdparty.hashicorp with the default hashicorp_enabled: false (uninstall path).
+# Offline apart from the distribution mirrors: no task reaches the vendor hosts.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # Exercises the package removal task, which is skipped for an empty list.
+        hashicorp_packages: [terraform]
+        molecule_verify_packages:
+          absent: [terraform]
+      redhat:
+        # Disabled sections keep dnf from fetching the seeded repository in the converge cache refresh.
+        molecule_seed_files:
+          - path: /etc/yum.repos.d/hashicorp.repo
+            content: |
+              [hashicorp]
+              name=Hashicorp Stable - $$basearch
+              baseurl=https://rpm.releases.hashicorp.com/fedora/$$releasever/$$basearch/stable
+              enabled=0
+              gpgcheck=1
+              gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp
+        molecule_verify_paths:
+          - {path: /etc/yum.repos.d/hashicorp.repo, state: absent}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp, state: absent}
+      debian:
+        # The legacy list uses another suite: apt rejects conflicting Signed-By values for one source,
+        # which would fail every apt call before the role runs.
+        molecule_seed_files:
+          - path: /etc/apt/sources.list.d/hashicorp.sources
+            content: |
+              Types: deb
+              URIs: https://apt.releases.hashicorp.com
+              Suites: stable
+              Components: main
+              Signed-By: /etc/apt/keyrings/hashicorp.asc
+          - path: /etc/apt/sources.list.d/hashicorp.list
+            content: |
+              deb [signed-by=/etc/apt/keyrings/hashicorp.gpg] https://apt.releases.hashicorp.com legacy main
+          - path: /etc/apt/keyrings/hashicorp.asc
+          - path: /etc/apt/keyrings/hashicorp.gpg
+        molecule_verify_paths:
+          - {path: /etc/apt/sources.list.d/hashicorp.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/hashicorp.list, state: absent}
+          - {path: /etc/apt/keyrings/hashicorp.asc, state: absent}
+          - {path: /etc/apt/keyrings/hashicorp.gpg, state: absent}

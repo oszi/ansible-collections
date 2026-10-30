@@ -1,0 +1,41 @@
+---
+# Rootless molecule scenario for oszi.general.gnome_users: the shared converge runs the role as tester,
+# so gnome_users defaults to the effective user. A few dconf settings replace the long default list.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
+        bootstrap_package_update_cache: false
+        gnome_users_dconf_vars:
+          /org/gnome/desktop/interface/clock-format: "'24h'"
+          /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"
+          /org/gnome/desktop/session/idle-delay: "uint32 0"
+        gnome_users_dconf_custom_keybindings:
+          - binding: "'<Super>Return'"
+            command: "'ptyxis --new-window'"
+            name: "'Terminal'"
+        molecule_verify_paths:
+          - {path: /home/tester/.themes, state: directory, owner: tester, group: tester}
+          - path: /home/tester/.themes/transparent/gnome-shell/gnome-shell.css
+            mode: "0644"
+            owner: tester
+            group: tester
+          - {path: /home/tester/.config/dconf/user, owner: tester, group: tester}
+          - {path: /root/.config/dconf, state: absent}
+          - {path: /root/.themes, state: absent}
+        molecule_verify_commands:
+          - {cmd: "dconf read /org/gnome/desktop/interface/clock-format", user: tester, stdout: "'24h'"}
+          - {cmd: "dconf read /org/gnome/desktop/input-sources/sources", user: tester, stdout: "[('xkb', 'us'), ('xkb', 'hu')]"}
+          - {cmd: "dconf read /org/gnome/desktop/session/idle-delay", user: tester, stdout: "uint32 0"}
+          - cmd: "dconf dump /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+            user: tester
+            stdout: "[/]\nbinding='<Super>Return'\ncommand='ptyxis --new-window'\nname='Terminal'"
+      redhat:
+        molecule_rootless_packages: [dconf, dbus-daemon, python3-psutil, python3-gobject-base]
+      debian:
+        molecule_rootless_packages: [dconf-cli, dconf-service, dbus-bin, python3-psutil, python3-gi]

@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the ssh role.
+- name: Import the ssh playbook
+  ansible.builtin.import_playbook: oszi.general.ssh

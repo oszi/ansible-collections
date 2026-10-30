@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the acme role.
+- name: Import the acme playbook
+  ansible.builtin.import_playbook: oszi.general.acme

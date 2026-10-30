@@ -1,0 +1,51 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The absent item must exist before the converge to exercise the uninstall path. The podman package
+# provides the quadlet generator, so the seeded unit is loaded by the daemon-reload.
+- name: Seed a quadlet for the absent item
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure podman is installed
+      ansible.builtin.package:
+        name: "podman"
+        state: "present"
+
+    - name: Ensure the static files directory exists
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+      loop:
+        - "/etc/containers/systemd"
+        - "/srv/old"
+
+    - name: Seed the static file and the uninstall script marker
+      ansible.builtin.copy:
+        content: "molecule\n"
+        dest: "{{ item }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      loop:
+        - "/srv/old/data.txt"
+        - "/srv/old.marker"
+
+    - name: Seed the quadlet
+      ansible.builtin.copy:
+        content: |
+          [Container]
+          Image=quay.io/podman/hello:latest
+        dest: "/etc/containers/systemd/old.container"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
+    - name: Reload systemd to generate the seeded unit
+      ansible.builtin.systemd:
+        daemon_reload: true

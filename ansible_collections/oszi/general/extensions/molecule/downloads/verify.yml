@@ -1,0 +1,54 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# A failing post-install script must restore the backup of the replaced file and fail the role.
+- name: Verify the downloads failure path
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Download a replacement with a failing post-install script
+      block:
+        - name: Include the downloads role with a failing item
+          ansible.builtin.include_role:
+            name: oszi.general.downloads
+          vars:
+            downloads_list:
+              - dest: /opt/molecule/downloads/payload.txt
+                url: http://127.0.0.1:8000/replacement.txt
+                mode: "0640"
+                force: true
+                backup: true
+                post_install_script: "exit 1"
+
+        - name: Fail because the failing script was accepted
+          ansible.builtin.fail:
+            msg: "The downloads role ignored the failing post-install script"
+      rescue:
+        - name: Assert that the role failed after the post-install script
+          ansible.builtin.assert:
+            that: "ansible_failed_task.name == 'Failed to download file to /opt/molecule/downloads/payload.txt'"
+            fail_msg: "Unexpected failure: {{ ansible_failed_task.name }}: {{ ansible_failed_result.msg }}"
+            quiet: true
+
+    - name: Stat the restored payload file
+      ansible.builtin.stat:
+        path: /opt/molecule/downloads/payload.txt
+        checksum_algorithm: sha256
+      register: _downloads_payload_stat
+
+    - name: Find leftover backup files
+      ansible.builtin.find:
+        paths: /opt/molecule/downloads
+        patterns: "payload.txt.*"
+      register: _downloads_backup_find
+
+    - name: Assert that the backup was restored in place
+      ansible.builtin.assert:
+        that:
+          - "_downloads_payload_stat.stat.checksum == molecule_downloads_payload_sha256"
+          - "_downloads_payload_stat.stat.mode == '0640'"
+          - "_downloads_backup_find.matched == 0"
+        fail_msg: "{{ _downloads_payload_stat.stat }} {{ _downloads_backup_find.files | map(attribute='path') }}"
+        quiet: true

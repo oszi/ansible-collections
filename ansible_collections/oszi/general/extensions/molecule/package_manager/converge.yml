@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the package_manager role.
+- name: Import the package_manager playbook
+  ansible.builtin.import_playbook: oszi.general.package_manager

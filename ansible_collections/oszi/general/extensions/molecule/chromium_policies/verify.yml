@@ -1,0 +1,98 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# molecule_chromium_policies_bases lists the expected policy base paths per distribution (molecule.yml).
+- name: Verify chromium_policies role specifics
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Stat the policy directories
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop: "{{ molecule_chromium_policies_bases | product(['managed', 'recommended']) | map('join', '/') }}"
+      register: _chromium_policies_dir_results
+
+    - name: Assert the policy directories
+      ansible.builtin.assert:
+        that:
+          - "item.stat.isdir | default(false)"
+          - "item.stat.mode == '0755'"
+          - "item.stat.pw_name == 'root'"
+          - "item.stat.gr_name == 'root'"
+        fail_msg: "{{ item.item }} does not match: {{ item.stat }}"
+        quiet: true
+      loop: "{{ _chromium_policies_dir_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Find the policy files
+      ansible.builtin.find:
+        paths: "{{ molecule_chromium_policies_bases }}"
+        recurse: true
+        file_type: any
+      register: _chromium_policies_find_result
+
+    # Only the managed/recommended directories and one JSON file per policy key are expected.
+    - name: Assert that no unexpected files exist
+      vars:
+        _expected: "{{ molecule_chromium_policies_bases
+          | product(['managed', 'recommended', 'managed/default.json', 'recommended/default.json',
+            'recommended/privacy.json'])
+          | map('join', '/') | sort }}"
+      ansible.builtin.assert:
+        that: "_chromium_policies_find_result.files | map(attribute='path') | sort == _expected"
+        fail_msg: "Found {{ _chromium_policies_find_result.files | map(attribute='path') | sort }}"
+        quiet: true
+
+    - name: Stat the policy files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop: "{{ molecule_chromium_policies_bases
+        | product(['managed/default.json', 'recommended/default.json', 'recommended/privacy.json'])
+        | map('join', '/') }}"
+      register: _chromium_policies_file_results
+
+    - name: Assert the policy files
+      ansible.builtin.assert:
+        that:
+          - "item.stat.isreg | default(false)"
+          - "item.stat.mode == '0644'"
+          - "item.stat.pw_name == 'root'"
+          - "item.stat.gr_name == 'root'"
+        fail_msg: "{{ item.item }} does not match: {{ item.stat }}"
+        quiet: true
+      loop: "{{ _chromium_policies_file_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Read the policy files
+      ansible.builtin.slurp:
+        src: "{{ item }}"
+      loop: "{{ molecule_chromium_policies_bases
+        | product(['managed/default.json', 'recommended/default.json', 'recommended/privacy.json'])
+        | map('join', '/') }}"
+      register: _chromium_policies_slurp_results
+
+    # from_json fails on invalid JSON, so this also proves that every file parses.
+    - name: Assert the policy contents
+      vars:
+        _policy: "{{ item.content | b64decode | from_json }}"
+        _name: "{{ item.item.split('/')[-2:] | join('/') }}"
+      ansible.builtin.assert:
+        that:
+          - "_name != 'managed/default.json' or _policy.HttpsOnlyMode == 'force_enabled'"
+          - "_name != 'managed/default.json'
+            or _policy.ExtensionSettings.ddkjiahejlhfcafbddmgiahcphecmpfh.installation_mode == 'force_installed'"
+          - "_name != 'managed/default.json'
+            or _policy.ExtensionSettings.cjpalhdlnbpafiamejdnhcphjbkeiagm.installation_mode == 'removed'"
+          - "_name != 'recommended/default.json' or _policy.PasswordManagerEnabled is false"
+          - "_name != 'recommended/default.json' or _policy.RestoreOnStartup == 1"
+          - "_name != 'recommended/privacy.json' or _policy.BlockThirdPartyCookies is true"
+          - "_name != 'recommended/privacy.json' or _policy.MetricsReportingEnabled is false"
+        fail_msg: "{{ item.item }} does not match: {{ _policy }}"
+        quiet: true
+      loop: "{{ _chromium_policies_slurp_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"

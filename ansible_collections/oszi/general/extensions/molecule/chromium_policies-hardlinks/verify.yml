@@ -1,0 +1,35 @@
+---
+# Files, modes and contents are verified as in the default scenario.
+- name: Import the chromium_policies verify playbook
+  ansible.builtin.import_playbook: ../chromium_policies/verify.yml
+
+- name: Verify chromium_policies hard links
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Stat the policy files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+        get_checksum: false
+      loop: "{{ molecule_chromium_policies_bases
+        | product(['managed/default.json', 'recommended/default.json', 'recommended/privacy.json'])
+        | map('join', '/') }}"
+      register: _chromium_policies_link_results
+
+    # Every file in the other paths is a hard link to the file in the first path.
+    - name: Assert that each policy file is one inode linked into every path
+      vars:
+        _name: "{{ item.item.split('/')[-2:] | join('/') }}"
+        _first: "{{ _chromium_policies_link_results.results
+          | selectattr('item', 'equalto', molecule_chromium_policies_bases[0] ~ '/' ~ _name) | first }}"
+      ansible.builtin.assert:
+        that:
+          - "item.stat.inode == _first.stat.inode"
+          - "item.stat.dev == _first.stat.dev"
+          - "item.stat.nlink == molecule_chromium_policies_bases | length"
+        fail_msg: "{{ item.item }} does not match {{ _first.item }}: {{ item.stat }}"
+        quiet: true
+      loop: "{{ _chromium_policies_link_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"

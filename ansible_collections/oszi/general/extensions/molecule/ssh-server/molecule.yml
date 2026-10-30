@@ -1,0 +1,57 @@
+---
+# Molecule scenario for oszi.general.ssh with the server enabled; shared settings come from ../config.yml.
+# prepare.yml generates a throwaway client key for tester inside each container; converge.yml reads the
+# public key into molecule_ssh_public_key. The private key never leaves the container.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+          # Has the client key in ~/.ssh/authorized_keys but is neither in ssh_authorized_keys nor AllowUsers.
+          - name: intruder
+            shell: /bin/bash
+        ssh_server_disabled: false
+        # ansible_user (root) must be in the keys; AllowUsers defaults to the keys of this dict.
+        ssh_authorized_keys:
+          root: "{{ molecule_ssh_public_key }}"
+          tester: "{{ molecule_ssh_public_key }}"
+        molecule_ssh_client: "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+          -o LogLevel=ERROR -i /home/tester/.ssh/id_ed25519 -p 22"
+        molecule_verify_paths:
+          - {path: /etc/ssh/sshd_config, mode: "0600", owner: root, group: root}
+          - {path: /etc/ssh/ssh_host_ed25519_key, mode: "0600", owner: root}
+          - {path: /etc/ssh/ssh_host_ed25519_key.pub, mode: "0644", owner: root}
+          - {path: /etc/ssh/authorized_keys.d, state: directory, mode: "0711", owner: root, group: root}
+          # Root-owned, readable by the user's group, since sshd reads the file as the user.
+          - {path: /etc/ssh/authorized_keys.d/root, mode: "0640", owner: root, group: root}
+          - {path: /etc/ssh/authorized_keys.d/tester, mode: "0640", owner: root, group: tester}
+          - {path: /etc/ssh/authorized_keys.d/intruder, state: absent}
+          # The home-dir relative files of managed users are removed.
+          - {path: /home/tester/.ssh/authorized_keys, state: absent}
+          - {path: /root/.ssh/authorized_keys, state: absent}
+        molecule_verify_commands:
+          - {cmd: "sshd -t"}
+          - {cmd: "grep -Fx 'AuthorizedKeysFile /etc/ssh/authorized_keys.d/%u' /etc/ssh/sshd_config"}
+          - {cmd: "grep -Fx 'AllowUsers root tester' /etc/ssh/sshd_config"}
+          - {cmd: "grep -Fx 'HostKey /etc/ssh/ssh_host_ed25519_key' /etc/ssh/sshd_config"}
+          - {cmd: "grep -c '^HostKey ' /etc/ssh/sshd_config", stdout: "1"}
+          # Real logins through the running server with the generated client key.
+          - {cmd: "{{ molecule_ssh_client }} tester@127.0.0.1 id -un", user: tester, stdout: "tester"}
+          - {cmd: "{{ molecule_ssh_client }} root@127.0.0.1 id -un", user: tester, stdout: "root"}
+          # Rejected: not in AllowUsers, and its home-dir authorized_keys is no longer consulted.
+          - {cmd: "! {{ molecule_ssh_client }} intruder@127.0.0.1 true", user: tester}
+          # Only the Ed25519 host key is offered.
+          - cmd: "ssh-keyscan -p 22 -t ed25519,rsa,ecdsa 127.0.0.1 2>/dev/null | grep -v '^#' | cut -d ' ' -f 2 | sort -u"
+            stdout: "ssh-ed25519"
+      redhat:
+        molecule_ssh_client_package: openssh-clients
+        molecule_verify_units:
+          - {name: sshd.service, active: active, enabled: enabled}
+          - {name: sshd.socket, active: inactive, enabled: disabled}
+      debian:
+        molecule_ssh_client_package: openssh-client
+        molecule_verify_units:
+          - {name: ssh.service, active: active, enabled: enabled}
+          - {name: ssh.socket, active: inactive, enabled: disabled}

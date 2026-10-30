@@ -1,0 +1,24 @@
+---
+# Molecule scenario for oszi.thirdparty.rpmfusion with the default rpmfusion_enabled: false (uninstall path).
+# On Fedora, prepare.yml seeds a subset repository as Fedora's workstation repositories ship it, plus a
+# stray key; the role must remove every *rpmfusion* file. The role is a no-op on the Debian family.
+provisioner:
+  inventory:
+    group_vars:
+      redhat:
+        molecule_verify_commands:
+          - {cmd: "! compgen -G '/etc/yum.repos.d/*rpmfusion*' && ! compgen -G '/etc/pki/rpm-gpg/*rpmfusion*'"}
+        molecule_verify_paths:
+          - {path: /etc/yum.repos.d/rpmfusion-nonfree-steam.repo, state: absent}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-nonfree-fedora-steam, state: absent}
+        molecule_verify_packages:
+          absent:
+            - rpmfusion-free-release
+            - rpmfusion-nonfree-release
+            - rpmfusion-free-release-tainted
+            - rpmfusion-nonfree-release-tainted
+            - rpmfusion-free-appstream-data
+            - rpmfusion-nonfree-appstream-data
+      debian:
+        molecule_verify_commands:
+          - {cmd: "! grep -rqi rpmfusion /etc/apt"}

@@ -1,0 +1,39 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The role manages the flatpak package only for the system method.
+- name: Install flatpak as root
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import bootstrap role with the package cache update
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+      vars:
+        bootstrap_package_update_cache: true
+
+    - name: Ensure flatpak is installed
+      ansible.builtin.package:
+        name: "flatpak"
+        state: "present"
+
+- name: Prepare the test user's flatpak exports
+  hosts: all
+  become: true
+  become_user: tester
+  gather_facts: false
+  tasks:
+    - name: Ensure the user flatpak exports directory exists
+      ansible.builtin.file:
+        path: "~/.local/share/flatpak/exports/bin"
+        state: "directory"
+        mode: "0755"
+
+    # Listed in flatpak_exports_bin_aliases_absent, so the role must remove it.
+    - name: Ensure an obsolete alias exists
+      ansible.builtin.file:
+        src: "/usr/bin/true"
+        dest: "~/.local/share/flatpak/exports/bin/molecule-obsolete"
+        state: "link"

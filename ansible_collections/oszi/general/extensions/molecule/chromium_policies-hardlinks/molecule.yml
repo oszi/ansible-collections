@@ -1,0 +1,25 @@
+---
+# Molecule scenario for oszi.general.chromium_policies with hard links; shared settings come from ../config.yml.
+# All policy paths are on the container's root filesystem, as the hard links require.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        chromium_policies_use_hard_links: true
+        # Excludes the Flatpak path, as with the flatpak role disabled in the same inventory.
+        flatpak_disabled: true
+        molecule_chromium_policies_bases: "{{ molecule_chromium_policies_bases_common
+          + molecule_chromium_policies_bases_distro }}"
+        molecule_chromium_policies_bases_common:
+          - /etc/chromium/policies
+          - /var/snap/chromium/current/policies
+      redhat:
+        molecule_chromium_policies_bases_distro: []
+        molecule_verify_paths:
+          - &flatpak_absent {path: /var/lib/flatpak, state: absent}
+          - {path: /etc/chromium-browser, state: absent}
+      debian:
+        molecule_chromium_policies_bases_distro:
+          - /etc/chromium-browser/policies
+        molecule_verify_paths:
+          - *flatpak_absent

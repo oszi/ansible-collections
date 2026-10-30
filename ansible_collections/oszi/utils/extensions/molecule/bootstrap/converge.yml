@@ -1,0 +1,42 @@
+---
+# Custom converge: the bootstrap facts only live on the controller, so the assertions run in the same play.
+- name: Converge the bootstrap role
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Assert that the bootstrap has not run in this play yet
+      ansible.builtin.assert:
+        that:
+          - "bootstrap_included is not defined"
+        quiet: true
+
+    - name: Import bootstrap role
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+
+    - name: Assert the bootstrap facts
+      ansible.builtin.assert:
+        that:
+          - "bootstrap_is_ssh is false"
+          - "bootstrap_ssh_port == 22"
+          - "bootstrap_included is true"
+        quiet: true
+
+    # The main entrypoint skips the bootstrap tasks once included; the bootstrap entrypoint always runs them.
+    - name: Import bootstrap entrypoint with a different fallback port
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+        tasks_from: bootstrap
+      vars:
+        bootstrap_ssh_port_fallback: 2222
+
+    - name: Assert the bootstrap facts after the bootstrap entrypoint
+      ansible.builtin.assert:
+        that:
+          - "bootstrap_is_ssh is false"
+          - "bootstrap_ssh_port == 22"
+          - "bootstrap_included is true"
+          # The fallback only applies to SSH connections and never rewrites the port here.
+          - "ansible_port is not defined or ansible_port | int == 22"
+        quiet: true

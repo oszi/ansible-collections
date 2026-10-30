@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the dotfiles role.
+- name: Import the dotfiles playbook
+  ansible.builtin.import_playbook: oszi.general.dotfiles

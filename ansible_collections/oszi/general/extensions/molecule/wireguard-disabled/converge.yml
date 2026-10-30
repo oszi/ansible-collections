@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the wireguard role.
+- name: Import the wireguard playbook
+  ansible.builtin.import_playbook: oszi.general.wireguard

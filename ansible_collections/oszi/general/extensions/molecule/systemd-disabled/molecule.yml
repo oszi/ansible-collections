@@ -1,0 +1,30 @@
+---
+# Molecule scenario for oszi.general.systemd with the container guard; shared settings come from ../config.yml.
+# systemd_disabled defaults to true in containers: the same units and presets as in the systemd scenario
+# must not be written, and the obsolete unit seeded by prepare.yml stays.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        systemd_system_units:
+          molecule-test.service: |
+            [Service]
+            Type=oneshot
+            ExecStart=/bin/true
+          molecule-test.service.d/override.conf: |
+            [Service]
+            Environment=MOLECULE_DROPIN=override
+        systemd_system_presets:
+          00-molecule.preset: |
+            enable molecule-test.service
+        molecule_verify_paths:
+          - {path: /etc/systemd/system/cpuacct-cpu-patch.service, state: absent}
+          - {path: /etc/systemd/system/molecule-test.service, state: absent}
+          - {path: /etc/systemd/system/molecule-test.service.d, state: absent}
+          - {path: /etc/systemd/system-preset/00-molecule.preset, state: absent}
+          - {path: /etc/systemd/system/swapfile.service, mode: "0644", owner: root, group: root}
+        molecule_verify_commands:
+          - {cmd: "systemctl show --property=LoadState --value molecule-test.service", stdout: "not-found"}
+          # No file under /etc/systemd changed after prepare.yml seeded swapfile.service; directory
+          # mtimes are skipped because the seeding rename itself updates /etc/systemd/system.
+          - {cmd: "find /etc/systemd -newer /etc/systemd/system/swapfile.service ! -type d -print", stdout: ""}

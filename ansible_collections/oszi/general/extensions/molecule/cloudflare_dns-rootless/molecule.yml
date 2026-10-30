@@ -1,0 +1,15 @@
+---
+# Rootless molecule scenario for oszi.general.cloudflare_dns: the shared converge runs the role as tester.
+# The CloudFlare API is external, so only the no-op path with an empty zone is tested.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
+        bootstrap_package_update_cache: false
+        cloudflare_dns_zone: ""
+        cloudflare_dns_host_record: "molecule"

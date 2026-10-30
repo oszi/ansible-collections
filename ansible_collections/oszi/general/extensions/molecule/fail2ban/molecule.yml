@@ -1,0 +1,47 @@
+---
+# Molecule scenario for oszi.general.fail2ban with the sshd jail; shared settings come from ../config.yml.
+# Group_vars replace lists as a whole, so the per-distribution lists are built from _common and _distro parts.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # The role reads both cross-role switches without default(); disabled, as in a container inventory.
+        selinux_disabled: true
+        firewalld_disabled: true
+        # Defaults to the inverse of ssh_server_disabled, which is undefined here.
+        fail2ban_disabled: false
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /etc/fail2ban/fail2ban.local, mode: "0644", owner: root, group: root}
+          - {path: /etc/fail2ban/jail.local, mode: "0644", owner: root, group: root}
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_distro }}"
+        molecule_verify_commands_common:
+          - {cmd: "fail2ban-client ping", stdout: "Server replied: pong"}
+          - {cmd: "fail2ban-client status sshd", stdout_contains: "Status for the jail: sshd"}
+          # The jail.local values are live in the running server.
+          - {cmd: "fail2ban-client get sshd bantime", stdout: "86400"}
+          - {cmd: "fail2ban-client get sshd maxretry", stdout: "5"}
+          - {cmd: "fail2ban-client get logtarget", stdout_contains: "STDERR"}
+          # The systemd backend reads the journal on every platform.
+          - {cmd: "fail2ban-client get sshd journalmatch", stdout_contains: "_SYSTEMD_UNIT="}
+        molecule_verify_units:
+          - {name: fail2ban.service, active: active, enabled: enabled}
+      redhat:
+        # Fedora's fail2ban metapackage requires fail2ban-firewalld, so the role's removal of
+        # fail2ban-firewalld with firewalld_disabled fails the depsolve; the firewalld variant passes.
+        firewalld_disabled: false
+        molecule_verify_paths_distro: []
+        molecule_verify_commands_distro:
+          # Fedora's fail2ban-firewalld drop-in selects the banaction.
+          - {cmd: "fail2ban-client get sshd actions", stdout_contains: "firewallcmd-rich-rules"}
+        molecule_verify_packages:
+          present: [fail2ban, fail2ban-server, fail2ban-systemd, fail2ban-firewalld]
+          absent: [fail2ban-selinux]
+      debian:
+        molecule_verify_paths_distro:
+          - {path: /etc/fail2ban/jail.d/00-systemd-firewalld.conf, mode: "0644", owner: root, group: root}
+        molecule_verify_commands_distro:
+          # firewalld_disabled leaves the default banaction; the role's drop-in selects the systemd backend.
+          - {cmd: "cat /etc/fail2ban/jail.d/00-systemd-firewalld.conf", stdout: "[DEFAULT]\nbackend = systemd"}
+        molecule_verify_packages:
+          present: [fail2ban]

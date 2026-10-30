@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the python role.
+- name: Import the python playbook
+  ansible.builtin.import_playbook: oszi.general.python

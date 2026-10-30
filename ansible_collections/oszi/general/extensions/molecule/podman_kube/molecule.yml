@@ -1,0 +1,64 @@
+---
+# Molecule scenario for oszi.general.podman_kube after oszi.general.podman.
+# Nested containers cannot run without CAP_SYS_ADMIN, so the present item is present_disabled and no
+# podman-kube@ instance is ever started. The absent item is seeded and enabled by prepare.yml to
+# exercise the uninstall path. Paths avoid dashes to keep the escaped instance names readable.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # Keep the podman role light: core packages only.
+        podman_toolbox_enabled: false
+        podman_compose_enabled: false
+        podman_docker_enabled: false
+        molecule_converge_roles:
+          - name: oszi.general.podman
+          - name: oszi.general.podman_kube
+        podman_kube_list:
+          - path: test.yaml
+            state: present_disabled
+            spec:
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: molecule
+              spec:
+                containers:
+                  - name: web
+                    image: quay.io/podman/hello:latest
+                    volumeMounts:
+                      - name: data
+                        mountPath: /data
+                volumes:
+                  - name: data
+                    hostPath:
+                      path: /srv/kubetest
+                      type: Directory
+            files:
+              - dest: /srv/kubetest/index.html
+                content: "molecule\n"
+                owner: root
+                group: root
+                mode: "0644"
+          - path: old.yaml
+            state: absent
+            uninstall_script: "rm -f /srv/kubeold.marker"
+            files:
+              - dest: /srv/kubeold
+            uninstall_files: true
+        molecule_verify_paths:
+          - {path: /etc/containers/kube, state: directory, mode: "0755", owner: root, group: root}
+          - {path: /etc/containers/kube/test.yaml, mode: "0644", owner: root, group: root}
+          - {path: /srv/kubetest/index.html, mode: "0644", owner: root, group: root}
+          - {path: /etc/containers/kube/old.yaml, state: absent}
+          - {path: /srv/kubeold, state: absent}
+          - {path: /srv/kubeold.marker, state: absent}
+        molecule_verify_commands:
+          - {cmd: "systemd-escape --template=podman-kube@.service /etc/containers/kube/test.yaml",
+             stdout: "podman-kube@-etc-containers-kube-test.yaml.service"}
+          - {cmd: "systemctl cat podman-kube@-etc-containers-kube-test.yaml.service | grep -F 'kube play'"}
+          - {cmd: "cat /srv/kubetest/index.html", stdout: "molecule"}
+        molecule_verify_units:
+          - {name: podman-kube@-etc-containers-kube-test.yaml.service, active: inactive, enabled: disabled}
+          # Enabled by prepare.yml, disabled by the uninstall path.
+          - {name: podman-kube@-etc-containers-kube-old.yaml.service, active: inactive, enabled: disabled}

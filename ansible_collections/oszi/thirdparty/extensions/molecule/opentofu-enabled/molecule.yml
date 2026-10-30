@@ -1,0 +1,59 @@
+---
+# Molecule scenario for oszi.thirdparty.opentofu with opentofu_enabled: true.
+# Needs network access to get.opentofu.org and packages.opentofu.org (slow) on Debian and Ubuntu;
+# Fedora installs the distribution package and keeps the upstream repository uninstalled.
+# prepare.yml seeds molecule_seed_paths, which the role must remove.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        opentofu_enabled: true
+        molecule_role_defaults_file: "${MOLECULE_PROJECT_DIRECTORY}/roles/opentofu/defaults/main.yml"
+      redhat:
+        # opentofu_upstream_enabled defaults to false on Fedora: the upstream files must be removed.
+        molecule_seed_paths:
+          - /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu
+          - /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo
+          - /etc/yum.repos.d/opentofu.repo
+        molecule_verify_paths:
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu, state: absent}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo, state: absent}
+          - {path: /etc/yum.repos.d/opentofu.repo, state: absent}
+        molecule_verify_commands:
+          - {cmd: "tofu version", stdout_contains: "OpenTofu v"}
+          - {cmd: "rpm -q --qf '%{VENDOR}' opentofu", stdout: "Fedora Project"}
+        molecule_verify_packages:
+          present: [opentofu]
+          absent: [tofu]
+      debian:
+        # Keyrings with the other extension and the legacy one-line source.
+        molecule_seed_paths:
+          - /etc/apt/keyrings/opentofu.asc
+          - /etc/apt/keyrings/opentofu-repo.gpg
+          - /etc/apt/sources.list.d/opentofu.list
+        molecule_verify_paths:
+          - {path: /etc/apt/keyrings/opentofu.gpg, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/opentofu-repo.asc, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/sources.list.d/opentofu.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/opentofu.asc, state: absent}
+          - {path: /etc/apt/keyrings/opentofu-repo.gpg, state: absent}
+          - {path: /etc/apt/sources.list.d/opentofu.list, state: absent}
+        molecule_verify_commands:
+          - {cmd: "tofu version", stdout_contains: "OpenTofu v"}
+          # apt accepts the keyrings and the source without warnings.
+          - {cmd: "out=$$(apt-get update 2>&1); ! grep -E '^(W|E):' <<<\"$$out\""}
+        molecule_verify_packages:
+          present: [tofu]
+          absent: [opentofu]
+        # The core signing key is published in binary form, the repository host key armored.
+        molecule_verify_keyrings:
+          - {path: /etc/apt/keyrings/opentofu.gpg, checksum: opentofu_deb_gpgkey_checksum, armored: false}
+          - {path: /etc/apt/keyrings/opentofu-repo.asc, checksum: opentofu_deb_repo_gpgkey_checksum, armored: true}
+        molecule_verify_repo_files:
+          - path: /etc/apt/sources.list.d/opentofu.sources
+            content: |
+              Types: deb deb-src
+              URIs: {{ molecule_role_defaults.opentofu_deb_baseurl }}
+              Suites: any
+              Components: main
+              Signed-By: /etc/apt/keyrings/opentofu.gpg /etc/apt/keyrings/opentofu-repo.asc

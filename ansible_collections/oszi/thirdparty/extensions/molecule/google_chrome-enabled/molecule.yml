@@ -1,0 +1,50 @@
+---
+# Molecule scenario for oszi.thirdparty.google_chrome installing google-chrome-stable (amd64 only).
+# Needs network access to dl.google.com and dl-ssl.google.com.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        google_chrome_enabled: true
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /etc/default/google-chrome, mode: "0644", owner: root, group: root}
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_distro }}"
+        molecule_verify_commands_common:
+          - {cmd: "cat /etc/default/google-chrome", stdout: "repo_add_once=\"false\"\nrepo_reenable_on_distupgrade=\"false\""}
+          # Prints the version without starting the browser.
+          - {cmd: "google-chrome-stable --version", stdout_contains: "Google Chrome"}
+        molecule_verify_packages:
+          present: [google-chrome-stable]
+          absent: [google-chrome-beta, google-chrome-unstable]
+      redhat:
+        molecule_verify_gpgkey:
+          path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome
+          checksum_var: google_chrome_rpm_gpgkey_checksum
+        # The package scripts and the daily cron job (run in verify.yml) must not add their own repository.
+        molecule_verify_paths_distro:
+          - {path: /etc/yum.repos.d/google-chrome-ansible-managed.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-chrome, mode: "0644", owner: root, group: root}
+          - {path: /etc/yum.repos.d/google-chrome.repo, state: absent}
+        molecule_verify_commands_distro:
+          - cmd: "grep -Fx 'baseurl = https://dl-ssl.google.com/linux/chrome/rpm/stable/$$basearch'
+              /etc/yum.repos.d/google-chrome-ansible-managed.repo"
+          - {cmd: "dnf repoquery --installed --qf '%{from_repo}\\n' google-chrome-stable", stdout: google-chrome}
+      debian:
+        molecule_verify_gpgkey:
+          path: /etc/apt/keyrings/google-chrome.asc
+          checksum_var: google_chrome_deb_gpgkey_checksum
+        # The package scripts and the daily cron job (run in verify.yml) must not add their own repository.
+        molecule_verify_paths_distro:
+          - {path: /etc/apt/sources.list.d/google-chrome-ansible-managed.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/google-chrome.asc, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/sources.list.d/google-chrome.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/google-chrome.list, state: absent}
+          - {path: /etc/apt/trusted.gpg.d/google-chrome.gpg, state: absent}
+        molecule_verify_commands_distro:
+          - cmd: "grep -Fx 'URIs: https://dl-ssl.google.com/linux/chrome/deb'
+              /etc/apt/sources.list.d/google-chrome-ansible-managed.sources"
+          - cmd: "grep -Fx 'Signed-By: /etc/apt/keyrings/google-chrome.asc'
+              /etc/apt/sources.list.d/google-chrome-ansible-managed.sources"
+          - {cmd: "grep -Fx 'Architectures: amd64' /etc/apt/sources.list.d/google-chrome-ansible-managed.sources"}
+          - {cmd: "apt-cache policy google-chrome-stable | grep -A1 -F '***' | grep -F dl-ssl.google.com"}

@@ -1,0 +1,14 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The role only writes configuration files; the tools parse them in verify.yml.
+- name: Install test tools for the dotfiles scenario
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure git and GnuPG are installed
+      ansible.builtin.package:
+        name: "{{ molecule_dotfiles_packages }}"
+        state: "present"

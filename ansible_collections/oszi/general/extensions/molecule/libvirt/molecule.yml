@@ -1,0 +1,13 @@
+---
+# Molecule scenario for oszi.general.libvirt with the defaults: libvirt_disabled is true in guests,
+# containers included, so the role is a no-op and nothing is installed.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_verify_paths:
+          - {path: /usr/local/bin/virsh-usb, state: absent}
+          - {path: /usr/local/bin/virt-viewer-fzf, state: absent}
+          - {path: /etc/libvirt, state: absent}
+        molecule_verify_commands:
+          - {cmd: "! command -v virsh"}

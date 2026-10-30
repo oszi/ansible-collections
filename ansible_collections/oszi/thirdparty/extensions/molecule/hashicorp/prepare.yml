@@ -1,0 +1,30 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The seeded files stand in for an earlier install, legacy keyrings and vendor-written repositories;
+# the disabled role must remove all of them. Their content is never used by a package manager.
+- name: Seed repository and keyring files for the uninstall path
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the seeded files' directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+      loop: "{{ molecule_seed_files | map(attribute='path') | map('dirname') | unique }}"
+
+    - name: Seed the files
+      ansible.builtin.copy:
+        dest: "{{ item.path }}"
+        content: "{{ item.content | default('seeded by molecule\n') }}"
+        owner: "root"
+        group: "root"
+        mode: "{{ item.mode | default('0644') }}"
+      loop: "{{ molecule_seed_files }}"
+      loop_control:
+        label: "{{ item.path }}"

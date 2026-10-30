@@ -1,0 +1,23 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+- name: Verify the rootless flatpak defaults
+  hosts: all
+  become: true
+  become_user: tester
+  gather_facts: false
+  tasks:
+    # Public, so the role defaults derived from the effective user are visible below.
+    - name: Include the flatpak role as tester
+      ansible.builtin.include_role:
+        name: oszi.general.flatpak
+        public: true
+
+    - name: Assert the rootless defaults
+      ansible.builtin.assert:
+        that:
+          - "ansible_facts.user_uid | int != 0"
+          - "flatpak_method == 'user'"
+          - "flatpak_exports_bin_path == '~/.local/share/flatpak/exports/bin'"
+        quiet: true

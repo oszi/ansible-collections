@@ -1,0 +1,42 @@
+---
+# Google's daily cron job re-adds the vendor repository unless /etc/default/google-chrome disables it;
+# it runs before the shared assertions so the vendor repository files are checked after it.
+- name: Run the Google Chrome cron job
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Run the daily Google Chrome cron job
+      ansible.builtin.command:
+        cmd: "/etc/cron.daily/google-chrome"
+      changed_when: false
+
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# molecule_verify_gpgkey (group_vars) names the managed key file and the role default holding its checksum,
+# so the expected hash is read from the role instead of being duplicated here.
+- name: Verify the google_chrome signing key
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Load the role defaults
+      ansible.builtin.include_vars:
+        file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/roles/google_chrome/defaults/main.yml"
+        name: _molecule_role_defaults
+
+    - name: Stat the signing key
+      ansible.builtin.stat:
+        path: "{{ molecule_verify_gpgkey.path }}"
+        checksum_algorithm: "sha256"
+      register: _molecule_gpgkey_stat
+
+    - name: Assert the signing key checksum
+      ansible.builtin.assert:
+        that:
+          - "_molecule_gpgkey_stat.stat.exists"
+          - "'sha256:' ~ _molecule_gpgkey_stat.stat.checksum
+            == _molecule_role_defaults[molecule_verify_gpgkey.checksum_var]"
+        fail_msg: "{{ molecule_verify_gpgkey.path }} does not match {{ molecule_verify_gpgkey.checksum_var }}"
+        quiet: true

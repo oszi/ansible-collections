@@ -1,0 +1,12 @@
+---
+# Molecule scenario for oszi.general.firewalld with the defaults; shared settings come from ../config.yml.
+# The container guard sets firewalld_disabled, so the role removes firewalld, which prepare installs first.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_verify_packages:
+          absent: [firewalld]
+        molecule_verify_commands:
+          - {cmd: "systemctl show --property=LoadState --value firewalld.service", stdout: "not-found"}
+          - {cmd: "! command -v firewall-cmd"}

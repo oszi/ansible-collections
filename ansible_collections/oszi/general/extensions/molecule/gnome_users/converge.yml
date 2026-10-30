@@ -1,0 +1,4 @@
+---
+# Converge with the shared playbook: the role has no production playbook.
+- name: Import the shared converge playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.converge

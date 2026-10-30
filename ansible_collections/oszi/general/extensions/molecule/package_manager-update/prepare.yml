@@ -1,0 +1,19 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Prepare the package_manager-update scenario
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the orphan test package is installed
+      ansible.builtin.package:
+        name: "tree"
+        state: "present"
+
+    # An automatically installed package nothing depends on is an orphan for autoremove.
+    - name: Mark the orphan test package as automatically installed
+      ansible.builtin.command:
+        cmd: "{{ ('debian' in group_names) | ternary('apt-mark auto tree', 'dnf --assumeyes mark dependency tree') }}"
+      changed_when: true

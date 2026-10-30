@@ -1,0 +1,77 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# A loopback-only HTTP server as a systemd service, so it keeps serving across the molecule stages.
+- name: Serve the test files for the downloads scenario
+  hosts: all
+  become: true
+  gather_facts: false
+  vars:
+    molecule_downloads_srv_path: /srv/molecule-http
+  tasks:
+    - name: Ensure the served directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      loop:
+        - "{{ molecule_downloads_srv_path }}"
+        - "{{ molecule_downloads_srv_path }}/build/bin"
+
+    - name: Write the payload file
+      ansible.builtin.copy:
+        content: "molecule downloads payload\n"
+        dest: "{{ molecule_downloads_srv_path }}/payload.txt"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Write the tool script
+      ansible.builtin.copy:
+        content: |
+          #!/bin/sh
+          echo "molecule tool"
+        dest: "{{ molecule_downloads_srv_path }}/build/bin/tool"
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create the tool archive and its checksum file
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          tar -C build -czf tool.tar.gz bin
+          sha256sum tool.tar.gz payload.txt > SHA256SUMS
+        chdir: "{{ molecule_downloads_srv_path }}"
+        executable: /bin/bash
+        creates: "{{ molecule_downloads_srv_path }}/SHA256SUMS"
+
+    - name: Install the HTTP server unit
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          Description=Molecule test file server
+
+          [Service]
+          ExecStart=/usr/bin/python3 -m http.server 8000 --bind 127.0.0.1 --directory {{ molecule_downloads_srv_path }}
+          # DynamicUser and other sandboxing options need mount namespaces, which the containers lack.
+          User=nobody
+        dest: /etc/systemd/system/molecule-http.service
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Ensure the HTTP server is running
+      ansible.builtin.systemd_service:
+        name: molecule-http.service
+        state: started
+        daemon_reload: true
+
+    - name: Wait for the HTTP server
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 8000
+        timeout: 30

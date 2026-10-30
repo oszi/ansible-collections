@@ -1,0 +1,21 @@
+---
+# The private key generated in prepare.yml feeds wireguard_quick_configs (molecule.yml).
+- name: Read the generated WireGuard private key
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Read the private key
+      ansible.builtin.slurp:
+        src: "{{ molecule_wireguard_key_path }}"
+      register: _wireguard_private_key_result
+      no_log: true
+
+    - name: Set the private key fact
+      ansible.builtin.set_fact:
+        molecule_wireguard_private_key: "{{ _wireguard_private_key_result.content | b64decode | trim }}"
+      no_log: true
+
+# Converge with the production playbook: bootstrap, then the wireguard role.
+- name: Import the wireguard playbook
+  ansible.builtin.import_playbook: oszi.general.wireguard

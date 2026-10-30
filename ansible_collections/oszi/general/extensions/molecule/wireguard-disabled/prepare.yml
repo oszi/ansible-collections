@@ -1,0 +1,13 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Install WireGuard for the uninstall path
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the role's WireGuard packages are installed
+      ansible.builtin.package:
+        name: "{{ molecule_wireguard_packages }}"
+        state: "present"

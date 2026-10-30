@@ -1,0 +1,58 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The absent item must exist before the converge to exercise the uninstall path. The podman package
+# provides podman-kube@.service; the instance is enabled without starting it.
+- name: Seed a spec for the absent item
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure podman is installed
+      ansible.builtin.package:
+        name: "podman"
+        state: "present"
+
+    - name: Ensure the spec and static files directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+      loop:
+        - "/etc/containers/kube"
+        - "/srv/kubeold"
+
+    - name: Seed the static file and the uninstall script marker
+      ansible.builtin.copy:
+        content: "molecule\n"
+        dest: "{{ item }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      loop:
+        - "/srv/kubeold/data.txt"
+        - "/srv/kubeold.marker"
+
+    - name: Seed the spec
+      ansible.builtin.copy:
+        content: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: old
+          spec:
+            containers:
+              - name: old
+                image: quay.io/podman/hello:latest
+        dest: "/etc/containers/kube/old.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
+    - name: Enable the seeded podman-kube instance without starting it
+      ansible.builtin.systemd:
+        name: "podman-kube@-etc-containers-kube-old.yaml.service"
+        enabled: true

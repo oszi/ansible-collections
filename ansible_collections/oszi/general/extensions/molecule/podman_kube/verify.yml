@@ -1,0 +1,24 @@
+---
+- name: Import the shared verify playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+- name: Verify podman_kube role specifics
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Read the installed spec
+      ansible.builtin.slurp:
+        src: "/etc/containers/kube/test.yaml"
+      register: _podman_kube_spec_result
+
+    # The spec dictionary is rendered with to_nice_yaml and must parse back to the same structure.
+    - name: Assert the installed spec is valid YAML matching the inventory
+      vars:
+        _podman_kube_spec: "{{ _podman_kube_spec_result.content | b64decode | from_yaml }}"
+      ansible.builtin.assert:
+        that:
+          - "_podman_kube_spec == (podman_kube_list | selectattr('path', 'eq', 'test.yaml') | first).spec"
+          - "_podman_kube_spec.kind == 'Pod'"
+          - "_podman_kube_spec.metadata.name == 'molecule'"
+        quiet: true

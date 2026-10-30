@@ -1,0 +1,48 @@
+---
+# Molecule scenario for oszi.general.python; shared settings come from ../config.yml.
+# The pip and pipx entries need network access to PyPI.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # A pinned pure-python package in a virtualenv, which avoids PEP 668 system installs.
+        python_pip_list:
+          - name: ["six==1.17.0"]
+            virtualenv: /opt/molecule-venv
+        # A tiny pinned application in the global pipx scope (/opt/pipx, /usr/local/bin).
+        python_pipx_list:
+          - name: "pycowsay==0.0.0.2"
+            global: true
+        molecule_verify_paths:
+          - {path: /opt/molecule-venv/bin/python, state: link}
+          - {path: /usr/local/bin/pycowsay, state: link}
+        molecule_verify_commands:
+          # The default distro packages are importable by the system interpreter.
+          - {cmd: "python3 -c 'import cryptography, jmespath, netaddr, psutil, requests, yaml'"}
+          - {cmd: "python3 -m virtualenv --version"}
+          - {cmd: "python3 -c 'import setuptools'"}
+          - {cmd: "pipx --version"}
+          - {cmd: "command -v gcc make"}
+          # The virtualenv has the pinned package and no access to the system site-packages.
+          - {cmd: "/opt/molecule-venv/bin/python -c 'import six; print(six.__version__)'", stdout: "1.17.0"}
+          - {cmd: "! /opt/molecule-venv/bin/python -c 'import yaml' 2>/dev/null"}
+          - {cmd: "pycowsay molecule", stdout_contains: "< molecule >"}
+          - {cmd: "pycowsay molecule", user: tester, stdout_contains: "< molecule >"}
+          - {cmd: "pipx list --global --short", stdout: "pycowsay 0.0.0.2"}
+        users_list:
+          - name: tester
+            shell: /bin/bash
+      fedora:
+        molecule_verify_packages:
+          present: [
+            python3-cryptography, python3-jmespath, python3-netaddr, python3-psutil, python3-requests,
+            python3-pyyaml, python3-devel, python3-pip, pipx, python3-setuptools, python3-virtualenv,
+            gcc, gcc-c++, make, redhat-rpm-config,
+          ]
+      debian:
+        molecule_verify_packages:
+          present: [
+            python3-cryptography, python3-jmespath, python3-netaddr, python3-psutil, python3-requests,
+            python3-yaml, python3-dev, python3-venv, build-essential, pipx, python3-setuptools,
+            python3-virtualenv,
+          ]

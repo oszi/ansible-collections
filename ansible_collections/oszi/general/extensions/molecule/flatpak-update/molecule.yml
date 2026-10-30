@@ -1,0 +1,27 @@
+---
+# Molecule scenario for the update entrypoint of oszi.general.flatpak; shared settings come from
+# ../config.yml. The main entrypoint installs flatpak first; without remotes and apps the update has
+# nothing to do. Updates are not idempotent by nature, so the test sequence has no idempotence step.
+scenario:
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_converge_roles:
+          - {name: oszi.general.flatpak}
+          - {name: oszi.general.flatpak, tasks_from: update}
+        molecule_verify_commands:
+          - {cmd: "flatpak --version", stdout_contains: "Flatpak "}
+          - {cmd: "flatpak list --system --columns=application", stdout: ""}
+        molecule_verify_packages:
+          present: [flatpak]

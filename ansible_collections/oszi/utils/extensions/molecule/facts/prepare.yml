@@ -1,0 +1,14 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Install test tools for the facts scenario
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    # The network subset reads interfaces and routes with ip; the base images do not ship it.
+    - name: Ensure the ip command is installed
+      ansible.builtin.package:
+        name: "{{ molecule_facts_iproute_package }}"
+        state: "present"

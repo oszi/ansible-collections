@@ -1,0 +1,23 @@
+---
+# Molecule scenario for oszi.thirdparty.vscode with the default vscode_enabled: false (uninstall path).
+# prepare.yml seeds every path listed as absent below, including the legacy Microsoft keyrings;
+# the role removes them because vscode_microsoft_gpgkey_used_elsewhere defaults to false.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        molecule_verify_commands:
+          - {cmd: "! command -v code"}
+        molecule_verify_packages:
+          absent: [code, code-exploration, code-insiders]
+      redhat:
+        molecule_verify_paths:
+          - {path: /etc/yum.repos.d/vscode.repo, state: absent}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft, state: absent}
+      debian:
+        molecule_verify_paths:
+          - {path: /etc/apt/sources.list.d/vscode.sources, state: absent}
+          - {path: /etc/apt/sources.list.d/vscode.list, state: absent}
+          - {path: /etc/apt/keyrings/packages.microsoft.asc, state: absent}
+          - {path: /etc/apt/keyrings/packages.microsoft.gpg, state: absent}
+          - {path: /etc/apt/trusted.gpg.d/microsoft.gpg, state: absent}

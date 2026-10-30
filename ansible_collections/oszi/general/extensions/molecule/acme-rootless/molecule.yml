@@ -1,0 +1,40 @@
+---
+# Rootless molecule scenario for oszi.general.acme: the shared converge runs the role as tester, so the
+# account key defaults to a tilde path and python3-cryptography is not managed (prepare.yml installs it).
+# A non-existent revoke path enables the role without certificates, and no ACME endpoint is contacted.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root.
+        bootstrap_package_update_cache: false
+        molecule_rootless_packages: [python3-cryptography]
+        acme_certificates: []
+        acme_revoke_paths: ["~/.letsencrypt/live/molecule"]
+        # Test-only passphrase for the generated account key; never a real secret.
+        acme_account_key_passphrase: "molecule-test"
+        molecule_verify_paths:
+          - {path: /home/tester/.letsencrypt, state: directory, mode: "0755", owner: tester, group: tester}
+          - {path: /home/tester/.letsencrypt/account.pem, mode: "0640", owner: tester, group: tester}
+          - {path: /home/tester/.letsencrypt/live, state: absent}
+          - {path: /etc/letsencrypt, state: absent}
+          - {path: /root/.letsencrypt, state: absent}
+        molecule_verify_commands:
+          - cmd: |
+              python3 - <<'PY'
+              import os
+              from cryptography.hazmat.primitives.serialization import load_pem_private_key
+              data = open(os.path.expanduser("~/.letsencrypt/account.pem"), "rb").read()
+              load_pem_private_key(data, b"molecule-test")
+              try:
+                  load_pem_private_key(data, None)
+              except TypeError:
+                  pass
+              else:
+                  raise SystemExit("account key is not encrypted")
+              PY
+            user: tester

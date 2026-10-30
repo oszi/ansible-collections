@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, locale facts, then the shell role.
+- name: Import the shell playbook
+  ansible.builtin.import_playbook: oszi.general.shell

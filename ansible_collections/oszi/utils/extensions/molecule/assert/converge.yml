@@ -1,0 +1,53 @@
+---
+# Custom converge: assertions are evaluated on the controller, so the expected outcomes are checked in the play.
+- name: Converge the assert role
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import facts role
+      ansible.builtin.import_role:
+        name: oszi.utils.facts
+
+    - name: Import assert role with passing rules
+      ansible.builtin.import_role:
+        name: oszi.utils.assert
+      vars:
+        assert_task_msg: "Assert molecule requirements"
+        assert_success_msg: "Molecule requirements met"
+        assert_that:
+          - "1 == 1"
+          - "ansible_facts is defined"
+          - "ansible_facts.virtualization_type == 'container'"
+
+    - name: Import assert entrypoint with passing rules
+      ansible.builtin.import_role:
+        name: oszi.utils.assert
+        tasks_from: assert
+      vars:
+        assert_that:
+          - "ansible_facts.os_family in ['RedHat', 'Debian']"
+
+    - name: Prove that a false rule fails with the custom message
+      block:
+        - name: Import assert role with a false rule
+          ansible.builtin.import_role:
+            name: oszi.utils.assert
+          vars:
+            assert_task_msg: "Assert a false rule"
+            assert_fail_msg: "{{ molecule_assert_fail_msg }}"
+            assert_that:
+              - "1 == 1"
+              - "1 == 2"
+
+        - name: Fail because the false rule passed
+          ansible.builtin.fail:
+            msg: "The assert role did not fail on a false rule"
+      rescue:
+        - name: Assert the failure of the false rule
+          ansible.builtin.assert:
+            that:
+              - "ansible_failed_task.name == 'Assert a false rule'"
+              - "ansible_failed_result.msg == molecule_assert_fail_msg"
+              - "ansible_failed_result.assertion == '1 == 2'"
+            quiet: true

@@ -1,0 +1,56 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# Bootstraps the repository as google_chrome_manage_repository: false requires from the user, plus a
+# leftover managed repository file. The key checksum is read from the role defaults, not duplicated.
+- name: Bootstrap the vendor-managed Google Chrome repository
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Load the role defaults
+      ansible.builtin.include_vars:
+        file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/roles/google_chrome/defaults/main.yml"
+        name: _molecule_role_defaults
+
+    - name: Ensure the signing key directory exists
+      ansible.builtin.file:
+        path: "{{ molecule_chrome_gpgkey.path | dirname }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
+    - name: Download the signing key
+      ansible.builtin.get_url:
+        url: "https://dl.google.com/linux/linux_signing_key.pub"
+        dest: "{{ molecule_chrome_gpgkey.path }}"
+        checksum: "{{ _molecule_role_defaults[molecule_chrome_gpgkey.checksum_var] }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
+    - name: Disable the repository setup of the package scripts
+      ansible.builtin.copy:
+        dest: "/etc/default/google-chrome"
+        content: "{{ molecule_chrome_defaults_content }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
+    - name: Seed the repository files
+      ansible.builtin.copy:
+        dest: "{{ item.path }}"
+        content: "{{ item.content }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      loop: "{{ molecule_seed_files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Update the package cache with the bootstrapped repository
+      ansible.builtin.package:
+        update_cache: true
+      changed_when: false

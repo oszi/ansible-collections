@@ -1,0 +1,21 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# community.general.dconf needs dconf, dbus-run-session (no session bus under become),
+# psutil and PyGObject on the target.
+- name: Install the dconf module requirements as root
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Import bootstrap role with the package cache update
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+      vars:
+        bootstrap_package_update_cache: true
+
+    - name: Ensure the dconf module requirements are installed
+      ansible.builtin.package:
+        name: "{{ molecule_rootless_packages }}"
+        state: "present"

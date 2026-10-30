@@ -1,0 +1,40 @@
+---
+# Rootless molecule scenario for oszi.general.python: the shared converge runs the role as tester,
+# so python_manage_packages defaults to false (prepare.yml installs pipx and venv support).
+# The pip and pipx entries need network access to PyPI.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        users_list:
+          - name: tester
+            shell: /bin/bash
+        molecule_become_user: tester
+        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
+        bootstrap_package_update_cache: false
+        # A pinned pure-python package in a virtualenv under the home; the venv module needs no extra package.
+        python_pip_list:
+          - name: ["six==1.17.0"]
+            virtualenv: "~/venv-molecule"
+            virtualenv_command: "python3 -m venv"
+        # A tiny pinned application in the user's pipx scope (~/.local).
+        python_pipx_list:
+          - name: "pycowsay==0.0.0.2"
+        molecule_verify_paths:
+          - {path: /home/tester/venv-molecule, state: directory, owner: tester, group: tester}
+          - {path: /home/tester/venv-molecule/bin/python, state: link}
+          - {path: /home/tester/.local/bin/pycowsay, state: link, owner: tester}
+          - {path: "/home/tester/~", state: absent}
+          - {path: /usr/local/bin/pycowsay, state: absent}
+          - {path: /opt/pipx, state: absent}
+        molecule_verify_commands:
+          - {cmd: "~/venv-molecule/bin/python -c 'import six; print(six.__version__)'", user: tester, stdout: "1.17.0"}
+          - {cmd: "~/.local/bin/pycowsay molecule", user: tester, stdout_contains: "< molecule >"}
+          - {cmd: "pipx list --short", user: tester, stdout: "pycowsay 0.0.0.2"}
+        # Distro packages from the role defaults that only a rootful run installs.
+        molecule_verify_packages:
+          absent: [python3-netaddr, python3-jmespath, gcc]
+      redhat:
+        molecule_rootless_packages: [pipx]
+      debian:
+        molecule_rootless_packages: [pipx, python3-venv]

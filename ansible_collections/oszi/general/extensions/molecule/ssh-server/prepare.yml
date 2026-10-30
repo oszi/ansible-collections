@@ -1,0 +1,39 @@
+---
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Generate a throwaway SSH client key for tester
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the SSH client is installed
+      ansible.builtin.package:
+        name: "{{ molecule_ssh_client_package }}"
+        state: "present"
+
+    - name: Ensure the users' .ssh directories exist
+      ansible.builtin.file:
+        path: "/home/{{ item }}/.ssh"
+        state: "directory"
+        owner: "{{ item }}"
+        group: "{{ item }}"
+        mode: "0700"
+      loop: [tester, intruder]
+
+    - name: Generate the client key inside the container
+      become: true
+      become_user: tester
+      ansible.builtin.command:
+        cmd: "ssh-keygen -q -t ed25519 -N '' -C molecule -f /home/tester/.ssh/id_ed25519"
+        creates: "/home/tester/.ssh/id_ed25519"
+
+    # Rejected by the server: intruder is not in AllowUsers and AuthorizedKeysFile moves to authorized_keys.d.
+    - name: Authorize the client key in intruder's home directory
+      ansible.builtin.copy:
+        src: "/home/tester/.ssh/id_ed25519.pub"
+        remote_src: true
+        dest: "/home/intruder/.ssh/authorized_keys"
+        owner: "intruder"
+        group: "intruder"
+        mode: "0600"

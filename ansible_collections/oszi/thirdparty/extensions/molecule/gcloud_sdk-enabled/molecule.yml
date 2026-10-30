@@ -1,0 +1,57 @@
+---
+# Molecule scenario for oszi.thirdparty.gcloud_sdk installing google-cloud-cli from Google.
+# Needs network access to packages.cloud.google.com; google-cloud-cli is a large download.
+# The optional components and kubectl stay disabled: the role installs the components by their old
+# google-cloud-sdk-* names, which only the RPM packages still provide, so gcloud_sdk_kubectl_enabled: true
+# fails on Debian and Ubuntu with "No package matching 'google-cloud-sdk-gke-gcloud-auth-plugin' is available".
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        # The default follows ansible_facts.system_vendor, which containers inherit from the host DMI.
+        gcloud_sdk_enabled: true
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /usr/local/bin/gcloud-entrypoint.sh, mode: "0755", owner: root}
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_distro }}"
+        molecule_verify_commands_common:
+          - {cmd: "gcloud --version", stdout_contains: "Google Cloud SDK"}
+          - {cmd: "bash -n /usr/local/bin/gcloud-entrypoint.sh"}
+        molecule_verify_packages:
+          present: [google-cloud-cli]
+          # Current package names; the old google-cloud-sdk-* names are only RPM provides.
+          absent:
+            - google-cloud-cli-gke-gcloud-auth-plugin
+            - google-cloud-cli-minikube
+            - google-cloud-cli-bigtable-emulator
+            - google-cloud-cli-app-engine-go
+      redhat:
+        molecule_verify_gpgkey:
+          path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-cloud-sdk
+          checksum_var: gcloud_sdk_rpm_gpgkey_checksum
+        molecule_verify_paths_distro:
+          - {path: /etc/yum.repos.d/google-cloud-sdk.repo, mode: "0644", owner: root, group: root}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-google-cloud-sdk, mode: "0644", owner: root, group: root}
+        molecule_verify_commands_distro:
+          # The repository is the EL 10 one on every RPM distribution, Fedora included.
+          - cmd: "grep -Fx 'baseurl = https://packages.cloud.google.com/yum/repos/cloud-sdk-el10-$$basearch'
+              /etc/yum.repos.d/google-cloud-sdk.repo"
+          - {cmd: "grep -Fx 'includepkgs = google-cloud-*' /etc/yum.repos.d/google-cloud-sdk.repo"}
+          - {cmd: "! grep -F '[google-cloud-sdk-unstable]' /etc/yum.repos.d/google-cloud-sdk.repo"}
+          - {cmd: "dnf repoquery --installed --qf '%{from_repo}\\n' google-cloud-cli", stdout: google-cloud-sdk}
+      debian:
+        molecule_verify_gpgkey:
+          path: /etc/apt/keyrings/google-cloud-sdk.asc
+          checksum_var: gcloud_sdk_deb_gpgkey_checksum
+        molecule_verify_paths_distro:
+          - {path: /etc/apt/sources.list.d/google-cloud-sdk.sources, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/google-cloud-sdk.asc, mode: "0644", owner: root, group: root}
+          - {path: /etc/apt/keyrings/google-cloud-sdk.gpg, state: absent}
+          - {path: /etc/apt/sources.list.d/google-cloud-sdk.list, state: absent}
+          - {path: /etc/apt/sources.list.d/gce_sdk.list, state: absent}
+        molecule_verify_commands_distro:
+          - {cmd: "grep -Fx 'URIs: https://packages.cloud.google.com/apt' /etc/apt/sources.list.d/google-cloud-sdk.sources"}
+          - {cmd: "grep -Fx 'Suites: cloud-sdk' /etc/apt/sources.list.d/google-cloud-sdk.sources"}
+          - cmd: "grep -Fx 'Signed-By: /etc/apt/keyrings/google-cloud-sdk.asc'
+              /etc/apt/sources.list.d/google-cloud-sdk.sources"
+          - {cmd: "apt-cache policy google-cloud-cli | grep -A1 -F '***' | grep -F packages.cloud.google.com"}

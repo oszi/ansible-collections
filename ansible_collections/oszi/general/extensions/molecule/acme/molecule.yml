@@ -1,0 +1,34 @@
+---
+# Molecule scenario for oszi.general.acme: account key creation and the revoke path without issuance.
+# A non-existent revoke path enables the role without certificates, and no ACME endpoint is contacted.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        acme_certificates: []
+        acme_revoke_paths: [/etc/letsencrypt/live/molecule]
+        # Test-only passphrase for the generated account key; never a real secret.
+        acme_account_key_passphrase: "molecule-test"
+        molecule_verify_paths:
+          - {path: /etc/letsencrypt, state: directory, mode: "0755", owner: root, group: root}
+          - {path: /etc/letsencrypt/account.pem, mode: "0640", owner: root, group: root}
+          - {path: /etc/letsencrypt/live/molecule, state: absent}
+        molecule_verify_commands:
+          # community.crypto writes RSA keys in the traditional format: PKCS#1 with an encryption header.
+          - {cmd: "grep -Ex 'Proc-Type: 4,ENCRYPTED|-----BEGIN ENCRYPTED PRIVATE KEY-----' /etc/letsencrypt/account.pem"}
+          - {cmd: "python3 -c 'import cryptography'"}
+          # The key must load with the passphrase and must not load without it.
+          - cmd: |
+              python3 - <<'PY'
+              from cryptography.hazmat.primitives.serialization import load_pem_private_key
+              data = open("/etc/letsencrypt/account.pem", "rb").read()
+              load_pem_private_key(data, b"molecule-test")
+              try:
+                  load_pem_private_key(data, None)
+              except TypeError:
+                  pass
+              else:
+                  raise SystemExit("account key is not encrypted")
+              PY
+        molecule_verify_packages:
+          present: [python3-cryptography]

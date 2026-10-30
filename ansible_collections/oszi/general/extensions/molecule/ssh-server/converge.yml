@@ -1,0 +1,19 @@
+---
+# The public half of the client key generated in prepare.yml feeds ssh_authorized_keys (molecule.yml).
+- name: Read the generated SSH client public key
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Read the public key
+      ansible.builtin.slurp:
+        src: "/home/tester/.ssh/id_ed25519.pub"
+      register: _ssh_server_public_key_result
+
+    - name: Set the public key fact
+      ansible.builtin.set_fact:
+        molecule_ssh_public_key: "{{ _ssh_server_public_key_result.content | b64decode | trim }}"
+
+# Converge with the production playbook: bootstrap, then the ssh role.
+- name: Import the ssh playbook
+  ansible.builtin.import_playbook: oszi.general.ssh

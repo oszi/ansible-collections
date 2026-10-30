@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the selinux role.
+- name: Import the selinux playbook
+  ansible.builtin.import_playbook: oszi.general.selinux
