@@ -18,7 +18,7 @@
   community.crypto.openssl_privatekey:
     select_crypto_backend: "cryptography"
     path: "{{ acme_account_key_path }}"
-    passphrase: "{{ acme_account_key_passphrase }}"
+    passphrase: "{{ acme_account_key_passphrase | default(omit, true) }}"
     cipher: "auto"
     mode: "0640"
 

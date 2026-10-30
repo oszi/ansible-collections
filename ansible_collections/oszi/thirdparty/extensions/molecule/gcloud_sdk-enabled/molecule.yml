@@ -1,15 +1,14 @@
 ---
 # Molecule scenario for oszi.thirdparty.gcloud_sdk installing google-cloud-cli from Google.
 # Needs network access to packages.cloud.google.com; google-cloud-cli is a large download.
-# The optional components and kubectl stay disabled: the role installs the components by their old
-# google-cloud-sdk-* names, which only the RPM packages still provide, so gcloud_sdk_kubectl_enabled: true
-# fails on Debian and Ubuntu with "No package matching 'google-cloud-sdk-gke-gcloud-auth-plugin' is available".
+# The GKE auth plugin exercises a component package; the other components stay disabled.
 provisioner:
   inventory:
     group_vars:
       all:
-        # The default follows ansible_facts.system_vendor, which containers inherit from the host DMI.
+        # The default is false in containers.
         gcloud_sdk_enabled: true
+        gcloud_sdk_gke_auth_plugin_enabled: true
         molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
         molecule_verify_paths_common:
           - {path: /usr/local/bin/gcloud-entrypoint.sh, mode: "0755", owner: root}
@@ -18,10 +17,8 @@ provisioner:
           - {cmd: "gcloud --version", stdout_contains: "Google Cloud SDK"}
           - {cmd: "bash -n /usr/local/bin/gcloud-entrypoint.sh"}
         molecule_verify_packages:
-          present: [google-cloud-cli]
-          # Current package names; the old google-cloud-sdk-* names are only RPM provides.
+          present: [google-cloud-cli, google-cloud-cli-gke-gcloud-auth-plugin]
           absent:
-            - google-cloud-cli-gke-gcloud-auth-plugin
             - google-cloud-cli-minikube
             - google-cloud-cli-bigtable-emulator
             - google-cloud-cli-app-engine-go

@@ -125,10 +125,9 @@ with zero changes), verify, destroy.
   `capabilities`; `CAP_SYS_ADMIN` is out, which also rules out polkit and systemd sandboxing such as
   `DynamicUser` (`226/NAMESPACE`).
 * `ansible_facts.virtualization_type` is `podman` on Debian and Ubuntu images but `container` on Fedora
-  images, which set `ENV container=oci`. The platform `env: {container: oci}` normalizes the fact so the
-  roles' guards fire on every image, but only as root: unprivileged users cannot read `/proc/1/environ`
-  and the fallback `/run/systemd/container` yields `oci`. `virtualization_tech_guest` contains `container`
-  for every user and image.
+  images, which set `ENV container=oci`; unprivileged users cannot read `/proc/1/environ` and the fallback
+  `/run/systemd/container` yields `oci`. The roles guard on `virtualization_tech_guest`, which contains
+  `container` for every user and image.
 * Molecule: `provisioner.inventory.group_vars` feeds inventory variables (the `ansible:` section has no
   inventory key) and play `vars` outrank them; `dependency.env` is ignored for the shell dependency;
   `--destroy never` also skips the initial destroy; the podman driver cannot use a shared Dockerfile,
@@ -154,62 +153,6 @@ Not testable in these containers: firewalld enabled (polkit needs `CAP_SYS_ADMIN
 (quadlet and kube services, deploy and pull paths), snaps and `snap update` (snapd exits with
 237/KEYRING), SELinux changes, libvirt daemons, ACME issuance, the CloudFlare API, `localectl`, `wg-quick`
 interfaces, and flatpak remotes and apps (bubblewrap).
-
-## Bugs and gaps found
-
-Confirmed by scenarios or probes (not fixed by the test work):
-
-1. Container guards compare `ansible_facts.virtualization_type == 'container'` (firewalld, selinux, ssh,
-   systemd, locale, wireguard defaults; borgmatic and shell templates; `environments.baselinux`). Under
-   podman the fact is `podman` on non-Fedora images and never `container` for unprivileged users (see
-   Findings), so the guards also miss in rootless runs. A robust check is
-   `'container' in ansible_facts.virtualization_tech_guest`; the framework masks the root case with
-   `container=oci`.
-2. argument_specs descriptions containing live Jinja fail standalone validation when the variable is
-   undefined: `k8s_pkgs` (line 98) and `borgmatic` (line 163) template `shell_integrations_shrc_d_path`,
-   `environments.workstation` (line 76) the same, `dotfiles` (line 43) `dotfiles_user_info.uid`, `ssh`
-   (line 47) `ssh_sftp_subsystem`. The scenarios set the variables.
-3. `acme`: with the default empty `acme_account_key_passphrase` the account key is regenerated on every
-   run (`can_parse_key: false`), so the role is not idempotent; `acme.yml:21` and the certificate, validate
-   and revoke tasks pass `passphrase: ""` to an unencrypted key.
-4. `dotfiles/tasks/dotfiles/files.yml:13` uses `item.invocation.module_args.path` from a registered stat
-   result, which ansible-core 2.21 does not provide; any `dotfiles_files` key with a missing parent
-   directory fails.
-5. `downloads`: `DOWNLOADS_ITEM_CHECKSUM_DEST` becomes the string `None` for new files
-   (`default('')` instead of `default('', true)`); `downloads_item` is not usable as Jinja in
-   `post_install_script` for inventory-defined lists.
-6. `fail2ban` on Fedora: the `fail2ban` metapackage requires `fail2ban-firewalld`, so
-   `firewalld_disabled: true` cannot be satisfied; `selinux_disabled` and `firewalld_disabled` are read
-   without `default()`; uninstall leaves `fail2ban-server` and the service on Fedora.
-7. `locale` on Debian 13 and Ubuntu 26.04 images: `/etc/default/locale` is a dangling symlink to
-   `../locale.conf`; `copy` with `follow: true` replaces the symlink with a file instead of creating
-   `/etc/locale.conf`.
-8. `shell`: `shell_search_paths` reads `shell_user_info.name`, a variable registered by the user loop, so
-   applying the role twice in one play flips the flatpak paths in `/etc/skel/.profile`.
-9. `gcloud_sdk`: `gcloud_sdk_enabled` follows the host DMI (`system_vendor == 'Google'`) inside
-   containers; the optional components use the renamed `google-cloud-sdk-*` package names, which the apt
-   repository no longer carries (`google-cloud-cli-*`), so enabling them or uninstalling them fails or
-   leaves packages on Debian/Ubuntu. The kubectl integration of `gcloud_sdk` will be removed in favor of
-   `k8s_pkgs`, so scenarios must not expect kubectl from gcloud_sdk.
-10. `borgmatic`: the repository init task sets `borgmatic_passphrase` instead of `BORG_PASSPHRASE`, lacks
-    `no_log` and quoting (`borgmatic-config.yml:31`); uninstall leaves the shrc.d aliases file and the
-    borgbackup package.
-11. `systemd` installs presets but never applies them (`systemctl preset`), so they only affect later
-    installs.
-12. Uninstall leftovers: wireguard-tools on the Debian family (`wireguard` metapackage only); firewalld
-    config, `python3-firewall` and `firewalld-filesystem`; gcloud_sdk and k8s_pkgs completions; tailscale
-    leaves the empty drop-in directory and the vendor keyring `/usr/share/keyrings/tailscale-archive-keyring.gpg`;
-    the Chrome vendor keyring `/usr/share/keyrings/google-chrome.gpg`.
-13. `utils.assert`: `assert_that` is `required: true` in argument_specs but defaults to `[]`, so an empty
-    assertion list passes silently.
-14. Missing "role completed" asserts in fail2ban, firewalld, flatpak, gnome, podman, snap and wireguard;
-    `borgmatic` uses `_enabled` in oszi.general; `snap` is enabled by default on the whole Debian family.
-15. Documentation drift: `locale` facts entrypoint claims to assert root; `tailscale` suggests a `FLAGS`
-    override that the Fedora unit ignores.
-16. `python`: the Debian branch of `python_devel_distro_packages` lacks `python3-pip`, so `python3 -m pip`
-    fails on Debian/Ubuntu although the documentation promises pip.
-17. `flatpak`: the override tasks are `command` with `changed_when: false`, so changes are never reported;
-    `snap/tasks/update.yml` only checks `snap --version`, which passes while snapd is not running.
 
 ## Checklist for scenario authors
 

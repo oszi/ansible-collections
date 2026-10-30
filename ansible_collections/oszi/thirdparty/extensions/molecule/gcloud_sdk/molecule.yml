@@ -5,7 +5,7 @@ provisioner:
   inventory:
     group_vars:
       all:
-        # The default follows ansible_facts.system_vendor, which containers inherit from the host DMI.
+        # The default is false in containers; explicit for the uninstall path.
         gcloud_sdk_enabled: false
         molecule_seed_files_common:
           - path: /usr/local/bin/gcloud-entrypoint.sh
@@ -14,7 +14,7 @@ provisioner:
         molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
         molecule_verify_paths_common:
           - {path: /usr/local/bin/gcloud-entrypoint.sh, state: absent}
-        # Current package names; the role removes the old google-cloud-sdk-* names, which only RPM provides.
+        # Current google-cloud-cli-* package names, as managed by the role.
         molecule_verify_packages:
           absent:
             - google-cloud-cli

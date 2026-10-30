@@ -5,6 +5,7 @@ argument_specs:
     description:
       - Configures Fail2ban to protect SSH server and other services from brute force attacks
       - Manages jail and filter configurations
+      - Reads `firewalld_disabled` and `selinux_disabled` from the respective roles, both default to false
     author:
       - "David O. (oszi.dev)"
     options:

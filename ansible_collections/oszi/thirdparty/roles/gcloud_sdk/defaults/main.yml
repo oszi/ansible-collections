@@ -1,6 +1,7 @@
 ---
-# Install Google Cloud SDK? (Only enabled by default on Google Cloud!)
-gcloud_sdk_enabled: "{{ ansible_facts.system_vendor == 'Google' }}"
+# Install Google Cloud SDK? Only enabled by default on Google Cloud, never in containers (host DMI).
+gcloud_sdk_enabled: "{{ ansible_facts.system_vendor == 'Google'
+  and 'container' not in ansible_facts.virtualization_tech_guest }}"
 
 # Install Google Cloud SDK App Engine components?
 gcloud_sdk_app_engine_enabled: false
@@ -11,25 +12,24 @@ gcloud_sdk_emulators_enabled: false
 # Install minikube from Google Cloud?
 gcloud_sdk_minikube_enabled: false
 
-# Install kubectl from Google Cloud?
-# * Conflicts with distribution packages and the Kubernetes community repository!
-gcloud_sdk_kubectl_enabled: false
+# Install the GKE auth plugin for kubectl (kubectl itself comes from oszi.thirdparty.k8s_pkgs)?
+gcloud_sdk_gke_auth_plugin_enabled: false
 
 # List of (all) emulator packages:
 gcloud_sdk_emulators_packages:
-  - google-cloud-sdk-bigtable-emulator
-  - google-cloud-sdk-datastore-emulator
-  - google-cloud-sdk-firestore-emulator
-  - google-cloud-sdk-pubsub-emulator
-  - google-cloud-sdk-spanner-emulator
+  - google-cloud-cli-bigtable-emulator
+  - google-cloud-cli-datastore-emulator
+  - google-cloud-cli-firestore-emulator
+  - google-cloud-cli-pubsub-emulator
+  - google-cloud-cli-spanner-emulator
 
 # List of (all) App Engine packages:
 gcloud_sdk_app_engine_packages:
-  - google-cloud-sdk-app-engine-go
-  - google-cloud-sdk-app-engine-grpc
-  - google-cloud-sdk-app-engine-java
-  - google-cloud-sdk-app-engine-python
-  - google-cloud-sdk-app-engine-python-extras
+  - google-cloud-cli-app-engine-go
+  - google-cloud-cli-app-engine-grpc
+  - google-cloud-cli-app-engine-java
+  - google-cloud-cli-app-engine-python
+  - google-cloud-cli-app-engine-python-extras
 
 # Repo base URLs - change for custom mirrors
 gcloud_sdk_rpm_baseurl: "https://packages.cloud.google.com/yum/repos/cloud-sdk-el10-$basearch"
@@ -47,7 +47,3 @@ gcloud_sdk_deb_gpgkey_checksum: "sha256:3ecc63922b7795eb23fdc449ff9396f9114cb3cf
 
 # Path for local executables
 gcloud_sdk_local_bin_path: "{{ local_bin_path | default('/usr/local/bin', true) }}"
-
-# System completion paths for Bash and ZSH:
-gcloud_sdk_kubectl_bash_completion_path: "/etc/bash_completion.d/kubectl"
-gcloud_sdk_kubectl_zsh_completion_path: "/usr/local/share/zsh/site-functions/_kubectl"

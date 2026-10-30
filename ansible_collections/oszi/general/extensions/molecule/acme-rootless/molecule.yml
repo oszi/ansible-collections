@@ -15,8 +15,7 @@ provisioner:
         molecule_rootless_packages: [python3-cryptography]
         acme_certificates: []
         acme_revoke_paths: ["~/.letsencrypt/live/molecule"]
-        # Test-only passphrase for the generated account key; never a real secret.
-        acme_account_key_passphrase: "molecule-test"
+        # The default empty passphrase leaves the key unencrypted; idempotence proves it is not regenerated.
         molecule_verify_paths:
           - {path: /home/tester/.letsencrypt, state: directory, mode: "0755", owner: tester, group: tester}
           - {path: /home/tester/.letsencrypt/account.pem, mode: "0640", owner: tester, group: tester}
@@ -29,12 +28,12 @@ provisioner:
               import os
               from cryptography.hazmat.primitives.serialization import load_pem_private_key
               data = open(os.path.expanduser("~/.letsencrypt/account.pem"), "rb").read()
-              load_pem_private_key(data, b"molecule-test")
+              load_pem_private_key(data, None)
               try:
-                  load_pem_private_key(data, None)
+                  load_pem_private_key(data, b"molecule-test")
               except TypeError:
                   pass
               else:
-                  raise SystemExit("account key is not encrypted")
+                  raise SystemExit("account key is encrypted")
               PY
             user: tester

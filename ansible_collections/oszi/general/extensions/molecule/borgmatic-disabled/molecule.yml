@@ -15,5 +15,6 @@ provisioner:
           - {path: /etc/profile.d/borgmatic.sh, state: absent}
           - {path: /etc/systemd/system/borg.service, state: absent}
           - {path: /etc/systemd/system/borg.timer, state: absent}
+          - {path: /etc/shrc.d/borgmatic.sh, state: absent}
         molecule_verify_commands:
           - {cmd: "! systemctl cat borg.timer"}

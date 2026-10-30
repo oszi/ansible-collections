@@ -9,7 +9,7 @@
   community.crypto.acme_certificate_revoke:
     select_crypto_backend: "cryptography"
     account_key_src: "{{ acme_account_key_path }}"
-    account_key_passphrase: "{{ acme_account_key_passphrase }}"
+    account_key_passphrase: "{{ acme_account_key_passphrase | default(omit, true) }}"
     certificate: "{{ acme_revoke_item }}/cert.pem"
     acme_directory: "{{ acme_directory_url }}"
     acme_version: "{{ acme_api_version }}"

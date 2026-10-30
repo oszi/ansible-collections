@@ -10,9 +10,9 @@ provisioner:
           - {path: /etc/fail2ban/jail.local, state: absent}
           - {path: /etc/fail2ban/fail2ban.local, state: absent}
       redhat:
-        # fail2ban-server and fail2ban-sendmail are dependencies of the metapackage, not in the role's list.
+        # fail2ban-sendmail, pulled in by the metapackage, goes with fail2ban-server as its dependent.
         molecule_verify_packages:
-          absent: [fail2ban, fail2ban-firewalld, fail2ban-selinux, fail2ban-systemd]
+          absent: [fail2ban, fail2ban-server, fail2ban-firewalld, fail2ban-selinux, fail2ban-systemd]
       debian:
         molecule_verify_packages:
           absent: [fail2ban]

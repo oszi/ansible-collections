@@ -50,7 +50,7 @@ preexec_functions+=(_prompt_timer_start)
 
 PROMPT='%F{{ "{red}" if ansible_facts.virtualization_role != "guest"
 else "{green}" if "workstations" in group_names
-else "{magenta}" if ansible_facts.virtualization_type == "container"
+else "{magenta}" if "container" in ansible_facts.virtualization_tech_guest
 else "{cyan}" }}%n@%m%f'
 [[ "$UID" -ne 0 ]] || PROMPT='%S'"$PROMPT"'%s'
 

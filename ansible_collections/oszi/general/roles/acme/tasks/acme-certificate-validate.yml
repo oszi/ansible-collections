@@ -16,7 +16,7 @@
         select_crypto_backend: "cryptography"
         account_email: "{{ acme_account_email | default(omit) }}"
         account_key_src: "{{ acme_account_key_path }}"
-        account_key_passphrase: "{{ acme_account_key_passphrase }}"
+        account_key_passphrase: "{{ acme_account_key_passphrase | default(omit, true) }}"
         csr: "{{ acme_certificate_item.live_path }}/req.csr"
         dest: "{{ acme_certificate_item.live_path }}/cert.pem"
         fullchain_dest: "{{ acme_certificate_item.live_path }}/fullchain.pem"

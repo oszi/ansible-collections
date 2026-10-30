@@ -29,7 +29,8 @@ argument_specs:
         description:
           - Dictionary of systemd system-preset files
           - Keys are preset filenames (00-name.preset), values are preset file contents
-          - Controls default enable/disable state of services
+          - Controls the default enable/disable state of units installed or enabled afterwards
+          - The role does not run `systemctl preset`, so existing units keep their state
         type: dict
         required: false
 

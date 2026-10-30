@@ -21,12 +21,11 @@ provisioner:
         dotfiles_git_default_branch: "main"
         dotfiles_gnupg_agent_options:
           - "default-cache-ttl 600"
-        # Top-level file only: entries with a missing parent directory fail in tasks/dotfiles/files.yml
-        # ("Create missing directories"), which reads item.invocation from registered stat results that
-        # ansible-core does not return.
+        # A top-level file and one below a missing parent directory, which the role creates.
         dotfiles_files:
           .molecule.conf: |
             user={{ dotfiles_user_item }} uid={{ dotfiles_user_info.uid }}
+          .molecule/nested.conf: "nested\n"
         molecule_verify_paths:
           - {path: /home/tester/.gnupg, state: directory, mode: "0700", owner: tester, group: tester}
           - {path: /home/tester/.gnupg/gpg.conf, mode: "0600", owner: tester, group: tester}
@@ -41,10 +40,14 @@ provisioner:
           - {path: /home/tester/.config/user-dirs.conf, mode: "0640", owner: tester, group: tester}
           - {path: /home/tester/.config/user-dirs.locale, mode: "0640", owner: tester, group: tester}
           - {path: /home/tester/.molecule.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.molecule, state: directory, mode: "0700", owner: tester, group: tester}
+          - {path: /home/tester/.molecule/nested.conf, mode: "0600", owner: tester, group: tester}
           - {path: /root/.gnupg, state: directory, mode: "0700", owner: root, group: root}
           - {path: /root/.gnupg/gpg.conf, mode: "0600", owner: root, group: root}
           - {path: /root/.gnupg/gpg-agent.conf, mode: "0600", owner: root, group: root}
           - {path: /root/.molecule.conf, mode: "0600", owner: root, group: root}
+          - {path: /root/.molecule, state: directory, mode: "0700", owner: root, group: root}
+          - {path: /root/.molecule/nested.conf, mode: "0600", owner: root, group: root}
           # Git and XDG are disabled for root.
           - {path: /root/.gitconfig, state: absent}
           - {path: /root/.gitignore, state: absent}

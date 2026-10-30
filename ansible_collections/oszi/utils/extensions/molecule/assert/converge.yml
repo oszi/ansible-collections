@@ -18,7 +18,7 @@
         assert_that:
           - "1 == 1"
           - "ansible_facts is defined"
-          - "ansible_facts.virtualization_type == 'container'"
+          - "'container' in ansible_facts.virtualization_tech_guest"
 
     - name: Import assert entrypoint with passing rules
       ansible.builtin.import_role:

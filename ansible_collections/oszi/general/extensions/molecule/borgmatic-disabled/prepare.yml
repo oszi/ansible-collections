@@ -18,6 +18,7 @@
       loop:
         - "/opt/borgmatic/bin"
         - "/etc/borgmatic"
+        - "/etc/shrc.d"
 
     - name: Seed the borgmatic files
       ansible.builtin.copy:
@@ -30,6 +31,7 @@
         - {dest: /opt/borgmatic/bin/borgmatic, content: "#!/bin/sh\n"}
         - {dest: /etc/borgmatic/config.yaml, content: "source_directories: [/etc]\n"}
         - {dest: /etc/profile.d/borgmatic.sh, content: "alias borg1='borg --remote-path=borg1'\n"}
+        - {dest: /etc/shrc.d/borgmatic.sh, content: "alias borg1='borg --remote-path=borg1'\n"}
         - {dest: /etc/systemd/system/borg.service, content: "[Service]\nType=oneshot\nExecStart=/bin/true\n"}
         - {dest: /etc/systemd/system/borg.timer, content: "[Timer]\nOnCalendar=daily\n"}
       loop_control:

@@ -19,4 +19,4 @@ locale_conf: |-
   {% endif -%}
 
 # Use legacy file implementation instead of localectl?
-locale_file_implementation: "{{ ansible_facts.virtualization_type == 'container' }}"
+locale_file_implementation: "{{ 'container' in ansible_facts.virtualization_tech_guest }}"

@@ -16,31 +16,24 @@ driver:
   name: podman
 
 # Rootless containers with systemd as PID 1, without --privileged and CAP_SYS_ADMIN.
-# container=oci makes ansible_facts.virtualization_type report "container" on every image.
 platforms:
   - name: "${MOLECULE_SCENARIO_NAME}-fedora"
     image: "localhost/oszi/molecule-fedora:latest"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
-    env:
-      container: oci
     groups: [fedora, redhat]
   - name: "${MOLECULE_SCENARIO_NAME}-debian"
     image: "localhost/oszi/molecule-debian:latest"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
-    env:
-      container: oci
     groups: [debian]
   - name: "${MOLECULE_SCENARIO_NAME}-ubuntu"
     image: "localhost/oszi/molecule-ubuntu:latest"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
-    env:
-      container: oci
     groups: [ubuntu, debian]
 
 ansible:

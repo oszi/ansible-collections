@@ -1,5 +1,5 @@
 ---
-# On systemd-based Debian/Ubuntu, /etc/default/locale is a symlink to /etc/locale.conf
+# On systemd-based Debian/Ubuntu, /etc/default/locale is a symlink to /etc/locale.conf (dangling on fresh installs).
 locale_conf_path: "{{ '/etc/default/locale' if ansible_facts.os_family == 'Debian' and locale_file_implementation
   else '/etc/locale.conf' }}"
 

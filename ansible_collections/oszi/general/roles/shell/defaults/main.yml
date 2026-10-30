@@ -16,9 +16,10 @@ shell_environment:
   EDITOR: nano
 
 # List of extra paths to add to $PATH; last path added is searched first:
-# Skip flatpak for root, but not in skel where shell_user_info is a placeholder.
+# Skip flatpak for root, but not in skel where shell_user_item is a placeholder.
+# The loop var wrapper is used instead of the registered shell_user_info, which persists after the loop.
 shell_search_paths: "{{ (['/var/lib/flatpak/exports/bin', '~/.local/share/flatpak/exports/bin']
-  if not flatpak_disabled | default(false) and shell_user_info.name != 'root' else [])
+  if not flatpak_disabled | default(false) and shell_user_item != 'root' else [])
   + ['~/.local/bin', '~/bin'] }}"
 
 # List of users to enforce skel templates for:

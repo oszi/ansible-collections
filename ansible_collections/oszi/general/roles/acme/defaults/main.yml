@@ -32,7 +32,7 @@ acme_revoke_paths: []
 acme_reload: false
 acme_reload_ignore_errors: false
 
-# Password to encrypt the account key (use vault):
+# Password to encrypt the account key (use vault); empty leaves the key unencrypted.
 # WARNING: Changing the password here regenerates the account key!
 # Re-encrypt it manually if you want to rotate it.
 acme_account_key_passphrase: ""

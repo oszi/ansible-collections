@@ -3,7 +3,7 @@
   tags: [baselinux]
   block:
     - name: Privileged system setup tasks
-      when: "ansible_facts.virtualization_type != 'container'"
+      when: "'container' not in ansible_facts.virtualization_tech_guest"
       ansible.builtin.import_tasks:
         file: system-privileged.yml
 

@@ -1,11 +1,11 @@
 ---
 # Skip systemd setup tasks?
-systemd_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
+systemd_disabled: "{{ 'container' in ansible_facts.virtualization_tech_guest }}"
 
 # Dict of systemd service, timer and drop-in files:
 # * {name.service: content, name.timer: content, name.service.d/drop-in.conf: content}
 systemd_system_units: {}
-# Dict of systemd system-preset files
+# Dict of systemd system-preset files; systemd applies them to units installed or enabled later.
 # * {00-name.preset: content}
 systemd_system_presets: {}
 

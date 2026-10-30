@@ -19,6 +19,7 @@ provisioner:
         dotfiles_files:
           .molecule.conf: |
             user={{ dotfiles_user_item }} uid={{ dotfiles_user_info.uid }}
+          .molecule/nested.conf: "nested\n"
         molecule_verify_paths:
           - {path: /home/tester/.gnupg, state: directory, mode: "0700", owner: tester, group: tester}
           - {path: /home/tester/.gnupg/gpg.conf, mode: "0600", owner: tester, group: tester}
@@ -33,10 +34,13 @@ provisioner:
           - {path: /home/tester/.config/user-dirs.conf, mode: "0640", owner: tester, group: tester}
           - {path: /home/tester/.config/user-dirs.locale, mode: "0640", owner: tester, group: tester}
           - {path: /home/tester/.molecule.conf, mode: "0600", owner: tester, group: tester}
+          - {path: /home/tester/.molecule, state: directory, mode: "0700", owner: tester, group: tester}
+          - {path: /home/tester/.molecule/nested.conf, mode: "0600", owner: tester, group: tester}
           - {path: /root/.gnupg, state: absent}
           - {path: /root/.gitconfig, state: absent}
           - {path: /root/.config, state: absent}
           - {path: /root/.molecule.conf, state: absent}
+          - {path: /root/.molecule, state: absent}
         molecule_verify_commands:
           - {cmd: "git config --global user.name", user: tester, stdout: "tester"}
           - {cmd: "git config --global init.defaultBranch", user: tester, stdout: "main"}

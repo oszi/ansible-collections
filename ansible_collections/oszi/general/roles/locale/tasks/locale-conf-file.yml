@@ -12,12 +12,18 @@
     fail_msg: "locale_conf must contain LANG/LANGUAGE/LC_* settings but not LC_ALL (man locale.conf.5); no comments or empty lines"
     success_msg: "locale_conf seems to be valid"
 
+- name: "Check for a symlink at {{ locale_conf_path }}"
+  ansible.builtin.stat:
+    path: "{{ locale_conf_path }}"
+    follow: false
+  register: _locale_conf_path_result
+
+# Write the target of a symlink, even a dangling one (copy with follow replaces those with a file).
 - name: "Install locale conf file {{ locale_conf_path }}"
   ansible.builtin.copy:
     content: "{{ locale_conf }}"
-    dest: "{{ locale_conf_path }}"
+    dest: "{{ _locale_conf_path_result.stat.lnk_source
+      if _locale_conf_path_result.stat.islnk | default(false) else locale_conf_path }}"
     owner: "root"
     group: "root"
     mode: "0644"
-    # /etc/default/locale -> /etc/locale.conf
-    follow: true

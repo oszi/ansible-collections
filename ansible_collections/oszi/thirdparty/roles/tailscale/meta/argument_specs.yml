@@ -80,7 +80,8 @@ argument_specs:
       tailscale_systemd_service_override:
         description:
           - Systemd service drop-in content for tailscaled daemon
-          - Use to set environment variables like PORT=443 or FLAGS (upstream)
+          - Use to set environment variables like PORT=443; FLAGS is read by the upstream and Debian units only,
+            the Fedora unit needs an ExecStart= override instead
           - Clear EnvironmentFile= for cross-distribution compatibility
           - /etc/default/tailscaled is not present on every system (e.g., Fedora)
         type: str

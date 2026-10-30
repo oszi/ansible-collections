@@ -12,8 +12,7 @@ provisioner:
         downloads_list:
           # Fixed checksum and a missing parent directory; the scripts append one line per run.
           # The scripts use the environment variables only: Jinja in post_install_script is rendered with the
-          # placeholder downloads_item when the inventory list is templated, and DOWNLOADS_ITEM_CHECKSUM_DEST
-          # is the string "None" for new files (default('') does not replace the null checksum_dest).
+          # placeholder downloads_item when the inventory list is templated. CHECKSUM_DEST is empty for new files.
           - dest: /opt/molecule/downloads/payload.txt
             url: http://127.0.0.1:8000/payload.txt
             checksum: "sha256:{{ molecule_downloads_payload_sha256 }}"
@@ -22,7 +21,8 @@ provisioner:
             mode: "0640"
             directory_mode: "0750"
             post_install_script: |
-              printf '%s %s %s\n' "$$DOWNLOADS_ITEM_DEST" "$$DOWNLOADS_ITEM_URL" "$$DOWNLOADS_ITEM_CHECKSUM_SRC" >> post-install.log
+              printf '%s %s %s [%s]\n' "$$DOWNLOADS_ITEM_DEST" "$$DOWNLOADS_ITEM_URL" "$$DOWNLOADS_ITEM_CHECKSUM_SRC" \
+                "$$DOWNLOADS_ITEM_CHECKSUM_DEST" >> post-install.log
           # Directory destination with a checksum file URL; the script extracts the archive.
           - dest: /opt/molecule/tool/
             url: http://127.0.0.1:8000/tool.tar.gz
@@ -40,6 +40,6 @@ provisioner:
           - cmd: "echo '{{ molecule_downloads_payload_sha256 }}  /opt/molecule/downloads/payload.txt' | sha256sum -c --quiet"
           # One line each: the second converge found matching checksums and did not re-run the scripts.
           - cmd: "cat /opt/molecule/downloads/post-install.log"
-            stdout: "/opt/molecule/downloads/payload.txt http://127.0.0.1:8000/payload.txt {{ molecule_downloads_payload_sha1 }}"
+            stdout: "/opt/molecule/downloads/payload.txt http://127.0.0.1:8000/payload.txt {{ molecule_downloads_payload_sha1 }} []"
           - {cmd: "cat /opt/molecule/tool/extract.log", stdout: "/opt/molecule/tool/tool.tar.gz"}
           - {cmd: "/opt/molecule/tool/bin/tool", stdout: "molecule tool"}

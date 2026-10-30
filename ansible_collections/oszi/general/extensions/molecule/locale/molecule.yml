@@ -1,6 +1,6 @@
 ---
 # Molecule scenario for oszi.general.locale; shared settings come from ../config.yml.
-# virtualization_type is "container" on every platform, so locale_file_implementation defaults to true.
+# virtualization_tech_guest contains "container" on every platform, so locale_file_implementation defaults to true.
 provisioner:
   inventory:
     group_vars:
@@ -15,7 +15,7 @@ provisioner:
         molecule_verify_paths:
           - {path: /etc/locale.conf, mode: "0644", owner: root, group: root}
       debian:
-        # The role writes through the /etc/default/locale symlink (target seeded in prepare.yml).
+        # The role writes through the /etc/default/locale symlink.
         molecule_verify_paths:
           - {path: /etc/locale.conf, mode: "0644", owner: root, group: root}
           - {path: /etc/default/locale, state: link, src: ../locale.conf}

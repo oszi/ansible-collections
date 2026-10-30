@@ -8,7 +8,8 @@
         file: borgmatic.yml
 
     - name: Uninstall Borgmatic virtualenv and config
-      when: not borgmatic_enabled
+      # The aliases path is empty without shell integrations.
+      when: "not borgmatic_enabled and item is truthy"
       ansible.builtin.file:
         path: "{{ item }}"
         state: "absent"
@@ -18,4 +19,5 @@
         - "/etc/profile.d/borgmatic.sh"
         - "/etc/systemd/system/borg.service"
         - "/etc/systemd/system/borg.timer"
+        - "{{ borgmatic_shell_aliases_path }}"
       notify: "Reload systemd"

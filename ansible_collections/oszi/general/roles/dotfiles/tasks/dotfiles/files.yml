@@ -8,7 +8,7 @@
 # Keep owners and modes of existing directories!
 - name: "Create missing directories for user:{{ dotfiles_user_item }}"
   ansible.builtin.file:
-    path: "{{ item.invocation.module_args.path }}"
+    path: "{{ dotfiles_user_info.home }}/{{ item.item }}"
     owner: "{{ dotfiles_user_info.uid }}"
     group: "{{ dotfiles_user_info.group }}"
     mode: "0700"

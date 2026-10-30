@@ -122,6 +122,7 @@ argument_specs:
       acme_account_key_passphrase:
         description:
           - Password to encrypt the ACME account private key (use ansible-vault)
+          - Empty leaves the account key unencrypted
           - WARNING - Changing this password regenerates the account key
         type: str
         required: false

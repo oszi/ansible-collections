@@ -10,14 +10,14 @@ downloads_rejectattr_for_get_url:
 downloads_item_directory: "{{ downloads_item.dest if downloads_item.dest.endswith('/')
   else downloads_item.dest | dirname }}"
 
-# Env vars for post_install_script in the task loop:
-# downloads_item is also available in post_install_script using jinja templates.
+# Env vars for post_install_script in the task loop; null results (e.g. checksum_dest of a new file) become "".
+# Jinja in post_install_script is rendered when the inventory list is templated, before the loop var exists.
 downloads_item_post_install_environment:
-  DOWNLOADS_ITEM_DEST: "{{ downloads_item_result.dest | default('') }}"
-  DOWNLOADS_ITEM_URL: "{{ downloads_item_result.url | default('') }}"
-  DOWNLOADS_ITEM_BACKUP_FILE: "{{ downloads_item_result.backup_file | default('') }}"
-  DOWNLOADS_ITEM_CHECKSUM_DEST: "{{ downloads_item_result.checksum_dest | default('') }}"
-  DOWNLOADS_ITEM_CHECKSUM_SRC: "{{ downloads_item_result.checksum_src | default('') }}"
+  DOWNLOADS_ITEM_DEST: "{{ downloads_item_result.dest | default('', true) }}"
+  DOWNLOADS_ITEM_URL: "{{ downloads_item_result.url | default('', true) }}"
+  DOWNLOADS_ITEM_BACKUP_FILE: "{{ downloads_item_result.backup_file | default('', true) }}"
+  DOWNLOADS_ITEM_CHECKSUM_DEST: "{{ downloads_item_result.checksum_dest | default('', true) }}"
+  DOWNLOADS_ITEM_CHECKSUM_SRC: "{{ downloads_item_result.checksum_src | default('', true) }}"
 
 # Placeholders for loop and task variables to pass argument_specs validation.
 # Wrapping loop_var prevents "loop variable is already in use" warnings.

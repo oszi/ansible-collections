@@ -19,8 +19,9 @@
 * **Cross-distro gaps** - Roles must support both `RedHat` and `Debian` family for different packages and system paths.
 * **Cross-role variable use** - Guard references to other roles' variables if the role must work standalone,
   e.g. `... if users_list is defined else []` or `podman_disabled | default(false)`.
-* **Container environments** - Roles managing privileged system settings must guard against `virtualization_type`
-  `container` if expected to work in containers (e.g. dependencies of `baselinux`).
+* **Container environments** - Roles managing privileged system settings must guard their defaults with
+  `'container' in ansible_facts.virtualization_tech_guest` if expected to work in containers, e.g. dependencies of
+  `baselinux`; `ansible_facts.virtualization_type` is unreliable.
 * **Fact namespace** - All fact access must use `ansible_facts.fact_name`. `inject_facts_as_vars` must be disabled.
 * **Files/templates paths** - Mirror absolute dest paths under `files/` and `templates/`, append `.j2` for templates.
 * **Prefer handlers** - Prefer handlers for triggered tasks, avoid with complex conditions and in loop-based roles.

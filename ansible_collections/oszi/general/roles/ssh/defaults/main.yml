@@ -1,6 +1,6 @@
 ---
 # Disable sshd and uninstall openssh-server if ssh_manage_packages?
-ssh_server_disabled: "{{ ansible_facts.virtualization_type == 'container' }}"
+ssh_server_disabled: "{{ 'container' in ansible_facts.virtualization_tech_guest }}"
 # Install openssh-server and extra packages, or uninstall the server?
 ssh_manage_packages: true
 

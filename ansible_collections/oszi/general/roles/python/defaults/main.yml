@@ -39,6 +39,7 @@ python_devel_distro_packages:
     if (ansible_facts.os_family == 'RedHat') else [] }}"
   - "{{ [
       'python3-dev',
+      'python3-pip',
       'python3-venv',
       'build-essential',
     ]
