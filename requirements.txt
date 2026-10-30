@@ -1,3 +1,4 @@
+# Use the latest python packages or install from the distribution...
 # apt/dnf install ansible python3-cryptography python3-jmespath python3-netaddr python3-psutil python3-yaml
 ansible
 ansible-core>=2.20.0
@@ -7,7 +8,11 @@ netaddr
 psutil
 pyyaml
 
-# Development/Testing
+# Ansible Testing
 ansible-lint
+molecule
+molecule-plugins[podman]
+
+# Python Testing
 black
 pylint

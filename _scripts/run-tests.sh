@@ -26,12 +26,19 @@ if ! [[ -d "$tests_dir" ]]; then
     fi
 fi
 
-# Run all tests by default.
+# Run all tests by default, except opt-in tests marked with "# run-tests: opt-in" (e.g. molecule).
 if [[ $# -eq 0 ]]; then
-    tests=("$tests_dir"/*.py)
+    tests=()
+    for test in "$tests_dir"/*.py; do
+        grep -q '^# run-tests: opt-in$' "$test" || tests+=("$test")
+    done
 elif [[ "$1" =~ ^-*(h|help)$ ]]; then
     echo "Usage: ${0} [-h|--help] | [TESTS ...]" >&2
-    basename -a -s .py "$tests_dir"/*.py 2>/dev/null | grep -v testlib >&2
+    for test in "$tests_dir"/*.py; do
+        [[ "$test" == *testlib.py ]] && continue
+        grep -q '^# run-tests: opt-in$' "$test" && suffix=" (opt-in)" || suffix=""
+        echo "$(basename -s .py "$test")${suffix}" >&2
+    done
     exit 2
 else
     tests=("${@/#/"$tests_dir"/}")

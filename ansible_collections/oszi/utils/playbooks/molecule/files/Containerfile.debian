@@ -1,0 +1,13 @@
+# Molecule test image, built by oszi.utils.molecule.images; see _scripts/tests/MOLECULE.md.
+FROM docker.io/library/debian:stable-slim
+
+# The apt lists are dated back so that the apt module always refreshes them on first use.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        systemd systemd-sysv dbus python3 python3-apt sudo ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && touch -d @0 /var/lib/apt/lists
+
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]

@@ -1,0 +1,34 @@
+---
+# Build the molecule test images; molecule runs this as its dependency step.
+# Refresh the base images with: -e molecule_images_pull=newer
+- name: Build molecule test images
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    molecule_images_prefix: "localhost/oszi/molecule"
+    molecule_images:
+      fedora: "Containerfile.fedora"
+      debian: "Containerfile.debian"
+      ubuntu: "Containerfile.ubuntu"
+    # Pull policy for the base images: missing, newer, always or never.
+    molecule_images_pull: "missing"
+    molecule_images_executable: "{{ lookup('env', 'MOLECULE_PODMAN_EXECUTABLE') | default('podman', true) }}"
+  tasks:
+    # Forced builds reuse cached layers, so Containerfile changes always apply.
+    - name: Build molecule test images
+      containers.podman.podman_image:
+        name: "{{ molecule_images_prefix }}-{{ item.key }}"
+        tag: "latest"
+        path: "{{ playbook_dir }}/files"
+        build:
+          file: "{{ playbook_dir }}/files/{{ item.value }}"
+          format: "oci"
+          extra_args: "--pull={{ molecule_images_pull }}"
+        state: "build"
+        force: true
+        pull: false
+        executable: "{{ molecule_images_executable }}"
+      loop: "{{ molecule_images | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}: {{ item.value }}"

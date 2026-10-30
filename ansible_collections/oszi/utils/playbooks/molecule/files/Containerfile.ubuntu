@@ -1,0 +1,15 @@
+# Molecule test image, built by oszi.utils.molecule.images; see _scripts/tests/MOLECULE.md.
+FROM docker.io/library/ubuntu:latest
+
+# The apt lists are dated back so that the apt module always refreshes them on first use.
+# The image ships a stale /run/systemd/container that systemd overwrites without truncating.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        systemd systemd-sysv dbus python3 python3-apt sudo ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && touch -d @0 /var/lib/apt/lists \
+    && rm -f /run/systemd/container
+
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]

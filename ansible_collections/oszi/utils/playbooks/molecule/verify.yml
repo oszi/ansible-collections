@@ -1,0 +1,104 @@
+---
+# Shared molecule verify playbook; see _scripts/tests/MOLECULE.md.
+# Asserts the inventory variables molecule_verify_paths, molecule_verify_commands,
+# molecule_verify_units (name, load, active, enabled) and molecule_verify_packages, all optional.
+- name: Verify molecule instances
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Stat the verified paths
+      ansible.builtin.stat:
+        path: "{{ item.path }}"
+        follow: false
+      loop: "{{ molecule_verify_paths | default([]) }}"
+      loop_control:
+        label: "{{ item.path }}"
+      register: _molecule_verify_stat_results
+
+    - name: Assert the verified paths
+      vars:
+        _molecule_verify_state: "{{ item.item.state | default('file') }}"
+      ansible.builtin.assert:
+        that:
+          - "_molecule_verify_state != 'absent' or not item.stat.exists"
+          - "_molecule_verify_state == 'absent' or item.stat.exists"
+          - "_molecule_verify_state != 'file' or item.stat.isreg"
+          - "_molecule_verify_state != 'directory' or item.stat.isdir"
+          - "_molecule_verify_state != 'link' or item.stat.islnk"
+          - "item.item.src is not defined or item.stat.lnk_target == item.item.src"
+          - "item.item.mode is not defined or item.stat.mode == item.item.mode"
+          - "item.item.owner is not defined or item.stat.pw_name == item.item.owner"
+          - "item.item.group is not defined or item.stat.gr_name == item.item.group"
+        fail_msg: "{{ item.item }} does not match: {{ item.stat }}"
+        quiet: true
+      loop: "{{ _molecule_verify_stat_results.results }}"
+      loop_control:
+        label: "{{ item.item.path }}"
+
+    - name: Run the verified commands
+      become: true
+      become_user: "{{ item.user | default('root') }}"
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          {{ item.cmd }}
+        executable: "/bin/bash"
+      loop: "{{ molecule_verify_commands | default([]) }}"
+      loop_control:
+        label: "{{ item.user | default('root') }}: {{ item.cmd }}"
+      changed_when: false
+      register: _molecule_verify_command_results
+
+    - name: Assert the verified commands' output
+      ansible.builtin.assert:
+        that:
+          - "item.item.stdout is not defined or item.stdout == item.item.stdout"
+          - "item.item.stdout_contains is not defined or item.item.stdout_contains in item.stdout"
+        fail_msg: "{{ item.item }} output does not match: {{ item.stdout }}"
+        quiet: true
+      loop: "{{ _molecule_verify_command_results.results }}"
+      loop_control:
+        label: "{{ item.item.cmd }}"
+
+    - name: Query the verified systemd units
+      ansible.builtin.command:  # noqa: command-instead-of-module
+        cmd: "systemctl show --property=LoadState,ActiveState,UnitFileState {{ item.name | quote }}"
+      loop: "{{ molecule_verify_units | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+      changed_when: false
+      register: _molecule_verify_unit_results
+
+    - name: Assert the verified systemd units' states
+      vars:
+        _molecule_verify_unit: "{{ dict(item.stdout_lines | map('split', '=', 1)) }}"
+      ansible.builtin.assert:
+        that:
+          - "item.item.load is not defined or _molecule_verify_unit.LoadState == item.item.load"
+          - "item.item.active is not defined or _molecule_verify_unit.ActiveState == item.item.active"
+          - "item.item.enabled is not defined or _molecule_verify_unit.UnitFileState == item.item.enabled"
+        fail_msg: "{{ item.item }} does not match: {{ _molecule_verify_unit }}"
+        quiet: true
+      loop: "{{ _molecule_verify_unit_results.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    - name: Gather package facts
+      when: molecule_verify_packages | default({}) is truthy
+      ansible.builtin.package_facts:
+        manager: "auto"
+
+    - name: Assert the verified packages are present
+      ansible.builtin.assert:
+        that: "item in ansible_facts.packages"
+        fail_msg: "Package {{ item }} is not installed"
+        quiet: true
+      loop: "{{ molecule_verify_packages.present | default([]) }}"
+
+    - name: Assert the verified packages are absent
+      ansible.builtin.assert:
+        that: "item not in ansible_facts.packages"
+        fail_msg: "Package {{ item }} is installed"
+        quiet: true
+      loop: "{{ molecule_verify_packages.absent | default([]) }}"

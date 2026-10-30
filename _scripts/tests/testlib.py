@@ -86,8 +86,10 @@ def print_hint(message: str) -> None:
     print(f"{Color.BLUE}HINT: {message}{Color.CLEAR}", file=sys.stderr)
 
 
-def print_test_cmd(cmd: List[str], paths: Optional[List[str]] = None) -> None:
+def print_test_cmd(cmd: List[str], paths: Optional[List[str]] = None, cwd: Optional[str] = None) -> None:
     message = f"{Color.CYAN}Running test: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
+    if cwd:
+        message += f" @ {cwd}"
     if paths:
         message += f" # {len(paths)} path(s)"
 
@@ -147,7 +149,7 @@ def run_tests(cmd: List[str], paths: List[str], timeout: Optional[float] = None,
     if not isinstance(paths, list):
         raise TypeError("paths is not a list")
 
-    print_test_cmd(cmd, paths)
+    print_test_cmd(cmd, paths, kwargs.get("cwd"))
     try:
         with sp.Popen(cmd + paths, **kwargs) as proc:
             try:
@@ -184,7 +186,7 @@ def run_tests_parallel(
     if not paths:
         return run_tests(cmd, paths, timeout, **kwargs)
 
-    print_test_cmd(cmd, paths)
+    print_test_cmd(cmd, paths, kwargs.get("cwd"))
 
     def run_test(path: str) -> sp.CompletedProcess[str]:
         output = sp.DEVNULL if quiet else sp.PIPE

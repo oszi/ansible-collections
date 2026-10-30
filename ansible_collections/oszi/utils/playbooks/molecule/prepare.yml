@@ -1,0 +1,26 @@
+---
+# Shared molecule prepare playbook; see _scripts/tests/MOLECULE.md.
+- name: Prepare molecule instances
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for systemd to finish booting
+      when: molecule_prepare_systemd_wait | default(true)
+      ansible.builtin.command:  # noqa: command-instead-of-module
+        cmd: "systemctl is-system-running --wait"
+      register: _molecule_prepare_systemd_result
+      changed_when: false
+      failed_when: "_molecule_prepare_systemd_result.stdout | trim != 'running'"
+
+    - name: Import bootstrap role
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+
+    - name: Ensure users in users_list exist
+      ansible.builtin.user:
+      args: "{{ item }}"
+      loop: "{{ users_list | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+      no_log: "{{ item.password is defined }}"

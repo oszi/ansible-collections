@@ -1,0 +1,28 @@
+---
+# Shared molecule converge playbook; see _scripts/tests/MOLECULE.md.
+# Applies molecule_converge_roles, by default the role named like the scenario (up to the first dash)
+# in the collection molecule runs from. Rootless scenarios set molecule_become_user to a test user.
+- name: Converge molecule instances
+  hosts: all
+  become: true
+  become_user: "{{ molecule_become_user | default('root') }}"
+  gather_facts: false
+  vars:
+    molecule_converge_collection: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+    molecule_converge_scenario: "{{ lookup('env', 'MOLECULE_SCENARIO_NAME') }}"
+    molecule_converge_roles_default:
+      - name: "oszi.{{ molecule_converge_collection }}.{{ molecule_converge_scenario.split('-') | first }}"
+  pre_tasks:
+    - name: Import bootstrap role
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+
+  tasks:
+    - name: Include the roles under test
+      ansible.builtin.include_role:
+        name: "{{ _molecule_converge_role.name }}"
+        tasks_from: "{{ _molecule_converge_role.tasks_from | default('main') }}"
+      loop: "{{ molecule_converge_roles | default(molecule_converge_roles_default) }}"
+      loop_control:
+        loop_var: _molecule_converge_role
+        label: "{{ _molecule_converge_role.name }}:{{ _molecule_converge_role.tasks_from | default('main') }}"

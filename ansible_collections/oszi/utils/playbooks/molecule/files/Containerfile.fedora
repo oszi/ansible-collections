@@ -1,0 +1,11 @@
+# Molecule test image, built by oszi.utils.molecule.images; see _scripts/tests/MOLECULE.md.
+FROM quay.io/fedora/fedora:latest
+
+# Mask the units that fail without extra capabilities so the system boots to "running".
+RUN dnf -y install systemd python3 python3-libdnf5 sudo \
+    && dnf clean all \
+    && systemctl mask systemd-oomd.service systemd-oomd.socket \
+        systemd-resolved.service systemd-resolved-monitor.socket systemd-resolved-varlink.socket
+
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]

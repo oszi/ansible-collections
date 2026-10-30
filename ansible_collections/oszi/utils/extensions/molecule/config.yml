@@ -1,0 +1,75 @@
+---
+# Molecule base configuration, deep-merged under every scenario's molecule.yml; see _scripts/tests/MOLECULE.md.
+# Molecule reads extensions/molecule/config.yml of the collection it runs from; the other collections
+# symlink this file. Run molecule from a collection directory or via _scripts/tests/molecule.py.
+
+# Source-only collections: ansible-compat must not install anything.
+prerun: false
+
+# The shell dependency only inherits the environment, hence the explicit ansible.cfg.
+dependency:
+  name: shell
+  command: "env ANSIBLE_CONFIG=${MOLECULE_PROJECT_DIRECTORY}/../../../ansible.cfg
+    ansible-playbook -i localhost, oszi.utils.molecule.images"
+
+driver:
+  name: podman
+
+# Rootless containers with systemd as PID 1, without --privileged and CAP_SYS_ADMIN.
+# container=oci makes ansible_facts.virtualization_type report "container" on every image.
+platforms:
+  - name: "${MOLECULE_SCENARIO_NAME}-fedora"
+    image: "localhost/oszi/molecule-fedora:latest"
+    pre_build_image: true
+    command: "/sbin/init"
+    systemd: always
+    env:
+      container: oci
+    groups: [fedora, redhat]
+  - name: "${MOLECULE_SCENARIO_NAME}-debian"
+    image: "localhost/oszi/molecule-debian:latest"
+    pre_build_image: true
+    command: "/sbin/init"
+    systemd: always
+    env:
+      container: oci
+    groups: [debian]
+  - name: "${MOLECULE_SCENARIO_NAME}-ubuntu"
+    image: "localhost/oszi/molecule-ubuntu:latest"
+    pre_build_image: true
+    command: "/sbin/init"
+    systemd: always
+    env:
+      container: oci
+    groups: [ubuntu, debian]
+
+ansible:
+  env:
+    # The repository ansible.cfg replaces the one molecule generates.
+    ANSIBLE_CONFIG: "${MOLECULE_PROJECT_DIRECTORY}/../../../ansible.cfg"
+  executor:
+    args:
+      ansible_playbook:
+        - "--diff"
+
+scenario:
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy
+
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        ansible_user: root
+        # The images ship without package metadata.
+        bootstrap_package_update_cache: true
+      debian:
+        bootstrap_apt_cache_valid_time: 3600

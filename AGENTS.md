@@ -47,8 +47,8 @@ Source-only install; no Ansible Galaxy releases.
 * Avoid decorative Unicode; prefer ASCII unless the character is meaningful.
 
 **After making changes:**
-* Run tests: `_scripts/run-tests.sh [ansible-lint|ansible-vault|galaxy-tags|python|shellcheck]`  
-  There are no molecule or coverage tests yet.
+* Run tests: `_scripts/run-tests.sh [ansible-lint|ansible-vault|galaxy-tags|molecule|python|shellcheck]`  
+  See `_scripts/tests/MOLECULE.md` for molecule tests; do not run molecule automatically.
 * Never commit changes or create releases yourself.
 
 ## Security Model
