@@ -1,10 +1,10 @@
 # Molecule Tests
 
 Molecule tests run the roles of `oszi.general`, `oszi.thirdparty` and `oszi.utils` in rootless Podman
-containers with systemd as PID 1. `oszi.environments` is out of scope. Containers get the default
+containers with systemd as init. `oszi.environments` is out of scope. Containers get the default
 rootless capability set: no `--privileged`, no `CAP_SYS_ADMIN`.
 
-Molecule tests are slow and need podman and network access, agents must not run molecule unless asked.
+Molecule tests are slow and need podman and network access; agents must not run molecule unless asked.
 
 ## Quick start
 
@@ -32,9 +32,6 @@ cd ansible_collections/oszi/general
 molecule test -s shell --destroy never    # keeps the instances; also skips the initial destroy
 molecule login -s shell -h shell-debian
 molecule destroy -s shell
-
-# Refresh the base images (podman build --pull=newer), from the repository root
-ansible-playbook -i localhost, oszi.utils.molecule.images -e molecule_images_pull=newer
 ```
 
 `molecule reset` removes every container labeled `owner=molecule` and the ephemeral state under
@@ -44,20 +41,25 @@ is harmless: molecule looks for a `default` scenario to decide about shared stat
 ## Layout
 
 ```
-ansible_collections/oszi/utils/extensions/molecule/config.yml   # base config: driver, platforms, ansible
-ansible_collections/oszi/{general,thirdparty}/extensions/molecule/config.yml   # symlinks to the above
+ansible_collections/oszi/utils/extensions/molecule/
+  config.yml       # base config: driver, platforms, ansible
+  Containerfile.*  # fedora, debian, ubuntu images: systemd + python3 + package bindings + sudo
+
+ansible_collections/oszi/{general,thirdparty}/extensions/molecule/
+  config.yml       # symlinks to config.yml in utils
+
 ansible_collections/oszi/utils/playbooks/molecule/
-  containers/Containerfile.{fedora,debian,ubuntu}   # systemd + python3 + package bindings + sudo
-  images.yml                                        # builds localhost/oszi/molecule/{fedora,debian,ubuntu}
-  prepare.yml                                       # systemd wait, package cache, users_list
-  converge.yml                                      # bootstrap + include_role (derived from the scenario)
-  verify.yml                                        # generic assertions from molecule_verify_* vars
+  prepare.yml      # systemd wait, package cache, users_list
+  converge.yml     # bootstrap + include_role (derived from the scenario)
+  verify.yml       # generic assertions from molecule_verify_* vars
+
 ansible_collections/oszi/{collection}/extensions/molecule/{scenario}/
-  molecule.yml                                      # scenario variables (inventory group_vars)
-  prepare.yml                                       # imports oszi.utils.molecule.prepare, plus test tools
-  converge.yml                                      # imports oszi.utils.molecule.converge or the production playbook
-  verify.yml                                        # imports oszi.utils.molecule.verify, plus specifics
-_scripts/tests/molecule.py                          # opt-in runner, see README.md
+  molecule.yml     # scenario variables (inventory group_vars)
+  prepare.yml      # imports oszi.utils.molecule.prepare, plus test tools
+  converge.yml     # imports oszi.utils.molecule.converge or the production playbook
+  verify.yml       # imports oszi.utils.molecule.verify, plus specifics
+
+_scripts/tests/molecule.py  # opt-in runner, see tests README.md
 ```
 
 ## How it fits together
@@ -68,7 +70,7 @@ Molecule detects a collection from `galaxy.yml` in the current directory, discov
 deep-merged under every scenario's `molecule.yml` (dicts merge recursively, lists are replaced).
 
 The base config sets `prerun: false` (ansible-compat would otherwise try to install the source-only
-collections from Galaxy), builds the images in the dependency step, defines the three platforms named
+collections from Galaxy), disables the dependency step, defines the three platforms named
 `${MOLECULE_SCENARIO_NAME}-{fedora,debian,ubuntu}` with inventory groups `fedora`/`redhat`, `debian`,
 `ubuntu`/`debian`, configures ansible.cfg, and sets the inventory defaults `ansible_user: root` and
 `bootstrap_package_update_cache: true`.
@@ -83,7 +85,18 @@ The Containerfiles start from `quay.io/fedora/fedora:latest`, `docker.io/library
 `docker.io/library/ubuntu:latest` and add systemd, python3, the package manager bindings, `sudo` and
 `ca-certificates`. Fedora masks `systemd-oomd` and `systemd-resolved`, which cannot run without extra
 capabilities. The apt lists are removed and dated back so the apt module refreshes them on first use.
-Images are rebuilt by every run with cached layers; base images are pulled only when missing.
+
+The podman driver builds them in the create step as `localhost/molecule_local/oszi/{fedora,debian,ubuntu}`.
+Platform `dockerfile` paths are joined to the scenario directory as strings, so they are relative
+(`../../../../utils/...`) and assume scenarios directly under `extensions/molecule/`. The driver renders each
+Containerfile as a Jinja template and builds it with the scenario directory as context: Containerfiles must
+not contain Jinja syntax or `COPY`/`ADD`. An image is rebuilt only when it is missing or its Containerfile
+changed; base images are pulled only when missing. Instances kept with `--destroy never` keep their image
+until destroyed.
+
+Concurrent molecule runs may build the same image twice; the last build gets the tag and the other one is
+left dangling (`podman image prune`). Concurrent runs from checkouts with different Containerfiles flip the
+tag between each other and should not overlap.
 
 ### Shared playbooks (oszi.utils.molecule)
 
@@ -99,7 +112,6 @@ Images are rebuilt by every run with cached layers; base images are pulled only 
   `owner`, `group`, link `src`), `molecule_verify_commands` (`cmd` in bash with `set -euo pipefail`,
   `user`, exact `stdout` or `stdout_contains`), `molecule_verify_units` (`name`, `load`, `active`, `enabled`
   as `systemctl show` values) and `molecule_verify_packages` (`present`, `absent`).
-* **images**: see above.
 
 These playbooks alter or inspect molecule instances only.
 
@@ -111,28 +123,8 @@ A scenario is `molecule.yml` with `provisioner.inventory.group_vars` (`all`, or 
 file is missing, so FQCNs cannot be configured centrally; the stubs are also where scenarios add their own
 plays. Scenario names are `{role}` or `{role}-{variant}`; role names never contain dashes.
 
-`molecule test` runs: dependency, destroy, syntax, create, prepare, converge, idempotence (second converge
-with zero changes), verify, destroy.
-
-## Findings (verified 2026-10-30)
-
-* Rootless default capabilities: `chown, dac_override, fowner, fsetid, kill, setgid, setuid, setpcap,
-  net_bind_service, sys_chroot, setfcap`. systemd as PID 1 works with them: Debian and Ubuntu boot to
-  `running`, Fedora once oomd and resolved are masked; logind, journald, dbus and `user@UID.service` work.
-  `CAP_NET_ADMIN` and `CAP_NET_RAW` can be added per scenario by redefining `platforms` with
-  `capabilities`; `CAP_SYS_ADMIN` is out, which also rules out polkit and systemd sandboxing such as
-  `DynamicUser` (`226/NAMESPACE`).
-* `ansible_facts.virtualization_type` is `podman` on Debian and Ubuntu images but `container` on Fedora
-  images, which set `ENV container=oci`; unprivileged users cannot read `/proc/1/environ` and the fallback
-  `/run/systemd/container` yields `oci`. The roles guard on `virtualization_tech_guest`, which contains
-  `container` for every user and image.
-* Molecule: `provisioner.inventory.group_vars` feeds inventory variables (the `ansible:` section has no
-  inventory key) and play `vars` outrank them; `dependency.env` is ignored for the shell dependency;
-  `--destroy never` also skips the initial destroy; the podman driver cannot use a shared Dockerfile,
-  hence the prebuilt images.
-* The apt module's `cache_valid_time` compares the mtime of `/var/lib/apt/lists`; the dnf module rejects
-  `cache_valid_time`, so `bootstrap_apt_cache_valid_time` stays in the `debian` group.
-* Connecting as root makes Ansible chown its temporary files, so `acl` is not needed for `become_user`.
+`molecule test` runs: destroy, syntax, create, prepare, converge, idempotence (second converge with zero
+changes), verify, destroy.
 
 ## Scenarios in place
 
@@ -171,3 +163,22 @@ interfaces, and flatpak remotes and apps (bubblewrap).
   `molecule test -s X -p X-debian --destroy never`, then `molecule destroy -s X` before setup changes.
 * The images have no `ip` command, so network facts give no `default_ipv4` unless iproute is installed in
   prepare.
+
+## Findings
+
+* Rootless default capabilities: `chown, dac_override, fowner, fsetid, kill, setgid, setuid, setpcap,
+  net_bind_service, sys_chroot, setfcap`. systemd as PID 1 works with them: Debian and Ubuntu boot to
+  `running`, Fedora once oomd and resolved are masked; logind, journald, dbus and `user@UID.service` work.
+  `CAP_NET_ADMIN` and `CAP_NET_RAW` can be added per scenario by redefining `platforms` with
+  `capabilities`; `CAP_SYS_ADMIN` is out, which also rules out polkit and systemd sandboxing such as
+  `DynamicUser` (`226/NAMESPACE`).
+* `ansible_facts.virtualization_type` is `podman` on Debian and Ubuntu images but `container` on Fedora
+  images, which set `ENV container=oci`; unprivileged users cannot read `/proc/1/environ` and the fallback
+  `/run/systemd/container` yields `oci`. The roles guard on `virtualization_tech_guest`, which contains
+  `container` for every user and image.
+* Molecule: `provisioner.inventory.group_vars` feeds inventory variables (the `ansible:` section has no
+  inventory key) and play `vars` outrank them; `dependency.env` is ignored for the shell dependency,
+  which also runs without molecule's ansible.cfg; `--destroy never` also skips the initial destroy.
+* The apt module's `cache_valid_time` compares the mtime of `/var/lib/apt/lists`; the dnf module rejects
+  `cache_valid_time`, so `bootstrap_apt_cache_valid_time` stays in the `debian` group.
+* Connecting as root makes Ansible chown its temporary files, so `acl` is not needed for `become_user`.
