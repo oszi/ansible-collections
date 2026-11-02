@@ -1,0 +1,17 @@
+# Molecule test image, built by the podman driver in the create step; see _scripts/tests/MOLECULE.md.
+# The driver renders this file as a Jinja template and builds it in the scenario directory:
+# no Jinja syntax, no COPY or ADD.
+FROM docker.io/library/ubuntu:latest
+
+# The apt lists are dated back so that the apt module always refreshes them on first use.
+# The image ships a stale /run/systemd/container that systemd overwrites without truncating.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        systemd systemd-sysv dbus python3 python3-apt sudo ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && touch -d @0 /var/lib/apt/lists \
+    && rm -f /run/systemd/container
+
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]

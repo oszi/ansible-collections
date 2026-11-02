@@ -5,7 +5,6 @@
 # Update entrypoints are not idempotent by design, hence no idempotence step.
 scenario:
   test_sequence:
-    - dependency
     - destroy
     - syntax
     - create

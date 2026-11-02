@@ -6,32 +6,36 @@
 # Source-only collections: ansible-compat must not install anything.
 prerun: false
 
+# Nothing to install; the podman driver builds the images in the create step.
 dependency:
-  name: shell
-  command: >-
-    env ANSIBLE_CONFIG="${MOLECULE_EPHEMERAL_DIRECTORY}/ansible.cfg"
-    ansible-playbook -i localhost, oszi.utils.molecule.images
+  name: galaxy
+  enabled: false
 
 driver:
   name: podman
 
 # Rootless containers with systemd as PID 1, without --privileged and CAP_SYS_ADMIN.
+# The driver joins dockerfile to the scenario directory: extensions/molecule/{scenario}/ is 4 levels
+# below the namespace directory; image is joined to localhost/molecule_local.
 platforms:
   - name: "${MOLECULE_SCENARIO_NAME}-fedora"
-    image: "localhost/oszi/molecule/fedora:latest"
-    pre_build_image: true
+    image: "oszi/fedora"
+    dockerfile: "../../../../utils/extensions/molecule/Containerfile.fedora"
+    pre_build_image: false
     command: "/sbin/init"
     systemd: always
     groups: [fedora, redhat]
   - name: "${MOLECULE_SCENARIO_NAME}-debian"
-    image: "localhost/oszi/molecule/debian:latest"
-    pre_build_image: true
+    image: "oszi/debian"
+    dockerfile: "../../../../utils/extensions/molecule/Containerfile.debian"
+    pre_build_image: false
     command: "/sbin/init"
     systemd: always
     groups: [debian]
   - name: "${MOLECULE_SCENARIO_NAME}-ubuntu"
-    image: "localhost/oszi/molecule/ubuntu:latest"
-    pre_build_image: true
+    image: "oszi/ubuntu"
+    dockerfile: "../../../../utils/extensions/molecule/Containerfile.ubuntu"
+    pre_build_image: false
     command: "/sbin/init"
     systemd: always
     groups: [ubuntu, debian]
@@ -50,7 +54,6 @@ ansible:
 
 scenario:
   test_sequence:
-    - dependency
     - destroy
     - syntax
     - create

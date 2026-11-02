@@ -3,7 +3,6 @@
 # ../config.yml. Updates are not idempotent by nature, so the test sequence has no idempotence step.
 scenario:
   test_sequence:
-    - dependency
     - destroy
     - syntax
     - create
