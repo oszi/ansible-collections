@@ -22,7 +22,6 @@ SCENARIOS_DIR = Path("extensions") / "molecule"
 # Changes to the shared molecule framework and tooling affect every role.
 FRAMEWORK_PATHS = (
     "_scripts/tests/molecule.py",
-    "ansible.cfg",
     "requirements.txt",
     "requirements.yml",
     f"{NAMESPACE_PATH}/utils/playbooks/molecule/",

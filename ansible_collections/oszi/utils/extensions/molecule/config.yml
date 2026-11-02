@@ -6,11 +6,11 @@
 # Source-only collections: ansible-compat must not install anything.
 prerun: false
 
-# The shell dependency only inherits the environment, hence the explicit ansible.cfg.
 dependency:
   name: shell
-  command: "env ANSIBLE_CONFIG=${MOLECULE_PROJECT_DIRECTORY}/../../../ansible.cfg
-    ansible-playbook -i localhost, oszi.utils.molecule.images"
+  command: >-
+    env ANSIBLE_CONFIG="${MOLECULE_EPHEMERAL_DIRECTORY}/ansible.cfg"
+    ansible-playbook -i localhost, oszi.utils.molecule.images
 
 driver:
   name: podman
@@ -37,9 +37,12 @@ platforms:
     groups: [ubuntu, debian]
 
 ansible:
-  env:
-    # The repository ansible.cfg replaces the one molecule generates.
-    ANSIBLE_CONFIG: "${MOLECULE_PROJECT_DIRECTORY}/../../../ansible.cfg"
+  cfg:
+    defaults:
+      collections_path: "${MOLECULE_PROJECT_DIRECTORY}/../../..:~/.ansible/collections:/usr/share/ansible/collections"
+      gathering: explicit
+      inject_facts_as_vars: false
+      verbosity: 1
   executor:
     args:
       ansible_playbook:

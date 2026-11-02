@@ -70,8 +70,7 @@ deep-merged under every scenario's `molecule.yml` (dicts merge recursively, list
 The base config sets `prerun: false` (ansible-compat would otherwise try to install the source-only
 collections from Galaxy), builds the images in the dependency step, defines the three platforms named
 `${MOLECULE_SCENARIO_NAME}-{fedora,debian,ubuntu}` with inventory groups `fedora`/`redhat`, `debian`,
-`ubuntu`/`debian`, points `ANSIBLE_CONFIG` at the VCS root `ansible.cfg` (its relative `collections_path`
-resolves against the file), and sets the inventory defaults `ansible_user: root` and
+`ubuntu`/`debian`, configures ansible.cfg, and sets the inventory defaults `ansible_user: root` and
 `bootstrap_package_update_cache: true`.
 
 `${VAR}` and `$VAR` in base config and `molecule.yml` are interpolated from molecule's environment
