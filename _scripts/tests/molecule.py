@@ -129,7 +129,7 @@ def dependent_roles(roles: Set[Role]) -> Set[Role]:
 
 
 def previous_release() -> str:
-    """The latest release tag; the one before it if HEAD is a release and no uncommitted change affects roles."""
+    """The latest release tag; the one before it if HEAD is a release and the working tree is clean."""
     describe = f"git describe --tags --abbrev=0 --match='{RELEASE_TAG_GLOB}'"
     releases = run_shell_get_lines(f"{describe} HEAD 2>/dev/null || true")
     if not releases:
@@ -137,7 +137,7 @@ def previous_release() -> str:
     head_is_release = run_shell_get_lines(
         f"git describe --tags --exact-match --match='{RELEASE_TAG_GLOB}' HEAD 2>/dev/null || true"
     )
-    if head_is_release and not any(affected_roles(changed_paths("HEAD"))):
+    if head_is_release and not changed_paths("HEAD"):
         releases = run_shell_get_lines(f"{describe} '{releases[0]}^'")
     return releases[0]
 
@@ -234,20 +234,25 @@ def main() -> None:
     molecule_args = app_args.fqcns[app_args.fqcns.index("--") + 1 :] if "--" in app_args.fqcns else []
     molecule_args = molecule_args or MOLECULE_DEFAULT_ARGS
 
-    os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
+    if not NAMESPACE_PATH.exists():
+        os.chdir(Path(__file__).resolve().parents[2])
+
     roles, notes = select_roles(app_args)
     for note in notes:
         print_hint(note)
 
     scenarios = select_scenarios(roles)
     if not any(scenarios.values()):
-        sys.exit(success("molecule.py: nothing to test!"))
+        sys.exit(success("molecule: nothing to test!"))
 
     if app_args.list:
         for collection, scenario_paths in scenarios.items():
             for scenario_path in scenario_paths:
                 print(f"{NAMESPACE}.{collection}: {scenario_path.name}")
         sys.exit(RC.OK)
+
+    if shutil.which("molecule") is None:
+        sys.exit(error_code("molecule not found! source venv/bin/activate"))
 
     if shutil.which("podman") is None:
         sys.exit(error_code("podman not found!"))
@@ -259,7 +264,10 @@ def main() -> None:
         # Molecule discovers the base config and the scenarios from the collection directory.
         scenario_args = [arg for scenario_path in scenario_paths for arg in ("-s", scenario_path.name)]
         cmd = MOLECULE_CMD + molecule_args + scenario_args
-        rc |= run_tests(cmd, paths=[], cwd=NAMESPACE_PATH / collection, env=os.environ.copy())
+        result = run_tests(cmd, paths=[], cwd=NAMESPACE_PATH / collection)
+        if RC.is_early_exit(result):
+            sys.exit(result)
+        rc |= result
 
     sys.exit(rc)
 
