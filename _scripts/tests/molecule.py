@@ -233,9 +233,7 @@ def main() -> None:
     molecule_args = app_args.fqcns[app_args.fqcns.index("--") + 1 :] if "--" in app_args.fqcns else []
     molecule_args = molecule_args or MOLECULE_DEFAULT_ARGS
 
-    if not NAMESPACE_PATH.exists():
-        os.chdir(Path(__file__).resolve().parents[2])
-
+    os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
     roles, notes = select_roles(app_args)
     for note in notes:
         print_hint(note)
