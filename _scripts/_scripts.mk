@@ -38,8 +38,8 @@ reset: FORCE
 	$(SCRIPTS)/git-reset.sh --force
 
 clean: FORCE
-	git clean -xfd
-	git submodule foreach --recursive git clean -xfd
+	git clean -xfd -e /$(notdir $(VENV))
+	git submodule foreach --recursive git clean -xfd -e /$(notdir $(VENV))
 
 verify: FORCE
 	$(SCRIPTS)/git-verify.sh
