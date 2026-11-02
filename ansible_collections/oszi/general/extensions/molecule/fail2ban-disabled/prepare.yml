@@ -2,6 +2,7 @@
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
 
+# Placeholders for the files of an earlier installation; the role removes them by path.
 - name: Install fail2ban for the uninstall path
   hosts: all
   become: true
@@ -11,3 +12,15 @@
       ansible.builtin.package:
         name: "fail2ban"
         state: "present"
+
+    - name: Seed the fail2ban config files
+      ansible.builtin.copy:
+        content: "[DEFAULT]\n"
+        dest: "{{ item }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      loop:
+        - "/etc/fail2ban/fail2ban.local"
+        - "/etc/fail2ban/jail.local"
+        - "/etc/fail2ban/jail.d/00-systemd-firewalld.conf"

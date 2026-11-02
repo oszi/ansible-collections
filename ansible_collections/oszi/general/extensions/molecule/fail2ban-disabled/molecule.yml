@@ -1,6 +1,6 @@
 ---
 # Molecule scenario for oszi.general.fail2ban disabled; shared settings come from ../config.yml.
-# The prepare playbook installs fail2ban first so the uninstall path has something to remove.
+# The prepare playbook installs fail2ban and seeds its config files so the uninstall path has something to remove.
 provisioner:
   inventory:
     group_vars:
@@ -9,10 +9,11 @@ provisioner:
         molecule_verify_paths:
           - {path: /etc/fail2ban/jail.local, state: absent}
           - {path: /etc/fail2ban/fail2ban.local, state: absent}
+          - {path: /etc/fail2ban/jail.d/00-systemd-firewalld.conf, state: absent}
       redhat:
-        # fail2ban-sendmail, pulled in by the metapackage, goes with fail2ban-server as its dependent.
+        # fail2ban-sendmail is pulled in by the metapackage.
         molecule_verify_packages:
-          absent: [fail2ban, fail2ban-server, fail2ban-firewalld, fail2ban-selinux, fail2ban-systemd]
+          absent: [fail2ban, fail2ban-server, fail2ban-firewalld, fail2ban-selinux, fail2ban-sendmail, fail2ban-systemd]
       debian:
         molecule_verify_packages:
           absent: [fail2ban]

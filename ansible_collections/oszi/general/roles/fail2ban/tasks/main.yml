@@ -3,17 +3,10 @@
   tags: [fail2ban]
   block:
     - name: Include Fail2ban setup tasks
-      when: not fail2ban_disabled
       ansible.builtin.include_tasks:
-        file: fail2ban.yml
+        file: "{{ (not fail2ban_disabled) | ternary('install', 'uninstall') }}.yml"
 
-    - name: Ensure fail2ban packages are NOT installed
-      when: fail2ban_disabled
-      ansible.builtin.package:
-        name:
-          - "fail2ban"
-          - "fail2ban-server"
-          - "fail2ban-firewalld"
-          - "fail2ban-selinux"
-          - "fail2ban-systemd"
-        state: "absent"
+    - name: Fail2ban role completed
+      ansible.builtin.assert:
+        that: true
+        quiet: true

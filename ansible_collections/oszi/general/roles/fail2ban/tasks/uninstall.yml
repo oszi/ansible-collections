@@ -1,0 +1,21 @@
+---
+# All RedHat/Debian packages, including the metapackage.
+- name: Ensure fail2ban packages are NOT installed
+  ansible.builtin.package:
+    name:
+      - "fail2ban"
+      - "fail2ban-server"
+      - "fail2ban-firewalld"
+      - "fail2ban-selinux"
+      - "fail2ban-sendmail"
+      - "fail2ban-systemd"
+    state: "absent"
+
+- name: Ensure fail2ban local config files are absent
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ fail2ban_local_path }}"
+    - "{{ fail2ban_jail_local_path }}"
+    - "{{ fail2ban_jail_systemd_firewalld_debian_path }}"

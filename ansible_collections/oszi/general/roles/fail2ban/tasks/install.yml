@@ -23,8 +23,8 @@
         name: "fail2ban-firewalld"
         state: "{{ firewalld_disabled | default(false) | ternary('absent', 'present') }}"
 
-- name: Copy fail2ban/jail.d/00-systemd-firewalld.conf config file
-  when: "ansible_facts.os_family != 'RedHat'"
+- name: Copy fail2ban systemd and firewalld config file for Debian
+  when: "ansible_facts.os_family == 'Debian'"
   ansible.builtin.copy:
     content: |
       [DEFAULT]
@@ -33,7 +33,7 @@
       banaction = firewallcmd-rich-rules
       banaction_allports = firewallcmd-rich-rules
       {% endif %}
-    dest: "/etc/fail2ban/jail.d/00-systemd-firewalld.conf"
+    dest: "{{ fail2ban_jail_systemd_firewalld_debian_path }}"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -42,7 +42,7 @@
 - name: Copy fail2ban/fail2ban.local config file
   ansible.builtin.copy:
     content: "{{ fail2ban_local }}"
-    dest: "/etc/fail2ban/fail2ban.local"
+    dest: "{{ fail2ban_local_path }}"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -51,7 +51,7 @@
 - name: Copy fail2ban/jail.local config file
   ansible.builtin.copy:
     content: "{{ fail2ban_jail_local }}"
-    dest: "/etc/fail2ban/jail.local"
+    dest: "{{ fail2ban_jail_local_path }}"
     owner: "root"
     group: "root"
     mode: "0644"

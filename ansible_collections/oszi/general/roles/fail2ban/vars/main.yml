@@ -1,1 +1,7 @@
 ---
+# Ansible managed fail2ban config and jail local paths.
+fail2ban_local_path: "/etc/fail2ban/fail2ban.local"
+fail2ban_jail_local_path: "/etc/fail2ban/jail.local"
+
+# Path for Debian/Ubuntu jail settings provided by fail2ban-systemd/firewalld packages on RedHat.
+fail2ban_jail_systemd_firewalld_debian_path: "/etc/fail2ban/jail.d/00-systemd-firewalld.conf"
