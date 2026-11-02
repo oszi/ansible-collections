@@ -1,12 +1,21 @@
 #!/bin/bash
 # Script to run all or the given tests.
 # You may symlink this file into a parent repository - e.g. inventory.
+# shellcheck disable=SC1091 # not following input sources
 set -euo pipefail
 shopt -s nullglob
 cd -- "$(git rev-parse --show-toplevel)"
 
 if [[ ! -e ansible.cfg && -d ansible ]]; then
     cd ansible  # (e.g. in a submodule)
+fi
+
+if [ -z "${VIRTUAL_ENV-}" ]; then
+    if [ -d venv ]; then
+        . venv/bin/activate
+    elif [ -d collections/venv ]; then
+        . collections/venv/bin/activate
+    fi
 fi
 
 if [[ -t 2 ]]; then  # stderr
