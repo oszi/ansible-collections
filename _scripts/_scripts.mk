@@ -1,6 +1,7 @@
 COLLECTIONS ?= $(shell test -d collections && echo collections || echo ..)
 SCRIPTS     ?= $(shell test -d _scripts && echo _scripts || echo $(COLLECTIONS)/_scripts)
 VENV        ?= $(COLLECTIONS)/venv
+TESTS_ARGS  ?=
 
 _VENV_LOCK    := $(VENV)/.lock
 VENV_ACTIVATE := test -d $(VENV) && . $(VENV)/bin/activate \
@@ -27,8 +28,11 @@ update-collections: FORCE
 endif
 
 tests: FORCE
-	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh; \
+	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh $(TESTS_ARGS); \
 	rc=$$?; printf "\007"; exit $$rc;
+
+molecule: TESTS_ARGS := molecule
+molecule: tests
 
 reset: FORCE
 	$(SCRIPTS)/git-reset.sh --force

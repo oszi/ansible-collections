@@ -20,7 +20,7 @@ Scripts to facilitate ansible deployments and source control.
   Verify and reset the repository to a remote branch.
 * **[git-verify.sh](git-verify.sh)** `[GIT REFS ...]`  
   Verify the signatures of all or the specified git branches and tags.
-* **[run-tests.sh](run-tests.sh)** `[-h|--help] | [TESTS ...]`  
+* **[run-tests.sh](run-tests.sh)** `[-h|--help] [TEST [ '[' TEST_ARGS ... ']' ]] ...`  
   Run test scripts in [\_scripts/tests](tests); see the [README.md](tests/README.md).
 * **[\_ansible.mk](_ansible.mk)** `localhost workstation update versions ... playbooks/* oszi.*`  
   `[VERBOSE=y] [CHECK=y] [LIMIT=HOST] [TAGS=TAG1,TAG2] [SKIP_TAGS=TAG1,TAG2]`  

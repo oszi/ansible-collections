@@ -7,6 +7,12 @@ Stable interface to run tests:
 _scripts/run-tests.sh  # [ansible-lint|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
 ```
 
+Arguments between `[` and `]` after a test name are passed to that test verbatim, including `--`.  
+A literal `]` cannot be passed this way; run the test script directly instead.
+```bash
+_scripts/run-tests.sh python [ --black ] molecule [ oszi.general.shell -- test --destroy never ]
+```
+
 Molecule tests are opt-in (`# run-tests: opt-in`) and run only when requested; see [MOLECULE.md](MOLECULE.md).  
 Without arguments, only the roles affected since the previous release are tested:
 ```bash
