@@ -4,21 +4,21 @@ Molecule tests run the roles of `oszi.general`, `oszi.thirdparty` and `oszi.util
 containers with systemd as PID 1. `oszi.environments` is out of scope. Containers get the default
 rootless capability set: no `--privileged`, no `CAP_SYS_ADMIN`.
 
-Molecule runs are slow and need podman plus network access, so agents must not start them on their own.
+Molecule tests are slow and need podman and network access, agents must not run molecule unless asked.
 
 ## Quick start
 
 Requirements: rootless podman with cgroups v2, the venv from `requirements.txt`, and network access to
 the image registries, the distribution mirrors and the repositories a scenario installs from.
 
-Every systemd container consumes several inotify instances of the invoking user. With the Fedora default
+Every systemd container consumes several inotify instances of the invoking user. With the common default
 `fs.inotify.max_user_instances = 128`, about ten concurrent instances exhaust the limit: new containers
 exit with status 255 right after create (UNREACHABLE) and dbus-broker fails with EMFILE. Raise the sysctl
 (for example to 1024) before running many scenarios concurrently.
 
 ```bash
-# Scenarios of the roles affected since the previous release (opt-in test, see README.md)
-_scripts/run-tests.sh molecule
+# Scenarios of the roles affected since the previous release (opt-in test, see tests README.md)
+_scripts/tests/molecule.py
 _scripts/tests/molecule.py --list
 _scripts/tests/molecule.py --ignore-framework   # changed roles only, even if shared framework files changed
 
@@ -70,7 +70,7 @@ deep-merged under every scenario's `molecule.yml` (dicts merge recursively, list
 The base config sets `prerun: false` (ansible-compat would otherwise try to install the source-only
 collections from Galaxy), builds the images in the dependency step, defines the three platforms named
 `${MOLECULE_SCENARIO_NAME}-{fedora,debian,ubuntu}` with inventory groups `fedora`/`redhat`, `debian`,
-`ubuntu`/`debian`, points `ANSIBLE_CONFIG` at the repository `ansible.cfg` (its relative `collections_path`
+`ubuntu`/`debian`, points `ANSIBLE_CONFIG` at the VCS root `ansible.cfg` (its relative `collections_path`
 resolves against the file), and sets the inventory defaults `ansible_user: root` and
 `bootstrap_package_update_cache: true`.
 
@@ -86,7 +86,7 @@ The Containerfiles start from `quay.io/fedora/fedora:latest`, `docker.io/library
 capabilities. The apt lists are removed and dated back so the apt module refreshes them on first use.
 Images are rebuilt by every run with cached layers; base images are pulled only when missing.
 
-### Shared playbooks (oszi.utils)
+### Shared playbooks (oszi.utils.molecule)
 
 * **prepare**: waits for `systemctl is-system-running` to report `running`
   (`molecule_prepare_systemd_wait: false` skips it), imports `oszi.utils.bootstrap` (package cache) and
@@ -102,8 +102,7 @@ Images are rebuilt by every run with cached layers; base images are pulled only 
   as `systemctl show` values) and `molecule_verify_packages` (`present`, `absent`).
 * **images**: see above.
 
-These playbooks alter or inspect molecule instances only; the oszi.utils README rule about not altering
-hosts should gain that exception.
+These playbooks alter or inspect molecule instances only.
 
 ### Scenarios
 

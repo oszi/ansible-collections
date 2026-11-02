@@ -20,8 +20,9 @@ Playbook location pattern: `ansible_collections/oszi/{collection}/playbooks/{pla
 Role location pattern: `ansible_collections/oszi/{collection}/roles/{role}/`  
 Documentation for each role: `meta/argument_specs.yml`
 
-Inventory and user examples: `examples/` and `examples/README.md`  
-Utility scripts: `_scripts/` and `_scripts/README.md`
+Inventory and user examples: `examples/`; see `examples/README.md`  
+Utility scripts: `_scripts/`; see `_scripts/README.md`  
+Test scripts: `_scripts/tests/`; see `_scripts/tests/README.md`
 
 ## Releases
 
@@ -39,16 +40,17 @@ Source-only install; no Ansible Galaxy releases.
 **Before making changes, always:**
 1. Read `CONVENTIONS.md` for Core Conventions.
 2. Read all collections' `README.md` for per-collection rules.
+3. Read `_scripts/tests/MOLECULE.md` for implementing molecule tests; ignore otherwise.
 
 **While making changes:**
 * Prefer additive, reversible changes; never discard changes you did not create.
 * Fix root causes and audit the relevant scope for similar occurrences.
-* Write self-contained, present-state prose; comments explain non-obvious intent or invariants.
+* Write self-contained, present-state prose; comments only explain non-obvious intent or invariants.
 * Avoid decorative Unicode; prefer ASCII unless the character is meaningful.
 
 **After making changes:**
-* Run tests: `_scripts/run-tests.sh [ansible-lint|ansible-vault|galaxy-tags|molecule|python|shellcheck]`  
-  See `_scripts/tests/MOLECULE.md` for molecule tests; do not run molecule automatically.
+* Run tests via `_scripts/run-tests.sh`; see `_scripts/tests/README.md` how.  
+  Do not run molecule unless asked.
 * Never commit changes or create releases yourself.
 
 ## Security Model
