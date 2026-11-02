@@ -18,11 +18,11 @@
     # Forced builds reuse cached layers, so Containerfile changes always apply.
     - name: Build molecule test images
       containers.podman.podman_image:
-        name: "{{ molecule_images_prefix }}-{{ item.key }}"
+        name: "{{ molecule_images_prefix }}/{{ item.key }}"
         tag: "latest"
-        path: "{{ playbook_dir }}/files"
+        path: "{{ playbook_dir }}/containers"
         build:
-          file: "{{ playbook_dir }}/files/{{ item.value }}"
+          file: "{{ playbook_dir }}/containers/{{ item.value }}"
           format: "oci"
           extra_args: "--pull={{ molecule_images_pull }}"
         state: "build"

@@ -18,19 +18,19 @@ driver:
 # Rootless containers with systemd as PID 1, without --privileged and CAP_SYS_ADMIN.
 platforms:
   - name: "${MOLECULE_SCENARIO_NAME}-fedora"
-    image: "localhost/oszi/molecule-fedora:latest"
+    image: "localhost/oszi/molecule/fedora:latest"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [fedora, redhat]
   - name: "${MOLECULE_SCENARIO_NAME}-debian"
-    image: "localhost/oszi/molecule-debian:latest"
+    image: "localhost/oszi/molecule/debian:latest"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [debian]
   - name: "${MOLECULE_SCENARIO_NAME}-ubuntu"
-    image: "localhost/oszi/molecule-ubuntu:latest"
+    image: "localhost/oszi/molecule/ubuntu:latest"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always

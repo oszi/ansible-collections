@@ -47,11 +47,11 @@ is harmless: molecule looks for a `default` scenario to decide about shared stat
 ansible_collections/oszi/utils/extensions/molecule/config.yml   # base config: driver, platforms, ansible
 ansible_collections/oszi/{general,thirdparty}/extensions/molecule/config.yml   # symlinks to the above
 ansible_collections/oszi/utils/playbooks/molecule/
-  images.yml                                        # builds localhost/oszi/molecule-{fedora,debian,ubuntu}
+  containers/Containerfile.{fedora,debian,ubuntu}   # systemd + python3 + package bindings + sudo
+  images.yml                                        # builds localhost/oszi/molecule/{fedora,debian,ubuntu}
   prepare.yml                                       # systemd wait, package cache, users_list
   converge.yml                                      # bootstrap + include_role (derived from the scenario)
   verify.yml                                        # generic assertions from molecule_verify_* vars
-  files/Containerfile.{fedora,debian,ubuntu}        # systemd + python3 + package bindings + sudo
 ansible_collections/oszi/{collection}/extensions/molecule/{scenario}/
   molecule.yml                                      # scenario variables (inventory group_vars)
   prepare.yml                                       # imports oszi.utils.molecule.prepare, plus test tools
