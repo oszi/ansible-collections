@@ -3,18 +3,13 @@
 import os
 import sys
 
-from argparse import ArgumentParser
 from tempfile import TemporaryDirectory
+from typing import List
 
 from testlib import run_tests
 
-args_parser = ArgumentParser(
-    usage="ansible-lint.py [--help]",
-    description="Run ansible-lint in the repository, disabling ansible-vault.",
-)
 
-
-def run_ansible_lint() -> int:
+def run_ansible_lint(args: List[str]) -> int:
     env = os.environ.copy()
     env.update(dict.fromkeys(("ANSIBLE_ASK_VAULT_PASS", "ANSIBLE_ASK_PASS", "ANSIBLE_BECOME_ASK_PASS"), "False"))
 
@@ -29,12 +24,11 @@ def run_ansible_lint() -> int:
 
     # Change ansible temp directory for read-only, agentic environments.
     env.setdefault("ANSIBLE_LOCAL_TEMP", tempdir.name)
-    return run_tests(["ansible-lint"], paths=[], env=env)
+    return run_tests(["ansible-lint", *args], paths=[], env=env)
 
 
 def main() -> None:
-    _ = args_parser.parse_args()
-    rc = run_ansible_lint()
+    rc = run_ansible_lint(sys.argv[1:])
     sys.exit(rc)
 
 
