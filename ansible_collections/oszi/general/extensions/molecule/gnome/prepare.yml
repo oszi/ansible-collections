@@ -7,8 +7,8 @@
   become: true
   gather_facts: false
   tasks:
-    # A small package from the role's default blacklist, so the role must remove it.
-    - name: Ensure the blacklisted test package is installed
+    # Small packages from the role's default blacklist, so the role must remove them.
+    - name: Ensure the blacklisted test packages are installed
       ansible.builtin.package:
-        name: "{{ molecule_gnome_blacklisted_package }}"
+        name: "{{ molecule_gnome_seed_packages }}"
         state: "present"

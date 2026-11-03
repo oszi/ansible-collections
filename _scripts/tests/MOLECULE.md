@@ -131,7 +131,8 @@ changes), verify, destroy.
 Every role of the three collections has a `{role}` scenario; variants cover uninstall paths (`-disabled`),
 `update` entrypoints (converge-only test sequence), enabled thirdparty repositories (`-enabled`, vendor
 network needed), the ssh server, and rootless mode. Heavy by nature: the enabled thirdparty scenarios
-download vendor packages, `gnome` uses a reduced package list, `gnome_users` a small dconf set (each
+download vendor packages, `gnome` installs the full default package set (about 1 GB per platform) to
+catch packages renamed or dropped in new distribution releases, `gnome_users` a small dconf set (each
 setting is a `podman exec`), and `borgmatic` and `python` need PyPI.
 
 Rootless-tagged roles (`_scripts/galaxy-tags.py -t rootless`) have a `{role}-rootless` scenario running

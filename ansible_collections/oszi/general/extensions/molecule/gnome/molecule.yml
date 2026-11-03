@@ -1,35 +1,44 @@
 ---
 # Molecule scenario for oszi.general.gnome; shared settings come from ../config.yml.
-# The default package set (GNOME Shell and apps) is about 1 GB per platform, so both lists are reduced
-# to a few small packages in the same nested, distro-conditional structure as the role defaults.
+# The role's default package lists are not overridden, so packages renamed or dropped in a new distribution
+# release fail the converge; this installs the full GNOME package set (about 1 GB per platform).
+# The verified packages are a subset covering each distro-conditional branch of the defaults.
+# group_vars replace lists as a whole, so the per-distribution lists are built from _common and _distro parts.
 provisioner:
   inventory:
     group_vars:
       all:
-        gnome_packages:
-          - "{{ ['dconf'] if (ansible_facts.os_family == 'RedHat') else [] }}"
-          - "{{ ['dconf-cli'] if (ansible_facts.os_family == 'Debian') else [] }}"
-          - gsettings-desktop-schemas
-          - acl
-          # Also blacklisted: the blacklist must win (the name does not even exist on Fedora).
-          - totem-common
-        # prepare.yml installs the first two entries from the role's default blacklist; gnome-tour is
-        # not installed and stays a no-op.
-        gnome_blacklisted_packages:
-          - "{{ ['fedora-chromium-config'] if (ansible_facts.distribution == 'Fedora') else [] }}"
-          - totem-common
-          - gnome-tour
+        # Installed by prepare.yml from the role's default blacklist, so the role must remove them.
+        molecule_gnome_seed_packages: [gnome-tour]
         molecule_verify_commands:
-          - {cmd: "command -v dconf getfacl"}
-          # The compiled schemas list the GNOME desktop settings (gsettings itself is not pulled in on Debian).
+          - {cmd: "gnome-shell --version", stdout_contains: "GNOME Shell"}
+          - {cmd: "command -v gnome-tweaks dconf-editor getfacl"}
           - {cmd: "grep -qa org.gnome.desktop.interface /usr/share/glib-2.0/schemas/gschemas.compiled"}
+        molecule_verify_packages:
+          present: "{{ molecule_verify_packages_present_common + molecule_verify_packages_present_distro }}"
+          absent: "{{ molecule_verify_packages_absent_common + molecule_verify_packages_absent_distro }}"
+        molecule_verify_packages_present_common:
+          - gnome-shell
+          - gnome-control-center
+          - ptyxis
+          - xdg-desktop-portal-gnome
+          - gnome-shell-extension-user-theme
+          - acl
+        # Blacklisted replacements of default packages, and the seeded package.
+        molecule_verify_packages_absent_common: [gnome-tour, eog, gedit, gnome-terminal, totem]
       fedora:
-        molecule_gnome_blacklisted_package: fedora-chromium-config
-        molecule_verify_packages:
-          present: [dconf, gsettings-desktop-schemas, acl]
-          absent: [fedora-chromium-config, totem-common, gnome-tour]
+        molecule_gnome_seed_packages: [gnome-tour, fedora-chromium-config]
+        molecule_verify_packages_present_distro:
+          - gnome-extensions-app
+          - gnome-shell-extension-appindicator
+          - gnome-shell-extension-blur-my-shell
+        molecule_verify_packages_absent_distro: [fedora-chromium-config, gnome-shell-extension-background-logo]
       debian:
-        molecule_gnome_blacklisted_package: totem-common
-        molecule_verify_packages:
-          present: [dconf-cli, gsettings-desktop-schemas, acl]
-          absent: [totem-common, gnome-tour]
+        molecule_verify_packages_present_distro: [gnome-shell-extension-prefs, gnome-shell-extensions]
+        molecule_verify_packages_absent_distro: []
+      ubuntu:
+        molecule_verify_packages_present_distro:
+          - gnome-shell-extension-prefs
+          - gnome-shell-extensions
+          - gnome-shell-ubuntu-extensions
+        molecule_verify_packages_absent_distro: []
