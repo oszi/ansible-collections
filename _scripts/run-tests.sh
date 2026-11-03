@@ -26,13 +26,17 @@ else
     COLOR_RED=""
 fi
 
-exit_with_error() {
+print_error() {
     printf "${COLOR_RED}run-tests: %s${COLOR_CLEAR}\n" "${1//[[:cntrl:]]/}" >&2
+}
+
+exit_with_error() {
+    print_error "$1"
     exit 1
 }
 
 exit_with_not_found() {
-    printf "${COLOR_RED}%s not found!${COLOR_CLEAR}\n" "${1//[[:cntrl:]]/}" >&2
+    print_error "${1} not found!"
     exit 127
 }
 
@@ -106,18 +110,17 @@ else
 fi
 
 rc=0
+failed=()
 for i in "${!names[@]}"; do
     cmd="${tests_dir}/${names[i]}.py"
-    if [[ -x "$cmd" ]]; then
-        "$cmd" "${args[@]:starts[i]:lengths[i]}" || rc=1
-    elif [[ $# -gt 0 ]]; then
-        printf "${COLOR_RED}%q is not executable!${COLOR_CLEAR}\n" "$cmd" >&2
+    "$cmd" "${args[@]:starts[i]:lengths[i]}" || {
+        failed+=("${names[i]}")
         rc=1
-    fi
+    }
 done
 
-if [[ $rc -ne 0 ]]; then
-    printf "${COLOR_RED}%s${COLOR_CLEAR}\n" "run-tests failed!" >&2
+if [[ $rc -ne 0 && "${#names[@]}" -gt 1 ]]; then
+    print_error "tests failed: ${failed[*]}"
 fi
 
 exit $rc
