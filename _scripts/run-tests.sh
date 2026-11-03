@@ -123,4 +123,8 @@ if [[ $rc -ne 0 && "${#names[@]}" -gt 1 ]]; then
     print_error "tests failed: ${failed[*]}"
 fi
 
+if [[ -t 1 ]]; then  # stdout
+    printf "\007"
+fi
+
 exit $rc
