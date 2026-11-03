@@ -12,7 +12,7 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 import yaml
 
-from testlib import RC, error_code, print_hint, run_shell_get_lines, run_tests, success
+from testlib import RC, Color, error_code, print_error, print_hint, run_shell_get_lines, run_tests_parallel, success
 
 NAMESPACE = "oszi"
 NAMESPACE_PATH = Path("ansible_collections") / NAMESPACE
@@ -31,23 +31,22 @@ RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
 MOLECULE_CMD = ["molecule"]
 MOLECULE_DEFAULT_ARGS = ["test"]
 
+INOTIFY_MAX_USER_INSTANCES_PATH = Path("/proc/sys/fs/inotify/max_user_instances")
+
 Role = Tuple[str, str]  # (collection, role)
 
 args_parser = ArgumentParser(
-    usage="molecule.py [--help] [--all] [--ignore-framework] [--list] [FQCN ...] [-- MOLECULE_ARGS ...]",
+    usage="molecule.py [--help] [--all] [--ignore-framework] [--list] [--workers N] [FQCN ...] [-- MOLECULE_ARGS ...]",
     description="Run molecule scenarios of the roles affected since the previous release, "
     "of the given roles or collections (e.g. oszi.general.shell, oszi.utils), or of everything.",
-    epilog="Molecule arguments after -- replace the default 'test', e.g. -- converge or -- test --destroy never. "
+    epilog="Molecule arguments after -- replace the default 'test', e.g. -- converge. "
     "See MOLECULE.md and README.md.",
 )
 
 args_parser.add_argument("--all", help="run the scenarios of all roles", action="store_true", default=False)
-args_parser.add_argument(
-    "--ignore-framework",
-    help="select only the roles touched directly, even if framework files changed",
-    action="store_true",
-)
-args_parser.add_argument("--list", help="list the selected scenarios without running them", action="store_true")
+args_parser.add_argument("--ignore-framework", help="select only the roles touched directly", action="store_true")
+args_parser.add_argument("--list", help="list selected scenarios without running anything", action="store_true")
+args_parser.add_argument("--workers", help="number of parallel scenarios (<1 for auto)", type=int, default=0)
 args_parser.add_argument("fqcns", help="[FQCN ...] [-- MOLECULE_ARGS ...]", nargs=REMAINDER)
 
 
@@ -228,10 +227,59 @@ def select_scenarios(roles: Iterable[Role]) -> Dict[str, List[Path]]:
     return scenarios
 
 
+def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app_args_all: bool, workers: int) -> int:
+    force_single_cmd = False
+    cmd = []
+    paths = []
+
+    if app_args_all and "reset" in molecule_args:
+        force_single_cmd = True
+        cmd = MOLECULE_CMD + molecule_args + ["--all"]
+        workers = 1
+    elif workers < 1:
+        # Common default of max_user_instances is 128 which allows about 10 containerized systemd instances;
+        # there are usually 3 containers per scenario; dividing by 128 gives the safe default of 1 worker;
+        # only scales up to 3 by default to avoid network and memory bottlenecks.
+        if INOTIFY_MAX_USER_INSTANCES_PATH.exists():
+            inotify_max_user_instances = int(INOTIFY_MAX_USER_INSTANCES_PATH.read_bytes())
+            workers = max(min(inotify_max_user_instances // 128, 3), 1)
+        else:
+            workers = 1
+
+    env = os.environ.copy()
+    if Color.COLORS_ENABLED:
+        env.setdefault("PY_COLORS", "1")
+        env.setdefault("ANSIBLE_FORCE_COLOR", "1")
+
+    rc = RC.OK
+    for collection, scenario_paths in scenarios.items():
+        if not scenario_paths:
+            continue
+
+        if not force_single_cmd:
+            cmd = MOLECULE_CMD + molecule_args + ["-s"]
+            paths = [scenario_path.name for scenario_path in scenario_paths]
+
+        # With 1 worker, scenarios are executed one by one, continuing after failures;
+        # unlike a single run with multiple scenarios that stops on failures.
+        result = run_tests_parallel(cmd, paths, cwd=NAMESPACE_PATH / collection, max_workers=workers, env=env)
+        if RC.is_early_exit(result):
+            return result
+        rc |= result
+
+    if rc != RC.OK and result == RC.OK:
+        print_error("molecule failed above!")
+    return rc
+
+
 def main() -> None:
     app_args = args_parser.parse_args()
     molecule_args = app_args.fqcns[app_args.fqcns.index("--") + 1 :] if "--" in app_args.fqcns else []
     molecule_args = molecule_args or MOLECULE_DEFAULT_ARGS
+
+    if any(arg.startswith("--workers") or arg.startswith("--parallel") for arg in molecule_args):
+        print_hint("Use molecule.py --workers N")
+        sys.exit(error_code("molecule's --workers/--parallel is not supported!"))
 
     os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
     roles, notes = select_roles(app_args)
@@ -254,18 +302,7 @@ def main() -> None:
     if shutil.which("podman") is None:
         sys.exit(error_code("podman not found!"))
 
-    rc = RC.OK
-    for collection, scenario_paths in scenarios.items():
-        if not scenario_paths:
-            continue
-        # Molecule discovers the base config and the scenarios from the collection directory.
-        scenario_args = [arg for scenario_path in scenario_paths for arg in ("-s", scenario_path.name)]
-        cmd = MOLECULE_CMD + molecule_args + scenario_args
-        result = run_tests(cmd, paths=[], cwd=NAMESPACE_PATH / collection)
-        if RC.is_early_exit(result):
-            sys.exit(result)
-        rc |= result
-
+    rc = run_molecule(scenarios, molecule_args, app_args.all, app_args.workers)
     sys.exit(rc)
 
 

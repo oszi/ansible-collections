@@ -4,7 +4,7 @@ A collection of scripts for automated tests such as source code linting.
 
 Stable interface to run tests:
 ```bash
-_scripts/run-tests.sh  # [ansible-lint|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
+_scripts/run-tests.sh # [ansible-lint|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
 ```
 
 Arguments between `[` and `]` after a test name are passed to that test verbatim, including `--`.  
@@ -14,9 +14,11 @@ _scripts/run-tests.sh python [ --black ] molecule [ oszi.general.shell -- test -
 ```
 
 Molecule tests are opt-in (`# run-tests: opt-in`) and run only when requested; see [MOLECULE.md](MOLECULE.md).  
+Default workers is `fs.inotify.max_user_instances[128] // 128`, min 1, max 3; output is captured if >1.  
 Without arguments, only the roles affected since the previous release are tested:
 ```bash
-_scripts/run-tests.sh molecule # '[' [--all] [--ignore-framework] [--list] [oszi.general.shell|oszi.utils ...] [-- MOLECULE_ARGS ...] ']'
+_scripts/run-tests.sh molecule # '[' [--all] [--ignore-framework] [--list] [--workers N] \
+  # [oszi.general.shell|oszi.utils ...] [-- MOLECULE_ARGS ...] ']'
 ```
 
 Reformat python with black - check-only by default:
