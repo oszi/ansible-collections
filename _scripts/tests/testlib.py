@@ -32,7 +32,9 @@ DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
 
 
 class Color:
-    COLORS_ENABLED = getenv_bool("TESTLIB_COLORS_ENABLED", io_is_tty(sys.stdout))
+    COLORS_ENABLED = getenv_bool(
+        "TESTLIB_COLORS_ENABLED", not getenv_bool("NO_COLOR") and (getenv_bool("PY_COLORS") or io_is_tty(sys.stdout))
+    )
 
     class ColorCode:
         def __init__(self, code: int):
@@ -102,6 +104,10 @@ def error_code(message: str, rc: int = RC.ERROR) -> int:
     if rc == RC.OK:
         raise ValueError("testlib.error_code called with RC.OK")
 
+    message = str(message)
+    if not message.endswith("!") and " " not in message:
+        message = f"{message} failed!"
+
     print_error(message, rc)
     return rc
 
@@ -156,7 +162,7 @@ def run_tests(cmd: List[str], paths: List[str], timeout: Optional[float] = None,
                 rc = proc.wait(timeout)
                 if rc == RC.OK:
                     return success(cmd[0])
-                return error_code(f"{cmd[0]} failed!", rc)
+                return error_code(cmd[0], rc)
 
             except (sp.TimeoutExpired, KeyboardInterrupt) as err:
                 rc = error_code_exc(cmd[0], err)
@@ -187,15 +193,26 @@ def run_tests_parallel(
         return run_tests(cmd, paths, timeout, **kwargs)
 
     print_test_cmd(cmd, paths, kwargs.get("cwd"))
+    stdout = sp.DEVNULL if quiet else sp.PIPE if max_workers != 1 and len(paths) > 1 else None
+    stderr = sp.STDOUT if stdout is not None else None
 
     def run_test(path: str) -> sp.CompletedProcess[str]:
-        output = sp.DEVNULL if quiet else sp.PIPE
-        return sp.run(cmd + [path], stdout=output, stderr=output, text=True, timeout=timeout, check=False, **kwargs)
+        return sp.run(cmd + [path], stdout=stdout, stderr=stderr, text=True, timeout=timeout, check=False, **kwargs)
 
+    rc = RC.OK
     try:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             try:
-                results = list(executor.map(run_test, paths))
+                for result in executor.map(run_test, paths):
+                    # stderr is redirected to stdout if not streamed.
+                    if stdout == sp.PIPE:
+                        sys.stdout.write(result.stdout)
+                        sys.stdout.flush()
+
+                    if result.returncode != RC.OK:
+                        rc |= result.returncode
+                        print_error(f"{cmd[0]}: {result.args[-1]} failed!")
+
             except (sp.TimeoutExpired, KeyboardInterrupt):
                 executor.shutdown(wait=True, cancel_futures=True)
                 raise
@@ -203,23 +220,9 @@ def run_tests_parallel(
     except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
         return error_code_exc(cmd[0], err)
 
-    rc = RC.OK
-    for result in results:
-        if result.returncode != RC.OK:
-            rc |= result.returncode
-            if quiet:
-                # Target path of the subprocess, see print_test_cmd
-                print_error(result.args[-1])
-
-        if not quiet:
-            sys.stdout.write(result.stdout)
-            sys.stdout.flush()
-            sys.stderr.write(result.stderr)
-            sys.stderr.flush()
-
     if rc == RC.OK:
         return success(cmd[0])
-    return error_code(f"{cmd[0]} failed!", rc)
+    return error_code(cmd[0], rc)
 
 
 _PARAMS = ParamSpec("_PARAMS")
@@ -239,7 +242,7 @@ def boolean_test_decorator(subject: str) -> Callable[[Callable[_PARAMS, bool]], 
 
             if result is True:
                 sys.exit(success(subject))
-            sys.exit(error_code(f"{subject} failed!"))
+            sys.exit(error_code(subject))
 
         return inner_function
 
