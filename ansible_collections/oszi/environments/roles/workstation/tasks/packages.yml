@@ -4,12 +4,13 @@
     workstation_packages: "{{ workstation_packages | flatten }}"
     workstation_blacklisted_packages: "{{ workstation_blacklisted_packages | flatten }}"
 
-- name: Ensure blacklisted packages are not installed
-  ansible.builtin.package:
-    name: "{{ workstation_blacklisted_packages }}"
-    state: "absent"
-
 - name: Ensure workstation packages are installed
   ansible.builtin.package:
     name: "{{ workstation_packages | difference(workstation_blacklisted_packages) }}"
     state: "present"
+
+# After installation: weak dependencies (Recommends) may pull in blacklisted packages.
+- name: Ensure blacklisted packages are not installed
+  ansible.builtin.package:
+    name: "{{ workstation_blacklisted_packages }}"
+    state: "absent"
