@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # pylint: disable=line-too-long,missing-function-docstring,missing-module-docstring
-import sys
-
 from argparse import ArgumentParser
 
 from testlib import run_shell_get_lines, run_tests
@@ -26,8 +24,7 @@ args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 def main() -> None:
     app_args = args_parser.parse_args()
     paths = app_args.paths or run_shell_get_lines(GIT_LS_FILES, unique=True)
-    rc = run_tests(SHELLCHECK_CMD, paths)
-    sys.exit(rc)
+    run_tests(SHELLCHECK_CMD, paths, sys_exit=True)
 
 
 if __name__ == "__main__":

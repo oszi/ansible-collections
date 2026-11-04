@@ -3,7 +3,6 @@
 # run-tests: opt-in
 import os
 import shutil
-import sys
 
 from argparse import ArgumentParser, REMAINDER
 from functools import lru_cache
@@ -131,7 +130,7 @@ def previous_release() -> str:
     describe = f"git describe --tags --abbrev=0 --match='{RELEASE_TAG_GLOB}'"
     releases = run_shell_get_lines(f"{describe} HEAD 2>/dev/null || true")
     if not releases:
-        sys.exit(error_code("No release tag found; use --all or FQCNs."))
+        error_code("No release tag found; use --all or FQCNs.", sys_exit=True)
     head_is_release = run_shell_get_lines(
         f"git describe --tags --exact-match --match='{RELEASE_TAG_GLOB}' HEAD 2>/dev/null || true"
     )
@@ -185,7 +184,7 @@ def select_roles(app_args) -> Tuple[Set[Role], List[str]]:
         fqcns = fqcns[: fqcns.index("--")]
     if app_args.all:
         if fqcns:
-            sys.exit(error_code("--all cannot be combined with FQCNs."))
+            error_code("--all cannot be combined with FQCNs.", sys_exit=True)
         return all_roles(), ["Selected all roles."]
 
     if fqcns:
@@ -194,10 +193,10 @@ def select_roles(app_args) -> Tuple[Set[Role], List[str]]:
         for fqcn in fqcns:
             parsed = parse_fqcn(fqcn)
             if parsed is None:
-                sys.exit(error_code(f"Not a role or collection FQCN in namespace {NAMESPACE}: {fqcn}"))
+                error_code(f"Not a role or collection FQCN in namespace {NAMESPACE}: {fqcn}", sys_exit=True)
             collection, role = parsed
             if role and parsed not in available_roles:
-                sys.exit(error_code(f"Role not found: {fqcn}"))
+                error_code(f"Role not found: {fqcn}", sys_exit=True)
             roles |= {parsed} if role else {r for r in available_roles if r[0] == collection}
         return roles, [f"Selected {len(roles)} role(s) from the command line."]
 
@@ -263,9 +262,10 @@ def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app
         # With 1 worker, scenarios are executed one by one, continuing after failures;
         # unlike a single run with multiple scenarios that stops on failures.
         result = run_tests_parallel(cmd, paths, cwd=NAMESPACE_PATH / collection, max_workers=workers, env=env)
-        if RC.is_early_exit(result):
+        if RC.is_signal(result):
+            print_hint("Use molecule.py --all -- reset")
             return result
-        rc |= result
+        rc = RC.select(rc, result)
 
     if rc != RC.OK and result == RC.OK:
         print_error("molecule failed above!")
@@ -279,7 +279,7 @@ def main() -> None:
 
     if any(arg.startswith("--workers") or arg.startswith("--parallel") for arg in molecule_args):
         print_hint("Use molecule.py --workers N")
-        sys.exit(error_code("molecule's --workers/--parallel is not supported!"))
+        error_code("molecule's --workers/--parallel are not supported!", sys_exit=True)
 
     os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
     roles, notes = select_roles(app_args)
@@ -288,22 +288,19 @@ def main() -> None:
 
     scenarios = select_scenarios(roles)
     if not any(scenarios.values()):
-        sys.exit(success("molecule: nothing to test!"))
+        success("molecule: nothing to test!", sys_exit=True)
 
     if app_args.list:
         for collection, scenario_paths in scenarios.items():
             for scenario_path in scenario_paths:
                 print(f"{NAMESPACE}.{collection}: {scenario_path.name}")
-        sys.exit(RC.OK)
+        RC.status(RC.OK, sys_exit=True)
 
-    if shutil.which("molecule") is None:
-        sys.exit(error_code("molecule not found! source venv/bin/activate"))
-
-    if shutil.which("podman") is None:
-        sys.exit(error_code("podman not found!"))
+    if shutil.which(MOLECULE_CMD[0]) is None:
+        error_code("molecule not found! `source venv/bin/activate`", sys_exit=True)
 
     rc = run_molecule(scenarios, molecule_args, app_args.all, app_args.workers)
-    sys.exit(rc)
+    RC.status(rc, sys_exit=True)
 
 
 if __name__ == "__main__":

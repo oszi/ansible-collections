@@ -43,15 +43,13 @@ def main() -> None:
     if app_args.black:
         black_cmd = BLACK_CMD.copy()
         black_cmd.remove("--check")
-        rc_black = run_tests(black_cmd, paths, env=env)
-        sys.exit(rc_black)
+        run_tests(black_cmd, paths, env=env, sys_exit=True)
 
     rc_pylint = run_tests(PYLINT_CMD, paths, env=env)
-    rc_black = run_tests_parallel(BLACK_CMD, paths, quiet=True, env=env)
+    rc_black = run_tests_parallel(BLACK_CMD, paths, env=env, quiet=True)
     if rc_black != RC.OK:
         print_hint(f"{sys.argv[0]} --black")
-
-    sys.exit(rc_pylint | rc_black)
+    RC.select(rc_pylint, rc_black, sys_exit=True)
 
 
 if __name__ == "__main__":
