@@ -1,0 +1,11 @@
+# Molecule test image, built by the oszi.utils.molecule.build playbook; see _scripts/tests/MOLECULE.md.
+FROM docker.io/library/debian:stable-slim
+
+# The apt lists stay in the image; see the image TTL in the build playbook.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        systemd systemd-sysv dbus python3 python3-apt sudo ca-certificates \
+    && apt-get clean
+
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]

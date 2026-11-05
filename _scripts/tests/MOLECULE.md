@@ -14,22 +14,28 @@ the image registries, the distribution mirrors and the repositories a scenario i
 Every systemd container consumes several inotify instances of the invoking user. With the common default
 `fs.inotify.max_user_instances = 128`, about ten concurrent instances exhaust the limit: new containers
 exit with status 255 right after create (UNREACHABLE) and dbus-broker fails with EMFILE. Raise the sysctl
-(for example to 1024) before running many scenarios concurrently.
+(for example to 1024) before running multiple scenarios concurrently. The default number of workers is
+`fs.inotify.max_user_instances // 128`, min 1, max 3.
+
+The output of `test` is always captured and printed only for failed scenarios (running all scenarios produces
+over 100k lines); output is also captured when there are multiple workers with any subcommand; stderr is
+redirected to stdout to preserve ordering if output is captured.
 
 ```bash
 # Scenarios of the roles affected since the previous release (opt-in test, see tests README.md)
 _scripts/tests/molecule.py
+_scripts/tests/molecule.py --ignore-framework # changed roles only, even if framework files changed
 _scripts/tests/molecule.py --list
-_scripts/tests/molecule.py --ignore-framework   # changed roles only, even if shared framework files changed
 
-# Scenarios of given roles or collections, of everything, or with other molecule arguments
-_scripts/tests/molecule.py oszi.general.shell oszi.utils.facts
+# Scenarios of everything, of given roles or collections, or with other molecule arguments
 _scripts/tests/molecule.py --all
+_scripts/tests/molecule.py oszi.general.shell oszi.utils.facts
 _scripts/tests/molecule.py oszi.general.shell -- test --destroy never
 
-# Molecule directly, always from a collection directory
+# Molecule directly: build the images from the repository root, then run from a collection directory
+ansible-playbook -i localhost, oszi.utils.molecule.build # molecule.py runs this itself
 cd ansible_collections/oszi/general
-molecule test -s shell --destroy never    # keeps the instances; also skips the initial destroy
+molecule test -s shell --destroy never
 molecule login -s shell -h shell-debian
 molecule destroy -s shell
 ```
@@ -43,13 +49,14 @@ is harmless: molecule looks for a `default` scenario to decide about shared stat
 ```
 ansible_collections/oszi/utils/extensions/molecule/
   config.yml       # base config: driver, platforms, ansible
-  Containerfile.*  # fedora, debian, ubuntu images: systemd + python3 + package bindings + sudo
 
 ansible_collections/oszi/{general,thirdparty}/extensions/molecule/
   config.yml       # symlinks to config.yml in utils
 
 ansible_collections/oszi/utils/playbooks/molecule/
-  prepare.yml      # systemd wait, package cache, users_list
+  build.yml        # builds the images in containers/; run once before the scenarios
+  containers/      # fedora, debian, ubuntu images: systemd + python3 + package bindings + sudo
+  prepare.yml      # systemd wait, bootstrap, users_list
   converge.yml     # bootstrap + include_role (derived from the scenario)
   verify.yml       # generic assertions from molecule_verify_* vars
 
@@ -72,48 +79,47 @@ deep-merged under every scenario's `molecule.yml` (dicts merge recursively, list
 The base config sets `prerun: false` (ansible-compat would otherwise try to install the source-only
 collections from Galaxy), disables the dependency step, defines the three platforms named
 `${MOLECULE_SCENARIO_NAME}-{fedora,debian,ubuntu}` with inventory groups `fedora`/`redhat`, `debian`,
-`ubuntu`/`debian`, configures ansible.cfg, and sets the inventory defaults `ansible_user: root` and
-`bootstrap_package_update_cache: true`.
+`ubuntu`/`debian` from pre-built images, configures ansible.cfg (pipelining on: so a task costs one
+`podman exec`), and sets the inventory defaults such as `ansible_user: root`.
 
 `${VAR}` and `$VAR` in base config and `molecule.yml` are interpolated from molecule's environment
-(including `MOLECULE_PROJECT_DIRECTORY`, the collection directory, and `MOLECULE_SCENARIO_NAME`); a literal
-dollar sign is `$$`.
+(including `MOLECULE_PROJECT_DIRECTORY`, the collection directory, and `MOLECULE_SCENARIO_NAME`);
+a literal dollar sign is `$$`.
 
 ### Images
 
 The Containerfiles start from `quay.io/fedora/fedora:latest`, `docker.io/library/debian:stable-slim` and
 `docker.io/library/ubuntu:latest` and add systemd, python3, the package manager bindings, `sudo` and
 `ca-certificates`. Fedora masks `systemd-oomd` and `systemd-resolved`, which cannot run without extra
-capabilities. The apt lists are removed and dated back so the apt module refreshes them on first use.
+capabilities. The package metadata stays in the images and scenarios install from it; the image TTL bounds
+its age, and dnf still refreshes repositories past their `metadata_expire`.
 
-The podman driver builds them in the create step as `localhost/molecule_local/oszi/{fedora,debian,ubuntu}`.
-Platform `dockerfile` paths are joined to the scenario directory as strings, so they are relative
-(`../../../../utils/...`) and assume scenarios directly under `extensions/molecule/`. The driver renders each
-Containerfile as a Jinja template and builds it with the scenario directory as context: Containerfiles must
-not contain Jinja syntax or `COPY`/`ADD`. An image is rebuilt only when it is missing or its Containerfile
-changed; base images are pulled only when missing. Instances kept with `--destroy never` keep their image
-until destroyed.
+The `oszi.utils.molecule.build` playbook builds them as `localhost/molecule_local/oszi/{fedora,debian,ubuntu}`
+with `playbooks/molecule/containers` as the build context; `MOLECULE_BUILD_IMAGE_PREFIX` in the environment
+replaces the prefix for the playbook and the platforms alike. `molecule.py` runs it once before the scenarios of the
+subcommands creating instances (`test`, `create`, `converge`, `prepare`, `check`); run it from the repository root
+before invoking molecule directly. An image is rebuilt when it is missing, its Containerfile changed or it is older
+than `molecule_build_image_ttl` (`24h`). Expired images and `-e molecule_build_force=true` build without cache and
+pull newer base images; otherwise base images are pulled only when missing.
 
-Concurrent molecule runs may build the same image twice; the last build gets the tag and the other one is
-left dangling (`podman image prune`). Concurrent runs from checkouts with different Containerfiles flip the
-tag between each other and should not overlap.
+The platforms use the images as `pre_build_image`, so the driver never builds them: the create step fails
+with `Can't pull image ...` when an image is missing. Instances kept with `--destroy never` keep their image
+until destroyed. Builds from checkouts with different Containerfiles flip the tag between each other,
+set a different `MOLECULE_BUILD_IMAGE_PREFIX` to prevent that.
 
 ### Shared playbooks (oszi.utils.molecule)
 
-* **prepare**: waits for `systemctl is-system-running` to report `running`
-  (`molecule_prepare_systemd_wait: false` skips it), imports `oszi.utils.bootstrap` (package cache) and
-  creates every user in `users_list`, the variable the `users`, `shell`, `dotfiles` and `gnome_users`
-  roles consume.
-* **converge**: imports `oszi.utils.bootstrap`, then includes `molecule_converge_roles` (list of
-  `{name, tasks_from}`), by default the role named like the scenario up to the first dash in the collection
-  molecule runs from. `molecule_become_user` (default `root`) runs the play as another user for rootless
-  scenarios.
-* **verify**: asserts `molecule_verify_paths` (`path`, `state: file|directory|link|absent`, `mode`,
-  `owner`, `group`, link `src`), `molecule_verify_commands` (`cmd` in bash with `set -euo pipefail`,
-  `user`, exact `stdout` or `stdout_contains`), `molecule_verify_units` (`name`, `load`, `active`, `enabled`
-  as `systemctl show` values) and `molecule_verify_packages` (`present`, `absent`).
-
-These playbooks alter or inspect molecule instances only.
+* **build**: Builds the platform images on the controller; see Images above.
+* **prepare**: Waits for `systemctl is-system-running` to report `running`
+  (`molecule_prepare_systemd_wait: false` skips it), imports `oszi.utils.bootstrap` and creates every user
+  in `users_list`, the variable the `users`, `shell`, `dotfiles` and `gnome_users` roles consume.
+* **converge**: Imports `oszi.utils.bootstrap`, includes `molecule_converge_roles` (list of `{name, tasks_from}`),
+  by default the role named like the scenario up to the first dash in the collection molecule runs from.
+  `molecule_become_user` (default `root`) runs the play as another user for rootless scenarios.
+* **verify**: Asserts `molecule_verify_paths` (`path`, `state: file|directory|link|absent`, `mode`, `owner`, `group`,
+  link `src`), `molecule_verify_commands` (`cmd` in bash with `set -euo pipefail`, `user`, exact `stdout` or
+  `stdout_contains`), `molecule_verify_units` (`name`, `load`, `active`, `enabled` as `systemctl show` values)
+  and `molecule_verify_packages` (`present`, `absent`).
 
 ### Scenarios
 
@@ -123,8 +129,7 @@ A scenario is `molecule.yml` with `provisioner.inventory.group_vars` (`all`, or 
 file is missing, so FQCNs cannot be configured centrally; the stubs are also where scenarios add their own
 plays. Scenario names are `{role}` or `{role}-{variant}`; role names never contain dashes.
 
-`molecule test` runs: destroy, syntax, create, prepare, converge, idempotence (second converge with zero
-changes), verify, destroy.
+`molecule test` runs: destroy, syntax, create, prepare, converge, idempotence, verify, destroy.
 
 ## Scenarios in place
 
@@ -138,12 +143,12 @@ setting is a `podman exec`), and `borgmatic` and `python` need PyPI.
 Rootless-tagged roles (`_scripts/galaxy-tags.py -t rootless`) have a `{role}-rootless` scenario running
 the role as `tester` via `molecule_become_user`, so `ansible_facts.user_uid` is non-zero and the tilde
 paths and `*_manage_packages` defaults apply. Their prepare installs the packages the role would manage
-as root and sets `bootstrap_package_update_cache: false` for the converge.
+as root.
 
 Not testable in these containers: firewalld enabled (polkit needs `CAP_SYS_ADMIN`), nested podman
-(quadlet and kube services, deploy and pull paths), snaps and `snap update` (snapd exits with
-237/KEYRING), SELinux changes, libvirt daemons, ACME issuance, the CloudFlare API, `localectl`, `wg-quick`
-interfaces, and flatpak remotes and apps (bubblewrap).
+(quadlet and kube services, deploy and pull paths), snaps and `snap update` (snapd exits with 237/KEYRING),
+SELinux changes, libvirt daemons, ACME issuance, the CloudFlare API, `localectl`, `wg-quick` interfaces,
+and flatpak remotes and apps (bubblewrap).
 
 ## Checklist for scenario authors
 
@@ -157,13 +162,13 @@ interfaces, and flatpak remotes and apps (bubblewrap).
 * `update` entrypoints and `state: latest` belong in a variant whose `scenario.test_sequence` omits
   idempotence.
 * Scenarios needing network beyond the distribution mirrors say so in the variant name (`-enabled`).
-* Group_vars replace lists as a whole: a `debian` list does not extend the `all` list. Build per-distro
+* Group vars replace lists as a whole: a `debian` list does not extend the `all` list. Build per-distro
   lists from `_common` and `_distro` variables when needed.
 * Verify commands run with `pipefail`: `cmd | grep -q` can fail with SIGPIPE; use plain `grep`.
 * Only `molecule test` takes `-p`; the single-platform loop is
   `molecule test -s X -p X-debian --destroy never`, then `molecule destroy -s X` before setup changes.
 * The images have no `ip` command, so network facts give no `default_ipv4` unless iproute is installed in
-  prepare.
+  prepare. Other requirements of facts can also be absent.
 
 ## Findings
 
@@ -180,6 +185,7 @@ interfaces, and flatpak remotes and apps (bubblewrap).
 * Molecule: `provisioner.inventory.group_vars` feeds inventory variables (the `ansible:` section has no
   inventory key) and play `vars` outrank them; `dependency.env` is ignored for the shell dependency,
   which also runs without molecule's ansible.cfg; `--destroy never` also skips the initial destroy.
-* The apt module's `cache_valid_time` compares the mtime of `/var/lib/apt/lists`; the dnf module rejects
-  `cache_valid_time`, so `bootstrap_apt_cache_valid_time` stays in the `debian` group.
+* `bootstrap_package_update_cache` costs every container a download: the dnf5 module marks every repository
+  cache expired, and the apt module's `cache_valid_time` compares the mtime of `/var/lib/apt/lists` (the dnf
+  module rejects it, so it belongs in the `debian` group).
 * Connecting as root makes Ansible chown its temporary files, so `acl` is not needed for `become_user`.

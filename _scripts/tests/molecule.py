@@ -11,12 +11,13 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 import yaml
 
-from testlib import RC, Color, error_code, print_error, print_hint, run_shell_get_lines, run_tests_parallel, success
+from testlib import RC, Color, error_code, print_hint, run_shell_get_lines, run_test_cmd, run_tests_parallel, success
 
 NAMESPACE = "oszi"
 NAMESPACE_PATH = Path("ansible_collections") / NAMESPACE
 COLLECTIONS = ("general", "thirdparty", "utils")
 SCENARIOS_DIR = Path("extensions") / "molecule"
+RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
 
 # Changes to the shared molecule framework and tooling affect every role.
 FRAMEWORK_PATHS = (
@@ -26,9 +27,14 @@ FRAMEWORK_PATHS = (
     f"{NAMESPACE_PATH}/utils/playbooks/molecule/",
 )
 
-RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
 MOLECULE_CMD = ["molecule"]
 MOLECULE_DEFAULT_ARGS = ["test"]
+
+MOLECULE_INSTANCE_COMMANDS = ("check", "converge", "create", "prepare", "test")
+MOLECULE_VALUE_OPTIONS = ("-c", "--base-config", "-e", "--env-file")
+
+BUILD_PLAYBOOK_CMD = ["ansible-playbook", "-i", "localhost,"]
+BUILD_PLAYBOOK = "oszi.utils.molecule.build"
 
 INOTIFY_MAX_USER_INSTANCES_PATH = Path("/proc/sys/fs/inotify/max_user_instances")
 
@@ -39,7 +45,7 @@ args_parser = ArgumentParser(
     description="Run molecule scenarios of the roles affected since the previous release, "
     "of the given roles or collections (e.g. oszi.general.shell, oszi.utils), or of everything.",
     epilog="Molecule arguments after -- replace the default 'test', e.g. -- converge. "
-    "See MOLECULE.md and README.md.",
+    "Images are built once automatically. See MOLECULE.md and README.md.",
 )
 
 args_parser.add_argument("--all", help="run the scenarios of all roles", action="store_true", default=False)
@@ -226,16 +232,55 @@ def select_scenarios(roles: Iterable[Role]) -> Dict[str, List[Path]]:
     return scenarios
 
 
-def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app_args_all: bool, workers: int) -> int:
-    force_single_cmd = False
-    cmd = []
-    paths = []
+def get_subcommand_arg(molecule_args: List[str]) -> str:
+    """The first argument that is neither a global option nor the value of one."""
+    skip_value = False
+    for arg in molecule_args:
+        if skip_value:
+            skip_value = False
+        elif arg in MOLECULE_VALUE_OPTIONS:
+            skip_value = True
+        elif not arg.startswith("-"):
+            return arg
+    return ""
 
-    if app_args_all and "reset" in molecule_args:
-        force_single_cmd = True
-        cmd = MOLECULE_CMD + molecule_args + ["--all"]
+
+def run_build_playbook() -> int:
+    env = os.environ.copy()
+    env.update(
+        dict.fromkeys(
+            (
+                "ANSIBLE_ASK_PASS",
+                "ANSIBLE_ASK_VAULT_PASS",
+                "ANSIBLE_BECOME",
+                "ANSIBLE_BECOME_ASK_PASS",
+                "ANSIBLE_DEPRECATION_WARNINGS",
+            ),
+            "False",
+        )
+    )
+    env.update(
+        {
+            "ANSIBLE_PIPELINING": "True",
+            "ANSIBLE_PYTHON_INTERPRETER": "auto_silent",
+            "ANSIBLE_VERBOSITY": "0",
+        }
+    )
+    return run_test_cmd(BUILD_PLAYBOOK_CMD, [BUILD_PLAYBOOK], BUILD_PLAYBOOK, env=env, quiet_success=True)
+
+
+def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app_args_all: bool, workers: int) -> int:
+    subcommand = get_subcommand_arg(molecule_args)
+    if app_args_all and subcommand == "reset":
+        targets = [{"args": ["--all"], "cwd": NAMESPACE_PATH / collection} for collection in COLLECTIONS]
         workers = 1
-    elif workers < 1:
+    else:
+        targets = []
+        for collection, scenario_paths in scenarios.items():
+            for scenario_path in scenario_paths:
+                targets.append({"args": ["-s", scenario_path.name], "cwd": NAMESPACE_PATH / collection})
+
+    if workers < 1:
         # Common default of max_user_instances is 128 which allows about 10 containerized systemd instances;
         # there are usually 3 containers per scenario; dividing by 128 gives the safe default of 1 worker;
         # only scales up to 3 by default to avoid network and memory bottlenecks.
@@ -250,27 +295,13 @@ def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app
         env.setdefault("PY_COLORS", "1")
         env.setdefault("ANSIBLE_FORCE_COLOR", "1")
 
-    rc = RC.OK
-    for collection, scenario_paths in scenarios.items():
-        if not scenario_paths:
-            continue
-
-        if not force_single_cmd:
-            cmd = MOLECULE_CMD + molecule_args + ["-s"]
-            paths = [scenario_path.name for scenario_path in scenario_paths]
-
-        # With 1 worker, scenarios are executed one by one, continuing after failures;
-        # unlike a single run with multiple scenarios that stops on failures.
-        result = run_tests_parallel(
-            cmd, paths, cwd=NAMESPACE_PATH / collection, max_workers=workers, env=env, quiet_if_ok=True
-        )
-        if RC.is_signal(result):
-            print_hint("Use molecule.py --all -- reset")
-            return result
-        rc = RC.select(rc, result)
-
-    if rc != RC.OK and result == RC.OK:
-        print_error("molecule failed above!")
+    # With 1 worker, scenarios are executed one by one, continuing after failures;
+    # unlike a single run with multiple scenarios that stops on failures.
+    rc = run_tests_parallel(
+        MOLECULE_CMD + molecule_args, targets, max_workers=workers, env=env, quiet_if_ok=(subcommand == "test")
+    )
+    if RC.is_signal(rc):
+        print_hint("Use molecule.py --all -- reset")
     return rc
 
 
@@ -300,6 +331,11 @@ def main() -> None:
 
     if shutil.which(MOLECULE_CMD[0]) is None:
         error_code("molecule not found! `source venv/bin/activate`", sys_exit=True)
+
+    if get_subcommand_arg(molecule_args) in MOLECULE_INSTANCE_COMMANDS:
+        rc = run_build_playbook()
+        if rc != RC.OK:
+            RC.status(rc, sys_exit=True)
 
     rc = run_molecule(scenarios, molecule_args, app_args.all, app_args.workers)
     RC.status(rc, sys_exit=True)

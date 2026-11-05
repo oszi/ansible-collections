@@ -9,8 +9,6 @@ provisioner:
           - name: tester
             shell: /bin/bash
         molecule_become_user: tester
-        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
-        bootstrap_package_update_cache: false
         gnome_users_dconf_vars:
           /org/gnome/desktop/interface/clock-format: "'24h'"
           /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"

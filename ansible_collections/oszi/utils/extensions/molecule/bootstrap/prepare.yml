@@ -1,3 +1,22 @@
 ---
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# The images ship the package metadata, which would satisfy the verify commands without the role's cache update.
+- name: Remove the package metadata shipped by the images
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Remove the dnf metadata
+      when: "'fedora' in group_names"
+      ansible.builtin.command:
+        argv: [dnf, clean, all]
+      changed_when: true
+
+    - name: Remove the apt lists
+      when: "'debian' in group_names"
+      ansible.builtin.shell:
+        cmd: "set -euo pipefail; rm -rf -- /var/lib/apt/lists/*"
+        executable: /bin/bash
+      changed_when: true

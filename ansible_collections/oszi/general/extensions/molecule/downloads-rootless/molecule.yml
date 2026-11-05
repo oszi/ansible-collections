@@ -10,8 +10,6 @@ provisioner:
           - name: tester
             shell: /bin/bash
         molecule_become_user: tester
-        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
-        bootstrap_package_update_cache: false
         # sha256 of the fixed payload written by prepare.yml.
         molecule_downloads_payload_sha256: "17e03c4d745c02935c88952c3a7a1fdde1ff7e42bee3a3be17c2692dca7a0287"
         downloads_list:

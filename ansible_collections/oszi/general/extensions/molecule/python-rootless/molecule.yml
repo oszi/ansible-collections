@@ -10,8 +10,6 @@ provisioner:
           - name: tester
             shell: /bin/bash
         molecule_become_user: tester
-        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
-        bootstrap_package_update_cache: false
         # A pinned pure-python package in a virtualenv under the home; the venv module needs no extra package.
         python_pip_list:
           - name: ["six==1.17.0"]

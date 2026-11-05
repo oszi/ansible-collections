@@ -9,8 +9,6 @@ provisioner:
           - name: tester
             shell: /bin/bash
         molecule_become_user: tester
-        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root if needed.
-        bootstrap_package_update_cache: false
         # The built-in templates default to the workstations group.
         dotfiles_gnupg_enabled: true
         dotfiles_git_enabled: true

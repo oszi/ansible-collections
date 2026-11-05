@@ -10,8 +10,6 @@ provisioner:
           - name: tester
             shell: /bin/bash
         molecule_become_user: tester
-        # The converge runs the bootstrap as tester; prepare.yml updates the cache as root.
-        bootstrap_package_update_cache: false
         molecule_rootless_packages: [python3-cryptography]
         acme_certificates: []
         acme_revoke_paths: ["~/.letsencrypt/live/molecule"]

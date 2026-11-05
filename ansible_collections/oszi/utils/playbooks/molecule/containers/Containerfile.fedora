@@ -1,11 +1,10 @@
-# Molecule test image, built by the podman driver in the create step; see _scripts/tests/MOLECULE.md.
-# The driver renders this file as a Jinja template and builds it in the scenario directory:
-# no Jinja syntax, no COPY or ADD.
+# Molecule test image, built by the oszi.utils.molecule.build playbook; see _scripts/tests/MOLECULE.md.
 FROM quay.io/fedora/fedora:latest
 
+# The repository metadata stays in the image; see the image TTL in the build playbook.
 # Mask the units that fail without extra capabilities so the system boots to "running".
 RUN dnf -y install systemd python3 python3-libdnf5 sudo \
-    && dnf clean all \
+    && dnf clean packages \
     && systemctl mask systemd-oomd.service systemd-oomd.socket \
         systemd-resolved.service systemd-resolved-monitor.socket systemd-resolved-varlink.socket
 

@@ -6,7 +6,7 @@
 # Source-only collections: ansible-compat must not install anything.
 prerun: false
 
-# Nothing to install; the podman driver builds the images in the create step.
+# Nothing to install.
 dependency:
   name: galaxy
   enabled: false
@@ -15,27 +15,25 @@ driver:
   name: podman
 
 # Rootless containers with systemd as PID 1, without --privileged and CAP_SYS_ADMIN.
-# The driver joins dockerfile to the scenario directory: extensions/molecule/{scenario}/ is 4 levels
-# below the namespace directory; image is joined to localhost/molecule_local.
+# The images are built once by the oszi.utils.molecule.build playbook, which molecule.py runs ahead of
+# the scenarios; the driver never builds them and fails in the create step when one is missing.
+# MOLECULE_BUILD_IMAGE_PREFIX selects the images here and in the build playbook; same default in both.
 platforms:
   - name: "${MOLECULE_SCENARIO_NAME}-fedora"
-    image: "oszi/fedora"
-    dockerfile: "../../../../utils/extensions/molecule/Containerfile.fedora"
-    pre_build_image: false
+    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi}/fedora"
+    pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [fedora, redhat]
   - name: "${MOLECULE_SCENARIO_NAME}-debian"
-    image: "oszi/debian"
-    dockerfile: "../../../../utils/extensions/molecule/Containerfile.debian"
-    pre_build_image: false
+    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi}/debian"
+    pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [debian]
   - name: "${MOLECULE_SCENARIO_NAME}-ubuntu"
-    image: "oszi/ubuntu"
-    dockerfile: "../../../../utils/extensions/molecule/Containerfile.ubuntu"
-    pre_build_image: false
+    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi}/ubuntu"
+    pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [ubuntu, debian]
@@ -46,6 +44,8 @@ ansible:
       collections_path: "${MOLECULE_PROJECT_DIRECTORY}/../../..:~/.ansible/collections:/usr/share/ansible/collections"
       gathering: explicit
       inject_facts_as_vars: false
+      pipelining: true
+      strategy: free
       verbosity: 1
   executor:
     args:
@@ -68,7 +68,6 @@ provisioner:
     group_vars:
       all:
         ansible_user: root
-        # The images ship without package metadata.
-        bootstrap_package_update_cache: true
-      debian:
-        bootstrap_apt_cache_valid_time: 3600
+        # The images ship package metadata no older than their TTL (see the build playbook); refreshing it
+        # would cost every container a download, and dnf still refreshes repositories past metadata_expire.
+        bootstrap_package_update_cache: false

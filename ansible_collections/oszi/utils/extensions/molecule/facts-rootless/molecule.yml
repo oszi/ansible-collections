@@ -9,5 +9,3 @@ provisioner:
           - name: tester
             shell: /bin/bash
         molecule_become_user: tester
-        # The converge runs the bootstrap as tester, which must not update the package cache.
-        bootstrap_package_update_cache: false

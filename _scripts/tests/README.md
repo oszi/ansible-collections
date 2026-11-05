@@ -13,8 +13,7 @@ A literal `]` cannot be passed this way; run the test script directly instead.
 _scripts/run-tests.sh python [ --black ] molecule [ oszi.general.shell -- test --destroy never ]
 ```
 
-Molecule tests are opt-in (`# run-tests: opt-in`) and run only when requested; see [MOLECULE.md](MOLECULE.md).  
-Default workers is `fs.inotify.max_user_instances[128] // 128`, min 1, max 3; output is captured if >1.  
+Molecule tests are opt-in and run only when requested; see [MOLECULE.md](MOLECULE.md).  
 Without arguments, only the roles affected since the previous release are tested:
 ```bash
 _scripts/run-tests.sh molecule # '[' [--all] [--ignore-framework] [--list] [--workers N] \
