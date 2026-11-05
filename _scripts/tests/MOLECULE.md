@@ -88,18 +88,19 @@ a literal dollar sign is `$$`.
 
 ### Images
 
-The Containerfiles start from `quay.io/fedora/fedora:latest`, `docker.io/library/debian:stable-slim` and
+The Containerfiles start from `quay.io/fedora/fedora:latest`, `docker.io/library/debian:stable` and
 `docker.io/library/ubuntu:latest` and add systemd, python3, the package manager bindings, `sudo` and
 `ca-certificates`. Fedora masks `systemd-oomd` and `systemd-resolved`, which cannot run without extra
 capabilities. The package metadata stays in the images and scenarios install from it; the image TTL bounds
-its age, and dnf still refreshes repositories past their `metadata_expire`.
+its age, and dnf still refreshes repositories past their `metadata_expire`. The OS versions are controlled by
+the `MOLECULE_BUILD_{FEDORA,DEBIAN,UBUNTU}_VERSION` environment variables.
 
 The `oszi.utils.molecule.build` playbook builds them as `localhost/molecule_local/oszi/{fedora,debian,ubuntu}`
 with `playbooks/molecule/containers` as the build context; `MOLECULE_BUILD_IMAGE_PREFIX` in the environment
 replaces the prefix for the playbook and the platforms alike. `molecule.py` runs it once before the scenarios of the
 subcommands creating instances (`test`, `create`, `converge`, `prepare`, `check`); run it from the repository root
 before invoking molecule directly. An image is rebuilt when it is missing, its Containerfile changed or it is older
-than `molecule_build_image_ttl` (`24h`). Expired images and `-e molecule_build_force=true` build without cache and
+than `molecule_build_image_ttl` (`12h`). Expired images and `-e molecule_build_force=true` build without cache and
 pull newer base images; otherwise base images are pulled only when missing.
 
 The platforms use the images as `pre_build_image`, so the driver never builds them: the create step fails

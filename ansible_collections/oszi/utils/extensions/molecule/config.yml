@@ -17,22 +17,23 @@ driver:
 # Rootless containers with systemd as PID 1, without --privileged and CAP_SYS_ADMIN.
 # The images are built once by the oszi.utils.molecule.build playbook, which molecule.py runs ahead of
 # the scenarios; the driver never builds them and fails in the create step when one is missing.
-# MOLECULE_BUILD_IMAGE_PREFIX selects the images here and in the build playbook; same default in both.
+# MOLECULE_BUILD_IMAGE_PREFIX and MOLECULE_BUILD_{FEDORA,DEBIAN,UBUNTU}_VERSION select the images here
+# and in the build playbook; same defaults in both.
 platforms:
   - name: "${MOLECULE_SCENARIO_NAME}-fedora"
-    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi}/fedora"
+    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}fedora:${MOLECULE_BUILD_FEDORA_VERSION:-latest}"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [fedora, redhat]
   - name: "${MOLECULE_SCENARIO_NAME}-debian"
-    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi}/debian"
+    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}debian:${MOLECULE_BUILD_DEBIAN_VERSION:-stable}"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [debian]
   - name: "${MOLECULE_SCENARIO_NAME}-ubuntu"
-    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi}/ubuntu"
+    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}ubuntu:${MOLECULE_BUILD_UBUNTU_VERSION:-latest}"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always

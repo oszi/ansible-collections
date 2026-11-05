@@ -1,14 +1,18 @@
 ---
 # Shared molecule build playbook to run before molecule; see _scripts/tests/MOLECULE.md.
-# MOLECULE_BUILD_IMAGE_PREFIX selects the image names here and in the base config; same default in both.
+# MOLECULE_BUILD_IMAGE_PREFIX and MOLECULE_BUILD_{FEDORA,DEBIAN,UBUNTU}_VERSION select the images here
+# and in the base config; same defaults in both.
 - name: Build molecule images
   hosts: localhost
   connection: local
   gather_facts: false
   vars:
     molecule_build_image_prefix: "{{ lookup('env', 'MOLECULE_BUILD_IMAGE_PREFIX')
-      | default('localhost/molecule_local/oszi', true) }}"
-    molecule_build_images: [fedora, debian, ubuntu]
+      | default('localhost/molecule_local/oszi/', true) }}"
+    molecule_build_images:
+      fedora: "{{ lookup('env', 'MOLECULE_BUILD_FEDORA_VERSION') | default('latest', true) }}"
+      debian: "{{ lookup('env', 'MOLECULE_BUILD_DEBIAN_VERSION') | default('stable', true) }}"
+      ubuntu: "{{ lookup('env', 'MOLECULE_BUILD_UBUNTU_VERSION') | default('latest', true) }}"
     molecule_build_context_path: "{{ playbook_dir }}/containers"
     molecule_build_image_ttl: "12h"
     molecule_build_force: false
@@ -19,24 +23,27 @@
         argv:
           - podman
           - images
-          - "--filter=reference={{ molecule_build_image_prefix }}/*"
+          - "--filter=reference={{ molecule_build_image_prefix }}*"
           - "--filter=until={{ molecule_build_image_ttl }}"
-          - "--format={{ '{{.Repository}}' }}"
+          - "--format={{ '{{.Repository}}:{{.Tag}}' }}"
       register: _molecule_build_expired_result
       changed_when: false
       check_mode: false
 
     - name: Build molecule images
       vars:
-        _molecule_build_image_item: "{{ molecule_build_image_prefix ~ '/' ~ item }}"
+        _molecule_build_image_item: "{{ molecule_build_image_prefix + item.key }}:{{ item.value }}"
         _molecule_build_rebuild: "{{ molecule_build_force
           or _molecule_build_image_item in _molecule_build_expired_result.stdout_lines }}"
+        _molecule_build_extra_args: >-
+          --build-arg=OS_VERSION={{ item.value | quote }}
+          {{- ' --pull=newer' if _molecule_build_rebuild else '' -}}
       containers.podman.podman_image:
         name: "{{ _molecule_build_image_item }}"
         path: "{{ molecule_build_context_path }}"
         force: "{{ _molecule_build_rebuild }}"
         build:
-          file: "{{ molecule_build_context_path }}/Containerfile.{{ item }}"
+          file: "{{ molecule_build_context_path }}/Containerfile.{{ item.key }}"
           cache: "{{ not _molecule_build_rebuild }}"
-          extra_args: "{{ '--pull=newer' if _molecule_build_rebuild else omit }}"
-      loop: "{{ molecule_build_images }}"
+          extra_args: "{{ _molecule_build_extra_args }}"
+      loop: "{{ molecule_build_images | dict2items }}"

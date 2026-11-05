@@ -1,5 +1,6 @@
 # Molecule test image, built by the oszi.utils.molecule.build playbook; see _scripts/tests/MOLECULE.md.
-FROM docker.io/library/debian:stable-slim
+ARG OS_VERSION=stable
+FROM docker.io/library/debian:${OS_VERSION}
 
 # The apt lists stay in the image; see the image TTL in the build playbook.
 RUN apt-get update \

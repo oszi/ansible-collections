@@ -1,5 +1,6 @@
 # Molecule test image, built by the oszi.utils.molecule.build playbook; see _scripts/tests/MOLECULE.md.
-FROM quay.io/fedora/fedora:latest
+ARG OS_VERSION=latest
+FROM quay.io/fedora/fedora:${OS_VERSION}
 
 # The repository metadata stays in the image; see the image TTL in the build playbook.
 # Mask the units that fail without extra capabilities so the system boots to "running".
