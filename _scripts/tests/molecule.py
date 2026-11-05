@@ -261,7 +261,9 @@ def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app
 
         # With 1 worker, scenarios are executed one by one, continuing after failures;
         # unlike a single run with multiple scenarios that stops on failures.
-        result = run_tests_parallel(cmd, paths, cwd=NAMESPACE_PATH / collection, max_workers=workers, env=env)
+        result = run_tests_parallel(
+            cmd, paths, cwd=NAMESPACE_PATH / collection, max_workers=workers, env=env, quiet_if_ok=True
+        )
         if RC.is_signal(result):
             print_hint("Use molecule.py --all -- reset")
             return result

@@ -23,7 +23,7 @@ def main() -> None:
 
     # Change ansible temp directory for read-only, agentic environments.
     env.setdefault("ANSIBLE_LOCAL_TEMP", tempdir.name)
-    run_tests(["ansible-lint", *sys.argv[1:]], paths=[], env=env, sys_exit=True)
+    run_tests(["ansible-lint", *sys.argv[1:]], targets=[], env=env, sys_exit=True)
 
 
 if __name__ == "__main__":

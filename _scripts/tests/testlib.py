@@ -7,7 +7,7 @@ import threading
 import traceback
 
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Callable, IO, List, NoReturn, Optional, ParamSpec
+from typing import Any, Callable, Dict, IO, List, NoReturn, Optional, ParamSpec
 
 assert sys.version_info >= (3, 11)
 
@@ -115,12 +115,12 @@ def print_hint(message: str) -> None:
     print(f"{Color.BLUE}HINT: {message}{Color.CLEAR}", file=sys.stderr)
 
 
-def print_test_cmd(cmd: List[str], paths: Optional[List[str]] = None, cwd: Optional[str] = None) -> None:
+def print_test_cmd(cmd: List[str], targets: Optional[List[str]] = None, cwd: Optional[str] = None) -> None:
     message = f"{Color.CYAN}Running test: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
     if cwd:
-        message += f" @ {cwd}"
-    if paths:
-        message += f" # {len(paths)} path(s)"
+        message += f" @{cwd}"
+    if targets:
+        message += f" # {len(targets)} target(s)"
 
     print(message, file=sys.stderr)
 
@@ -191,88 +191,110 @@ def run_shell_get_lines(shell_cmd: str, unique: bool = False, **kwargs) -> List[
     return lines
 
 
+output_lock = threading.Lock()
+
+
+def run_test_cmd(  # pylint: disable=too-many-arguments
+    cmd: List[str],
+    targets: List[str],
+    subject: str,
+    *,
+    timeout: Optional[float] = None,
+    buffered_output: bool = False,
+    quiet: bool = False,
+    quiet_if_ok: bool = False,
+    quiet_success: bool = False,
+    **kwargs,
+) -> int | NoReturn:
+    if not isinstance(cmd, list):
+        raise TypeError("run_test_cmd: cmd is not a list")
+    if not isinstance(targets, list):
+        raise TypeError("run_test_cmd: targets is not a list")
+
+    stdout = sp.DEVNULL if quiet else sp.PIPE if buffered_output or quiet_if_ok else None
+    stderr = sp.STDOUT if stdout is not None else None  # Redirect stderr to stdout to preserve ordering.
+
+    try:
+        result = sp.run(cmd + targets, timeout=timeout, stdout=stdout, stderr=stderr, check=False, **kwargs)
+    except sp.TimeoutExpired as err:
+        with output_lock:
+            if err.stdout is not None:
+                sys.stdout.buffer.write(err.stdout)
+                sys.stdout.buffer.flush()
+            return error_code_exc(subject, err)
+
+    except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
+        with output_lock:
+            return error_code_exc(subject, err)
+
+    with output_lock:
+        if result.stdout is not None and (not quiet_if_ok or result.returncode != RC.OK):
+            sys.stdout.buffer.write(result.stdout)
+            sys.stdout.buffer.flush()
+
+        if result.returncode == RC.OK:
+            return success(subject) if not quiet_success else RC.OK
+        return failure(subject, result.returncode)
+
+
 def run_tests(
     cmd: List[str],
-    paths: List[str],
+    targets: List[str],
     *,
-    timeout: Optional[float] = None,
-    quiet: bool = False,
     sys_exit: bool = False,
     **kwargs,
 ) -> int | NoReturn:
     if not isinstance(cmd, list):
-        raise TypeError("cmd is not a list")
-    if not isinstance(paths, list):
-        raise TypeError("paths is not a list")
+        raise TypeError("run_tests: cmd is not a list")
+    if not isinstance(targets, list):
+        raise TypeError("run_tests: targets is not a list")
 
-    print_test_cmd(cmd, paths, kwargs.get("cwd"))
-    stdout = sp.DEVNULL if quiet else None
-    stderr = sp.DEVNULL if quiet else None
-
-    try:
-        result = sp.run(cmd + paths, timeout=timeout, stdout=stdout, stderr=stderr, check=False, **kwargs)
-    except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
-        return error_code_exc(cmd[0], err, sys_exit)
-
-    if result.returncode == RC.OK:
-        return success(cmd[0], sys_exit)
-    return failure(cmd[0], result.returncode, sys_exit)
+    print_test_cmd(cmd, targets, kwargs.get("cwd"))
+    rc = run_test_cmd(cmd, targets, cmd[0], **kwargs)
+    return RC.status(rc, sys_exit)
 
 
-def run_tests_parallel(  # pylint: disable=too-many-arguments
+def run_tests_parallel(
     cmd: List[str],
-    paths: List[str],
+    targets: List[str | Dict[str, Any]],
     *,
     max_workers: Optional[int] = None,
-    timeout: Optional[float] = None,
-    quiet: bool = False,
     sys_exit: bool = False,
     **kwargs,
 ) -> int | NoReturn:
     if not isinstance(cmd, list):
-        raise TypeError("cmd is not a list")
-    if not isinstance(paths, list):
-        raise TypeError("paths is not a list")
-    if not paths:
-        return run_tests(cmd, paths, timeout=timeout, quiet=quiet, sys_exit=sys_exit, **kwargs)
+        raise TypeError("run_tests_parallel: cmd is not a list")
+    if not isinstance(targets, list):
+        raise TypeError("run_tests_parallel: targets is not a list")
+    if not targets:
+        return run_tests(cmd, targets, sys_exit=sys_exit, **kwargs)
 
-    print_test_cmd(cmd, paths, kwargs.get("cwd"))
-    stdout = sp.DEVNULL if quiet else sp.PIPE if max_workers != 1 and len(paths) > 1 else None
-    stderr = sp.STDOUT if stdout is not None else None  # Redirect stderr to stdout to preserve ordering.
-    output_lock = threading.Lock()
+    if max_workers != 1 and len(targets) > 1:
+        kwargs["buffered_output"] = True
 
-    def run_test(path: str) -> int:
-        subject = f"{cmd[0]}: {path}"
-        try:
-            result = sp.run(
-                cmd + [path],
-                timeout=timeout,
-                check=False,
-                stdout=stdout,
-                stderr=stderr,
-                **kwargs,
-            )
-        except sp.TimeoutExpired as err:
-            with output_lock:
-                if err.stdout is not None:
-                    sys.stdout.buffer.write(err.stdout)
-                    sys.stdout.buffer.flush()
-                return error_code_exc(subject, err)
+    def run_test_job(target: str | Dict[str, Any]) -> int:
+        if isinstance(target, dict):
+            job_kwargs = kwargs.copy()
+            job_kwargs.update(target)
+            job_args = job_kwargs.pop("args", [])
+            job_subject = f"{cmd[0]}: {' '.join(job_args) or '-'}"
+        else:
+            job_kwargs = kwargs
+            job_args = [target]
+            job_subject = f"{cmd[0]}: {target}"
 
-        with output_lock:
-            if result.stdout is not None:
-                sys.stdout.buffer.write(result.stdout)
-                sys.stdout.buffer.flush()
+        if cwd := job_kwargs.get("cwd"):
+            job_subject = f"{job_subject} @{cwd}"
+        return run_test_cmd(cmd, job_args, job_subject, **job_kwargs)
 
-            if result.returncode == RC.OK:
-                return success(subject) if not quiet else RC.OK
-            return failure(subject, result.returncode)
+    print_test_cmd(cmd, targets, kwargs.get("cwd"))
+    sys.stdout.flush()
+    sys.stderr.flush()
 
     rc = RC.OK
-    sys.stdout.flush()
     try:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            for result in executor.map(run_test, paths):
+            for result in executor.map(run_test_job, targets):
                 rc = RC.select(rc, result)
     except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
         return error_code_exc(cmd[0], err, sys_exit)

@@ -46,7 +46,7 @@ def main() -> None:
         run_tests(black_cmd, paths, env=env, sys_exit=True)
 
     rc_pylint = run_tests(PYLINT_CMD, paths, env=env)
-    rc_black = run_tests_parallel(BLACK_CMD, paths, env=env, quiet=True)
+    rc_black = run_tests_parallel(BLACK_CMD, paths, env=env, quiet_if_ok=True, quiet_success=True)
     if rc_black != RC.OK:
         print_hint(f"{sys.argv[0]} --black")
     RC.select(rc_pylint, rc_black, sys_exit=True)
