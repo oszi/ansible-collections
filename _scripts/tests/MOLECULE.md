@@ -15,7 +15,8 @@ Every systemd container consumes several inotify instances of the invoking user.
 `fs.inotify.max_user_instances = 128`, about ten concurrent instances exhaust the limit: new containers
 exit with status 255 right after create (UNREACHABLE) and dbus-broker fails with EMFILE. Raise the sysctl
 (for example to 1024) before running multiple scenarios concurrently. The default number of workers is
-`fs.inotify.max_user_instances // 128`, min 1, max 3.
+`fs.inotify.max_user_instances // 128`, min 1, max 3. See Findings about podman transient-store to get
+a better performance out of multiple workers.
 
 The output of `test` is always captured and printed only for failed scenarios (running all scenarios produces
 over 100k lines); output is also captured when there are multiple workers with any subcommand; stderr is
@@ -43,6 +44,20 @@ molecule destroy -s shell
 `molecule reset` removes every container labeled `owner=molecule` and the ephemeral state under
 `~/.ansible/tmp/molecule.*`. The message `CRITICAL 'extensions/molecule/default/molecule.yml' glob failed`
 is harmless: molecule looks for a `default` scenario to decide about shared state.
+
+Enable podman transient-store at the cost of losing all user containers after reboot.
+```bash
+systemctl --user enable podman-clean-transient.service
+mkdir -p ~/.config/containers
+cat > ~/.config/containers/storage.conf <<EOF
+[storage]
+driver = "overlay"
+transient_store = true
+
+[storage.options.overlay]
+mountopt = "nodev,metacopy=on"
+EOF
+```
 
 ## Layout
 
@@ -190,3 +205,18 @@ and flatpak remotes and apps (bubblewrap).
   cache expired, and the apt module's `cache_valid_time` compares the mtime of `/var/lib/apt/lists` (the dnf
   module rejects it, so it belongs in the `debian` group).
 * Connecting as root makes Ansible chown its temporary files, so `acl` is not needed for `become_user`.
+* Every task is a `podman exec`, and each rootless exec fsyncs the libpod sqlite database about 18 times
+  under its exclusive lock (about 0.12s of 0.18s). This caps the host at roughly 9 execs per second across
+  all containers and workers while CPU, memory and disk stay idle, so more workers barely help. Podman's
+  transient store (`transient_store = true` in a `storage.conf` passed via `CONTAINERS_STORAGE_CONF`, or
+  `podman --transient-store`) keeps that database in the runroot tmpfs: about 33 execs per second scaling
+  with the workers, images and container layers stay on disk, but the containers are only visible to podman
+  processes with the same setting. The driver's create and destroy playbooks also poll `async_status` with
+  the default 5s delay.
+* User-wide transient store (`~/.config/containers/storage.conf`) is the simplest way to apply it, as molecule
+  has no option for podman global flags (`MOLECULE_PODMAN_EXECUTABLE` must be a bare executable, `reset` runs
+  a literal `podman`). Every rootless container then forgets itself on reboot while images, volumes and layers
+  persist: quadlets recreate themselves, toolbox containers are lost. Containers created in the other mode
+  become invisible, not deleted, until the setting is flipped back. Layers of containers alive at shutdown are
+  left behind; enable `podman-clean-transient.service` for the user (`podman system prune --external` once per
+  boot, shipped but not preset) to sweep them.
