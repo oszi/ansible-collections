@@ -6,7 +6,7 @@ import sys
 from argparse import ArgumentParser
 from tempfile import TemporaryDirectory
 
-from testlib import RC, run_shell_get_lines, run_tests, run_tests_parallel, print_hint
+from testlib import RC, Output, run_shell_get_lines, run_tests, run_tests_parallel, print_hint
 
 GIT_LS_FILES = r"""
 set -euo pipefail
@@ -46,7 +46,7 @@ def main() -> None:
         run_tests(black_cmd, paths, env=env, sys_exit=True)
 
     rc_pylint = run_tests(PYLINT_CMD, paths, env=env)
-    rc_black = run_tests_parallel(BLACK_CMD, paths, env=env, quiet_if_ok=True, quiet_success=True)
+    rc_black = run_tests_parallel(BLACK_CMD, paths, env=env, output=Output.ON_FAILURE_QUIET)
     if rc_black != RC.OK:
         print_hint(f"{sys.argv[0]} --black")
     RC.select(rc_pylint, rc_black, sys_exit=True)

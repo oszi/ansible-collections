@@ -4,15 +4,19 @@ import os
 import subprocess as sp
 import sys
 import threading
+import time
 import traceback
 
 from concurrent.futures import ThreadPoolExecutor
+from enum import StrEnum
 from typing import Any, Callable, Dict, IO, List, NoReturn, Optional, ParamSpec
 
 assert sys.version_info >= (3, 11)
 
 # Override /bin/sh for bash on Debian/Ubuntu.
 SHELL = "/bin/bash"
+
+OUTPUT_LOCK = threading.Lock()
 
 
 def getenv_bool(key: str, default: bool = False) -> bool:
@@ -98,6 +102,37 @@ class RC:
         return RC.status(rc, sys_exit)
 
 
+class Output(StrEnum):
+    LIVE_WITH_STATUS = "live_with_status"
+    LIVE_QUIET = "live_quiet"
+    BUFFERED_WITH_STATUS = "buffered_with_status"
+    BUFFERED_QUIET = "buffered_quiet"
+    ON_FAILURE_WITH_STATUS = "on_failure_with_status"
+    ON_FAILURE_QUIET = "on_failure_quiet"
+    DISCARD = "discard"
+
+    @property
+    def is_on_failure(self) -> bool:
+        return self in (Output.ON_FAILURE_WITH_STATUS, Output.ON_FAILURE_QUIET)
+
+    @property
+    def is_buffered(self) -> bool:
+        return self in (Output.BUFFERED_WITH_STATUS, Output.BUFFERED_QUIET) or self.is_on_failure
+
+    @property
+    def has_status(self) -> bool:
+        return self in (Output.LIVE_WITH_STATUS, Output.BUFFERED_WITH_STATUS, Output.ON_FAILURE_WITH_STATUS)
+
+    @property
+    def stdout(self) -> Optional[int]:
+        return sp.DEVNULL if self == Output.DISCARD else sp.PIPE if self.is_buffered else None
+
+    @property
+    def stderr(self) -> Optional[int]:
+        # If not live, redirect stderr to stdout to preserve ordering.
+        return sp.STDOUT if self.stdout is not None else None
+
+
 def print_error(message: str, rc: int = RC.ERROR) -> None:
     if RC.is_early_exit(rc):
         color = Color.MAGENTA
@@ -115,14 +150,33 @@ def print_hint(message: str) -> None:
     print(f"{Color.BLUE}HINT: {message}{Color.CLEAR}", file=sys.stderr)
 
 
+def print_success(message: str) -> None:
+    print(f"{Color.GREEN}{message}{Color.CLEAR}", file=sys.stderr)
+
+
 def print_test_cmd(cmd: List[str], targets: Optional[List[str]] = None, cwd: Optional[str] = None) -> None:
-    message = f"{Color.CYAN}Running test: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
+    message = f"{Color.CYAN}Running: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
     if cwd:
         message += f" @{cwd}"
     if targets:
         message += f" # {len(targets)} target(s)"
+    if DEBUG:
+        message += f" # at {time.strftime('%H:%M:%S')}"
 
     print(message, file=sys.stderr)
+
+
+def format_duration(seconds: float) -> str:
+    if seconds < 60:
+        duration = f"{seconds:.2f}s"
+    else:
+        minutes, seconds_mod = divmod(round(seconds), 60)
+        hours, minutes = divmod(minutes, 60)
+        duration = f"{hours}h {minutes}m {seconds_mod}s" if hours else f"{minutes}m {seconds_mod}s"
+
+    if DEBUG:
+        duration += f" at {time.strftime('%H:%M:%S')}"
+    return duration
 
 
 def error_code(message: str, rc: int = RC.ERROR, sys_exit: bool = False) -> int | NoReturn:
@@ -135,18 +189,21 @@ def error_code(message: str, rc: int = RC.ERROR, sys_exit: bool = False) -> int 
     return RC.status(rc, sys_exit)
 
 
-def error_code_exc(subject: str, err: BaseException, sys_exit: bool = False) -> int | NoReturn:
+def error_code_exc(
+    subject: str, err: BaseException, duration: Optional[float] = None, sys_exit: bool = False
+) -> int | NoReturn:
+    duration_str = f" after {format_duration(duration)}" if duration is not None else ""
     if isinstance(err, KeyboardInterrupt):
-        message = f"{subject} was interrupted!"
+        message = f"{subject} was interrupted{duration_str}!"
         rc = RC.INTERRUPT
     elif isinstance(err, sp.TimeoutExpired):
-        message = f"{subject} has timed out!"
+        message = f"{subject} has timed out{duration_str}!"
         rc = RC.TIMEOUT
     elif isinstance(err, sp.CalledProcessError):
-        message = f"{subject} failed!"
+        message = f"{subject} failed{duration_str}!"
         rc = err.returncode
     else:
-        message = f"{subject} failed: {err}"
+        message = f"{subject} failed{duration_str}: {err}"
         rc = RC.ERROR
 
     if DEBUG:
@@ -157,24 +214,28 @@ def error_code_exc(subject: str, err: BaseException, sys_exit: bool = False) -> 
     return error_code(message, rc, sys_exit)
 
 
-def failure(subject: str, rc: int = RC.ERROR, sys_exit: bool = False) -> int | NoReturn:
+def failure(
+    subject: str, rc: int = RC.ERROR, duration: Optional[float] = None, sys_exit: bool = False
+) -> int | NoReturn:
     if not isinstance(rc, int):
         raise TypeError("testlib.failure called with non-integer rc")
     if rc == RC.OK:
         raise ValueError("testlib.failure called with RC.OK")
 
+    duration_str = f" after {format_duration(duration)}" if duration is not None else ""
     if rc == RC.TIMEOUT:
-        message = f"{subject} has timed out!"
+        message = f"{subject} has timed out{duration_str}!"
     elif RC.is_signal(rc):
-        message = f"{subject} was interrupted!"
+        message = f"{subject} was interrupted{duration_str}!"
     else:
-        message = f"{subject} failed!"
+        message = f"{subject} failed{duration_str}!"
 
     return error_code(message, rc, sys_exit)
 
 
-def success(subject: str, sys_exit: bool = False) -> int | NoReturn:
-    print(f"{Color.GREEN}{subject} passed!{Color.CLEAR}", file=sys.stderr)
+def success(subject: str, duration: Optional[float] = None, sys_exit: bool = False) -> int | NoReturn:
+    duration_str = f" in {format_duration(duration)}" if duration is not None else ""
+    print_success(f"{subject} passed{duration_str}!")
     return RC.status(RC.OK, sys_exit)
 
 
@@ -191,19 +252,13 @@ def run_shell_get_lines(shell_cmd: str, unique: bool = False, **kwargs) -> List[
     return lines
 
 
-output_lock = threading.Lock()
-
-
 def run_test_cmd(  # pylint: disable=too-many-arguments
     cmd: List[str],
     targets: List[str],
     subject: str,
     *,
     timeout: Optional[float] = None,
-    buffered_output: bool = False,
-    quiet: bool = False,
-    quiet_if_ok: bool = False,
-    quiet_success: bool = False,
+    output: Output = Output.LIVE_WITH_STATUS,
     **kwargs,
 ) -> int | NoReturn:
     if not isinstance(cmd, list):
@@ -211,45 +266,45 @@ def run_test_cmd(  # pylint: disable=too-many-arguments
     if not isinstance(targets, list):
         raise TypeError("run_test_cmd: targets is not a list")
 
-    stdout = sp.DEVNULL if quiet else sp.PIPE if buffered_output or quiet_if_ok else None
-    stderr = sp.STDOUT if stdout is not None else None  # Redirect stderr to stdout to preserve ordering.
+    if output.has_status:
+        with OUTPUT_LOCK:
+            print_test_cmd(cmd, targets, kwargs.get("cwd"))
 
+    start = time.monotonic()
     try:
-        result = sp.run(cmd + targets, timeout=timeout, stdout=stdout, stderr=stderr, check=False, **kwargs)
+        result = sp.run(
+            cmd + targets, check=False, timeout=timeout, stdout=output.stdout, stderr=output.stderr, **kwargs
+        )
     except sp.TimeoutExpired as err:
-        with output_lock:
+        duration = time.monotonic() - start
+        with OUTPUT_LOCK:
             if err.stdout is not None:
                 sys.stdout.buffer.write(err.stdout)
                 sys.stdout.buffer.flush()
-            return error_code_exc(subject, err)
+            return error_code_exc(subject, err, duration)
 
     except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
-        with output_lock:
-            return error_code_exc(subject, err)
+        duration = time.monotonic() - start
+        with OUTPUT_LOCK:
+            return error_code_exc(subject, err, duration)
 
-    with output_lock:
-        if result.stdout is not None and (not quiet_if_ok or result.returncode != RC.OK):
+    duration = time.monotonic() - start
+    with OUTPUT_LOCK:
+        if result.stdout is not None and (not output.is_on_failure or result.returncode != RC.OK):
             sys.stdout.buffer.write(result.stdout)
             sys.stdout.buffer.flush()
 
         if result.returncode == RC.OK:
-            return success(subject) if not quiet_success else RC.OK
-        return failure(subject, result.returncode)
+            return success(subject, duration) if output.has_status else RC.OK
+        return failure(subject, result.returncode, duration)
 
 
-def run_tests(
-    cmd: List[str],
-    targets: List[str],
-    *,
-    sys_exit: bool = False,
-    **kwargs,
-) -> int | NoReturn:
+def run_tests(cmd: List[str], targets: List[str], *, sys_exit: bool = False, **kwargs) -> int | NoReturn:
     if not isinstance(cmd, list):
         raise TypeError("run_tests: cmd is not a list")
     if not isinstance(targets, list):
         raise TypeError("run_tests: targets is not a list")
 
-    print_test_cmd(cmd, targets, kwargs.get("cwd"))
     rc = run_test_cmd(cmd, targets, cmd[0], **kwargs)
     return RC.status(rc, sys_exit)
 
@@ -268,9 +323,8 @@ def run_tests_parallel(
         raise TypeError("run_tests_parallel: targets is not a list")
     if not targets:
         return run_tests(cmd, targets, sys_exit=sys_exit, **kwargs)
-
-    if max_workers != 1 and len(targets) > 1:
-        kwargs["buffered_output"] = True
+    if "output" not in kwargs:
+        kwargs["output"] = Output.BUFFERED_WITH_STATUS
 
     def run_test_job(target: str | Dict[str, Any]) -> int:
         if isinstance(target, dict):
@@ -283,25 +337,26 @@ def run_tests_parallel(
             job_args = [target]
             job_subject = f"{cmd[0]}: {target}"
 
-        if cwd := job_kwargs.get("cwd"):
-            job_subject = f"{job_subject} @{cwd}"
-        return run_test_cmd(cmd, job_args, job_subject, **job_kwargs)
+        return run_test_cmd(cmd + job_args, [], job_subject, **job_kwargs)
 
     print_test_cmd(cmd, targets, kwargs.get("cwd"))
     sys.stdout.flush()
     sys.stderr.flush()
 
     rc = RC.OK
+    start = time.monotonic()
     try:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             for result in executor.map(run_test_job, targets):
                 rc = RC.select(rc, result)
     except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
-        return error_code_exc(cmd[0], err, sys_exit)
+        duration = time.monotonic() - start
+        return error_code_exc(cmd[0], err, duration, sys_exit)
 
+    duration = time.monotonic() - start
     if rc == RC.OK:
-        return success(cmd[0], sys_exit)
-    return failure(cmd[0], rc, sys_exit)
+        return success(cmd[0], duration, sys_exit)
+    return failure(cmd[0], rc, duration, sys_exit)
 
 
 _PARAMS = ParamSpec("_PARAMS")
@@ -312,16 +367,19 @@ def boolean_test_decorator(subject: str) -> Callable[[Callable[_PARAMS, bool]], 
         @functools.wraps(func)
         def inner_function(*args: _PARAMS.args, **kwargs: _PARAMS.kwargs) -> NoReturn:  # pylint: disable=no-member
             print_test_cmd([subject])
+            start = time.monotonic()
             try:
                 result = func(*args, **kwargs)
 
             except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
+                duration = time.monotonic() - start
                 print_warning(f"Unhandled {err.__class__.__name__}. Beware of zombies.")
-                error_code_exc(subject, err, sys_exit=True)
+                error_code_exc(subject, err, duration, sys_exit=True)
 
+            duration = time.monotonic() - start
             if result is True:
-                success(subject, sys_exit=True)
-            failure(subject, sys_exit=True)
+                success(subject, duration, sys_exit=True)
+            failure(subject, RC.ERROR, duration, sys_exit=True)
 
         return inner_function
 

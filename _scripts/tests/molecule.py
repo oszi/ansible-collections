@@ -11,7 +11,17 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 import yaml
 
-from testlib import RC, Color, error_code, print_hint, run_shell_get_lines, run_test_cmd, run_tests_parallel, success
+from testlib import (
+    RC,
+    Color,
+    Output,
+    error_code,
+    print_hint,
+    run_shell_get_lines,
+    run_test_cmd,
+    run_tests_parallel,
+    success,
+)
 
 NAMESPACE = "oszi"
 NAMESPACE_PATH = Path("ansible_collections") / NAMESPACE
@@ -266,7 +276,7 @@ def run_build_playbook() -> int:
             "ANSIBLE_VERBOSITY": "0",
         }
     )
-    return run_test_cmd(BUILD_PLAYBOOK_CMD, [BUILD_PLAYBOOK], BUILD_PLAYBOOK, env=env, quiet_success=True)
+    return run_test_cmd(BUILD_PLAYBOOK_CMD, [BUILD_PLAYBOOK], BUILD_PLAYBOOK, env=env, output=Output.LIVE_QUIET)
 
 
 def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app_args_all: bool, workers: int) -> int:
@@ -295,11 +305,15 @@ def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app
         env.setdefault("PY_COLORS", "1")
         env.setdefault("ANSIBLE_FORCE_COLOR", "1")
 
+    output = (
+        Output.ON_FAILURE_WITH_STATUS
+        if subcommand == "test"
+        else Output.BUFFERED_WITH_STATUS if workers != 1 and len(targets) > 1 else Output.LIVE_WITH_STATUS
+    )
+
     # With 1 worker, scenarios are executed one by one, continuing after failures;
     # unlike a single run with multiple scenarios that stops on failures.
-    rc = run_tests_parallel(
-        MOLECULE_CMD + molecule_args, targets, max_workers=workers, env=env, quiet_if_ok=(subcommand == "test")
-    )
+    rc = run_tests_parallel(MOLECULE_CMD + molecule_args, targets, max_workers=workers, env=env, output=output)
     if RC.is_signal(rc):
         print_hint("Use molecule.py --all -- reset")
     return rc
