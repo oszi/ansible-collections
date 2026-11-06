@@ -14,9 +14,9 @@ the image registries, the distribution mirrors and the repositories a scenario i
 Every systemd container consumes several inotify instances of the invoking user. With the common default
 `fs.inotify.max_user_instances = 128`, about ten concurrent instances exhaust the limit: new containers
 exit with status 255 right after create (UNREACHABLE) and dbus-broker fails with EMFILE. Raise the sysctl
-(for example to 1024) before running multiple scenarios concurrently. The default number of workers is
-`fs.inotify.max_user_instances // 128`, min 1, max 3. See Findings about podman transient-store to get
-a better performance out of multiple workers.
+(for example to 1024) before running multiple scenarios concurrently. See also the Findings about podman
+transient-store to get a better performance out of multiple workers. The default number of workers is
+detected automatically based on these two settings between 1 and 6.
 
 The output of `test` is always captured and printed only for failed scenarios (running all scenarios produces
 over 100k lines); output is also captured when there are multiple workers with any subcommand; stderr is

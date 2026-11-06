@@ -255,22 +255,37 @@ def get_subcommand_arg(molecule_args: List[str]) -> str:
     return ""
 
 
+def detect_workers() -> int:
+    podman_transient_store = (
+        run_shell_get_lines("podman info --format '{{.Store.TransientStore}}' || echo N/A")[0].lower() == "true"
+    )
+    inotify_max_user_instances = (
+        int(INOTIFY_MAX_USER_INSTANCES_PATH.read_bytes()) if INOTIFY_MAX_USER_INSTANCES_PATH.exists() else 128
+    )
+
+    # Only marginal benefits above 6 workers; 3+ systemd user containers per scenario;
+    # the default 128 inotify user instances fit 2 scenarios safely.
+    workers = 6
+    if inotify_max_user_instances <= 64 * workers:
+        print_hint("See MOLECULE.md about increasing inotify max_user_instances.")
+        workers = inotify_max_user_instances // 64
+    if not podman_transient_store:
+        print_hint("See MOLECULE.md about enabling podman transient store.")
+        workers = min(workers, 3)
+
+    print_hint(f"Detected parallel workers: {workers}")
+    return workers
+
+
 def run_build_playbook() -> int:
     env = os.environ.copy()
     env.update(
-        dict.fromkeys(
-            (
-                "ANSIBLE_ASK_PASS",
-                "ANSIBLE_ASK_VAULT_PASS",
-                "ANSIBLE_BECOME",
-                "ANSIBLE_BECOME_ASK_PASS",
-                "ANSIBLE_DEPRECATION_WARNINGS",
-            ),
-            "False",
-        )
-    )
-    env.update(
         {
+            "ANSIBLE_ASK_PASS": "False",
+            "ANSIBLE_ASK_VAULT_PASS": "False",
+            "ANSIBLE_BECOME": "False",
+            "ANSIBLE_BECOME_ASK_PASS": "False",
+            "ANSIBLE_DEPRECATION_WARNINGS": "False",
             "ANSIBLE_PIPELINING": "True",
             "ANSIBLE_PYTHON_INTERPRETER": "auto_silent",
             "ANSIBLE_VERBOSITY": "0",
@@ -291,14 +306,7 @@ def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app
                 targets.append({"args": ["-s", scenario_path.name], "cwd": NAMESPACE_PATH / collection})
 
     if workers < 1:
-        # Common default of max_user_instances is 128 which allows about 10 containerized systemd instances;
-        # there are usually 3 containers per scenario; dividing by 128 gives the safe default of 1 worker;
-        # only scales up to 3 by default to avoid network and memory bottlenecks.
-        if INOTIFY_MAX_USER_INSTANCES_PATH.exists():
-            inotify_max_user_instances = int(INOTIFY_MAX_USER_INSTANCES_PATH.read_bytes())
-            workers = max(min(inotify_max_user_instances // 128, 3), 1)
-        else:
-            workers = 1
+        workers = detect_workers()
 
     env = os.environ.copy()
     if Color.COLORS_ENABLED:
