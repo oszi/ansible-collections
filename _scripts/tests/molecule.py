@@ -266,9 +266,9 @@ def detect_workers() -> int:
     # Only marginal benefits above 6 workers; 3+ systemd user containers per scenario;
     # the default 128 inotify user instances fit 2 scenarios safely.
     workers = 6
-    if inotify_max_user_instances <= 64 * workers:
+    if inotify_max_user_instances < 64 * workers:
         print_hint("See MOLECULE.md about increasing inotify max_user_instances.")
-        workers = inotify_max_user_instances // 64
+        workers = max(inotify_max_user_instances // 64, 1)
     if not podman_transient_store:
         print_hint("See MOLECULE.md about enabling podman transient store.")
         workers = min(workers, 3)
