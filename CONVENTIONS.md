@@ -33,6 +33,7 @@
 * **Secrets encryption** - Inventory-side secrets must be encrypted with ansible-vault, using
   `_scripts/ansible-vault-id-client`. Vault files must match `*vault.{yml,yaml,json}`.
 * **Secrets exposure** - Tasks handling secrets must set `no_log: true` to prevent credential exposure.
+* **Molecule tests** - Roles should have molecule scenarios as described in [MOLECULE.md](_scripts/tests/MOLECULE.md).
 
 ## Variable naming
 

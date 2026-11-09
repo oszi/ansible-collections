@@ -40,7 +40,7 @@ Source-only install; no Ansible Galaxy releases.
 **Before making changes, always:**
 1. Read `CONVENTIONS.md` for Core Conventions.
 2. Read all collections' `README.md` for per-collection rules.
-3. Read `_scripts/tests/MOLECULE.md` for implementing molecule tests; ignore otherwise.
+3. Read `_scripts/tests/MOLECULE.md` when working on molecule tests.
 
 **While making changes:**
 * Prefer additive, reversible changes; never discard changes you did not create.
@@ -49,7 +49,7 @@ Source-only install; no Ansible Galaxy releases.
 * Avoid decorative Unicode; prefer ASCII unless the character is meaningful.
 
 **After making changes:**
-* Run tests via `_scripts/run-tests.sh`; see `_scripts/tests/README.md` how.  
+* Read `_scripts/tests/README.md` and run tests via `_scripts/run-tests.sh`.  
   Do not run molecule unless asked.
 * Never commit changes or create releases yourself.
 

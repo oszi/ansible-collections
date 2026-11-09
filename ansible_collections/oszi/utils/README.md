@@ -5,7 +5,7 @@ Ansible collection for ansible plugins and utility roles.
 ## Collection Rules
 
 * All custom [filter](plugins/filter) and [lookup](plugins/lookup) plugins are in the utils collection.
-* Molecule framework playbooks and base config are in the utils collection.
+* Molecule framework playbooks and base config also belong here; see [MOLECULE.md](../../../_scripts/tests/MOLECULE.md).
 * Utility playbooks target **all** hosts or the ansible controller and do not alter hosts.
 * Utility roles mainly target the ansible controller and do not alter hosts.
 

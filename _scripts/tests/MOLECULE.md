@@ -11,12 +11,10 @@ Molecule tests are slow and need podman and network access; agents must not run 
 Requirements: rootless podman with cgroups v2, the venv from `requirements.txt`, and network access to
 the image registries, the distribution mirrors and the repositories a scenario installs from.
 
-Every systemd container consumes several inotify instances of the invoking user. With the common default
-`fs.inotify.max_user_instances = 128`, about ten concurrent instances exhaust the limit: new containers
-exit with status 255 right after create (UNREACHABLE) and dbus-broker fails with EMFILE. Raise the sysctl
-(for example to 1024) before running multiple scenarios concurrently. See also the Findings about podman
-transient-store to get a better performance out of multiple workers. The default number of workers is
-detected automatically based on these two settings between 1 and 6.
+Scenarios run concurrently with up to 6 workers, detected from two host settings: `fs.inotify.max_user_instances`
+allows one worker per 128 instances (raise it to `1024` for the full range), and without the podman transient
+store the workers are capped at 2 because `podman exec` throughput does not scale (see below). See the Findings
+for technical details.
 
 The output of `test` is always captured and printed only for failed scenarios (running all scenarios produces
 over 100k lines); output is also captured when there are multiple workers with any subcommand; stderr is
@@ -45,7 +43,7 @@ molecule destroy -s shell
 `~/.ansible/tmp/molecule.*`. The message `CRITICAL 'extensions/molecule/default/molecule.yml' glob failed`
 is harmless: molecule looks for a `default` scenario to decide about shared state.
 
-Enable podman transient-store at the cost of losing all user containers after reboot.
+Enable podman transient store at the cost of losing all user containers after reboot.
 ```bash
 systemctl --user enable podman-clean-transient.service
 mkdir -p ~/.config/containers
@@ -198,13 +196,12 @@ and flatpak remotes and apps (bubblewrap).
   images, which set `ENV container=oci`; unprivileged users cannot read `/proc/1/environ` and the fallback
   `/run/systemd/container` yields `oci`. The roles guard on `virtualization_tech_guest`, which contains
   `container` for every user and image.
-* Molecule: `provisioner.inventory.group_vars` feeds inventory variables (the `ansible:` section has no
-  inventory key) and play `vars` outrank them; `dependency.env` is ignored for the shell dependency,
-  which also runs without molecule's ansible.cfg; `--destroy never` also skips the initial destroy.
-* `bootstrap_package_update_cache` costs every container a download: the dnf5 module marks every repository
-  cache expired, and the apt module's `cache_valid_time` compares the mtime of `/var/lib/apt/lists` (the dnf
-  module rejects it, so it belongs in the `debian` group).
 * Connecting as root makes Ansible chown its temporary files, so `acl` is not needed for `become_user`.
+* Every systemd container consumes several inotify instances of the invoking user. With the common default
+  `fs.inotify.max_user_instances = 128`, about ten concurrent instances exhaust the limit: new containers
+  exit with status 255 right after create (UNREACHABLE) and dbus-broker fails with EMFILE. The user's desktop
+  environment can use up most of the default limit. Raise the sysctl, for example to 1024, before running
+  multiple scenarios concurrently.
 * Every task is a `podman exec`, and each rootless exec fsyncs the libpod sqlite database about 18 times
   under its exclusive lock (about 0.12s of 0.18s). This caps the host at roughly 9 execs per second across
   all containers and workers while CPU, memory and disk stay idle, so more workers barely help. Podman's
@@ -212,7 +209,7 @@ and flatpak remotes and apps (bubblewrap).
   `podman --transient-store`) keeps that database in the runroot tmpfs: about 33 execs per second scaling
   with the workers, images and container layers stay on disk, but the containers are only visible to podman
   processes with the same setting. The driver's create and destroy playbooks also poll `async_status` with
-  the default 5s delay.
+  the default 5s delay. There are only marginal benefits above 6 workers.
 * User-wide transient store (`~/.config/containers/storage.conf`) is the simplest way to apply it, as molecule
   has no option for podman global flags (`MOLECULE_PODMAN_EXECUTABLE` must be a bare executable, `reset` runs
   a literal `podman`). Every rootless container then forgets itself on reboot while images, volumes and layers
