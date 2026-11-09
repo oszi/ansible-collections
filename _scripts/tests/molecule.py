@@ -2,6 +2,7 @@
 # pylint: disable=line-too-long,missing-function-docstring,missing-module-docstring
 # run-tests: opt-in
 import os
+import shlex
 import shutil
 
 from argparse import ArgumentParser, REMAINDER
@@ -256,24 +257,26 @@ def get_subcommand_arg(molecule_args: List[str]) -> str:
 
 
 def detect_workers() -> int:
-    podman_transient_store = (
-        run_shell_get_lines("podman info --format '{{.Store.TransientStore}}' || echo N/A")[0].lower() == "true"
-    )
+    podman = shlex.quote(os.getenv("MOLECULE_PODMAN_EXECUTABLE") or "podman")
+    podman_info = run_shell_get_lines(podman + " info --format='{{.Store.TransientStore}}' || true")
+    podman_transient_store = podman_info and podman_info[0].lower() == "true"
     inotify_max_user_instances = (
         int(INOTIFY_MAX_USER_INSTANCES_PATH.read_bytes()) if INOTIFY_MAX_USER_INSTANCES_PATH.exists() else 128
     )
 
-    # Only marginal benefits above 6 workers; 3+ systemd user containers per scenario;
-    # the default 128 inotify user instances fit 2 scenarios safely.
+    # See the Findings in MOLECULE.md.
     workers = 6
-    if inotify_max_user_instances < 64 * workers:
-        print_hint("See MOLECULE.md about increasing inotify max_user_instances.")
-        workers = max(inotify_max_user_instances // 64, 1)
+    notes = []
+    if inotify_max_user_instances < 128 * workers:
+        notes.append("inotify max_user_instances")
+        workers = max(inotify_max_user_instances // 128, 1)
     if not podman_transient_store:
-        print_hint("See MOLECULE.md about enabling podman transient store.")
-        workers = min(workers, 3)
+        notes.append("podman transient store")
+        workers = min(workers, 2)
 
-    print_hint(f"Detected parallel workers: {workers}")
+    if notes:
+        print_hint(f"See MOLECULE.md about {' and '.join(notes)}.")
+    print_hint(f"Detected workers: {workers}")
     return workers
 
 
