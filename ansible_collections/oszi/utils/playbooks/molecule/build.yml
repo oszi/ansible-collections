@@ -7,6 +7,7 @@
   connection: local
   gather_facts: false
   vars:
+    molecule_podman_executable: "{{ lookup('env', 'MOLECULE_PODMAN_EXECUTABLE') | default('podman', true) }}"
     molecule_build_image_prefix: "{{ lookup('env', 'MOLECULE_BUILD_IMAGE_PREFIX')
       | default('localhost/molecule_local/oszi/', true) }}"
     molecule_build_images:
@@ -21,8 +22,8 @@
     - name: List the molecule images older than the TTL
       ansible.builtin.command:
         argv:
-          - podman
-          - images
+          - "{{ molecule_podman_executable }}"
+          - "images"
           - "--filter=reference={{ molecule_build_image_prefix }}*"
           - "--filter=until={{ molecule_build_image_ttl }}"
           - "--format={{ '{{.Repository}}:{{.Tag}}' }}"
@@ -46,4 +47,5 @@
           file: "{{ molecule_build_context_path }}/Containerfile.{{ item.key }}"
           cache: "{{ not _molecule_build_rebuild }}"
           extra_args: "{{ _molecule_build_extra_args }}"
+        executable: "{{ molecule_podman_executable }}"
       loop: "{{ molecule_build_images | dict2items }}"
