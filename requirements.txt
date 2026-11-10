@@ -1,7 +1,7 @@
 # Use the latest python packages or install from the distribution...
 # apt/dnf install ansible python3-cryptography python3-jmespath python3-netaddr python3-psutil python3-yaml
-ansible
-ansible-core>=2.20.0
+ansible>=15.0.0a2
+ansible-core>=2.22.0b2
 cryptography
 jmespath
 netaddr
