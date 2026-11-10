@@ -1,6 +1,7 @@
 # pylint: disable=too-few-public-methods,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
 import functools
 import os
+import shlex
 import subprocess as sp
 import sys
 import threading
@@ -9,13 +10,23 @@ import traceback
 
 from concurrent.futures import ThreadPoolExecutor
 from enum import StrEnum
+from pathlib import Path
 from typing import Any, Callable, Dict, IO, List, NoReturn, Optional, ParamSpec
 
+import yaml
+
 assert sys.version_info >= (3, 11)
+
+NAMESPACE_PATH = Path("ansible_collections") / "oszi"
+META_MAIN_PATH = Path("meta") / "main.yml"
+ROLE_META_GLOB = f"*/roles/*/{META_MAIN_PATH}"
+
+RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
 
 # Override /bin/sh for bash on Debian/Ubuntu.
 SHELL = "/bin/bash"
 
+# Thread lock for parallel tests output.
 OUTPUT_LOCK = threading.Lock()
 
 
@@ -384,3 +395,75 @@ def boolean_test_decorator(subject: str) -> Callable[[Callable[_PARAMS, bool]], 
         return inner_function
 
     return inner_decorator
+
+
+class RoleMeta:
+    def __init__(self, meta_path: Path | str):
+        self.meta_path = Path(meta_path)
+
+    @property
+    def role(self) -> Path:
+        return self.meta_path.parent.parent
+
+    @property
+    def collection(self) -> Path:
+        return self.role.parent.parent
+
+    @property
+    def fqcn(self) -> str:
+        return f"{NAMESPACE_PATH.name}.{self.collection.name}.{self.role.name}"
+
+    def load(self, raise_errors: bool = True) -> Dict[str, Any]:
+        try:
+            with self.meta_path.open("r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        except (OSError, yaml.YAMLError) as err:
+            if raise_errors:
+                raise
+            print_warning(f"Failed to load {self.meta_path}: {err}")
+        return {}
+
+    @staticmethod
+    def from_glob(collection: Optional[str] = None) -> List["RoleMeta"]:
+        pattern = collection + ROLE_META_GLOB.lstrip("*") if collection is not None else ROLE_META_GLOB
+        return [RoleMeta(meta_path) for meta_path in sorted(NAMESPACE_PATH.glob(pattern))]
+
+    @staticmethod
+    def from_fqcn(fqcn: str) -> "RoleMeta":
+        parts = fqcn.split(".")
+        if len(parts) != 3:
+            raise ValueError(f"{fqcn} is not of 3 parts!")
+        if parts[0] != NAMESPACE_PATH.name:
+            raise ValueError(f"{fqcn} is not in namespace:{NAMESPACE_PATH.name}!")
+
+        return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2] / META_MAIN_PATH)
+
+
+def git_chdir() -> None:
+    os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
+
+
+def git_changed_paths(ref: str = "HEAD") -> List[str]:
+    git_diff_files = (
+        f"git diff --name-only --no-renames {shlex.quote(ref)} -- && git ls-files --others --exclude-standard"
+    )
+    return run_shell_get_lines(git_diff_files, unique=True)
+
+
+def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optional[str]:
+    match_kind = "--exact-match" if exact else "--abbrev=0"
+    git_describe = f"git describe --tags {match_kind} --match={shlex.quote(RELEASE_TAG_GLOB)} -- {shlex.quote(ref)}"
+    result = run_shell_get_lines(f"{git_describe} 2>/dev/null || true")
+    return result[0] if result else None
+
+
+def git_previous_release_tag() -> Optional[str]:
+    release = git_latest_release_tag("HEAD", exact=True)
+    # Untagged commits since the latest release.
+    if release is None:
+        return git_latest_release_tag("HEAD", exact=False)
+    # Uncommited changes since the HEAD release.
+    if git_changed_paths(release):
+        return release
+    # Pristine HEAD release, rewind to the previous release.
+    return git_latest_release_tag(f"{release}^")

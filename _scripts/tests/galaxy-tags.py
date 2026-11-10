@@ -3,16 +3,10 @@
 import sys
 
 from argparse import ArgumentParser
-from pathlib import Path
-from typing import Any, Dict
 
 import yaml
 
-from testlib import Color, RC, boolean_test_decorator, print_error
-
-# Relative path to skip checking tags in a parent repository.
-NAMESPACE_PATH = Path("ansible_collections") / "oszi"
-ROLE_META_GLOB = "*/roles/*/meta/main.y*ml"
+from testlib import NAMESPACE_PATH, META_MAIN_PATH, Color, RC, RoleMeta, boolean_test_decorator, print_error
 
 MUTUALLY_EXCLUSIVE_TAGS = {"baselinux", "containers", "thirdparty", "toolbox", "workstation"}
 MUTUALLY_EXCLUSIVE_TAGS_STR = f"{Color.BOLD}{', '.join(sorted(MUTUALLY_EXCLUSIVE_TAGS))}{Color.CLEAR}"
@@ -27,19 +21,14 @@ args_parser = ArgumentParser(
 def assert_role_tags() -> bool:
     rc = RC.OK
     role_count = 0
-
-    for meta_path in NAMESPACE_PATH.glob(ROLE_META_GLOB):
+    for role_meta in RoleMeta.from_glob():
         role_count += 1
-        role_path = meta_path.parent.parent
-        collection_name = role_path.parent.parent.name
-        role_fqcn = f"{NAMESPACE_PATH.name}.{collection_name}.{role_path.name}"
-        role_must_have = f"{Color.BOLD}{role_fqcn}{Color.CLEAR} must have"
+        role_must_have = f"{Color.BOLD}{role_meta.fqcn}{Color.CLEAR} must have"
 
         try:
-            with meta_path.open("r", encoding="utf-8") as f:
-                meta: Dict[str, Any] = yaml.safe_load(f)
+            meta = role_meta.load(raise_errors=True)
         except (OSError, yaml.YAMLError):
-            print_error(f"{role_must_have} a valid meta/main yaml file!")
+            print_error(f"{role_must_have} a valid {META_MAIN_PATH} file!")
             rc = RC.ERROR
             continue
 
@@ -50,8 +39,8 @@ def assert_role_tags() -> bool:
             rc = RC.ERROR
             continue
 
-        if collection_name not in tags:
-            print_error(f"{role_must_have} the tag: {Color.BOLD}{collection_name}{Color.CLEAR}")
+        if role_meta.collection.name not in tags:
+            print_error(f"{role_must_have} the tag: {Color.BOLD}{role_meta.collection.name}{Color.CLEAR}")
             rc = RC.ERROR
 
         if len(tags.intersection(MUTUALLY_EXCLUSIVE_TAGS)) != 1:
