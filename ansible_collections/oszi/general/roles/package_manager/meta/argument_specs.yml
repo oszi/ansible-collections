@@ -4,6 +4,7 @@ argument_specs:
     short_description: System package manager role
     description:
       - Configures apt.conf.d and dnf.conf [main] options
+      - Writes dnf5 repository overrides to /etc/dnf/repos.override.d
       - Replaces regexp patterns in distro-shipped repo files
       - Installs and removes extra distribution packages
     author:
@@ -30,10 +31,37 @@ argument_specs:
         type: dict
         required: false
 
+      package_manager_dnf_repo_overrides:
+        description:
+          - List of dnf5 repository overrides written to /etc/dnf/repos.override.d/90-ansible-managed.repo;
+            the native way to adjust distro-shipped repositories, which Fedora 45+ ships in /usr/share/dnf5/repos.d;
+            the file is only written when the list is not empty
+          - Overrides modify existing repositories only, they cannot create new ones; an empty value unsets an option;
+            files apply in alphabetical order with the last one winning, so dnf config-manager setopt
+            (99-config_manager.repo) still overrides the ansible managed file
+        type: list
+        elements: dict
+        required: false
+        options:
+          repo:
+            description:
+              - Repository ID, may contain globs; for example, `fedora*` or `rpmfusion-*`
+              - Fedora ships `fedora`, `updates` and `fedora-cisco-openh264`, so `fedora*` does not cover the updates repository
+            type: str
+            required: true
+          options:
+            description:
+              - Dict of repository options to override; lists are joined with commas
+              - For example, `baseurl` with an empty `metalink` for a mirror, or `enabled`
+            type: dict
+            required: true
+
       package_manager_repo_replacements:
         description:
           - List of regexp/replace pairs to be applied to distro-shipped repo files
           - Targets are defined in O(package_manager_repo_replacements_targets)
+          - Fedora 45+ ships its repo files in /usr/share/dnf5/repos.d, which must not be edited;
+            use O(package_manager_dnf_repo_overrides)
         type: list
         elements: dict
         required: false
@@ -69,6 +97,7 @@ argument_specs:
         description:
           - List of glob patterns targeted by O(package_manager_repo_replacements)
           - Default matches Debian, Ubuntu, Fedora, and most EL repo files, also RPM Fusion
+          - Only files in /etc are targeted; on Fedora 45+ the distro-shipped files are in /usr/share/dnf5/repos.d
         type: list
         elements: str
         required: false

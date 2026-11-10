@@ -5,6 +5,9 @@
       + rpmfusion_rpm_release_tainted_packages + rpmfusion_rpm_appstream_packages }}"
     state: "absent"
 
+# The release packages own their repository files and keys, under /etc up to Fedora 44 and under
+# /usr/share/dnf5/repos.d and /usr/share/pki/rpm-gpg since Fedora 45, and take them along on removal.
+# Leftovers in /etc are the subset repositories of fedora-workstation-repositories and legacy keys.
 - name: Find leftover RPM Fusion repository files
   ansible.builtin.find:
     paths:

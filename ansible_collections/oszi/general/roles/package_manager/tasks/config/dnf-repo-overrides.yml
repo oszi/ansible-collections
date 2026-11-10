@@ -1,0 +1,35 @@
+---
+- name: Assert that the package manager reads repository overrides
+  ansible.builtin.assert:
+    that: "ansible_facts.pkg_mgr == 'dnf5'"
+    fail_msg: "package_manager_dnf_repo_overrides requires dnf5; dnf4 ignores /etc/dnf/repos.override.d"
+    quiet: true
+
+- name: Ensure directory for ansible-managed dnf repository overrides
+  ansible.builtin.file:
+    path: "{{ package_manager_dnf_repo_overrides_path | dirname }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Install ansible-managed dnf repository overrides
+  ansible.builtin.copy:
+    dest: "{{ package_manager_dnf_repo_overrides_path }}"
+    content: |
+      {% for item in package_manager_dnf_repo_overrides %}
+      [{{ item.repo }}]
+      {% for k, v in item.options | dictsort %}
+      {{ k }}={{ v | join(',') if v is not string and v is iterable else v }}
+      {% endfor %}
+
+      {% endfor %}
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  register: _package_manager_dnf_repo_overrides_result
+
+- name: Update package cache
+  when: _package_manager_dnf_repo_overrides_result is changed
+  ansible.builtin.package:
+    update_cache: true

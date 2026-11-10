@@ -22,13 +22,19 @@ provisioner:
           absent: [tree]
       # molecule_verify_commands is defined per group: group_vars replace lists, they do not merge.
       fedora:
-        # Comment-only change in the shipped repo files: the replace and makecache path runs
-        # without altering any active repository setting.
+        # Fedora 45+ ships its repo files in /usr/share/dnf5/repos.d and they are adjusted through overrides;
+        # the replacements run on the disabled legacy-style stub seeded by prepare.yml in /etc/yum.repos.d.
+        # A comment-only change there, countme off and a display name in the override: no active repository
+        # setting changes. The glob covers fedora, fedora-debuginfo and fedora-source; updates is a separate ID.
         package_manager_repo_replacements:
           - regexp: '^#baseurl=http://download\.example/'
             replace: '#baseurl=https://download.example/'
+        package_manager_dnf_repo_overrides:
+          - repo: "fedora*"
+            options: {countme: 0, name: "Fedora override"}
         molecule_verify_paths:
           - {path: /etc/dnf/dnf.conf, mode: "0644", owner: root, group: root}
+          - {path: /etc/dnf/repos.override.d/90-ansible-managed.repo, mode: "0644", owner: root, group: root}
           - {path: /etc/apt/apt.conf.d/99-ansible-managed.conf, state: absent}
         molecule_verify_commands:
           - {cmd: "command -v file less"}
@@ -37,9 +43,14 @@ provisioner:
           - {cmd: "grep -Fx max_parallel_downloads=10 /etc/dnf/dnf.conf && grep -Fx tsflags=nodocs /etc/dnf/dnf.conf"}
           - {cmd: "dnf --dump-main-config | grep -E '^(max_parallel_downloads|defaultyes) '", stdout_contains: "max_parallel_downloads = 10"}
           - {cmd: "dnf --dump-main-config | grep -E '^defaultyes '", stdout: "defaultyes = 1"}
-          - {cmd: "! grep -l '^#baseurl=http://download\\.example/' /etc/yum.repos.d/fedora*.repo"}
-          - {cmd: "grep -c '^#baseurl=https://download\\.example/' /etc/yum.repos.d/fedora.repo", stdout: "3"}
-          - {cmd: "grep -q '^metalink=https://mirrors.fedoraproject.org/' /etc/yum.repos.d/fedora.repo"}
+          - {cmd: "! grep -q '^#baseurl=http://download\\.example/' /etc/yum.repos.d/fedora-molecule.repo"}
+          - {cmd: "grep -c '^#baseurl=https://download\\.example/' /etc/yum.repos.d/fedora-molecule.repo", stdout: "2"}
+          - {cmd: "grep -q '^metalink=https://mirrors.fedoraproject.org/' /etc/yum.repos.d/fedora-molecule.repo"}
+          # The shipped files stay intact; the override applies to every repository matching the glob.
+          - {cmd: "rpm -V fedora-repos"}
+          - {cmd: "cat /etc/dnf/repos.override.d/90-ansible-managed.repo", stdout: "[fedora*]\ncountme=0\nname=Fedora override"}
+          - {cmd: "dnf --dump-repo-config=fedora | grep -Fx 'countme = 0'"}
+          - {cmd: "dnf --dump-repo-config=fedora,fedora-debuginfo,fedora-source | grep -cFx 'name = Fedora override'", stdout: "3"}
       debian:
         # Molecule interpolates dollar signs in molecule.yml, hence the doubled regexp anchors.
         # A trailing slash on the URIs is equivalent for apt; the cache update after the change proves it.

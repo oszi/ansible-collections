@@ -5,6 +5,10 @@ package_manager_apt_conf_path: "/etc/apt/apt.conf.d/99-ansible-managed.conf"
 # Target file for package_manager_dnf_conf [main] options:
 package_manager_dnf_conf_path: "/etc/dnf/dnf.conf"
 
+# Target file for package_manager_dnf_repo_overrides; dnf config-manager setopt writes
+# 99-config_manager.repo, which sorts after this file and therefore wins:
+package_manager_dnf_repo_overrides_path: "/etc/dnf/repos.override.d/90-ansible-managed.repo"
+
 # Update options for ansible.builtin.apt:
 package_manager_update_apt_args:
   cache_valid_time: 3600

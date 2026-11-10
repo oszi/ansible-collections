@@ -7,7 +7,8 @@ provisioner:
     group_vars:
       redhat:
         molecule_verify_commands:
-          - {cmd: "! compgen -G '/etc/yum.repos.d/*rpmfusion*' && ! compgen -G '/etc/pki/rpm-gpg/*rpmfusion*'"}
+          - cmd: "! compgen -G '/etc/yum.repos.d/*rpmfusion*' && ! compgen -G '/etc/pki/rpm-gpg/*rpmfusion*'
+              && ! compgen -G '/usr/share/dnf5/repos.d/*rpmfusion*' && ! compgen -G '/usr/share/pki/rpm-gpg/*rpmfusion*'"
         molecule_verify_paths:
           - {path: /etc/yum.repos.d/rpmfusion-nonfree-steam.repo, state: absent}
           - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-nonfree-fedora-steam, state: absent}

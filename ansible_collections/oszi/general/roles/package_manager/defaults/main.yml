@@ -12,12 +12,23 @@ package_manager_apt_conf: {}
 # defaultyes: true
 package_manager_dnf_conf: {}
 
+# List of dnf5 repository overrides written to package_manager_dnf_repo_overrides_path.
+# Repo IDs may contain globs (fedora* also matches fedora-cisco-openh264, updates is a separate ID);
+# an empty value unsets an option, e.g. metalink for a mirror.
+# - repo: "fedora"
+#   options:
+#     baseurl: "https://mirror.example/fedora/$releasever/$basearch/"
+#     metalink: ""
+package_manager_dnf_repo_overrides: []
+
 # List of {regexp, replace} pairs applied to distro-shipped repo files.
 # - regexp: 'https?://(\w+\.)?(\w+)\.ubuntu\.com'
 #   replace: 'https://\2.ubuntu.com'
 package_manager_repo_replacements: []
 
-# Glob patterns of distro-shipped repo files targeted by package_manager_repo_replacements:
+# Glob patterns of distro-shipped repo files targeted by package_manager_repo_replacements.
+# Fedora 45+ ships its repo files in /usr/share/dnf5/repos.d, which must not be edited;
+# adjust them with package_manager_dnf_repo_overrides instead:
 package_manager_repo_replacements_targets: "{{ [
     '/etc/apt/sources.list',
     '/etc/apt/sources.list.d/' + ansible_facts.distribution | lower + '*.sources',

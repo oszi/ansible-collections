@@ -12,6 +12,13 @@
       vars:
         _pkg_mgr: "{{ ansible_facts.pkg_mgr | replace('dnf5', 'dnf') }}"
 
+    - name: Include dnf repository overrides tasks
+      when: >-
+        not package_manager_disabled and ansible_facts.os_family == 'RedHat'
+        and package_manager_dnf_repo_overrides is truthy
+      ansible.builtin.include_tasks:
+        file: config/dnf-repo-overrides.yml
+
     - name: Include repo replacements tasks
       when: not package_manager_disabled and package_manager_repo_replacements is truthy
       ansible.builtin.include_tasks:

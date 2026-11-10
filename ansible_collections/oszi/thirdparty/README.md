@@ -22,7 +22,7 @@ Ansible collection for software from third-party sources.
   * `{role}_{rpm,deb}_gpgkey_checksum` for GPG key checksums in the format of `get_url`.
   * `{role}_deb_gpgkey_armored` for .asc/.gpg extension in `gpgkey_path`.
 * Vars for third-party repository roles:
-  * `{role}_{rpm,deb}_{repo_path,gpgkey_path}` for managed paths.
+  * `{role}_{rpm,deb}_{repo_path,gpgkey_path}` for ansible managed paths.
   * `{role}_{rpm,deb}_absent_paths` for vendor/legacy paths to remove in `install` and `uninstall` tasks.
   * `{role}_rpm_repo_args` for `yum_repository` args incorporating `baseurl` and path vars.
   * `{role}_deb_repo` for Deb822 .sources incorporating `baseurl` and path vars.
