@@ -18,6 +18,7 @@ from testlib import (
     Output,
     error_code,
     print_hint,
+    print_warning,
     run_shell_get_lines,
     run_test_cmd,
     run_tests_parallel,
@@ -66,23 +67,23 @@ args_parser.add_argument("--workers", help="number of parallel scenarios (<1 for
 args_parser.add_argument("fqcns", help="[FQCN ...] [-- MOLECULE_ARGS ...]", nargs=REMAINDER)
 
 
-def all_roles() -> Set[Role]:
-    return {
-        (collection, role_path.name)
-        for collection in COLLECTIONS
-        for role_path in (NAMESPACE_PATH / collection / "roles").glob("*/")
-    }
+def git_ls_files(*pathspecs: str) -> List[Path]:
+    """Tracked and untracked files matching the pathspecs, excluding ignored files and files deleted in the working tree."""
+    specs = " ".join(shlex.quote(f":(glob){pathspec}") for pathspec in pathspecs)
+    paths = run_shell_get_lines(f"git ls-files -c -o --exclude-standard --deduplicate -- {specs}", unique=True)
+    return [path for path in map(Path, paths) if path.exists()]
 
 
-def role_scenarios(role: Role) -> List[Path]:
-    """Scenario directories named {role} or {role}-{variant}, plus scenarios converging the role."""
-    collection, name = role
-    scenarios = []
-    for scenario_path in sorted((NAMESPACE_PATH / collection / SCENARIOS_DIR).glob("*/molecule.yml")):
-        scenario = scenario_path.parent.name
-        if scenario == name or scenario.startswith(f"{name}-") or role in scenario_converged_roles(scenario_path):
-            scenarios.append(scenario_path.parent)
-    return scenarios
+@lru_cache(maxsize=None)
+def all_roles() -> Tuple[Role, ...]:
+    pathspec = f"{NAMESPACE_PATH}/*/roles/*/meta/main.y*ml"
+    return tuple((path.parts[2], path.parts[4]) for path in git_ls_files(pathspec) if path.parts[2] in COLLECTIONS)
+
+
+@lru_cache(maxsize=None)
+def collection_scenario_files(collection: str) -> Tuple[Path, ...]:
+    pathspec = f"{NAMESPACE_PATH / collection / SCENARIOS_DIR}/*/molecule.y*ml"
+    return tuple(sorted(git_ls_files(pathspec)))
 
 
 @lru_cache(maxsize=None)
@@ -93,7 +94,7 @@ def scenario_converged_roles(scenario_path: Path) -> Set[Role]:
             molecule_yml = yaml.safe_load(f) or {}
         group_vars = molecule_yml["provisioner"]["inventory"]["group_vars"]
     except (OSError, yaml.YAMLError, KeyError, TypeError):
-        return set()
+        return frozenset()
 
     roles = set()
     for variables in group_vars.values():
@@ -102,10 +103,21 @@ def scenario_converged_roles(scenario_path: Path) -> Set[Role]:
             role = parse_fqcn(fqcn)
             if role is not None and role[1]:
                 roles.add(role)
-    return roles
+    return frozenset(roles)
 
 
-def parse_fqcn(fqcn: str) -> Optional[Tuple[str, str]]:
+def role_scenarios(role: Role) -> List[Path]:
+    """Scenario directories named {role} or {role}-{variant}, plus scenarios converging the role."""
+    collection, name = role
+    scenarios = []
+    for scenario_path in collection_scenario_files(collection):
+        scenario = scenario_path.parent.name
+        if scenario == name or scenario.startswith(f"{name}-") or role in scenario_converged_roles(scenario_path):
+            scenarios.append(scenario_path.parent)
+    return scenarios
+
+
+def parse_fqcn(fqcn: str) -> Optional[Role]:
     """Return (collection, role) for oszi.collection.role, or (collection, '') for oszi.collection."""
     parts = fqcn.split(".")
     if len(parts) not in (2, 3) or parts[0] != NAMESPACE or parts[1] not in COLLECTIONS:
@@ -119,7 +131,8 @@ def role_dependencies(role: Role) -> Set[Role]:
     try:
         with meta_path.open("r", encoding="utf-8") as f:
             meta = yaml.safe_load(f) or {}
-    except (OSError, yaml.YAMLError):
+    except (OSError, yaml.YAMLError) as err:
+        print_warning(f"Failed to load {meta_path}: {err}")
         return set()
 
     dependencies = set()

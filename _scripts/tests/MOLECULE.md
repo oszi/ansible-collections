@@ -43,7 +43,7 @@ molecule destroy -s shell
 `~/.ansible/tmp/molecule.*`. The message `CRITICAL 'extensions/molecule/default/molecule.yml' glob failed`
 is harmless: molecule looks for a `default` scenario to decide about shared state.
 
-Enable podman transient store at the cost of losing all user containers after reboot.
+Enable podman transient store at the cost of losing all user containers after reboot, and disable IPv6 if not needed.
 ```bash
 systemctl --user enable podman-clean-transient.service
 mkdir -p ~/.config/containers
@@ -54,6 +54,10 @@ transient_store = true
 
 [storage.options.overlay]
 mountopt = "nodev,metacopy=on"
+EOF
+cat > ~/.config/containers/containers.conf <<EOF
+[network]
+pasta_options = ["--ipv4-only"]
 EOF
 ```
 
