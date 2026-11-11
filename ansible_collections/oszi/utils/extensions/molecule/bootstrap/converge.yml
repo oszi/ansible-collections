@@ -21,7 +21,13 @@
           - "bootstrap_is_ssh is false"
           - "bootstrap_ssh_port == 22"
           - "bootstrap_included is true"
+          - "ansible_facts.bootstrap_package_cache_update_time is defined"
+          - "ansible_facts.bootstrap_package_cache_update_time | int > 0"
         quiet: true
+
+    - name: Remember the package cache update time
+      ansible.builtin.set_fact:
+        converge_package_cache_update_time: "{{ ansible_facts.bootstrap_package_cache_update_time }}"
 
     # The main entrypoint skips the bootstrap tasks once included; the bootstrap entrypoint always runs them.
     - name: Import bootstrap entrypoint with a different fallback port
@@ -50,10 +56,13 @@
         ansible_port: 2222
         bootstrap_ssh_port_fallback: 2222
 
+    # The cache validity time of the scenario has not passed, so the package cache update is skipped and the
+    # time is unchanged; a repeated update takes seconds on dnf, which has to download the metadata again.
     - name: Assert the bootstrap facts after the deduplicated import
       ansible.builtin.assert:
         that:
           - "bootstrap_is_ssh is false"
           - "bootstrap_ssh_port == 22"
           - "bootstrap_included is true"
+          - "ansible_facts.bootstrap_package_cache_update_time == converge_package_cache_update_time"
         quiet: true

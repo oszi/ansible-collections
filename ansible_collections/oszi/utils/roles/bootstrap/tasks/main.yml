@@ -2,19 +2,17 @@
 - name: Bootstrap tasks
   tags: [always]
   block:
+    # Access bootstrap_* facts directly instead via ansible_facts here and in downstream roles
+    # so bootstrap.yml runs once even with persistent fact caching.
     - name: Include bootstrap tasks if necessary
       when: bootstrap_included is undefined or not bootstrap_included
       ansible.builtin.include_tasks:
         file: bootstrap.yml
 
-    # Run even with persistent fact caching that would bypass the above.
-    - name: Update package cache
+    - name: Include package update cache tasks if necessary
       when: bootstrap_package_update_cache
-      ansible.builtin.package:
-        update_cache: true
-        cache_valid_time: "{{ bootstrap_apt_cache_valid_time if bootstrap_apt_cache_valid_time > -1 else omit }}"
-      changed_when: false
-      ignore_errors: true  # noqa: ignore-errors
+      ansible.builtin.include_tasks:
+        file: package-update-cache.yml
 
     - name: Bootstrap role completed
       ansible.builtin.assert:

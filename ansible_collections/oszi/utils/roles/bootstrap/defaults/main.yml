@@ -11,6 +11,8 @@ bootstrap_ssh_port_fallback: 22
 # * Facts are not available at this point, enable manually from the inventory.
 bootstrap_package_update_cache: false
 
-# Cache validity time in seconds for apt (default is omit).
+# Cache validity time in seconds for every package manager (always update if negative).
+# * The last update time is kept in the cacheable fact ansible_facts.bootstrap_package_cache_update_time,
+#   so the TTL persists across runs with persistent fact caching; apt gets it as cache_valid_time too.
 # * Facts are not available at this point, set manually from the inventory.
-bootstrap_apt_cache_valid_time: -1
+bootstrap_package_cache_valid_time: "{{ bootstrap_apt_cache_valid_time | default(-1) }}"

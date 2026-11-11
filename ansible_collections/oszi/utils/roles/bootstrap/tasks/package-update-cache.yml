@@ -1,0 +1,37 @@
+---
+# The update time is a cacheable fact, so bootstrap_package_cache_valid_time is a TTL within ansible for every
+# package manager, persisting across runs with persistent fact caching. Later runs only see the fact in
+# ansible_facts, as inject_facts_as_vars is disabled. The time comes from the controller clock, which is
+# also what the TTL is compared with; the hosts' clocks and time zones do not matter.
+
+- name: Detect package manager
+  when: "bootstrap_package_cache_valid_time >= 0 and ansible_facts.pkg_mgr is undefined"
+  ansible.builtin.setup:
+    gather_subset: ["!all", "!min", "pkg_mgr"]
+    filter: ["ansible_pkg_mgr"]
+
+# Let apt manage its own TTL, otherwise this could double the actual TTL.
+- name: Update package cache
+  when: "bootstrap_package_cache_valid_time < 0 or ansible_facts.pkg_mgr == 'apt'
+    or ansible_facts.bootstrap_package_cache_update_time is undefined
+    or now().timestamp() | int - ansible_facts.bootstrap_package_cache_update_time | int
+    > bootstrap_package_cache_valid_time"
+  ansible.builtin.package:
+    update_cache: true
+    cache_valid_time: "{{ bootstrap_package_cache_valid_time if bootstrap_package_cache_valid_time >= 0
+      and ansible_facts.pkg_mgr == 'apt' else omit }}"
+  changed_when: false
+  ignore_errors: true  # noqa: ignore-errors
+  register: _bootstrap_package_update_cache_result
+
+# A failed update leaves the previous time in place, so the next run retries it.
+# apt does not update in check mode, so the time is only recorded for real updates.
+- name: Set package cache update time
+  when: "not ansible_check_mode
+    and _bootstrap_package_update_cache_result is not skipped
+    and _bootstrap_package_update_cache_result is not failed"
+  ansible.builtin.set_fact:
+    bootstrap_package_cache_update_time: "{{ _bootstrap_package_update_cache_result.cache_update_time
+      | default(now().timestamp(), true) | int }}"
+    # Export to later plays and runs via fact caching.
+    cacheable: true

@@ -5,7 +5,9 @@ argument_specs:
     description:
       - Performs initial SSH connection bootstrap with optional port fallback
       - Automatic fact gathering should be turned off in playbooks using this role
-      - Updates the default package manager's cache if configured as such
+      - Updates the default package manager's cache if configured as such, within a cache validity time
+      - Exports the cacheable fact C(ansible_facts.bootstrap_package_cache_update_time), the last cache update time
+        in epoch seconds on the controller
     author:
       - "David O. (oszi.dev)"
     options:
@@ -18,21 +20,25 @@ argument_specs:
         required: false
         default: 22
 
-      bootstrap_package_update_cache:
+      bootstrap_package_update_cache: &bootstrap_package_update_cache
         description:
           - Whether to update the package manager's cache after bootstrapping
           - Useful for Debian/Ubuntu hosts that are often offline and fail to update apt cache
           - Enable manually for apt hosts, facts are not available at this point
-          - Requires root privileges and also setting O(bootstrap_apt_cache_valid_time)
+          - Should only run as root; O(bootstrap_package_cache_valid_time) limits how often the cache is updated
         type: bool
         required: false
+        default: false
 
-      bootstrap_apt_cache_valid_time:
+      bootstrap_package_cache_valid_time: &bootstrap_package_cache_valid_time
         description:
-          - Cache validity time in seconds for apt (e.g., 86400 = 1 day)
-          - Set manually for apt hosts, facts are not available at this point
+          - Cache validity time in seconds for every package manager (e.g., 86400 = 1 day); always update if negative
+          - The last update time is kept in the cacheable fact C(bootstrap_package_cache_update_time), so the
+            validity time persists across runs with persistent fact caching; apt also gets it as its cache_valid_time
+          - Measured on the controller clock, a failed update does not count, neither does one in check mode
         type: int
         required: false
+        default: -1
 
   bootstrap:
     short_description: Direct entrypoint for bootstrap
@@ -43,3 +49,14 @@ argument_specs:
     options:
       bootstrap_ssh_port_fallback:
         <<: *bootstrap_ssh_port_fallback
+
+  package-update-cache:
+    short_description: Direct entrypoint for package-update-cache
+    description:
+      - Does not include any other bootstrap tasks
+      - Does not apply `always` or any other tag, unlike entrypoint `main`
+    options:
+      bootstrap_package_update_cache:
+        <<: *bootstrap_package_update_cache
+      bootstrap_package_cache_valid_time:
+        <<: *bootstrap_package_cache_valid_time

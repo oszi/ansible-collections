@@ -2,18 +2,18 @@
 # Molecule scenario for oszi.utils.bootstrap; shared settings come from ../config.yml.
 # The custom converge.yml asserts the bootstrap facts in the same play. The package cache update is enabled
 # here so the role's task runs; the base inventory disables it because the images ship the metadata, which
-# prepare.yml removes so the verify commands prove the update. The apt cache validity time is set for
-# the debian group only: dnf rejects the cache_valid_time parameter and the role ignores the error.
+# prepare.yml removes so the verify commands prove the update. The cache validity time is set for every host:
+# the role must pass it to apt only, dnf rejects the parameter, and converge.yml asserts the TTL fact it keeps.
 # The SSH port fallback is unreachable: the podman connection is not SSH, so bootstrap_is_ssh is false.
 provisioner:
   inventory:
     group_vars:
       all:
         bootstrap_package_update_cache: true
+        bootstrap_package_cache_valid_time: 3600
       fedora:
         molecule_verify_commands:
           - {cmd: "compgen -G '/var/cache/libdnf5/*/repodata/*primary*'"}
       debian:
-        bootstrap_apt_cache_valid_time: 3600
         molecule_verify_commands:
           - {cmd: "compgen -G '/var/lib/apt/lists/*_Packages*'"}

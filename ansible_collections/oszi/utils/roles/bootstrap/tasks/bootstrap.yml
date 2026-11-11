@@ -12,8 +12,8 @@
 
 - name: Include SSH port fallback for first-time setup
   when: "bootstrap_is_ssh
-    and bootstrap_ssh_port_fallback|int > 0
-    and bootstrap_ssh_port_fallback|int != bootstrap_ssh_port|int"
+    and bootstrap_ssh_port_fallback | int > 0
+    and bootstrap_ssh_port_fallback | int != bootstrap_ssh_port | int"
   ansible.builtin.include_tasks:
     file: ssh-fallback.yml
 

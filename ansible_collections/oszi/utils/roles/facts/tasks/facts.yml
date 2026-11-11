@@ -1,11 +1,12 @@
 ---
-# Use facts_previously_gathered_subset for the very first time to support implicit gathering.
+# Use facts_previously_gathered_subset to support implicit gathering.
+# meta: clear_facts unsets ansible_facts.facts_gathered_subset_cache but not facts_gathered_subset_cache.
 - name: Set previously gathered subset
-  when: facts_gathered_subset_cache is not defined
+  when: "facts_gathered_subset_cache is undefined
+    or ansible_facts.facts_gathered_subset_cache is undefined"
   ansible.builtin.set_fact:
-    facts_gathered_subset_cache: "{{ ansible_facts.facts_gathered_subset_cache
-      if ansible_facts.facts_gathered_subset_cache is defined
-      else facts_previously_gathered_subset | sort }}"
+    facts_gathered_subset_cache: "{{ (ansible_facts.facts_gathered_subset_cache | default([])
+      + facts_previously_gathered_subset) | unique | sort }}"
     cacheable: true
 
 - name: "Gather missing subset - {{ facts_subset | sort | join(',') }}"
