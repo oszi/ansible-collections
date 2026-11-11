@@ -5,6 +5,8 @@ containers with systemd as init. `oszi.environments` is out of scope. Containers
 rootless capability set: no `--privileged`, no `CAP_SYS_ADMIN`.
 
 Molecule tests are slow and need podman and network access; agents must not run molecule unless asked.
+`molecule.py` refuses to run outside a virtual machine as detected by `systemd-detect-virt --vm`;
+`--bare-metal` overrides it. `--list` never runs anything and is not gated.
 
 ## Quick start
 
@@ -30,6 +32,9 @@ _scripts/tests/molecule.py --list
 _scripts/tests/molecule.py --all
 _scripts/tests/molecule.py oszi.general.shell oszi.utils.facts
 _scripts/tests/molecule.py oszi.general.shell -- test --destroy never
+
+# Reset all molecule scenarios and remove all molecule containers
+_scripts/tests/molecule.py --all -- reset
 
 # Molecule directly: build the images from the repository root, then run from a collection directory
 ansible-playbook -i localhost, oszi.utils.molecule.build # molecule.py runs this itself

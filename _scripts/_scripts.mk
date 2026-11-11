@@ -24,21 +24,24 @@ update-collections: FORCE
 		|| git -C $(COLLECTIONS) rev-parse --short HEAD) && set -x \
 	&& git commit -S -n -m "Update ansible-collections [$${VERSION}]" $(COLLECTIONS) \
 	&& git push --follow-tags
+else
+MOLECULE_ARGS ?= --ignore-framework
+molecule: FORCE
+	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh $@ [ $(MOLECULE_ARGS) ]
+
+molecule-all: MOLECULE_ARGS := --all
+molecule-all: molecule
+
+molecule-list: MOLECULE_ARGS := --ignore-framework --list
+molecule-list: molecule
+
+molecule-reset: MOLECULE_ARGS := --all -- reset
+molecule-reset: molecule
 endif
 
 TESTS_ARGS ?=
 tests: FORCE
 	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh $(TESTS_ARGS)
-
-MOLECULE_ARGS ?=
-molecule: FORCE
-	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh $@ [ $(MOLECULE_ARGS) ]
-
-molecule-list: MOLECULE_ARGS := --list
-molecule-list: molecule
-
-molecule-reset: MOLECULE_ARGS := --all -- reset
-molecule-reset: molecule
 
 reset: FORCE
 	$(SCRIPTS)/git-reset.sh --force

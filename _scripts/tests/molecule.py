@@ -22,6 +22,7 @@ from testlib import (
     git_chdir,
     git_changed_paths,
     git_previous_release_tag,
+    is_virtual_machine,
     print_hint,
     print_success,
     run_shell_get_lines,
@@ -52,16 +53,17 @@ BUILD_PLAYBOOK = "oszi.utils.molecule.build"
 INOTIFY_MAX_USER_INSTANCES_PATH = Path("/proc/sys/fs/inotify/max_user_instances")
 
 args_parser = ArgumentParser(
-    usage="molecule.py [--help] [--all] [--ignore-framework] [--list] [--workers N] [FQCN ...] [-- MOLECULE_ARGS ...]",
+    usage="molecule.py [--help] [--all] [--ignore-framework] [--list] [--bare-metal] [--workers N] [FQCN ...] [-- MOLECULE_ARGS ...]",
     description="Run molecule scenarios of the roles affected since the previous release, "
     "of the given roles or collections (e.g. oszi.general.shell, oszi.utils), or of everything.",
     epilog="Molecule arguments after -- replace the default 'test', e.g. -- converge. "
     "Images are built once automatically. See MOLECULE.md and README.md.",
 )
 
-args_parser.add_argument("--all", help="run the scenarios of all roles", action="store_true", default=False)
+args_parser.add_argument("--all", help="run the scenarios of all roles", action="store_true")
 args_parser.add_argument("--ignore-framework", help="select only the roles touched directly", action="store_true")
 args_parser.add_argument("--list", help="list selected scenarios without running anything", action="store_true")
+args_parser.add_argument("--bare-metal", help="allow running outside a virtual machine", action="store_true")
 args_parser.add_argument("--workers", help="number of parallel scenarios (<1 for auto)", type=int, default=0)
 args_parser.add_argument("fqcns", help="[FQCN ...] [-- MOLECULE_ARGS ...]", nargs=REMAINDER)
 
@@ -280,16 +282,16 @@ def run_build_playbook() -> int:
     return run_test_cmd(BUILD_PLAYBOOK_CMD, [BUILD_PLAYBOOK], BUILD_PLAYBOOK, env=env, output=Output.LIVE_QUIET)
 
 
-def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app_args_all: bool, workers: int) -> int:
-    subcommand = get_subcommand_arg(molecule_args)
-    if app_args_all and subcommand == "reset":
-        targets = [{"args": ["--all"], "cwd": NAMESPACE_PATH / collection} for collection in COLLECTIONS]
-        workers = 1
-    else:
-        targets = []
-        for collection, scenario_paths in scenarios.items():
-            for scenario_path in scenario_paths:
-                targets.append({"args": ["-s", scenario_path.name], "cwd": NAMESPACE_PATH / collection})
+def run_molecule_with_all(molecule_args: List[str]) -> int:
+    targets = [{"args": ["--all"], "cwd": NAMESPACE_PATH / collection} for collection in COLLECTIONS]
+    return run_tests_parallel(MOLECULE_CMD + molecule_args, targets, max_workers=1, output=Output.LIVE_WITH_STATUS)
+
+
+def run_molecule_with_scenarios(scenarios: Dict[str, List[Path]], molecule_args: List[str], workers: int) -> int:
+    targets = []
+    for collection, scenario_paths in scenarios.items():
+        for scenario_path in scenario_paths:
+            targets.append({"args": ["-s", scenario_path.name], "cwd": NAMESPACE_PATH / collection})
 
     if workers < 1:
         workers = detect_workers()
@@ -301,16 +303,13 @@ def run_molecule(scenarios: Dict[str, List[Path]], molecule_args: List[str], app
 
     output = (
         Output.ON_FAILURE_WITH_STATUS
-        if subcommand == "test"
+        if get_subcommand_arg(molecule_args) == "test"
         else Output.BUFFERED_WITH_STATUS if workers != 1 and len(targets) > 1 else Output.LIVE_WITH_STATUS
     )
 
     # With 1 worker, scenarios are executed one by one, continuing after failures;
     # unlike a single run with multiple scenarios that stops on failures.
-    rc = run_tests_parallel(MOLECULE_CMD + molecule_args, targets, max_workers=workers, env=env, output=output)
-    if RC.is_signal(rc):
-        print_hint("Use molecule.py --all -- reset")
-    return rc
+    return run_tests_parallel(MOLECULE_CMD + molecule_args, targets, max_workers=workers, env=env, output=output)
 
 
 def main() -> None:
@@ -338,15 +337,23 @@ def main() -> None:
                 print(f"{NAMESPACE_PATH.name}.{collection}: {scenario_path.name}")
         RC.status(RC.OK, sys_exit=True)
 
+    if not app_args.bare_metal and not is_virtual_machine():
+        print_hint("Use molecule.py --bare-metal to allow running outside a virtual machine.")
+        error_code("molecule must run in a virtual machine!", sys_exit=True)
+
     if shutil.which(MOLECULE_CMD[0]) is None:
         error_code("molecule not found! `source venv/bin/activate`", sys_exit=True)
 
-    if get_subcommand_arg(molecule_args) in MOLECULE_INSTANCE_COMMANDS:
+    subcommand = get_subcommand_arg(molecule_args)
+    if subcommand in MOLECULE_INSTANCE_COMMANDS:
         rc = run_build_playbook()
         if rc != RC.OK:
             RC.status(rc, sys_exit=True)
 
-    rc = run_molecule(scenarios, molecule_args, app_args.all, app_args.workers)
+    if app_args.all and subcommand == "reset":
+        rc = run_molecule_with_all(molecule_args)
+    else:
+        rc = run_molecule_with_scenarios(scenarios, molecule_args, app_args.workers)
     RC.status(rc, sys_exit=True)
 
 

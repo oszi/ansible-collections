@@ -16,7 +16,7 @@ _scripts/run-tests.sh python [ --black ] molecule [ oszi.general.shell -- test -
 Molecule tests are opt-in and run only when requested; see [MOLECULE.md](MOLECULE.md).  
 Without arguments, only the roles affected since the previous release are tested:
 ```bash
-_scripts/run-tests.sh molecule # '[' [--all] [--ignore-framework] [--list] [--workers N] \
+_scripts/run-tests.sh molecule # '[' [--all] [--ignore-framework] [--list] [--bare-metal] [--workers N] \
   # [oszi.general.shell|oszi.utils ...] [-- MOLECULE_ARGS ...] ']'
 ```
 

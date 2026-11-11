@@ -18,9 +18,6 @@ import yaml
 assert sys.version_info >= (3, 11)
 
 NAMESPACE_PATH = Path("ansible_collections") / "oszi"
-META_MAIN_PATH = Path("meta") / "main.yml"
-ROLE_META_GLOB = f"*/roles/*/{META_MAIN_PATH}"
-
 RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
 
 # Override /bin/sh for bash on Debian/Ubuntu.
@@ -398,6 +395,9 @@ def boolean_test_decorator(subject: str) -> Callable[[Callable[_PARAMS, bool]], 
 
 
 class RoleMeta:
+    META_MAIN_PATH = Path("meta") / "main.yml"
+    ROLE_META_GLOB = "*/roles/*/meta/main.yml"
+
     def __init__(self, meta_path: Path | str):
         self.meta_path = Path(meta_path)
 
@@ -425,7 +425,7 @@ class RoleMeta:
 
     @staticmethod
     def from_glob(collection: Optional[str] = None) -> List["RoleMeta"]:
-        pattern = collection + ROLE_META_GLOB.lstrip("*") if collection is not None else ROLE_META_GLOB
+        pattern = collection + RoleMeta.ROLE_META_GLOB.lstrip("*") if collection else RoleMeta.ROLE_META_GLOB
         return [RoleMeta(meta_path) for meta_path in sorted(NAMESPACE_PATH.glob(pattern))]
 
     @staticmethod
@@ -436,7 +436,15 @@ class RoleMeta:
         if parts[0] != NAMESPACE_PATH.name:
             raise ValueError(f"{fqcn} is not in namespace:{NAMESPACE_PATH.name}!")
 
-        return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2] / META_MAIN_PATH)
+        return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2] / RoleMeta.META_MAIN_PATH)
+
+
+def is_virtual_machine() -> bool | NoReturn:
+    try:
+        rc = sp.run(["systemd-detect-virt", "--vm", "--quiet"], check=False, stdin=sp.DEVNULL).returncode
+    except OSError as err:
+        error_code_exc("testlib.is_virtual_machine", err, sys_exit=True)
+    return rc == RC.OK
 
 
 def git_chdir() -> None:
