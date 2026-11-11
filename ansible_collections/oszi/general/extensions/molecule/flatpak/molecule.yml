@@ -14,6 +14,8 @@ provisioner:
             - "--nofilesystem=home"
             - "--filesystem=/srv/molecule data:ro"
             - "--env=MOLECULE=1"
+        # Not installed: the module lists the installed apps and has nothing to remove, no network needed.
+        flatpak_blacklisted_apps: [org.example.Absent]
         # Absolute alias target; relative targets would point at app exports.
         flatpak_exports_bin_aliases:
           molecule-bash: /usr/bin/bash

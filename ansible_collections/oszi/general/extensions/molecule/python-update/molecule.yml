@@ -1,7 +1,8 @@
 ---
 # Molecule scenario for the update entrypoint of oszi.general.python; shared settings come from
-# ../config.yml. The main entrypoint installs the toolchain and the packages, then the update entrypoint
-# upgrades them. Updates are not idempotent by nature, so the test sequence has no idempotence step.
+# ../config.yml. Prepare installs old releases, the main entrypoint installs the toolchain and leaves the
+# present packages alone, then the update entrypoint upgrades them. Updates are not idempotent by nature,
+# so the test sequence has no idempotence step.
 # The pip and pipx entries need network access to PyPI.
 scenario:
   test_sequence:
@@ -31,10 +32,17 @@ provisioner:
           - {name: oszi.general.python}
           - {name: oszi.general.python, tasks_from: update}
         molecule_verify_commands:
-          - {cmd: "/opt/molecule-venv/bin/python -c 'import six'"}
+          # The old releases from prepare are gone.
+          - {cmd: "[ \"$$(/opt/molecule-venv/bin/python -c 'import six; print(six.__version__)')\" != 1.15.0 ]"}
+          - {cmd: "pipx list --global --short", stdout_contains: "pycowsay "}
+          - {cmd: "! grep -Fx 'pycowsay 0.0.0.1' <<<\"$$(pipx list --global --short)\""}
           - cmd: >-
               /opt/molecule-venv/bin/python -m pip list --outdated --format=json
               | python3 -c 'import json, sys; print(sum(package["name"].lower() == "six" for package in json.load(sys.stdin)))'
             stdout: "0"
           - {cmd: "! /opt/molecule-venv/bin/python -c 'import idna' 2>/dev/null"}
           - {cmd: "pycowsay molecule", stdout_contains: "< molecule >"}
+      redhat:
+        molecule_prepare_packages: [pipx]
+      debian:
+        molecule_prepare_packages: [pipx, python3-venv]

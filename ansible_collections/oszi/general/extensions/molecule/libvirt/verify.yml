@@ -16,3 +16,29 @@
         that:
           - "ansible_facts.virtualization_role == 'guest'"
         quiet: true
+
+    # Public and a no-op in guests: exposes the role's default package list for the queries below.
+    - name: Include the libvirt role publicly
+      ansible.builtin.include_role:
+        name: oszi.general.libvirt
+        public: true
+
+    # The default list installs nothing here, so it is checked against the repositories offline;
+    # dnf repoquery prints nothing for an unknown package, apt-cache show fails.
+    - name: Query the default packages on RedHat
+      when: "ansible_facts.os_family == 'RedHat'"
+      ansible.builtin.command:
+        cmd: "dnf repoquery --quiet {{ item | quote }}"
+      loop: "{{ libvirt_packages | flatten }}"
+      register: _molecule_libvirt_repoquery_results
+      changed_when: false
+      failed_when: "_molecule_libvirt_repoquery_results.rc != 0 or _molecule_libvirt_repoquery_results.stdout == ''"
+
+    - name: Query the default packages on Debian
+      when: "ansible_facts.os_family == 'Debian'"
+      ansible.builtin.command:
+        cmd: "apt-cache show {{ item | quote }}"
+      loop: "{{ libvirt_packages | flatten }}"
+      register: _molecule_libvirt_aptcache_results
+      changed_when: false
+      failed_when: "_molecule_libvirt_aptcache_results.rc != 0 or _molecule_libvirt_aptcache_results.stdout == ''"

@@ -17,9 +17,11 @@ provisioner:
     group_vars:
       all:
         # Only the core packages; the docker emulation and the extras are covered by the podman scenario.
+        # Prepare installs podman-compose and podman-docker, so the install step must remove them.
         podman_toolbox_enabled: false
         podman_compose_enabled: false
         podman_docker_enabled: false
+        molecule_prepare_packages: [podman-compose, podman-docker]
         molecule_converge_roles:
           - name: oszi.general.podman
           - name: oszi.general.podman

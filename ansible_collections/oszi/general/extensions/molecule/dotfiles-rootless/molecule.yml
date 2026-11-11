@@ -1,6 +1,8 @@
 ---
 # Rootless molecule scenario for oszi.general.dotfiles: the shared converge runs the role as tester,
-# so dotfiles_users defaults to the effective user and nothing is written for root.
+# so dotfiles_users defaults to the effective user and nothing is written for root. The templates render
+# their optional branches (default key, keygrips, extra options) and the real parsers validate the files;
+# prepare.yml creates ~/.config and ~/.molecule beforehand, which the role must keep as they are.
 provisioner:
   inventory:
     group_vars:
@@ -14,42 +16,94 @@ provisioner:
         dotfiles_git_enabled: true
         dotfiles_xdg_enabled: true
         dotfiles_git_default_branch: "main"
+        dotfiles_git_editor: "vim"
+        dotfiles_git_config_extra: |
+          [alias]
+          st = status
+        # Fingerprint-shaped placeholders, no key material: the templates only render them.
+        dotfiles_gnupg_default_key: "0123456789ABCDEF0123456789ABCDEF01234567"
+        dotfiles_gnupg_sshcontrol_keygrips:
+          - "FEDCBA9876543210FEDCBA9876543210FEDCBA98 0"
+        dotfiles_gnupg_extra_options:
+          - "with-fingerprint"
+          - "with-subkey-fingerprint"
+        dotfiles_gnupg_dirmngr_extra_options:
+          - "standard-resolver"
+        dotfiles_gnupg_scdaemon_pcsc_shared: true
         dotfiles_files:
           .molecule.conf: |
             user={{ dotfiles_user_item }} uid={{ dotfiles_user_info.uid }}
           .molecule/nested.conf: "nested\n"
         molecule_verify_paths:
           - {path: /home/tester/.gnupg, state: directory, mode: "0700", owner: tester, group: tester}
-          - {path: /home/tester/.gnupg/gpg.conf, mode: "0600", owner: tester, group: tester}
-          - {path: /home/tester/.gnupg/gpg-agent.conf, mode: "0600", owner: tester, group: tester}
-          - {path: /home/tester/.gnupg/dirmngr.conf, mode: "0600", owner: tester, group: tester}
-          - {path: /home/tester/.gnupg/scdaemon.conf, mode: "0600", owner: tester, group: tester}
-          - {path: /home/tester/.gnupg/sshcontrol, mode: "0600", owner: tester, group: tester}
+          - path: /home/tester/.gnupg/gpg.conf
+            mode: "0600"
+            owner: tester
+            group: tester
+            lines: ["default-key 0123456789ABCDEF0123456789ABCDEF01234567", "with-fingerprint", "with-subkey-fingerprint"]
+          - path: /home/tester/.gnupg/gpg-agent.conf
+            mode: "0600"
+            owner: tester
+            group: tester
+            lines: [enable-ssh-support]
+          - path: /home/tester/.gnupg/dirmngr.conf
+            mode: "0600"
+            owner: tester
+            group: tester
+            lines: [standard-resolver]
+          - path: /home/tester/.gnupg/scdaemon.conf
+            mode: "0600"
+            owner: tester
+            group: tester
+            lines: [disable-ccid, pcsc-shared]
+          - path: /home/tester/.gnupg/sshcontrol
+            mode: "0600"
+            owner: tester
+            group: tester
+            lines: ["FEDCBA9876543210FEDCBA9876543210FEDCBA98 0"]
           - {path: /home/tester/.gitconfig, mode: "0640", owner: tester, group: tester}
           - {path: /home/tester/.gitignore, mode: "0640", owner: tester, group: tester}
-          - {path: /home/tester/.config, state: directory, mode: "0700", owner: tester, group: tester}
+          # Created by prepare.yml with 0755; the role keeps existing directories.
+          - {path: /home/tester/.config, state: directory, mode: "0755", owner: tester, group: tester}
           - {path: /home/tester/.config/user-dirs.dirs, mode: "0640", owner: tester, group: tester}
           - {path: /home/tester/.config/user-dirs.conf, mode: "0640", owner: tester, group: tester}
           - {path: /home/tester/.config/user-dirs.locale, mode: "0640", owner: tester, group: tester}
           - {path: /home/tester/.molecule.conf, mode: "0600", owner: tester, group: tester}
-          - {path: /home/tester/.molecule, state: directory, mode: "0700", owner: tester, group: tester}
+          - {path: /home/tester/.molecule, state: directory, mode: "0755", owner: tester, group: tester}
           - {path: /home/tester/.molecule/nested.conf, mode: "0600", owner: tester, group: tester}
           - {path: /root/.gnupg, state: absent}
           - {path: /root/.gitconfig, state: absent}
           - {path: /root/.config, state: absent}
           - {path: /root/.molecule.conf, state: absent}
           - {path: /root/.molecule, state: absent}
+        # The role included as tester exports the defaults derived from the effective user.
+        molecule_verify_role_vars:
+          role: oszi.general.dotfiles
+          user: tester
+          that:
+            - "ansible_facts.user_uid | int != 0"
+            - "dotfiles_users == ['tester']"
         molecule_verify_commands:
           - {cmd: "git config --global user.name", user: tester, stdout: "tester"}
           - {cmd: "git config --global init.defaultBranch", user: tester, stdout: "main"}
+          - {cmd: "git config --global core.editor", user: tester, stdout: "vim"}
+          - {cmd: "git config --global alias.st", user: tester, stdout: "status"}
+          # A GnuPG key ID enables commit signing in the default (OpenPGP) format.
+          - cmd: "git config --global user.signingkey"
+            user: tester
+            stdout: "0123456789ABCDEF0123456789ABCDEF01234567"
+          - {cmd: "git config --global commit.gpgSign", user: tester, stdout: "true"}
+          - {cmd: "! git config --global gpg.format", user: tester}
           - cmd: ". ~/.config/user-dirs.dirs && echo \"$$XDG_DOWNLOAD_DIR\""
             user: tester
             stdout: "/home/tester/Downloads"
+          # GnuPG parses every rendered configuration file, including the extra options.
           - cmd: "for c in gpg gpg-agent dirmngr scdaemon; do gpgconf --check-options \"$$c\"; done"
             user: tester
           - cmd: "[ \"$$(cat ~/.molecule.conf)\" = \"user=$$(id -un) uid=$$(id -u)\" ]"
             user: tester
       redhat:
-        molecule_rootless_packages: [git, gnupg2, gnupg2-scdaemon]
+        # The role only writes configuration files; the tools parse them in verify.
+        molecule_prepare_packages: [git, gnupg2, gnupg2-scdaemon]
       debian:
-        molecule_rootless_packages: [git, gnupg, dirmngr, scdaemon]
+        molecule_prepare_packages: [git, gnupg, dirmngr, scdaemon]

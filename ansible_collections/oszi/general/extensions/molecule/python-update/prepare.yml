@@ -1,3 +1,22 @@
 ---
+# The shared prepare installs pipx and venv support from molecule_prepare_packages.
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+# Old releases are installed the way the role does: pip into the virtualenv and pipx in the global scope.
+# The main entrypoint leaves them in place, so the update entrypoint is the one upgrading them.
+- name: Install old releases of the managed packages
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install an old six into the virtualenv
+      ansible.builtin.pip:
+        name: ["six==1.15.0"]
+        virtualenv: "/opt/molecule-venv"
+        virtualenv_command: "python3 -m venv"
+
+    - name: Install an old pycowsay in the global pipx scope
+      community.general.pipx:
+        name: "pycowsay==0.0.0.1"
+        global: true

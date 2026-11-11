@@ -26,3 +26,9 @@
     group: "root"
     mode: "0440"
     validate: "visudo -csf %s"
+
+- name: Ensure passwordless sudo for groups is NOT configured
+  when: users_sudo_nopasswd_groups is not truthy
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/nopasswd_groups"
+    state: "absent"

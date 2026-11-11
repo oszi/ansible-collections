@@ -1,32 +1,61 @@
 ---
 # Molecule scenario for oszi.thirdparty.hashicorp installing terraform from the vendor repository.
 # Needs network access to rpm.releases.hashicorp.com, apt.releases.hashicorp.com and their package CDN.
+# terraform-ls is requested and blacklisted at once, so only terraform ends up installed.
+# Prepare seeds the legacy deb files the install path removes. verify.yml gathers facts first:
+# the expected baseurl and suite follow the distribution.
 provisioner:
   inventory:
     group_vars:
       all:
         hashicorp_enabled: true
-        hashicorp_packages: [terraform]
+        hashicorp_packages: [terraform, terraform-ls]
+        hashicorp_blacklisted_packages: [terraform-ls]
+        molecule_prepare_seed_verify_absent: true
+        molecule_verify_role_defaults_file: "${MOLECULE_PROJECT_DIRECTORY}/roles/hashicorp/defaults/main.yml"
         molecule_verify_packages:
           present: [terraform]
+          absent: [terraform-ls]
         molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_distro }}"
         molecule_verify_commands_common:
           - {cmd: "terraform version", stdout_contains: "Terraform v"}
       redhat:
-        molecule_verify_gpgkey:
-          path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp
-          checksum_var: hashicorp_rpm_gpgkey_checksum
         molecule_verify_paths:
-          - {path: /etc/yum.repos.d/hashicorp.repo, mode: "0644", owner: root, group: root}
-          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp, mode: "0644", owner: root, group: root}
+          - path: /etc/yum.repos.d/hashicorp.repo
+            mode: "0644"
+            owner: root
+            group: root
+            lines:
+              - "[hashicorp]"
+              - "baseurl = {{ molecule_role_defaults.hashicorp_rpm_baseurl }}/stable"
+              - "includepkgs = boundary consul consul-template consul-terraform-sync nomad packer terraform
+                terraform-ls vagrant vault waypoint"
+              - "gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp"
+              - "gpgcheck = 1"
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-hashicorp
+            mode: "0644"
+            owner: root
+            group: root
+            checksum: "{{ molecule_role_defaults.hashicorp_rpm_gpgkey_checksum }}"
         molecule_verify_commands_distro:
           - {cmd: "dnf repoquery --installed --qf '%{from_repo}\\n' terraform", stdout: hashicorp}
       debian:
-        molecule_verify_gpgkey:
-          path: /etc/apt/keyrings/hashicorp.asc
-          checksum_var: hashicorp_deb_gpgkey_checksum
         molecule_verify_paths:
-          - {path: /etc/apt/sources.list.d/hashicorp.sources, mode: "0644", owner: root, group: root}
-          - {path: /etc/apt/keyrings/hashicorp.asc, mode: "0644", owner: root, group: root}
+          - path: /etc/apt/sources.list.d/hashicorp.sources
+            mode: "0644"
+            owner: root
+            group: root
+            lines:
+              - "URIs: {{ molecule_role_defaults.hashicorp_deb_baseurl }}"
+              - "Suites: {{ ansible_facts.distribution_release }}"
+              - "Components: main"
+              - "Signed-By: /etc/apt/keyrings/hashicorp.asc"
+          - path: /etc/apt/keyrings/hashicorp.asc
+            mode: "0644"
+            owner: root
+            group: root
+            checksum: "{{ molecule_role_defaults.hashicorp_deb_gpgkey_checksum }}"
+          - {path: /etc/apt/keyrings/hashicorp.gpg, state: absent}
+          - {path: /etc/apt/sources.list.d/hashicorp.list, state: absent}
         molecule_verify_commands_distro:
           - {cmd: "apt-cache policy terraform | grep -A1 -F '***' | grep -F apt.releases.hashicorp.com"}

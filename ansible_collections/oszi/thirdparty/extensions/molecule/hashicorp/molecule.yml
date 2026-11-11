@@ -1,6 +1,7 @@
 ---
 # Molecule scenario for oszi.thirdparty.hashicorp with the default hashicorp_enabled: false (uninstall path).
 # Offline apart from the distribution mirrors: no task reaches the vendor hosts.
+# Prepare seeds an earlier install, legacy keyrings and vendor-written repositories; the role removes all of them.
 provisioner:
   inventory:
     group_vars:
@@ -11,7 +12,7 @@ provisioner:
           absent: [terraform]
       redhat:
         # Disabled sections keep dnf from fetching the seeded repository in the converge cache refresh.
-        molecule_seed_files:
+        molecule_prepare_seed_files:
           - path: /etc/yum.repos.d/hashicorp.repo
             content: |
               [hashicorp]
@@ -27,7 +28,7 @@ provisioner:
       debian:
         # The legacy list uses another suite: apt rejects conflicting Signed-By values for one source,
         # which would fail every apt call before the role runs.
-        molecule_seed_files:
+        molecule_prepare_seed_files:
           - path: /etc/apt/sources.list.d/hashicorp.sources
             content: |
               Types: deb

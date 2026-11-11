@@ -1,6 +1,7 @@
 ---
 # Molecule scenario for oszi.general.libvirt with the defaults: libvirt_disabled is true in guests,
-# containers included, so the role is a no-op and nothing is installed.
+# containers included, so the role is a no-op and nothing is installed. The verify playbook also
+# queries the role's default package list against the repositories, catching renamed or dropped packages.
 provisioner:
   inventory:
     group_vars:
@@ -11,3 +12,5 @@ provisioner:
           - {path: /etc/libvirt, state: absent}
         molecule_verify_commands:
           - {cmd: "! command -v virsh"}
+        molecule_verify_packages:
+          absent: [virt-manager]

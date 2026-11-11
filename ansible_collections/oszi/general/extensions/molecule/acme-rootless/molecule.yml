@@ -1,6 +1,6 @@
 ---
 # Rootless molecule scenario for oszi.general.acme: the shared converge runs the role as tester, so the
-# account key defaults to a tilde path and python3-cryptography is not managed (prepare.yml installs it).
+# account key defaults to a tilde path and python3-cryptography is not managed (the shared prepare installs it).
 # A non-existent revoke path enables the role without certificates, and no ACME endpoint is contacted.
 provisioner:
   inventory:
@@ -10,7 +10,7 @@ provisioner:
           - name: tester
             shell: /bin/bash
         molecule_become_user: tester
-        molecule_rootless_packages: [python3-cryptography]
+        molecule_prepare_packages: [python3-cryptography]
         acme_certificates: []
         acme_revoke_paths: ["~/.letsencrypt/live/molecule"]
         # The default empty passphrase leaves the key unencrypted; idempotence proves it is not regenerated.
@@ -35,3 +35,12 @@ provisioner:
                   raise SystemExit("account key is encrypted")
               PY
             user: tester
+        # The role included as tester exports the defaults derived from the effective user.
+        molecule_verify_role_vars:
+          role: oszi.general.acme
+          user: tester
+          that:
+            - "ansible_facts.user_uid | int != 0"
+            - "acme_install_python3_cryptography is false"
+            - "acme_account_key_path == '~/.letsencrypt/account.pem'"
+            - "acme_disabled is false"

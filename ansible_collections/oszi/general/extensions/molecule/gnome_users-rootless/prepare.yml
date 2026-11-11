@@ -1,19 +1,18 @@
 ---
+# community.general.dconf needs dconf, dbus-run-session (no session bus under become),
+# psutil and PyGObject on the target; the shared prepare installs them from molecule_prepare_packages.
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
 
-# community.general.dconf needs dconf, dbus-run-session (no session bus under become),
-# psutil and PyGObject on the target.
-- name: Install the dconf module requirements as root
+- name: Prepare the test user's home
   hosts: all
   become: true
+  become_user: tester
   gather_facts: false
   tasks:
-    - name: Import bootstrap role
-      ansible.builtin.import_role:
-        name: oszi.utils.bootstrap
-
-    - name: Ensure the dconf module requirements are installed
-      ansible.builtin.package:
-        name: "{{ molecule_rootless_packages }}"
-        state: "present"
+    # The Screencasts symlink is only created when its parent directory exists.
+    - name: Ensure the test user's Videos directory exists
+      ansible.builtin.file:
+        path: "~/Videos"
+        state: "directory"
+        mode: "0755"

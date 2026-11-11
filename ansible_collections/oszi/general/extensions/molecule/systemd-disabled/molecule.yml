@@ -1,7 +1,7 @@
 ---
 # Molecule scenario for oszi.general.systemd with the container guard; shared settings come from ../config.yml.
 # systemd_disabled defaults to true in containers: the same units and presets as in the systemd scenario
-# must not be written, and the obsolete unit seeded by prepare.yml stays.
+# must not be written, and the obsolete units seeded by prepare.yml stay.
 provisioner:
   inventory:
     group_vars:
@@ -17,12 +17,25 @@ provisioner:
         systemd_system_presets:
           00-molecule.preset: |
             enable molecule-test.service
+        # swapfile.service is seeded last: the find below uses it as the newest file of the prepare step.
+        molecule_prepare_seed_files: "{{ molecule_seed_obsolete_units }}"
+        molecule_seed_obsolete_units:
+          - {path: /etc/systemd/system/swapfile@.service, content: "{{ molecule_seed_obsolete_unit_content }}"}
+          - {path: /etc/systemd/system/swapfile.service, content: "{{ molecule_seed_obsolete_unit_content }}"}
+        molecule_seed_obsolete_unit_content: |
+          [Unit]
+          Description=Obsolete molecule fixture
+
+          [Service]
+          Type=oneshot
+          ExecStart=/bin/true
         molecule_verify_paths:
           - {path: /etc/systemd/system/cpuacct-cpu-patch.service, state: absent}
           - {path: /etc/systemd/system/molecule-test.service, state: absent}
           - {path: /etc/systemd/system/molecule-test.service.d, state: absent}
           - {path: /etc/systemd/system-preset/00-molecule.preset, state: absent}
           - {path: /etc/systemd/system/swapfile.service, mode: "0644", owner: root, group: root}
+          - {path: /etc/systemd/system/swapfile@.service, mode: "0644", owner: root, group: root}
         molecule_verify_commands:
           - {cmd: "systemctl show --property=LoadState --value molecule-test.service", stdout: "not-found"}
           # No file under /etc/systemd changed after prepare.yml seeded swapfile.service; directory

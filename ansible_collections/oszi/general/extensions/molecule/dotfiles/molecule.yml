@@ -1,5 +1,7 @@
 ---
 # Molecule scenario for oszi.general.dotfiles; shared settings come from ../config.yml.
+# Root and tester get different templates through the loop variable: git and XDG stay off for root,
+# tester signs commits with an SSH key path.
 provisioner:
   inventory:
     group_vars:
@@ -19,6 +21,8 @@ provisioner:
         dotfiles_git_enabled: "{{ dotfiles_user_item != 'root' }}"
         dotfiles_xdg_enabled: "{{ dotfiles_user_item != 'root' }}"
         dotfiles_git_default_branch: "main"
+        # An SSH public key path (not a key) selects the ssh signing format; root has no signing key.
+        dotfiles_git_user_signingkey: "{{ '~/.ssh/id_ed25519.pub' if dotfiles_user_item != 'root' else '' }}"
         dotfiles_gnupg_agent_options:
           - "default-cache-ttl 600"
         # A top-level file and one below a missing parent directory, which the role creates.
@@ -60,8 +64,13 @@ provisioner:
           - {cmd: "git config -f ~/.gitconfig user.email", user: tester, stdout: "tester@{{ inventory_hostname }}"}
           - {cmd: "git config -f ~/.gitconfig init.defaultBranch", user: tester, stdout: "main"}
           - {cmd: "git config --global core.excludesfile", user: tester, stdout: "~/.gitignore"}
-          # No signing key is configured and git-delta is not installed.
-          - {cmd: "! git config --global commit.gpgSign && ! git config --global core.pager", user: tester}
+          # The SSH key path enables signing in the ssh format; git-delta is not installed.
+          - {cmd: "git config --global user.signingkey", user: tester, stdout: "~/.ssh/id_ed25519.pub"}
+          - {cmd: "git config --global commit.gpgSign", user: tester, stdout: "true"}
+          - {cmd: "git config --global gpg.format", user: tester, stdout: "ssh"}
+          - {cmd: "! git config --global core.pager", user: tester}
+          # Root has no git configuration at all.
+          - {cmd: "! git config --global commit.gpgSign"}
           # The global excludes file applies in a fresh repository.
           - cmd: "cd \"$$(mktemp -d)\" && git init -q && git check-ignore notes.swp .claude/settings.json keep.txt || true"
             user: tester
@@ -85,6 +94,7 @@ provisioner:
             user: tester
           - {cmd: "[ \"$$(cat ~/.molecule.conf)\" = \"user=$$(id -un) uid=$$(id -u)\" ]"}
       redhat:
-        molecule_dotfiles_packages: [git, gnupg2, gnupg2-scdaemon]
+        # The role only writes configuration files; the tools parse them in verify.
+        molecule_prepare_packages: [git, gnupg2, gnupg2-scdaemon]
       debian:
-        molecule_dotfiles_packages: [git, gnupg, dirmngr, scdaemon]
+        molecule_prepare_packages: [git, gnupg, dirmngr, scdaemon]

@@ -1,6 +1,6 @@
 ---
 # Rootless molecule scenario for oszi.general.python: the shared converge runs the role as tester,
-# so python_manage_packages defaults to false (prepare.yml installs pipx and venv support).
+# so python_manage_packages defaults to false (prepare installs pipx and venv support).
 # The pip and pipx entries need network access to PyPI.
 provisioner:
   inventory:
@@ -32,7 +32,14 @@ provisioner:
         # Distro packages from the role defaults that only a rootful run installs.
         molecule_verify_packages:
           absent: [python3-netaddr, python3-jmespath, gcc]
+        # The role included as tester exports the defaults derived from the effective user.
+        molecule_verify_role_vars:
+          role: oszi.general.python
+          user: tester
+          that:
+            - "ansible_facts.user_uid | int != 0"
+            - "python_manage_packages is false"
       redhat:
-        molecule_rootless_packages: [pipx]
+        molecule_prepare_packages: [pipx]
       debian:
-        molecule_rootless_packages: [pipx, python3-venv]
+        molecule_prepare_packages: [pipx, python3-venv]

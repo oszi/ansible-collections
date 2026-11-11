@@ -1,0 +1,72 @@
+---
+# Molecule scenario for oszi.thirdparty.tailscale with tailscale_enabled and tailscale_upstream_enabled: true
+# on Fedora, which otherwise installs the distribution package. Needs network access to pkgs.tailscale.com.
+# Prepare seeds a stub of the signing key, which the role must replace with the verified download.
+# tailscale up is never run: the daemon stays in NeedsLogin. Switching to upstream does not remove a
+# previously installed distribution package: the upstream repository only has to win the version
+# comparison, and this scenario starts from a pristine image.
+platforms:
+  - name: "${MOLECULE_SCENARIO_NAME}-fedora"
+    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}fedora:${MOLECULE_BUILD_FEDORA_VERSION:-latest}"
+    pre_build_image: true
+    command: "/sbin/init"
+    systemd: always
+    groups: [fedora, redhat]
+
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        tailscale_enabled: true
+        tailscale_upstream_enabled: true
+        # Without /dev/net/tun and CAP_NET_ADMIN, tailscaled only runs with userspace networking.
+        # The upstream unit passes $$FLAGS from /etc/default/tailscaled; ExecStart is replaced anyway
+        # to match the tailscale-enabled scenario.
+        tailscale_systemd_service_override: |
+          [Service]
+          EnvironmentFile=
+          Environment=PORT=41641
+          ExecStart=
+          ExecStart=tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --port=$${PORT} --tun=userspace-networking
+        molecule_prepare_seed_files:
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale}
+        molecule_verify_role_defaults_file: "${MOLECULE_PROJECT_DIRECTORY}/roles/tailscale/defaults/main.yml"
+        molecule_verify_paths:
+          - {path: /etc/systemd/system/tailscaled.service.d/override.conf, mode: "0644", owner: root, group: root}
+          - {path: /etc/bash_completion.d/tailscale, mode: "0644", owner: root, group: root}
+          - {path: /usr/local/share/zsh/site-functions/_tailscale, mode: "0644", owner: root, group: root}
+          # The role derives the baseurl from the distribution facts, which verify does not gather.
+          - path: /etc/yum.repos.d/tailscale.repo
+            mode: "0644"
+            owner: root
+            group: root
+            lines:
+              - "[tailscale]"
+              - "baseurl = https://pkgs.tailscale.com/stable/fedora/$$basearch"
+              - "gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale"
+              - "gpgcheck = 1"
+              - "repo_gpgcheck = 0"
+              - "enabled = 1"
+              - "includepkgs = tailscale"
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale
+            mode: "0644"
+            owner: root
+            group: root
+            checksum: "{{ molecule_role_defaults.tailscale_rpm_gpgkey_checksum }}"
+        molecule_verify_commands:
+          # The first line of the output is the bare version.
+          - {cmd: "[[ $$(tailscale version) =~ ^[0-9]+[.][0-9]+[.][0-9]+ ]]"}
+          - cmd: "tailscale status --json | python3 -c 'import json, sys; print(json.load(sys.stdin)[\"BackendState\"])'"
+            stdout: "NeedsLogin"
+          # The override is live: the running daemon uses userspace networking and the configured port.
+          - cmd: "tr '\\0' ' ' < /proc/$$(systemctl show --property=MainPID --value tailscaled.service)/cmdline"
+            stdout_contains: "--port=41641 --tun=userspace-networking"
+          - {cmd: "bash -n /etc/bash_completion.d/tailscale && grep -q tailscale /etc/bash_completion.d/tailscale"}
+          - {cmd: "head -n 1 /usr/local/share/zsh/site-functions/_tailscale", stdout: "#compdef tailscale"}
+          - {cmd: "dnf repoquery --installed --qf '%{from_repo}\\n' tailscale", stdout: "tailscale"}
+          - {cmd: "[ \"$$(rpm -q --qf '%{VENDOR}\\n' tailscale)\" != 'Fedora Project' ]"}
+          - {cmd: "head -c 14 /etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale", stdout: "-----BEGIN PGP"}
+        molecule_verify_units:
+          - {name: tailscaled.service, active: active, enabled: enabled}
+        molecule_verify_packages:
+          present: [tailscale]

@@ -1,6 +1,7 @@
 ---
 # Molecule scenario for oszi.general.shell with the role defaults; shared settings come from ../config.yml.
 # The production playbook also runs the locale facts; users_list feeds the shared prepare and the user loop.
+# Non-default tmux and environment settings prove the templates render the inventory values.
 provisioner:
   inventory:
     group_vars:
@@ -11,6 +12,14 @@ provisioner:
           - name: service
             shell: /usr/sbin/nologin
             system: true
+        shell_tmux_history_limit: 4242
+        shell_tmux_conf_extra: "set -g status-interval 7"
+        # The default keys plus an extra variable; the dict replaces the default as a whole.
+        shell_environment:
+          ENV: "{{ shell_shrc_path }}"
+          EDITOR: nano
+          MOLECULE_SHELL: molecule
+        molecule_prepare_packages: [shellcheck]
         molecule_verify_paths:
           - {path: /etc/shrc, mode: "0644", owner: root, group: root}
           - {path: /etc/shrc.d, state: directory, mode: "0755", owner: root, group: root}
@@ -26,16 +35,23 @@ provisioner:
           - {path: /root/.zshrc, mode: "0644", owner: root, group: root}
           - {path: /root/.profile, mode: "0644", owner: root, group: root}
           - {path: /home/tester/.bashrc, mode: "0644", owner: tester, group: tester}
+          - {path: /home/tester/.bash_profile, mode: "0644", owner: tester, group: tester}
           - {path: /home/tester/.zshrc, mode: "0644", owner: tester, group: tester}
+          - {path: /home/tester/.zprofile, mode: "0644", owner: tester, group: tester}
           - {path: /home/tester/.profile, mode: "0644", owner: tester, group: tester}
           - {path: /home/tester/.tmux.conf, mode: "0644", owner: tester, group: tester}
           - {path: /home/service/.zshrc, state: absent}
         molecule_verify_commands:
           - {cmd: "command -v zsh tmux fzf rg jq delta setfacl"}
           - {cmd: "grep -F 'for i in ~/.local/bin ~/bin; do' /root/.profile"}
-          - {cmd: "grep -F /var/lib/flatpak/exports/bin /etc/skel/.profile /home/tester/.profile"}
+          - {cmd: "grep -F /var/lib/flatpak/exports/bin /etc/skel/.profile"}
+          - {cmd: "grep -F /var/lib/flatpak/exports/bin /home/tester/.profile"}
           # $$ escapes molecule's own $VAR interpolation.
-          - {cmd: "TERM=dumb bash -lic 'echo \"$$ENV|$$EDITOR|$$HISTSIZE\"'", user: tester, stdout: "/etc/shrc|nano|10000"}
-          - {cmd: "TERM=dumb zsh -lic 'print \"$$ENV|$$EDITOR|$$SAVEHIST\"'", user: tester, stdout: "/etc/shrc|nano|10000"}
+          - cmd: "TERM=dumb bash -lic 'echo \"$$ENV|$$EDITOR|$$HISTSIZE|$$MOLECULE_SHELL\"'"
+            user: tester
+            stdout: "/etc/shrc|nano|10000|molecule"
+          - cmd: "TERM=dumb zsh -lic 'print \"$$ENV|$$EDITOR|$$SAVEHIST|$$MOLECULE_SHELL\"'"
+            user: tester
+            stdout: "/etc/shrc|nano|10000|molecule"
         molecule_verify_packages:
           present: [bash, bash-completion, zsh, tmux, acl, git, bat, fzf, ripgrep, jq]

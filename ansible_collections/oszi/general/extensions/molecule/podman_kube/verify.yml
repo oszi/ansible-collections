@@ -7,18 +7,31 @@
   become: true
   gather_facts: false
   tasks:
-    - name: Read the installed spec
+    - name: Read the installed specs
       ansible.builtin.slurp:
-        src: "/etc/containers/kube/test.yaml"
-      register: _podman_kube_spec_result
+        src: "{{ item }}"
+      loop:
+        - "/etc/containers/kube/test.yaml"
+        - "/srv/kubespec/multi.yaml"
+      register: _podman_kube_specs_result
 
     # The spec dictionary is rendered with to_nice_yaml and must parse back to the same structure.
     - name: Assert the installed spec is valid YAML matching the inventory
       vars:
-        _podman_kube_spec: "{{ _podman_kube_spec_result.content | b64decode | from_yaml }}"
+        _podman_kube_spec: "{{ _podman_kube_specs_result.results[0].content | b64decode | from_yaml }}"
       ansible.builtin.assert:
         that:
           - "_podman_kube_spec == (podman_kube_list | selectattr('path', 'eq', 'test.yaml') | first).spec"
           - "_podman_kube_spec.kind == 'Pod'"
           - "_podman_kube_spec.metadata.name == 'molecule'"
+        quiet: true
+
+    # The string spec is installed verbatim and keeps both of its documents.
+    - name: Assert the multi-document spec has both documents
+      vars:
+        _podman_kube_multi: "{{ _podman_kube_specs_result.results[1].content | b64decode | from_yaml_all }}"
+      ansible.builtin.assert:
+        that:
+          - "_podman_kube_multi | length == 2"
+          - "_podman_kube_multi | map(attribute='kind') | sort == ['ConfigMap', 'Pod']"
         quiet: true

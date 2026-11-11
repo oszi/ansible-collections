@@ -1,12 +1,17 @@
 ---
 # Molecule scenario for oszi.general.podman: packages, configuration files, scripts and podman.socket.
 # Nested containers cannot run without CAP_SYS_ADMIN, so the deploy lists stay empty and the update
-# entrypoint is not part of this scenario. Toolbox is disabled to keep the converge light.
+# entrypoint is not part of this scenario. Prepare installs the toolbox package, so disabling it has work to do.
+# Group_vars replace lists as a whole, so the per-distribution lists are built from _common and _distro parts.
 provisioner:
   inventory:
     group_vars:
       all:
         podman_toolbox_enabled: false
+        # The storage directory is created 0711 by the SELinux relabel step, whose semanage part fails harmlessly
+        # without the policy tools; the quoted value is read by podman itself. Debian ships no storage.conf
+        # in /etc, so the role must seed it from the distribution defaults before editing (podman info proves it).
+        podman_graphroot: /var/lib/containers/storage-molecule
         # podman-docker plus podman.socket enablement for the system and global user scopes.
         podman_docker_enabled: true
         podman_config_policy:
@@ -22,12 +27,25 @@ provisioner:
         podman_config_registries: |
           unqualified-search-registries = ["quay.io"]
           short-name-mode = "enforcing"
-        molecule_verify_paths:
+        podman_config_mounts: |
+          /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
           - {path: /etc/containers, state: directory, owner: root, group: root}
+          - path: /etc/containers/storage.conf
+            mode: "0644"
+            owner: root
+            group: root
+            lines: ['[storage]', 'graphroot = "/var/lib/containers/storage-molecule"']
+          - {path: /var/lib/containers/storage-molecule, state: directory, mode: "0711", owner: root, group: root}
+          - path: /etc/containers/mounts.conf
+            mode: "0644"
+            owner: root
+            group: root
+            content: "/usr/share/zoneinfo:/usr/share/zoneinfo:ro\n"
           - {path: /etc/containers/policy.json, mode: "0644", owner: root, group: root}
           - {path: /etc/containers/containers.conf, mode: "0644", owner: root, group: root}
           - {path: /etc/containers/registries.conf, mode: "0644", owner: root, group: root}
-          - {path: /etc/containers/toolbox.conf, state: absent}
           - {path: /usr/local/bin/podman-containers, mode: "0755", owner: root, group: root}
           - {path: /usr/local/bin/podman-images, mode: "0755", owner: root, group: root}
           - {path: /usr/local/bin/podman-ipaddress, mode: "0755", owner: root, group: root}
@@ -45,15 +63,26 @@ provisioner:
           - {cmd: "grep -Fx 'unqualified-search-registries = [\"quay.io\"]' /etc/containers/registries.conf"}
           - {cmd: "grep -Fx 'short-name-mode = \"enforcing\"' /etc/containers/registries.conf"}
           - {cmd: "for f in /usr/local/bin/podman-{containers,images,ipaddress}; do sh -n \"$$f\"; done"}
+          - {cmd: "podman info --format '{{ '{{' }}.Store.GraphRoot{{ '}}' }}'", stdout: "/var/lib/containers/storage-molecule"}
+          # The scripts run against the empty store: no images, only the table header for containers.
+          - {cmd: "podman-images", stdout: ""}
+          - {cmd: "podman-containers", stdout: "NAMES       IMAGE       PORTS       STATUS"}
           - {cmd: "systemctl --global is-enabled podman.socket", stdout: "enabled"}
         molecule_verify_units:
           - {name: podman.socket, enabled: enabled}
-      # The toolbox package name differs between the distribution families.
+      # The toolbox package name differs between the distribution families; prepare installs it and the
+      # role must remove it again. Both packages ship /etc/containers/toolbox.conf: rpm removes it with the
+      # package, dpkg keeps it as a conffile of a removed package until purged.
       fedora:
+        molecule_prepare_packages: [toolbox]
+        molecule_verify_paths_distro:
+          - {path: /etc/containers/toolbox.conf, state: absent}
         molecule_verify_packages:
           present: [podman, buildah, skopeo, podman-compose, podman-docker]
           absent: [docker-compose, toolbox]
       debian:
+        molecule_prepare_packages: [podman-toolbox]
+        molecule_verify_paths_distro: []
         molecule_verify_packages:
           present: [podman, buildah, skopeo, podman-compose, podman-docker]
           absent: [docker-compose, podman-toolbox]

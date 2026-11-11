@@ -1,6 +1,7 @@
 ---
 # Rootless molecule scenario for oszi.general.gnome_users: the shared converge runs the role as tester,
-# so gnome_users defaults to the effective user. A few dconf settings replace the long default list.
+# so gnome_users defaults to the effective user and the tilde screenshots path expands to its home.
+# A few dconf settings replace the long default list; prepare installs what the dconf module needs.
 provisioner:
   inventory:
     group_vars:
@@ -17,6 +18,11 @@ provisioner:
           - binding: "'<Super>Return'"
             command: "'ptyxis --new-window'"
             name: "'Terminal'"
+        # No default profile UUID is seeded, so the role skips the Ptyxis profile settings.
+        gnome_users_dconf_ptyxis_terminal_default_profile_vars:
+          scrollback-lines: "uint32 20000"
+        # prepare.yml creates ~/Videos only, so the Screenshots symlink is skipped (no ~/Pictures).
+        gnome_users_screenshots_path: ~/Captures
         molecule_verify_paths:
           - {path: /home/tester/.themes, state: directory, owner: tester, group: tester}
           - path: /home/tester/.themes/transparent/gnome-shell/gnome-shell.css
@@ -24,6 +30,9 @@ provisioner:
             owner: tester
             group: tester
           - {path: /home/tester/.config/dconf/user, owner: tester, group: tester}
+          - {path: /home/tester/Captures, state: directory, mode: "0750", owner: tester, group: tester}
+          - {path: /home/tester/Videos/Screencasts, state: link, src: /home/tester/Captures, owner: tester}
+          - {path: /home/tester/Pictures, state: absent}
           - {path: /root/.config/dconf, state: absent}
           - {path: /root/.themes, state: absent}
         molecule_verify_commands:
@@ -33,7 +42,16 @@ provisioner:
           - cmd: "dconf dump /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
             user: tester
             stdout: "[/]\nbinding='<Super>Return'\ncommand='ptyxis --new-window'\nname='Terminal'"
+          # Nothing under Ptyxis without a default profile UUID.
+          - {cmd: "dconf list /org/gnome/Ptyxis/", user: tester, stdout: ""}
+        # The defaults derived from the effective user, visible once the role is included as tester.
+        molecule_verify_role_vars:
+          role: oszi.general.gnome_users
+          user: tester
+          that:
+            - "ansible_facts.user_uid | int != 0"
+            - "gnome_users == ['tester']"
       redhat:
-        molecule_rootless_packages: [dconf, dbus-daemon, python3-psutil, python3-gobject-base]
+        molecule_prepare_packages: [dconf, dbus-daemon, python3-psutil, python3-gobject-base]
       debian:
-        molecule_rootless_packages: [dconf-cli, dconf-service, dbus-bin, python3-psutil, python3-gi]
+        molecule_prepare_packages: [dconf-cli, dconf-service, dbus-bin, python3-psutil, python3-gi]

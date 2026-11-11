@@ -1,27 +1,42 @@
 ---
-# Molecule scenario for oszi.thirdparty.rpmfusion with rpmfusion_enabled: true.
-# Needs network access to mirrors.rpmfusion.org on Fedora; the role is a no-op on the Debian family,
-# which the idempotence step and the absence checks cover there. Tainted repositories stay disabled.
+# Molecule scenario for oszi.thirdparty.rpmfusion with rpmfusion_enabled: true and the tainted repositories.
+# Needs network access to mirrors.rpmfusion.org and the RPM Fusion metalink mirrors on Fedora; the role is
+# a no-op on the Debian family, which the idempotence step and the absence checks cover there.
+# One package is installed from the free repository, another one blacklisted.
 provisioner:
   inventory:
     group_vars:
       all:
         rpmfusion_enabled: true
       fedora:
-        # The role manages the tainted repositories through their release packages only; nothing to seed.
-        molecule_seed_paths: []
+        rpmfusion_tainted_enabled: true
+        rpmfusion_packages: [rpmfusion-free-appstream-data]
+        rpmfusion_blacklisted_packages: [rpmfusion-nonfree-appstream-data]
+        # Nothing is seeded: the role manages the repositories through their release packages only.
         # The release packages own the repository files, under /etc/yum.repos.d up to Fedora 44 and under
         # /usr/share/dnf5/repos.d since Fedora 45; rpm -V proves they are present and intact either way.
         molecule_verify_commands:
           - {cmd: "rpm -q rpmfusion-free-release rpmfusion-nonfree-release"}
           - {cmd: "rpm -V rpmfusion-free-release rpmfusion-nonfree-release"}
-          - {cmd: "! dnf5 repo list --all | grep -q tainted"}
+          - {cmd: "rpm -V rpmfusion-free-release-tainted rpmfusion-nonfree-release-tainted"}
+          - {cmd: "dnf5 repo list --all | grep tainted", stdout_contains: "rpmfusion-free-tainted"}
+          - {cmd: "dnf5 repo list --all | grep tainted", stdout_contains: "rpmfusion-nonfree-tainted"}
           # Both signing keys were imported from distribution-gpg-keys before the release packages.
           - {cmd: "rpm -q gpg-pubkey --qf '%{SUMMARY}\\n' | grep -c 'RPM Fusion'", stdout: "2"}
           - {cmd: "dnf5 repo list --enabled", stdout_contains: "rpmfusion-nonfree-updates"}
+          # The package came from the free repository, whose metadata is reachable through the metalink.
+          - {cmd: "[[ $$(dnf repoquery --installed --qf '%{from_repo}\\n' rpmfusion-free-appstream-data) == rpmfusion-free* ]]"}
+          - cmd: "dnf repoquery --repo rpmfusion-free --latest-limit 1 --qf '%{name}\\n' rpmfusion-free-appstream-data"
+            stdout: "rpmfusion-free-appstream-data"
         molecule_verify_packages:
-          present: [distribution-gpg-keys, rpmfusion-free-release, rpmfusion-nonfree-release]
-          absent: [rpmfusion-free-release-tainted, rpmfusion-nonfree-release-tainted]
+          present:
+            - distribution-gpg-keys
+            - rpmfusion-free-release
+            - rpmfusion-nonfree-release
+            - rpmfusion-free-release-tainted
+            - rpmfusion-nonfree-release-tainted
+            - rpmfusion-free-appstream-data
+          absent: [rpmfusion-nonfree-appstream-data]
       debian:
         molecule_verify_commands:
           - {cmd: "! grep -rqi rpmfusion /etc/apt"}

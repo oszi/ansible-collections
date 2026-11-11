@@ -2,11 +2,13 @@
 # Molecule scenario for oszi.general.ssh with the defaults; shared settings come from ../config.yml.
 # The container guard sets ssh_server_disabled, so the role removes openssh-server, which prepare installs
 # first, and deletes the overridable sshd_config. Host keys and the client package stay.
+# verify.yml also drives the role's lockout assertions in check mode.
 # Group_vars replace lists as a whole, so the command list is built from _common and _distro parts.
 provisioner:
   inventory:
     group_vars:
       all:
+        molecule_prepare_packages: [openssh-server]
         molecule_verify_paths:
           - {path: /etc/ssh/sshd_config, state: absent}
           - {path: /etc/ssh/authorized_keys.d, state: absent}

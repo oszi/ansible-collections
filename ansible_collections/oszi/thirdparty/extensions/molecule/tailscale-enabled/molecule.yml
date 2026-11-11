@@ -2,7 +2,9 @@
 # Molecule scenario for oszi.thirdparty.tailscale with tailscale_enabled: true.
 # Needs network access to pkgs.tailscale.com on Debian and Ubuntu; Fedora installs the distribution
 # package and keeps the upstream repository uninstalled. tailscale up is never run: the daemon stays
-# in NeedsLogin. prepare.yml seeds molecule_seed_paths, which the role must remove.
+# in NeedsLogin. Prepare seeds every path listed as absent below, which the role must remove.
+# The keyring must match the role's default checksum and the format its extension promises:
+# apt dearmors only .asc keyrings.
 provisioner:
   inventory:
     group_vars:
@@ -17,7 +19,8 @@ provisioner:
           Environment=PORT=41641
           ExecStart=
           ExecStart=tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --port=$${PORT} --tun=userspace-networking
-        molecule_role_defaults_file: "${MOLECULE_PROJECT_DIRECTORY}/roles/tailscale/defaults/main.yml"
+        molecule_prepare_seed_verify_absent: true
+        molecule_verify_role_defaults_file: "${MOLECULE_PROJECT_DIRECTORY}/roles/tailscale/defaults/main.yml"
         molecule_verify_paths_common:
           - {path: /etc/systemd/system/tailscaled.service.d/override.conf, mode: "0644", owner: root, group: root}
           - {path: /etc/bash_completion.d/tailscale, mode: "0644", owner: root, group: root}
@@ -36,9 +39,6 @@ provisioner:
           - {name: tailscaled.service, active: active, enabled: enabled}
       redhat:
         # tailscale_upstream_enabled defaults to false on Fedora: the upstream files must be removed.
-        molecule_seed_paths:
-          - /etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale
-          - /etc/yum.repos.d/tailscale.repo
         molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_rpm }}"
         molecule_verify_paths_rpm:
           - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-tailscale, state: absent}
@@ -49,29 +49,35 @@ provisioner:
         molecule_verify_packages:
           present: [tailscale]
       debian:
-        # The keyring with the other extension and the legacy one-line source.
-        molecule_seed_paths:
-          - /etc/apt/keyrings/tailscale-archive-keyring.asc
-          - /etc/apt/sources.list.d/tailscale.list
+        # The upstream key is published in binary form as {release}.noarmor.gpg; the keyring with
+        # the other extension and the legacy one-line source are seeded and removed.
         molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_deb }}"
         molecule_verify_paths_deb:
-          - {path: /etc/apt/keyrings/tailscale-archive-keyring.gpg, mode: "0644", owner: root, group: root}
-          - {path: /etc/apt/sources.list.d/tailscale.sources, mode: "0644", owner: root, group: root}
+          - path: /etc/apt/keyrings/tailscale-archive-keyring.gpg
+            mode: "0644"
+            owner: root
+            group: root
+            checksum: "{{ molecule_role_defaults.tailscale_deb_gpgkey_checksum }}"
+          - path: /etc/apt/sources.list.d/tailscale.sources
+            mode: "0644"
+            owner: root
+            group: root
+            lines:
+              - "Types: deb"
+              - "Components: main"
+              - "Signed-By: /etc/apt/keyrings/tailscale-archive-keyring.gpg"
           - {path: /etc/apt/keyrings/tailscale-archive-keyring.asc, state: absent}
           - {path: /etc/apt/sources.list.d/tailscale.list, state: absent}
         molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_deb }}"
         molecule_verify_commands_deb:
+          - {cmd: "[ \"$$(head -c 5 /etc/apt/keyrings/tailscale-archive-keyring.gpg)\" != \"-----\" ]"}
+          # The role derives the URI and suite from the distribution facts, which verify does not gather;
+          # os-release carries the same values.
+          - cmd: ". /etc/os-release && grep -Fx \"URIs: https://pkgs.tailscale.com/stable/$$ID\" /etc/apt/sources.list.d/tailscale.sources"
+            stdout_contains: "URIs: "
+          - cmd: ". /etc/os-release && grep -Fx \"Suites: $$VERSION_CODENAME\" /etc/apt/sources.list.d/tailscale.sources"
+            stdout_contains: "Suites: "
+          # apt accepts the keyring and the source without warnings.
           - {cmd: "out=$$(apt-get update 2>&1); ! grep -E '^(W|E):' <<<\"$$out\""}
         molecule_verify_packages:
           present: [tailscale]
-        # The upstream key is published in binary form as {release}.noarmor.gpg.
-        molecule_verify_keyrings:
-          - {path: /etc/apt/keyrings/tailscale-archive-keyring.gpg, checksum: tailscale_deb_gpgkey_checksum, armored: false}
-        molecule_verify_repo_files:
-          - path: /etc/apt/sources.list.d/tailscale.sources
-            content: |
-              Types: deb
-              URIs: {{ molecule_role_defaults.tailscale_deb_baseurl }}
-              Suites: {{ ansible_facts.distribution_release }}
-              Components: main
-              Signed-By: /etc/apt/keyrings/tailscale-archive-keyring.gpg

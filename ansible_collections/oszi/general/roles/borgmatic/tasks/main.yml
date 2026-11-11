@@ -19,5 +19,6 @@
         - "/etc/profile.d/borgmatic.sh"
         - "/etc/systemd/system/borg.service"
         - "/etc/systemd/system/borg.timer"
+        - "/etc/systemd/system/timers.target.wants/borg.timer"
         - "{{ borgmatic_shell_aliases_path }}"
       notify: "Reload systemd"

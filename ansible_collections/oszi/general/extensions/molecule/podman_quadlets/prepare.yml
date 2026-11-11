@@ -1,29 +1,26 @@
 ---
+# The shared prepare installs podman, which provides the quadlet generator.
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
 
-# The absent item must exist before the converge to exercise the uninstall path. The podman package
-# provides the quadlet generator, so the seeded unit is loaded by the daemon-reload.
+# The absent item must exist before the converge to exercise the uninstall path; the seeded unit is
+# loaded by the daemon-reload. The systemd directory is created with a different mode than the one the
+# role sets.
 - name: Seed a quadlet for the absent item
   hosts: all
   become: true
   gather_facts: false
   tasks:
-    - name: Ensure podman is installed
-      ansible.builtin.package:
-        name: "podman"
-        state: "present"
-
-    - name: Ensure the static files directory exists
+    - name: Ensure the quadlet and static files directories exist
       ansible.builtin.file:
-        path: "{{ item }}"
+        path: "{{ item.path }}"
         state: "directory"
         owner: "root"
         group: "root"
-        mode: "0755"
+        mode: "{{ item.mode }}"
       loop:
-        - "/etc/containers/systemd"
-        - "/srv/old"
+        - {path: /etc/containers/systemd, mode: "0700"}
+        - {path: /srv/old, mode: "0755"}
 
     - name: Seed the static file and the uninstall script marker
       ansible.builtin.copy:

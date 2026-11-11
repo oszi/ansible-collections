@@ -1,16 +1,17 @@
 ---
 # Molecule scenario for oszi.thirdparty.gcloud_sdk disabled (uninstall path).
 # Offline apart from the distribution mirrors: no task reaches the vendor hosts.
+# Prepare seeds an earlier install, legacy keyrings and vendor-written repositories; the role removes all of them.
 provisioner:
   inventory:
     group_vars:
       all:
         # The default is false in containers; explicit for the uninstall path.
         gcloud_sdk_enabled: false
-        molecule_seed_files_common:
+        molecule_prepare_seed_files: "{{ molecule_prepare_seed_files_common + molecule_prepare_seed_files_distro }}"
+        molecule_prepare_seed_files_common:
           - path: /usr/local/bin/gcloud-entrypoint.sh
             mode: "0755"
-        molecule_seed_files: "{{ molecule_seed_files_common + molecule_seed_files_distro }}"
         molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
         molecule_verify_paths_common:
           - {path: /usr/local/bin/gcloud-entrypoint.sh, state: absent}
@@ -22,7 +23,7 @@ provisioner:
             - google-cloud-cli-minikube
       redhat:
         # Disabled sections keep dnf from fetching the seeded repository in the converge cache refresh.
-        molecule_seed_files_distro:
+        molecule_prepare_seed_files_distro:
           - path: /etc/yum.repos.d/google-cloud-sdk.repo
             content: |
               [google-cloud-sdk]
@@ -45,7 +46,7 @@ provisioner:
       debian:
         # The legacy lists use other suites: apt rejects conflicting Signed-By values for one source,
         # which would fail every apt call before the role runs.
-        molecule_seed_files_distro:
+        molecule_prepare_seed_files_distro:
           - path: /etc/apt/sources.list.d/google-cloud-sdk.sources
             content: |
               Types: deb

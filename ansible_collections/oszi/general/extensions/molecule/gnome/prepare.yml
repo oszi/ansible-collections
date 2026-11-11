@@ -1,14 +1,3 @@
 ---
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
-
-- name: Prepare the gnome scenario
-  hosts: all
-  become: true
-  gather_facts: false
-  tasks:
-    # Small packages from the role's default blacklist, so the role must remove them.
-    - name: Ensure the blacklisted test packages are installed
-      ansible.builtin.package:
-        name: "{{ molecule_gnome_seed_packages }}"
-        state: "present"

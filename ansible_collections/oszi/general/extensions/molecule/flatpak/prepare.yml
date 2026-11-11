@@ -7,13 +7,23 @@
   become: true
   gather_facts: false
   tasks:
+    # The file module applies the mode to every parent it creates, so the parents come first.
     - name: Ensure the flatpak exports directory exists
+      ansible.builtin.file:
+        path: "/var/lib/flatpak/exports"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
+    # Too restrictive on purpose: the role must correct the mode to 0755.
+    - name: Ensure the flatpak exports bin directory exists
       ansible.builtin.file:
         path: "/var/lib/flatpak/exports/bin"
         state: "directory"
         owner: "root"
         group: "root"
-        mode: "0755"
+        mode: "0700"
 
     # Listed in flatpak_exports_bin_aliases_absent, so the role must remove it.
     - name: Ensure an obsolete alias exists

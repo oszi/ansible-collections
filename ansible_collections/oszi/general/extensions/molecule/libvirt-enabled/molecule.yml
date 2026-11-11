@@ -2,23 +2,28 @@
 # Molecule scenario for oszi.general.libvirt enabled in a container with a minimal package list:
 # the client, the QEMU driver that ships /etc/libvirt/qemu.conf, and the tools the scripts need.
 # No daemon, domain, network or pool is managed; virtualization is not available in the container.
+# local_bin_path points at a directory that does not exist yet, so the copy creates it with directory_mode.
 provisioner:
   inventory:
     group_vars:
       all:
         libvirt_disabled: false
+        local_bin_path: /opt/molecule/bin
         molecule_verify_paths:
-          - {path: /usr/local/bin/virsh-usb, mode: "0755", owner: root, group: root}
-          - {path: /usr/local/bin/virt-viewer-fzf, mode: "0755", owner: root, group: root}
+          - {path: /opt/molecule/bin, state: directory, mode: "0755", owner: root, group: root}
+          - {path: /opt/molecule/bin/virsh-usb, mode: "0755", owner: root, group: root}
+          - {path: /opt/molecule/bin/virt-viewer-fzf, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/virsh-usb, state: absent}
+          - {path: /usr/local/bin/virt-viewer-fzf, state: absent}
           - {path: /etc/libvirt/qemu.conf}
         molecule_verify_commands:
-          - {cmd: "bash -n /usr/local/bin/virsh-usb && bash -n /usr/local/bin/virt-viewer-fzf"}
+          - {cmd: "bash -n /opt/molecule/bin/virsh-usb && bash -n /opt/molecule/bin/virt-viewer-fzf"}
           - {cmd: "grep -Ec '^\\s*nographics_allow_host_audio\\s*=' /etc/libvirt/qemu.conf", stdout: "1"}
           - {cmd: "grep -Fx 'nographics_allow_host_audio = 1' /etc/libvirt/qemu.conf"}
           - {cmd: "command -v virsh fzf xmllint"}
           # The usage check runs before any libvirt connection.
-          - {cmd: "/usr/local/bin/virsh-usb invalid 2>&1 || test $$? -eq 2", stdout_contains: "Usage:"}
-          - {cmd: "/usr/local/bin/virt-viewer-fzf --help 2>&1", stdout_contains: "virt-viewer-fzf defaults:"}
+          - {cmd: "/opt/molecule/bin/virsh-usb invalid 2>&1 || test $$? -eq 2", stdout_contains: "Usage:"}
+          - {cmd: "/opt/molecule/bin/virt-viewer-fzf --help 2>&1", stdout_contains: "virt-viewer-fzf defaults:"}
       fedora:
         libvirt_packages: [libvirt-client, libvirt-daemon-driver-qemu, libxml2, fzf]
       debian:

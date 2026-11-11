@@ -2,20 +2,26 @@
 - name: Import the shared verify playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.verify
 
-# A failing post-install script must restore the backup of the replaced file and fail the role.
-- name: Verify the downloads failure path
+# The failure paths of the role: each include must fail at the role's final fail task, and the
+# destination must end up as the role promises for the combination of force and backup.
+- name: Verify the downloads failure paths
   hosts: all
   become: true
   gather_facts: false
+  vars:
+    _downloads_fail_task: "Failed to download file to {{ _downloads_fail_dest }}"
   tasks:
+    # A failing post-install script must restore the backup of the replaced file and fail the role.
     - name: Download a replacement with a failing post-install script
+      vars:
+        _downloads_fail_dest: /opt/molecule/downloads/payload.txt
       block:
         - name: Include the downloads role with a failing item
           ansible.builtin.include_role:
             name: oszi.general.downloads
           vars:
             downloads_list:
-              - dest: /opt/molecule/downloads/payload.txt
+              - dest: "{{ _downloads_fail_dest }}"
                 url: http://127.0.0.1:8000/replacement.txt
                 mode: "0640"
                 force: true
@@ -28,7 +34,7 @@
       rescue:
         - name: Assert that the role failed after the post-install script
           ansible.builtin.assert:
-            that: "ansible_failed_task.name == 'Failed to download file to /opt/molecule/downloads/payload.txt'"
+            that: "ansible_failed_task.name == _downloads_fail_task"
             fail_msg: "Unexpected failure: {{ ansible_failed_task.name }}: {{ ansible_failed_result.msg }}"
             quiet: true
 
@@ -51,4 +57,88 @@
           - "_downloads_payload_stat.stat.mode == '0640'"
           - "_downloads_backup_find.matched == 0"
         fail_msg: "{{ _downloads_payload_stat.stat }} {{ _downloads_backup_find.files | map(attribute='path') }}"
+        quiet: true
+
+    # A failed request with force and backup must not touch the file: there is nothing to restore or remove.
+    - name: Download from a missing URL with force and backup
+      vars:
+        _downloads_fail_dest: /opt/molecule/downloads/payload.txt
+      block:
+        - name: Include the downloads role with a missing URL
+          ansible.builtin.include_role:
+            name: oszi.general.downloads
+          vars:
+            downloads_list:
+              - dest: "{{ _downloads_fail_dest }}"
+                url: http://127.0.0.1:8000/missing.txt
+                mode: "0640"
+                force: true
+                backup: true
+
+        - name: Fail because the missing URL was accepted
+          ansible.builtin.fail:
+            msg: "The downloads role ignored the failed request"
+      rescue:
+        - name: Assert that the role failed after the request
+          ansible.builtin.assert:
+            that: "ansible_failed_task.name == _downloads_fail_task"
+            fail_msg: "Unexpected failure: {{ ansible_failed_task.name }}: {{ ansible_failed_result.msg }}"
+            quiet: true
+
+    - name: Stat the untouched payload file
+      ansible.builtin.stat:
+        path: /opt/molecule/downloads/payload.txt
+        checksum_algorithm: sha256
+      register: _downloads_payload_stat
+
+    - name: Find backup files of the untouched payload file
+      ansible.builtin.find:
+        paths: /opt/molecule/downloads
+        patterns: "payload.txt.*"
+      register: _downloads_backup_find
+
+    - name: Assert that the payload file was left alone
+      ansible.builtin.assert:
+        that:
+          - "_downloads_payload_stat.stat.checksum == molecule_downloads_payload_sha256"
+          - "_downloads_payload_stat.stat.mode == '0640'"
+          - "_downloads_backup_find.matched == 0"
+        fail_msg: "{{ _downloads_payload_stat.stat }} {{ _downloads_backup_find.files | map(attribute='path') }}"
+        quiet: true
+
+    # A failing post-install script with force and without backup must remove the new file for a retry.
+    - name: Download a new file with a failing post-install script, force and no backup
+      vars:
+        _downloads_fail_dest: /opt/molecule/downloads/forced.txt
+      block:
+        - name: Include the downloads role with a failing forced item
+          ansible.builtin.include_role:
+            name: oszi.general.downloads
+          vars:
+            downloads_list:
+              - dest: "{{ _downloads_fail_dest }}"
+                url: http://127.0.0.1:8000/payload.txt
+                mode: "0640"
+                force: true
+                post_install_script: "exit 1"
+
+        - name: Fail because the failing forced script was accepted
+          ansible.builtin.fail:
+            msg: "The downloads role ignored the failing post-install script of the forced item"
+      rescue:
+        - name: Assert that the role failed after the forced post-install script
+          ansible.builtin.assert:
+            that: "ansible_failed_task.name == _downloads_fail_task"
+            fail_msg: "Unexpected failure: {{ ansible_failed_task.name }}: {{ ansible_failed_result.msg }}"
+            quiet: true
+
+    - name: Stat the removed forced file
+      ansible.builtin.stat:
+        path: /opt/molecule/downloads/forced.txt
+      register: _downloads_forced_stat
+
+    - name: Assert that the forced file was removed
+      ansible.builtin.assert:
+        that: "not _downloads_forced_stat.stat.exists"
+        fail_msg: "/opt/molecule/downloads/forced.txt exists: {{ _downloads_forced_stat.stat }}"
         quiet: true

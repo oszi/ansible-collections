@@ -17,7 +17,8 @@ provisioner:
       all:
         molecule_converge_roles:
           - {name: oszi.general.package_manager, tasks_from: update}
-        # prepare.yml installs tree and marks it as automatically installed, so autoremove must remove it.
+        # Prepare installs tree and marks it as automatically installed, so autoremove must remove it.
+        molecule_prepare_packages: [tree]
         molecule_verify_packages:
           absent: [tree]
       fedora:

@@ -2,17 +2,19 @@
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
 
-# The role only writes configuration files; the tools parse them in verify.yml.
-- name: Install test tools for the dotfiles scenario as root
+# Existing directories with a mode the role would not choose; verify.yml asserts they are kept.
+- name: Prepare existing directories for the dotfiles scenario
   hosts: all
   become: true
   gather_facts: false
   tasks:
-    - name: Import bootstrap role
-      ansible.builtin.import_role:
-        name: oszi.utils.bootstrap
-
-    - name: Ensure git and GnuPG are installed
-      ansible.builtin.package:
-        name: "{{ molecule_rootless_packages }}"
-        state: "present"
+    - name: Ensure the tester's directories exist with their own mode
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+        owner: "tester"
+        group: "tester"
+        mode: "0755"
+      loop:
+        - "/home/tester/.config"
+        - "/home/tester/.molecule"

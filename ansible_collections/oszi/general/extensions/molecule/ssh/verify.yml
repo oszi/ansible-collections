@@ -1,3 +1,68 @@
 ---
 - name: Import the shared verify playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# The lockout assertions run before any change, so check mode reaches them with the server enabled and
+# package management off. include_role keywords do not reach the role's tasks, hence apply.
+- name: Verify the lockout protections of the ssh role
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Expect the AllowUsers lockout assertion to fail without the ansible user
+      block:
+        - name: Include the ssh role with ansible_user missing from ssh_allow_users
+          ansible.builtin.include_role:
+            name: oszi.general.ssh
+            apply:
+              check_mode: true
+          vars:
+            ssh_server_disabled: false
+            ssh_manage_packages: false
+            ssh_allow_users: [tester]
+
+        - name: Fail if the role did not stop
+          ansible.builtin.fail:
+            msg: "The ssh role accepted ssh_allow_users without the ansible user"
+      rescue:
+        - name: Assert the AllowUsers lockout assertion stopped the role
+          ansible.builtin.assert:
+            that:
+              - "ansible_failed_task.name == 'Assert prerequisites to prevent a lockout'"
+            fail_msg: "Unexpected failure: {{ ansible_failed_task.name }}: {{ ansible_failed_result }}"
+            quiet: true
+
+    - name: Expect the immutable authorized_keys lockout assertion to fail without the ansible user
+      block:
+        - name: Include the ssh role with ansible_user missing from ssh_authorized_keys
+          ansible.builtin.include_role:
+            name: oszi.general.ssh
+            apply:
+              check_mode: true
+          vars:
+            ssh_server_disabled: false
+            ssh_manage_packages: false
+            ssh_authorized_keys:
+              tester: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA placeholder"
+
+        - name: Fail if the role did not stop
+          ansible.builtin.fail:
+            msg: "The ssh role accepted ssh_authorized_keys without the ansible user"
+      rescue:
+        - name: Assert the immutable authorized_keys lockout assertion stopped the role
+          ansible.builtin.assert:
+            that:
+              - "ansible_failed_task.name == 'Assert prerequisites for immutable authorized_keys'"
+            fail_msg: "Unexpected failure: {{ ansible_failed_task.name }}: {{ ansible_failed_result }}"
+            quiet: true
+
+    # The role never got past its assertions: the uninstall path's results still hold.
+    - name: Stat sshd_config after the check-mode runs
+      ansible.builtin.stat:
+        path: "/etc/ssh/sshd_config"
+      register: _ssh_verify_config_stat
+
+    - name: Assert sshd_config is still absent
+      ansible.builtin.assert:
+        that: "not _ssh_verify_config_stat.stat.exists"
+        quiet: true

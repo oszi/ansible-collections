@@ -1,24 +1,25 @@
 ---
+# community.general.dconf needs dconf, dbus-run-session (no session bus under become),
+# psutil and PyGObject on the target; the shared prepare installs them from molecule_prepare_packages.
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
 
-- name: Prepare the gnome_users scenario
+- name: Prepare the test user's home
   hosts: all
   become: true
+  become_user: tester
   gather_facts: false
   tasks:
-    # community.general.dconf needs dconf, dbus-run-session (no session bus under become),
-    # psutil and PyGObject on the target.
-    - name: Ensure the dconf module requirements are installed
-      ansible.builtin.package:
-        name: "{{ molecule_gnome_users_packages }}"
-        state: "present"
-
     # The Screenshots symlink is only created when its parent directory exists.
     - name: Ensure the test user's Pictures directory exists
       ansible.builtin.file:
-        path: "/home/tester/Pictures"
+        path: "~/Pictures"
         state: "directory"
-        owner: "tester"
-        group: "tester"
         mode: "0755"
+
+    # Ptyxis writes this at first launch; the role applies the profile settings under it.
+    - name: Seed the Ptyxis default profile UUID
+      community.general.dconf:
+        key: "/org/gnome/Ptyxis/default-profile-uuid"
+        value: "'0123abcd'"
+        state: "present"

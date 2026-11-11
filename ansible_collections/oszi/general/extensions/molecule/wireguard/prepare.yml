@@ -7,19 +7,16 @@
   become: true
   gather_facts: false
   tasks:
-    - name: Ensure wireguard-tools is installed for wg genkey
-      ansible.builtin.package:
-        name: "{{ molecule_wireguard_tools_package }}"
-        state: "present"
-
-    # The key goes straight to a root-only file and never appears in the output.
+    # A clamped Curve25519 scalar from python3, so the role's package installation stays the first wg-tools
+    # install; the key goes straight to a root-only file and never appears in the output.
     - name: Generate the private key inside the container
       ansible.builtin.shell:
         cmd: |
           set -euo pipefail
           umask 077
-          wg genkey > "$KEY_PATH"
+          python3 -c 'import os,base64;k=bytearray(os.urandom(32));k[0]&=248;k[31]&=127;k[31]|=64;print(base64.b64encode(bytes(k)).decode())' > "$KEY_PATH"
         executable: "/bin/bash"
         creates: "{{ molecule_wireguard_key_path }}"
       environment:
         KEY_PATH: "{{ molecule_wireguard_key_path }}"
+      no_log: true

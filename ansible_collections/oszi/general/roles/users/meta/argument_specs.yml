@@ -145,6 +145,7 @@ argument_specs:
         description:
           - List of group names that should have passwordless sudo access
           - Members of these groups can run sudo commands without password prompt
+          - Written to /etc/sudoers.d/nopasswd_groups, which is removed when the list is empty
         type: list
         elements: str
         required: false

@@ -1,5 +1,9 @@
 ---
-# A small dconf set replaces the role's long default list; prepare.yml installs what the dconf module needs.
+# Molecule scenario for oszi.general.gnome_users as root with tester as the GNOME user; shared settings
+# come from ../config.yml. A subset of the role's default dconf settings, selected by key from
+# gnome_users_dconf_vars_default in role scope, replaces the long default list: each setting is a podman exec.
+# Prepare installs what the dconf module needs, creates ~/Pictures and seeds the Ptyxis default profile UUID.
+# group_vars replace lists as a whole, so the per-distribution lists are built from _common and _distro parts.
 provisioner:
   inventory:
     group_vars:
@@ -8,18 +12,26 @@ provisioner:
           - name: tester
             shell: /bin/bash
         gnome_users: [tester]
-        gnome_users_dconf_vars:
-          /org/gnome/desktop/interface/clock-format: "'24h'"
-          /org/gnome/desktop/input-sources/xkb-options: ['apple:alupckeys', 'kpdl:dotoss', 'lv3:ralt_alt']
-          /org/gnome/desktop/input-sources/sources: "[('xkb', 'us'), ('xkb', 'hu')]"
-          /org/gnome/desktop/session/idle-delay: "uint32 {{ 1800 if ansible_facts.virtualization_role != 'guest' else 0 }}"
-          /org/gnome/desktop/thumbnailers/disable-all: "{{ (ansible_facts.virtualization_role != 'guest') | lower }}"
-          /org/gnome/desktop/wm/keybindings/show-desktop: "@as []"
-          /org/gnome/shell/extensions/user-theme/name: "'transparent'"
+        # Plain values, lists, tuples, typed values, and fact-dependent defaults (containers are guests,
+        # the Ubuntu platform selects the Yaru themes).
+        molecule_gnome_users_dconf_keys:
+          - /org/gnome/desktop/interface/clock-format
+          - /org/gnome/desktop/interface/gtk-theme
+          - /org/gnome/desktop/input-sources/xkb-options
+          - /org/gnome/desktop/input-sources/sources
+          - /org/gnome/desktop/session/idle-delay
+          - /org/gnome/desktop/thumbnailers/disable-all
+          - /org/gnome/desktop/wm/keybindings/show-desktop
+          - /org/gnome/shell/extensions/user-theme/name
+        gnome_users_dconf_vars: "{{ gnome_users_dconf_vars_default | dict2items
+          | selectattr('key', 'in', molecule_gnome_users_dconf_keys) | items2dict }}"
         gnome_users_dconf_custom_keybindings:
           - binding: "'<Super>Return'"
             command: "'ptyxis --new-window'"
             name: "'Terminal'"
+        # Applied under the profile UUID prepare.yml seeds in /org/gnome/Ptyxis/default-profile-uuid.
+        gnome_users_dconf_ptyxis_terminal_default_profile_vars:
+          scrollback-lines: "uint32 20000"
         # prepare.yml creates ~/Pictures only, so the Screencasts symlink is skipped (no ~/Videos).
         gnome_users_screenshots_path: /home/tester/Captures
         molecule_verify_paths:
@@ -34,8 +46,8 @@ provisioner:
           - {path: /home/tester/Videos, state: absent}
           # Nothing is written for root.
           - {path: /root/.config/dconf, state: absent}
-        molecule_verify_commands:
-          # Plain values, lists, tuples, typed values and fact-dependent defaults (containers are guests).
+        molecule_verify_commands: "{{ molecule_verify_commands_common + molecule_verify_commands_distro }}"
+        molecule_verify_commands_common:
           - {cmd: "dconf read /org/gnome/desktop/interface/clock-format", user: tester, stdout: "'24h'"}
           - cmd: "dconf read /org/gnome/desktop/input-sources/xkb-options"
             user: tester
@@ -52,9 +64,18 @@ provisioner:
           - cmd: "dconf dump /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
             user: tester
             stdout: "[/]\nbinding='<Super>Return'\ncommand='ptyxis --new-window'\nname='Terminal'"
+          # The Ptyxis profile settings land under the seeded default profile UUID.
+          - {cmd: "dconf read /org/gnome/Ptyxis/Profiles/0123abcd/scrollback-lines", user: tester, stdout: "uint32 20000"}
           # The theme's CSS is the role's file, not an empty copy.
           - {cmd: "grep -q '#panel' /home/tester/.themes/transparent/gnome-shell/gnome-shell.css", user: tester}
       fedora:
-        molecule_gnome_users_packages: [dconf, dbus-daemon, python3-psutil, python3-gobject-base]
+        molecule_prepare_packages: [dconf, dbus-daemon, python3-psutil, python3-gobject-base]
+        molecule_verify_commands_distro:
+          - {cmd: "dconf read /org/gnome/desktop/interface/gtk-theme", user: tester, stdout: "'Adwaita'"}
       debian:
-        molecule_gnome_users_packages: [dconf-cli, dconf-service, dbus-bin, python3-psutil, python3-gi]
+        molecule_prepare_packages: [dconf-cli, dconf-service, dbus-bin, python3-psutil, python3-gi]
+        molecule_verify_commands_distro:
+          - {cmd: "dconf read /org/gnome/desktop/interface/gtk-theme", user: tester, stdout: "'Adwaita'"}
+      ubuntu:
+        molecule_verify_commands_distro:
+          - {cmd: "dconf read /org/gnome/desktop/interface/gtk-theme", user: tester, stdout: "'Yaru-dark'"}

@@ -1,6 +1,7 @@
 ---
 # Molecule scenario for oszi.general.locale; shared settings come from ../config.yml.
 # virtualization_tech_guest contains "container" on every platform, so locale_file_implementation defaults to true.
+# Group_vars replace lists as a whole, so the per-distribution lists are built from _common and _distro parts.
 provisioner:
   inventory:
     group_vars:
@@ -8,14 +9,14 @@ provisioner:
         # locale_conf defaults to empty outside the workstations group. Whitespace-separated settings are
         # normalized to one per line; C.UTF-8 ships with glibc on every platform, no locales package needed.
         locale_conf: "LANG=C.UTF-8 LC_COLLATE=C"
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /etc/locale.conf, mode: "0644", owner: root, group: root}
+        molecule_verify_paths_distro: []
         molecule_verify_commands:
           - {cmd: "cat /etc/locale.conf", stdout: "LANG=C.UTF-8\nLC_COLLATE=C"}
           - {cmd: "[ \"$$(tail -c1 /etc/locale.conf | od -An -c | tr -d ' ')\" = '\\n' ]"}
-      redhat:
-        molecule_verify_paths:
-          - {path: /etc/locale.conf, mode: "0644", owner: root, group: root}
       debian:
         # The role writes through the /etc/default/locale symlink.
-        molecule_verify_paths:
-          - {path: /etc/locale.conf, mode: "0644", owner: root, group: root}
+        molecule_verify_paths_distro:
           - {path: /etc/default/locale, state: link, src: ../locale.conf}

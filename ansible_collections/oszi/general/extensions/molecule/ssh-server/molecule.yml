@@ -1,57 +1,94 @@
 ---
 # Molecule scenario for oszi.general.ssh with the server enabled; shared settings come from ../config.yml.
-# prepare.yml generates a throwaway client key for tester inside each container; converge.yml reads the
-# public key into molecule_ssh_public_key. The private key never leaves the container.
+# prepare.yml generates a throwaway client key for tester inside each container and seeds stale authorized_keys
+# files with it; converge.yml reads the public key into molecule_ssh_public_key. The private key never leaves
+# the container. ansible_port is ignored by the podman connection but reaches the role through
+# oszi.utils.bootstrap, so sshd must end up on port 2222 despite the distributions' socket units.
 provisioner:
   inventory:
     group_vars:
       all:
+        ansible_port: 2222
         users_list:
           - name: tester
             shell: /bin/bash
-          # Has the client key in ~/.ssh/authorized_keys but is neither in ssh_authorized_keys nor AllowUsers.
+          # In AllowUsers with the client key in ~/.ssh/authorized_keys, but not in ssh_authorized_keys:
+          # rejected because AuthorizedKeysFile no longer points at the home directory.
           - name: intruder
             shell: /bin/bash
+          # In ssh_authorized_keys but not in AllowUsers: rejected by AllowUsers alone.
+          - name: outsider
+            shell: /bin/bash
         ssh_server_disabled: false
-        # ansible_user (root) must be in the keys; AllowUsers defaults to the keys of this dict.
+        # ansible_user (root) must be in the keys and in AllowUsers.
         ssh_authorized_keys:
           root: "{{ molecule_ssh_public_key }}"
           tester: "{{ molecule_ssh_public_key }}"
+          outsider: "{{ molecule_ssh_public_key }}"
+        ssh_allow_users: [root, tester, intruder]
+        # ssh keeps the first -p it sees, so the port is appended per command.
         molecule_ssh_client: "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
-          -o LogLevel=ERROR -i /home/tester/.ssh/id_ed25519 -p 22"
+          -o LogLevel=ERROR -i /home/tester/.ssh/id_ed25519"
         molecule_verify_paths:
           - {path: /etc/ssh/sshd_config, mode: "0600", owner: root, group: root}
           - {path: /etc/ssh/ssh_host_ed25519_key, mode: "0600", owner: root}
           - {path: /etc/ssh/ssh_host_ed25519_key.pub, mode: "0644", owner: root}
+          # Seeded 0755 by prepare.yml; the role tightens it.
           - {path: /etc/ssh/authorized_keys.d, state: directory, mode: "0711", owner: root, group: root}
           # Root-owned, readable by the user's group, since sshd reads the file as the user.
           - {path: /etc/ssh/authorized_keys.d/root, mode: "0640", owner: root, group: root}
           - {path: /etc/ssh/authorized_keys.d/tester, mode: "0640", owner: root, group: tester}
+          - {path: /etc/ssh/authorized_keys.d/outsider, mode: "0640", owner: root, group: outsider}
+          # The stale file seeded by prepare.yml is removed by the exclusive clean-up.
           - {path: /etc/ssh/authorized_keys.d/intruder, state: absent}
-          # The home-dir relative files of managed users are removed.
+          # The home-dir relative files of managed users, seeded by prepare.yml, are removed.
           - {path: /home/tester/.ssh/authorized_keys, state: absent}
           - {path: /root/.ssh/authorized_keys, state: absent}
+          # The unmanaged user's own file is left alone.
+          - {path: /home/intruder/.ssh/authorized_keys, mode: "0600", owner: intruder, group: intruder}
         molecule_verify_commands:
           - {cmd: "sshd -t"}
           - {cmd: "grep -Fx 'AuthorizedKeysFile /etc/ssh/authorized_keys.d/%u' /etc/ssh/sshd_config"}
-          - {cmd: "grep -Fx 'AllowUsers root tester' /etc/ssh/sshd_config"}
+          - {cmd: "grep -Fx 'AllowUsers root tester intruder' /etc/ssh/sshd_config"}
           - {cmd: "grep -Fx 'HostKey /etc/ssh/ssh_host_ed25519_key' /etc/ssh/sshd_config"}
           - {cmd: "grep -c '^HostKey ' /etc/ssh/sshd_config", stdout: "1"}
+          # The bogus extra line seeded by prepare.yml is gone, only the configured key remains.
+          - {cmd: "grep -c '^ssh-ed25519 ' /etc/ssh/authorized_keys.d/tester", stdout: "1"}
+          # Effective configuration as sshd -T reports it; keyword case differs between OpenSSH 10.0 and 10.5.
+          - {cmd: "sshd -T | grep -Fxi 'port 2222'"}
+          - {cmd: "sshd -T | grep -Fxi 'authenticationmethods publickey'"}
+          - {cmd: "sshd -T | grep -Fxi 'loglevel VERBOSE'"}
+          - {cmd: "sshd -T | grep -Fxi 'authorizedkeysfile /etc/ssh/authorized_keys.d/%u'"}
+          - {cmd: "sshd -T | grep -Fxi 'requiredrsasize 3072'"}
+          # Hardened crypto as the role renders it with the Ed25519-only host key default.
+          - {cmd: "sshd -T | grep -Fxi 'kexalgorithms mlkem768x25519-sha256,sntrup761x25519-sha512,curve25519-sha256'"}
+          - {cmd: "sshd -T | grep -Fxi 'ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com'"}
+          - {cmd: "sshd -T | grep -Fxi 'macs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com'"}
+          - {cmd: "sshd -T | grep -Fxi 'hostkeyalgorithms ssh-ed25519,ssh-ed25519-cert-v01@openssh.com'"}
           # Real logins through the running server with the generated client key.
-          - {cmd: "{{ molecule_ssh_client }} tester@127.0.0.1 id -un", user: tester, stdout: "tester"}
-          - {cmd: "{{ molecule_ssh_client }} root@127.0.0.1 id -un", user: tester, stdout: "root"}
-          # Rejected: not in AllowUsers, and its home-dir authorized_keys is no longer consulted.
-          - {cmd: "! {{ molecule_ssh_client }} intruder@127.0.0.1 true", user: tester}
+          - {cmd: "{{ molecule_ssh_client }} -p 2222 tester@127.0.0.1 id -un", user: tester, stdout: "tester"}
+          - {cmd: "{{ molecule_ssh_client }} -p 2222 root@127.0.0.1 id -un", user: tester, stdout: "root"}
+          # Nothing listens on the default port: the socket unit did not keep it.
+          - {cmd: "! {{ molecule_ssh_client }} -p 22 tester@127.0.0.1 true", user: tester}
+          # Rejected by AllowUsers alone: outsider has a managed key file.
+          - {cmd: "! {{ molecule_ssh_client }} -p 2222 outsider@127.0.0.1 true", user: tester}
+          # Rejected by AuthorizedKeysFile alone: intruder is allowed but its home-dir file is not consulted.
+          - {cmd: "! {{ molecule_ssh_client }} -p 2222 intruder@127.0.0.1 true", user: tester}
+          # A key exchange outside the hardened list is refused.
+          - cmd: "! {{ molecule_ssh_client }} -p 2222 -o KexAlgorithms=diffie-hellman-group14-sha256
+              tester@127.0.0.1 true"
+            user: tester
           # Only the Ed25519 host key is offered.
-          - cmd: "ssh-keyscan -p 22 -t ed25519,rsa,ecdsa 127.0.0.1 2>/dev/null | grep -v '^#' | cut -d ' ' -f 2 | sort -u"
+          - cmd: "ssh-keyscan -p 2222 -t ed25519,rsa,ecdsa 127.0.0.1 2>/dev/null | grep -v '^#' | cut -d ' ' -f 2 | sort -u"
             stdout: "ssh-ed25519"
       redhat:
-        molecule_ssh_client_package: openssh-clients
+        # ssh-keygen for the client key in prepare; the role installs the clients too.
+        molecule_prepare_packages: [openssh-clients]
         molecule_verify_units:
           - {name: sshd.service, active: active, enabled: enabled}
           - {name: sshd.socket, active: inactive, enabled: disabled}
       debian:
-        molecule_ssh_client_package: openssh-client
+        molecule_prepare_packages: [openssh-client]
         molecule_verify_units:
           - {name: ssh.service, active: active, enabled: enabled}
           - {name: ssh.socket, active: inactive, enabled: disabled}

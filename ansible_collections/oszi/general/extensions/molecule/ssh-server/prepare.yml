@@ -2,24 +2,28 @@
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
 
-- name: Generate a throwaway SSH client key for tester
+# The seeded authorized_keys files reuse the generated key, so they belong here rather than in group_vars.
+- name: Generate a throwaway SSH client key for tester and seed stale authorized_keys files
   hosts: all
   become: true
   gather_facts: false
+  vars:
+    # A well-formed but worthless Ed25519 key line that the exclusive clean-up must drop.
+    _ssh_server_bogus_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA stale"
   tasks:
-    - name: Ensure the SSH client is installed
-      ansible.builtin.package:
-        name: "{{ molecule_ssh_client_package }}"
-        state: "present"
-
     - name: Ensure the users' .ssh directories exist
       ansible.builtin.file:
-        path: "/home/{{ item }}/.ssh"
+        path: "{{ item.path }}"
         state: "directory"
-        owner: "{{ item }}"
-        group: "{{ item }}"
+        owner: "{{ item.owner }}"
+        group: "{{ item.owner }}"
         mode: "0700"
-      loop: [tester, intruder]
+      loop:
+        - {path: /root/.ssh, owner: root}
+        - {path: /home/tester/.ssh, owner: tester}
+        - {path: /home/intruder/.ssh, owner: intruder}
+      loop_control:
+        label: "{{ item.path }}"
 
     - name: Generate the client key inside the container
       become: true
@@ -27,13 +31,40 @@
       ansible.builtin.command:
         cmd: "ssh-keygen -q -t ed25519 -N '' -C molecule -f /home/tester/.ssh/id_ed25519"
         creates: "/home/tester/.ssh/id_ed25519"
+      no_log: true
 
-    # Rejected by the server: intruder is not in AllowUsers and AuthorizedKeysFile moves to authorized_keys.d.
-    - name: Authorize the client key in intruder's home directory
-      ansible.builtin.copy:
+    - name: Read the public key
+      ansible.builtin.slurp:
         src: "/home/tester/.ssh/id_ed25519.pub"
-        remote_src: true
-        dest: "/home/intruder/.ssh/authorized_keys"
-        owner: "intruder"
-        group: "intruder"
+      register: _ssh_server_public_key_result
+
+    # Seeded 0755: the role must tighten it to 0711.
+    - name: Ensure the root-owned authorized_keys directory exists
+      ansible.builtin.file:
+        path: "/etc/ssh/authorized_keys.d"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
+    # Stale state of an earlier configuration: a file for a user no longer managed, an extra key for tester,
+    # home-dir relative files for the managed users, and intruder's own file that sshd must not consult.
+    - name: Seed the authorized_keys files
+      vars:
+        _ssh_server_public_key: "{{ _ssh_server_public_key_result.content | b64decode | trim }}"
+      ansible.builtin.copy:
+        content: "{{ item.content }}"
+        dest: "{{ item.dest }}"
+        owner: "{{ item.owner }}"
+        group: "{{ item.owner }}"
         mode: "0600"
+      loop:
+        - {dest: /etc/ssh/authorized_keys.d/intruder, owner: root, content: "{{ _ssh_server_public_key }}\n"}
+        - dest: /etc/ssh/authorized_keys.d/tester
+          owner: root
+          content: "{{ _ssh_server_public_key }}\n{{ _ssh_server_bogus_key }}\n"
+        - {dest: /root/.ssh/authorized_keys, owner: root, content: "{{ _ssh_server_public_key }}\n"}
+        - {dest: /home/tester/.ssh/authorized_keys, owner: tester, content: "{{ _ssh_server_public_key }}\n"}
+        - {dest: /home/intruder/.ssh/authorized_keys, owner: intruder, content: "{{ _ssh_server_public_key }}\n"}
+      loop_control:
+        label: "{{ item.dest }}"

@@ -1,11 +1,13 @@
 ---
 # Molecule scenario for oszi.general.snap with the role defaults; shared settings come from ../config.yml.
-# snap_disabled defaults to false on the Debian family (snapd installed) and true elsewhere (snapd absent).
+# snap_disabled defaults to false on the Debian family (snapd installed) and true elsewhere, where prepare
+# installs snapd first so the role's state: absent branch has something to remove.
 # Installing snaps is not possible: snapd cannot mount squashfs images without CAP_SYS_ADMIN.
 provisioner:
   inventory:
     group_vars:
       fedora:
+        molecule_prepare_packages: [snapd]
         molecule_verify_packages:
           absent: [snapd]
         molecule_verify_commands:

@@ -1,17 +1,14 @@
 ---
 # Molecule scenario for oszi.thirdparty.k8s_pkgs with the default k8s_pkgs_enabled: false (uninstall path).
 # Offline apart from the distribution mirrors: no task reaches the vendor hosts.
+# Prepare seeds an earlier install, legacy keyrings and vendor-written repositories; the role removes all of them.
 # The role never removes packages (they may come from other repositories), so only files are verified.
 provisioner:
   inventory:
     group_vars:
-      all:
-        # Cross-role variable of oszi.general.shell: the role's argument_specs description templates it,
-        # so validation fails with "'shell_integrations_shrc_d_path' is undefined" without it.
-        shell_integrations_shrc_d_path: /etc/shrc.d
       redhat:
         # Disabled sections keep dnf from fetching the seeded repository in the converge cache refresh.
-        molecule_seed_files:
+        molecule_prepare_seed_files:
           - path: /etc/yum.repos.d/kubernetes.repo
             content: |
               [kubernetes]
@@ -27,7 +24,7 @@ provisioner:
       debian:
         # The legacy list uses another version path: apt rejects conflicting Signed-By values for one
         # source, which would fail every apt call before the role runs.
-        molecule_seed_files:
+        molecule_prepare_seed_files:
           - path: /etc/apt/sources.list.d/kubernetes.sources
             content: |
               Types: deb

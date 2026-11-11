@@ -59,6 +59,7 @@ argument_specs:
         description:
           - Override the graphroot storage path from the default /var/lib/containers/storage
           - Specifies where container images and layers are stored
+          - Seeds /etc/containers/storage.conf from the distribution defaults when missing
         type: path
         required: false
 

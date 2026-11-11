@@ -1,17 +1,18 @@
 ---
 # Molecule scenario for oszi.thirdparty.google_chrome with the default google_chrome_enabled: false (uninstall path).
 # Offline apart from the distribution mirrors: no task reaches the vendor hosts.
-# Seeds the role-managed files and the files Google's package scripts write under fixed names.
+# Prepare seeds the role-managed files and the files Google's package scripts write under fixed names;
+# the role removes all of them.
 provisioner:
   inventory:
     group_vars:
       all:
-        molecule_seed_files_common:
+        molecule_prepare_seed_files: "{{ molecule_prepare_seed_files_common + molecule_prepare_seed_files_distro }}"
+        molecule_prepare_seed_files_common:
           - path: /etc/default/google-chrome
             content: |
               repo_add_once="false"
               repo_reenable_on_distupgrade="false"
-        molecule_seed_files: "{{ molecule_seed_files_common + molecule_seed_files_distro }}"
         molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
         molecule_verify_paths_common:
           - {path: /etc/default/google-chrome, state: absent}
@@ -19,7 +20,7 @@ provisioner:
           absent: [google-chrome-stable, google-chrome-beta, google-chrome-unstable]
       redhat:
         # Disabled sections keep dnf from fetching the seeded repositories in the converge cache refresh.
-        molecule_seed_files_distro:
+        molecule_prepare_seed_files_distro:
           - path: /etc/yum.repos.d/google-chrome-ansible-managed.repo
             content: |
               [google-chrome]
@@ -44,7 +45,7 @@ provisioner:
       debian:
         # Each seeded source uses another suite or URI: apt rejects conflicting Signed-By values for one
         # source, which would fail every apt call before the role runs.
-        molecule_seed_files_distro:
+        molecule_prepare_seed_files_distro:
           - path: /etc/apt/sources.list.d/google-chrome-ansible-managed.sources
             content: |
               Types: deb

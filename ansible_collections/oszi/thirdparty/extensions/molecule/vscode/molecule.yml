@@ -1,11 +1,12 @@
 ---
 # Molecule scenario for oszi.thirdparty.vscode with the default vscode_enabled: false (uninstall path).
-# prepare.yml seeds every path listed as absent below, including the legacy Microsoft keyrings;
+# Prepare seeds every path listed as absent below, including the legacy Microsoft keyrings;
 # the role removes them because vscode_microsoft_gpgkey_used_elsewhere defaults to false.
 provisioner:
   inventory:
     group_vars:
       all:
+        molecule_prepare_seed_verify_absent: true
         molecule_verify_commands:
           - {cmd: "! command -v code"}
         molecule_verify_packages:

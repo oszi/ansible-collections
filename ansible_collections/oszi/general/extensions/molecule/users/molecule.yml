@@ -1,11 +1,13 @@
 ---
 # Molecule scenario for oszi.general.users; shared settings come from ../config.yml.
+# verify.yml re-runs the role with users_sudo_nopasswd_groups empty, so the sudoers file must go away again.
 provisioner:
   inventory:
     group_vars:
       all:
         users_groups_list:
           - {name: molecule-admins, gid: 4242}
+          - {name: molecule-ops}
           - {name: molecule-svc, system: true}
           # Created by prepare.yml.
           - {name: molecule-old, state: absent}
@@ -15,7 +17,9 @@ provisioner:
           tester:
             comment: "Molecule Tester"
             shell: /bin/bash
-            groups: [molecule-admins]
+            uid: 4243
+            groups: [molecule-admins, molecule-ops]
+            append: true
           svc-molecule:
             system: true
             group: molecule-svc
@@ -34,16 +38,17 @@ provisioner:
           - {path: /etc/sudoers.d/nopasswd_groups, mode: "0440", owner: root, group: root}
         molecule_verify_commands:
           - {cmd: "getent group molecule-admins", stdout: "molecule-admins:x:4242:tester"}
-          - {cmd: "id -nG tester", stdout: "tester molecule-admins"}
+          - {cmd: "id -nG tester", stdout: "tester molecule-admins molecule-ops"}
+          - {cmd: "id -u tester", stdout: "4243"}
           - {cmd: "getent passwd tester | cut -d: -f5-7", stdout: "Molecule Tester:/home/tester:/bin/bash"}
           - {cmd: "getent passwd svc-molecule | cut -d: -f6-7", stdout: "/nonexistent:/usr/sbin/nologin"}
           - {cmd: "id -gn svc-molecule", stdout: "molecule-svc"}
           # System accounts and groups are allocated below the login ID range.
           - {cmd: "[ \"$$(id -u svc-molecule)\" -lt 1000 ] && [ \"$$(getent group molecule-svc | cut -d: -f3)\" -lt 1000 ]"}
-          - {cmd: "[ \"$$(id -u tester)\" -ge 1000 ]"}
           - {cmd: "! getent passwd olduser && ! getent group olduser && ! getent group molecule-old"}
           - {cmd: "cat /etc/sudoers.d/nopasswd_groups", stdout: "%molecule-admins ALL=(ALL) NOPASSWD: ALL"}
           - {cmd: "visudo -c"}
-          # Passwordless sudo works for the group member and not for others.
+          # Passwordless sudo works for the group member and not for others; sudo -l exits non-zero for a user
+          # without any rule, so the capture tolerates that and only the grep is asserted.
           - {cmd: "sudo -n id -u", user: tester, stdout: "0"}
-          - {cmd: "! sudo -n -l -U svc-molecule | grep -F NOPASSWD"}
+          - {cmd: "out=\"$$(sudo -n -l -U svc-molecule 2>&1 || true)\"; ! grep -F NOPASSWD <<<\"$$out\""}

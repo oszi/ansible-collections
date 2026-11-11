@@ -1,3 +1,34 @@
 ---
 - name: Import the shared verify playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# Same users and groups as in molecule.yml, but no passwordless sudo groups: the role removes its sudoers file.
+- name: Verify the users role removes the sudoers file for an empty group list
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Include the users role without passwordless sudo groups
+      ansible.builtin.include_role:
+        name: oszi.general.users
+      vars:
+        users_sudo_nopasswd_groups: []
+
+    - name: Stat the sudoers file
+      ansible.builtin.stat:
+        path: "/etc/sudoers.d/nopasswd_groups"
+      register: _users_verify_sudoers_stat
+
+    - name: Assert the sudoers file is absent
+      ansible.builtin.assert:
+        that: "not _users_verify_sudoers_stat.stat.exists"
+        quiet: true
+
+    - name: Check that tester has no passwordless sudo anymore
+      become: true
+      become_user: tester
+      ansible.builtin.command:
+        cmd: "sudo -n id -u"
+      register: _users_verify_sudo_result
+      changed_when: false
+      failed_when: "_users_verify_sudo_result.rc == 0"

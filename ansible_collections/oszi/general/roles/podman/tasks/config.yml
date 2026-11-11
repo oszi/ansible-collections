@@ -2,6 +2,18 @@
 - name: Change default podman graphroot?
   when: podman_graphroot is truthy
   block:
+    # storage.conf is not merged: a copy in /etc replaces the /usr/share defaults as a whole, so a file
+    # holding only graphroot leaves driver and runroot unset and podman refuses to start.
+    - name: Ensure the storage configuration starts from the distribution defaults
+      ansible.builtin.copy:
+        src: "{{ podman_share_storage_path }}"
+        dest: "{{ podman_config_storage_path }}"
+        remote_src: true
+        force: false
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
     - name: Change podman graphroot
       community.general.ini_file:
         dest: "{{ podman_config_storage_path }}"

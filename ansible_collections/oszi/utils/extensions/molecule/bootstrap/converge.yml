@@ -40,3 +40,20 @@
           # The fallback only applies to SSH connections and never rewrites the port here.
           - "ansible_port is not defined or ansible_port | int == 22"
         quiet: true
+
+    # The main entrypoint deduplicates on bootstrap_included: ansible_port would become bootstrap_ssh_port
+    # if the bootstrap tasks ran again, so the unchanged facts prove they are skipped.
+    - name: Import bootstrap role again with a different port and fallback port
+      ansible.builtin.import_role:
+        name: oszi.utils.bootstrap
+      vars:
+        ansible_port: 2222
+        bootstrap_ssh_port_fallback: 2222
+
+    - name: Assert the bootstrap facts after the deduplicated import
+      ansible.builtin.assert:
+        that:
+          - "bootstrap_is_ssh is false"
+          - "bootstrap_ssh_port == 22"
+          - "bootstrap_included is true"
+        quiet: true

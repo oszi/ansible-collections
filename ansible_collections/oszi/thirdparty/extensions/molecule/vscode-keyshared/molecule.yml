@@ -1,30 +1,49 @@
 ---
 # Molecule scenario for oszi.thirdparty.vscode, disabled, with vscode_microsoft_gpgkey_used_elsewhere: true.
-# prepare.yml seeds the VS Code sources and every Microsoft keyring; the uninstall path must remove
+# Prepare seeds the VS Code sources and every Microsoft keyring; the uninstall path must remove
 # the sources only and keep the keyrings, unchanged, that other Microsoft repositories may reference.
 provisioner:
   inventory:
     group_vars:
       all:
         vscode_microsoft_gpgkey_used_elsewhere: true
-        molecule_seed_paths: "{{ molecule_verify_paths | map(attribute='path') }}"
+        molecule_prepare_seed_verify_absent: true
+        # Seeded into every kept keyring and compared back byte for byte.
+        molecule_keyring_content: "# Seeded by molecule as a shared Microsoft keyring\n"
         molecule_verify_commands:
           - {cmd: "! command -v code"}
-          - cmd: |
-              for keyring in {{ molecule_verify_paths | rejectattr('state', 'defined')
-                | map(attribute='path') | map('quote') | join(' ') }}; do
-                cmp -- "$$keyring" <(printf '%s\n' '# Seeded by molecule')
-              done
         molecule_verify_packages:
           absent: [code, code-exploration, code-insiders]
       redhat:
+        molecule_prepare_seed_files:
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft, content: "{{ molecule_keyring_content }}"}
         molecule_verify_paths:
           - {path: /etc/yum.repos.d/vscode.repo, state: absent}
-          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft, mode: "0644", owner: root, group: root}
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft
+            mode: "0644"
+            owner: root
+            group: root
+            content: "{{ molecule_keyring_content }}"
       debian:
+        molecule_prepare_seed_files:
+          - {path: /etc/apt/keyrings/packages.microsoft.asc, content: "{{ molecule_keyring_content }}"}
+          - {path: /etc/apt/keyrings/packages.microsoft.gpg, content: "{{ molecule_keyring_content }}"}
+          - {path: /etc/apt/trusted.gpg.d/microsoft.gpg, content: "{{ molecule_keyring_content }}"}
         molecule_verify_paths:
           - {path: /etc/apt/sources.list.d/vscode.sources, state: absent}
           - {path: /etc/apt/sources.list.d/vscode.list, state: absent}
-          - {path: /etc/apt/keyrings/packages.microsoft.asc, mode: "0644", owner: root, group: root}
-          - {path: /etc/apt/keyrings/packages.microsoft.gpg, mode: "0644", owner: root, group: root}
-          - {path: /etc/apt/trusted.gpg.d/microsoft.gpg, mode: "0644", owner: root, group: root}
+          - path: /etc/apt/keyrings/packages.microsoft.asc
+            mode: "0644"
+            owner: root
+            group: root
+            content: "{{ molecule_keyring_content }}"
+          - path: /etc/apt/keyrings/packages.microsoft.gpg
+            mode: "0644"
+            owner: root
+            group: root
+            content: "{{ molecule_keyring_content }}"
+          - path: /etc/apt/trusted.gpg.d/microsoft.gpg
+            mode: "0644"
+            owner: root
+            group: root
+            content: "{{ molecule_keyring_content }}"

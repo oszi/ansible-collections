@@ -39,4 +39,5 @@
             that:
               - "ansible_failed_task.name == 'Assert a false rule'"
               - "ansible_failed_result.msg == molecule_assert_fail_msg"
+              - "ansible_failed_result.assertion == 'ansible_facts.user_uid | int == 0'"
             quiet: true

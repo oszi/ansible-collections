@@ -1,3 +1,32 @@
 ---
 - name: Import the shared verify playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# The shared verify asserted the Screenshots symlink; the role's restore flag then replaces it.
+- name: Verify the screenshots restore path
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Include the gnome_users role with screenshots restore
+      ansible.builtin.include_role:
+        name: oszi.general.gnome_users
+      vars:
+        gnome_users_screenshots_restore: true
+
+    - name: Stat the restored Screenshots directory
+      ansible.builtin.stat:
+        path: "/home/tester/Pictures/Screenshots"
+        follow: false
+      register: _molecule_screenshots_result
+
+    - name: Assert the Screenshots directory is restored
+      ansible.builtin.assert:
+        that:
+          - "_molecule_screenshots_result.stat.isdir"
+          - "not _molecule_screenshots_result.stat.islnk"
+          - "_molecule_screenshots_result.stat.mode == '0750'"
+          - "_molecule_screenshots_result.stat.pw_name == 'tester'"
+          - "_molecule_screenshots_result.stat.gr_name == 'tester'"
+        fail_msg: "Screenshots does not match: {{ _molecule_screenshots_result.stat }}"
+        quiet: true

@@ -16,24 +16,30 @@
         cmd: |
           set -euo pipefail
           shellcheck -- /etc/shrc /etc/shrc.d/* /root/.bashrc /root/.bash_profile /root/.profile /root/.zshrc \
-            /root/.zprofile /home/tester/.bashrc /home/tester/.profile /home/tester/.zshrc
-          for f in /etc/shrc /etc/shrc.d/*.sh /root/.profile; do sh -n "$f"; done
-          for f in /etc/shrc.d/*.bash /root/.bashrc /root/.bash_profile; do bash -n "$f"; done
-          for f in /etc/shrc.d/*.zsh /root/.zshrc /root/.zprofile /home/tester/.zshrc; do zsh -n "$f"; done
+            /root/.zprofile /home/tester/.bashrc /home/tester/.bash_profile /home/tester/.profile \
+            /home/tester/.zshrc /home/tester/.zprofile
+          for f in /etc/shrc /etc/shrc.d/*.sh /root/.profile /home/tester/.profile; do sh -n "$f"; done
+          for f in /etc/shrc.d/*.bash /root/.bashrc /root/.bash_profile /home/tester/.bashrc \
+            /home/tester/.bash_profile; do bash -n "$f"; done
+          for f in /etc/shrc.d/*.zsh /root/.zshrc /root/.zprofile /home/tester/.zshrc /home/tester/.zprofile; do
+            zsh -n "$f"
+          done
         executable: "/bin/bash"
       changed_when: false
 
+    # The inventory's history limit and the extra line appended by shell_tmux_conf_extra are both live options.
     - name: Check the tmux configuration
       become: true
       become_user: tester
       ansible.builtin.shell:
         cmd: |
           set -euo pipefail
-          tmux -L molecule -f ~/.tmux.conf start-server \; show-options -gv history-limit \; kill-server
+          tmux -L molecule -f ~/.tmux.conf start-server \; show-options -gv history-limit \; \
+            show-options -gv status-interval \; kill-server
         executable: "/bin/bash"
       changed_when: false
       register: _shell_tmux_result
-      failed_when: "_shell_tmux_result.stdout | trim != '100000'"
+      failed_when: "_shell_tmux_result.stdout_lines != ['4242', '7']"
 
     - name: Check the bat/batcat alternative symlink
       ansible.builtin.stat:

@@ -43,7 +43,8 @@ molecule destroy -s shell
 `~/.ansible/tmp/molecule.*`. The message `CRITICAL 'extensions/molecule/default/molecule.yml' glob failed`
 is harmless: molecule looks for a `default` scenario to decide about shared state.
 
-Enable podman transient store at the cost of losing all user containers after reboot, and disable IPv6 if not needed.
+Enable podman transient store at the cost of losing all user containers after reboot,
+and disable IPv6 if not needed.
 ```bash
 systemctl --user enable podman-clean-transient.service
 mkdir -p ~/.config/containers
@@ -129,15 +130,27 @@ set a different `MOLECULE_BUILD_IMAGE_PREFIX` to prevent that.
 
 * **build**: Builds the platform images on the controller; see Images above.
 * **prepare**: Waits for `systemctl is-system-running` to report `running`
-  (`molecule_prepare_systemd_wait: false` skips it), imports `oszi.utils.bootstrap` and creates every user
-  in `users_list`, the variable the `users`, `shell`, `dotfiles` and `gnome_users` roles consume.
+  (`molecule_prepare_systemd_wait: false` skips it), imports `oszi.utils.bootstrap`, creates every user
+  in `users_list`, the variable the `users`, `shell`, `dotfiles` and `gnome_users` roles consume, installs
+  `molecule_prepare_packages` (test tools, or the packages a rootless role would manage as root) and seeds
+  `molecule_prepare_seed_files` (`path`, optional `content`, `mode`, `owner`, `group`; `.repo` files get a
+  disabled stub). `molecule_prepare_seed_verify_absent: true` also seeds every `molecule_verify_paths` entry
+  with `state: absent`, so an uninstall path has work to do instead of passing on a pristine image.
 * **converge**: Imports `oszi.utils.bootstrap`, includes `molecule_converge_roles` (list of `{name, tasks_from}`),
   by default the role named like the scenario up to the first dash in the collection molecule runs from.
   `molecule_become_user` (default `root`) runs the play as another user for rootless scenarios.
 * **verify**: Asserts `molecule_verify_paths` (`path`, `state: file|directory|link|absent`, `mode`, `owner`, `group`,
-  link `src`), `molecule_verify_commands` (`cmd` in bash with `set -euo pipefail`, `user`, exact `stdout` or
-  `stdout_contains`), `molecule_verify_units` (`name`, `load`, `active`, `enabled` as `systemctl show` values)
-  and `molecule_verify_packages` (`present`, `absent`).
+  link `src` as the literal link target, `checksum` as sha256 with or without the `sha256:` prefix, exact
+  `content`, `lines` that must each occur), `molecule_verify_commands` (`cmd` in bash with `set -euo pipefail`,
+  `user`, exact `stdout` or `stdout_contains`; `! cmd` asserts failure), `molecule_verify_units` (`name`,
+  `load` default `loaded` since `systemctl show` reports unknown units as `not-found` with exit code 0,
+  `active`, `enabled` as `systemctl show` values) and `molecule_verify_packages` (`present`, `absent`).
+  `molecule_verify_role_defaults_file` loads a role's defaults as `molecule_role_defaults`, so expected values
+  such as key checksums are read from the role rather than duplicated; defaults templating sibling defaults
+  or facts render against the play, so they need those names defined there (facts via a preceding play).
+  `molecule_verify_role_vars` (`role`, `tasks_from`, `user`, `that`) includes a role publicly as the given user
+  in a play of its own and asserts expressions over its variables, e.g. defaults derived from the effective user or
+  exported facts. Paths are stat'ed without following links: a symlinked directory is a `link`, not a `directory`.
 
 ### Scenarios
 
@@ -152,16 +165,17 @@ plays. Scenario names are `{role}` or `{role}-{variant}`; role names never conta
 ## Scenarios in place
 
 Every role of the three collections has a `{role}` scenario; variants cover uninstall paths (`-disabled`),
-`update` entrypoints (converge-only test sequence), enabled thirdparty repositories (`-enabled`, vendor
-network needed), the ssh server, and rootless mode. Heavy by nature: the enabled thirdparty scenarios
-download vendor packages, `gnome` installs the full default package set (about 1 GB per platform) to
-catch packages renamed or dropped in new distribution releases, `gnome_users` a small dconf set (each
-setting is a `podman exec`), and `borgmatic` and `python` need PyPI.
+`update` entrypoints (converge-only test sequence), enabled thirdparty repositories (`-enabled`, vendor network
+needed), the upstream repositories of roles defaulting to the distribution package (`-enabled-upstream`, Fedora),
+the ssh server, and rootless mode. Heavy by nature: the enabled thirdparty scenarios download vendor packages,
+`gnome` installs the full default package set (about 1 GB per platform) to catch packages renamed or dropped
+in new distribution releases, `gnome_users` a small dconf set (each setting is a `podman exec`),
+and `borgmatic` and `python` need PyPI.
 
 Rootless-tagged roles (`_scripts/galaxy-tags.py -t rootless`) have a `{role}-rootless` scenario running
 the role as `tester` via `molecule_become_user`, so `ansible_facts.user_uid` is non-zero and the tilde
-paths and `*_manage_packages` defaults apply. Their prepare installs the packages the role would manage
-as root.
+paths and `*_manage_packages` defaults apply. `molecule_prepare_packages` installs the packages the role
+would manage as root, and `molecule_verify_role_vars` asserts the defaults derived from the user.
 
 Not testable in these containers: firewalld enabled (polkit needs `CAP_SYS_ADMIN`), nested podman
 (quadlet and kube services, deploy and pull paths), snaps and `snap update` (snapd exits with 237/KEYRING),
@@ -177,6 +191,16 @@ and flatpak remotes and apps (bubblewrap).
 * Never commit key material: generate keys in the scenario `prepare.yml` and keep such tasks `no_log`.
 * Use the `molecule_verify_*` lists; add plays to `verify.yml` for anything else and gather facts there
   with `oszi.utils.facts`.
+* Assertions must be earned: seed what an uninstall path removes (`molecule_prepare_seed_verify_absent`,
+  `molecule_prepare_seed_files`) instead of asserting absence on a pristine image, and let prepare create
+  directories with a different mode than the one verify expects, so the role is the one producing the state.
+  `ansible.builtin.file` gives that mode to every parent it creates too: create the parents first.
+* `fail_msg` of `ansible.builtin.assert` must render to a string; prefix a dict or list with text.
+* Negative tests include the role in a `block`/`rescue` and assert `ansible_failed_task.name`; keywords such as
+  `check_mode` reach the role's tasks only via `include_role` `apply`. A `fail` after the include guards the rescue.
+* `apt remove` keeps conffiles, so a package-removal assertion cannot expect every file of a dpkg package gone.
+* Expected values that live in the role (checksums, URLs, versions) come from `molecule_verify_role_defaults_file`
+  rather than copies in the scenario.
 * `update` entrypoints and `state: latest` belong in a variant whose `scenario.test_sequence` omits
   idempotence.
 * Scenarios needing network beyond the distribution mirrors say so in the variant name (`-enabled`).

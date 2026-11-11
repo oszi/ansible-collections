@@ -1,3 +1,101 @@
 ---
 - name: Import the shared verify playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.verify
+
+# The role skips its configuration tasks in containers, so the configuration it would install is
+# rendered here from the role's variables and templates, and validated by borgmatic and systemd.
+- name: Verify the borgmatic configuration and units
+  hosts: all
+  become: true
+  gather_facts: false
+  vars:
+    # Test-only passphrase, never a real secret; the rendered configuration is handled with no_log.
+    borgmatic_passphrase: "molecule-test"
+    borgmatic_one_file_system: true
+    borgmatic_hooks:
+      before_backup:
+        - "echo molecule"
+    borgmatic_unit_options:
+      - "ConditionACPower=true"
+  tasks:
+    # Public, so borgmatic_config and the paths of the role are visible below; the setup tasks are
+    # idempotent and the configuration tasks stay skipped by the role's container guard.
+    - name: Include the borgmatic role publicly
+      ansible.builtin.include_role:
+        name: oszi.general.borgmatic
+        public: true
+
+    - name: Create a temporary directory for the rendered files
+      ansible.builtin.tempfile:
+        state: "directory"
+        suffix: "-borgmatic"
+      register: _borgmatic_tempdir
+
+    - name: Render the borgmatic configuration
+      ansible.builtin.copy:
+        content: "{{ borgmatic_config | to_nice_yaml }}"
+        dest: "{{ _borgmatic_tempdir.path }}/config.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+      no_log: true
+
+    - name: Validate the borgmatic configuration
+      ansible.builtin.command:
+        argv:
+          - "{{ borgmatic_virtualenv_path }}/bin/borgmatic"
+          - "config"
+          - "validate"
+          - "--config"
+          - "{{ _borgmatic_tempdir.path }}/config.yaml"
+      changed_when: false
+
+    - name: Render the borgmatic units
+      ansible.builtin.template:
+        src: "../../../roles/borgmatic/templates/etc/systemd/system/{{ item }}.j2"
+        dest: "{{ _borgmatic_tempdir.path }}/{{ item }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      loop:
+        - "borg.service"
+        - "borg.timer"
+
+    - name: Slurp the rendered units
+      ansible.builtin.slurp:
+        src: "{{ _borgmatic_tempdir.path }}/{{ item }}"
+      loop:
+        - "borg.service"
+        - "borg.timer"
+      register: _borgmatic_units
+
+    - name: Assert the rendered units' options
+      vars:
+        _lines: "{{ item.content | b64decode | split('\n') }}"
+      ansible.builtin.assert:
+        that:
+          - "'ConditionACPower=true' in _lines"
+          - "item.item != 'borg.service' or 'ExecStart=' ~ borgmatic_virtualenv_path ~ '/bin/borgmatic --config='
+            ~ borgmatic_config_path ~ ' --verbosity=1' in _lines"
+          - "item.item != 'borg.timer' or borgmatic_timer_options | difference(_lines) == []"
+        fail_msg: "{{ item.item }} does not match: {{ _lines }}"
+        quiet: true
+      loop: "{{ _borgmatic_units.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    # The units are loaded from the temporary directory, where the timer finds its service.
+    - name: Verify the rendered units with systemd
+      ansible.builtin.command:
+        argv:
+          - "systemd-analyze"
+          - "verify"
+          - "--man=no"
+          - "{{ _borgmatic_tempdir.path }}/borg.service"
+          - "{{ _borgmatic_tempdir.path }}/borg.timer"
+      changed_when: false
+
+    - name: Remove the temporary directory
+      ansible.builtin.file:
+        path: "{{ _borgmatic_tempdir.path }}"
+        state: "absent"

@@ -38,3 +38,57 @@
           - "_locale_programs_result.stdout_lines == ['LANG=C.UTF-8', 'LC_COLLATE=C', 'LC_CTYPE=\"C.UTF-8\"']"
         fail_msg: "{{ _locale_programs_result.stdout_lines }}"
         quiet: true
+
+# The role rejects LC_ALL and quoted values before touching the file; each include must fail at the
+# validation assert, and a fail task after it catches a role that accepted the invalid value instead.
+- name: Verify the locale_conf validation
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Reject LC_ALL in locale_conf
+      block:
+        - name: Include the locale role with LC_ALL
+          ansible.builtin.include_role:
+            name: oszi.general.locale
+          vars:
+            locale_conf: "LC_ALL=C.UTF-8"
+
+        - name: Fail if the role accepted LC_ALL
+          ansible.builtin.fail:
+            msg: "the role accepted LC_ALL in locale_conf"
+      rescue:
+        - name: Assert the role failed at the validation assert
+          ansible.builtin.assert:
+            that: "ansible_failed_task.name == 'Assert valid locale_conf'"
+            fail_msg: "failed at {{ ansible_failed_task.name }}: {{ ansible_failed_result.msg | default('') }}"
+            quiet: true
+
+    - name: Reject quoted values in locale_conf
+      block:
+        - name: Include the locale role with a quoted value
+          ansible.builtin.include_role:
+            name: oszi.general.locale
+          vars:
+            locale_conf: "LANG='C.UTF-8'"
+
+        - name: Fail if the role accepted the quoted value
+          ansible.builtin.fail:
+            msg: "the role accepted a quoted value in locale_conf"
+      rescue:
+        - name: Assert the role failed at the validation assert
+          ansible.builtin.assert:
+            that: "ansible_failed_task.name == 'Assert valid locale_conf'"
+            fail_msg: "failed at {{ ansible_failed_task.name }}: {{ ansible_failed_result.msg | default('') }}"
+            quiet: true
+
+    - name: Read the locale file after the rejected includes
+      ansible.builtin.slurp:
+        src: "/etc/locale.conf"
+      register: _locale_conf_after_result
+
+    - name: Assert the locale file is unchanged
+      ansible.builtin.assert:
+        that: "_locale_conf_after_result.content | b64decode == 'LANG=C.UTF-8\nLC_COLLATE=C\n'"
+        fail_msg: "{{ _locale_conf_after_result.content | b64decode }}"
+        quiet: true

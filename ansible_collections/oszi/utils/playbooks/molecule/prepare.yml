@@ -1,9 +1,28 @@
 ---
 # Shared molecule prepare playbook; see _scripts/tests/MOLECULE.md.
+# Creates users_list, installs molecule_prepare_packages and seeds molecule_prepare_seed_files
+# (path, content, mode, owner, group); molecule_prepare_seed_verify_absent also seeds every path
+# molecule_verify_paths expects absent, so the role under test must remove them.
 - name: Prepare molecule instances
   hosts: all
   become: true
   gather_facts: false
+  vars:
+    # Explicit entries win over the stubs derived from the absent paths.
+    _molecule_prepare_seed_absent: "{{ molecule_verify_paths | default([]) | selectattr('state', 'defined')
+      | selectattr('state', 'eq', 'absent')
+      | rejectattr('path', 'in', molecule_prepare_seed_files | default([]) | map(attribute='path') | list)
+      | map(attribute='path') | map('community.general.dict_kv', 'path') | list
+      if molecule_prepare_seed_verify_absent | default(false) else [] }}"
+    _molecule_prepare_seed_files: "{{ molecule_prepare_seed_files | default([]) + _molecule_prepare_seed_absent }}"
+    # Seeded repository files are disabled stubs, so the package manager never reads a seeded source.
+    _molecule_prepare_seed_repo_content: |
+      [molecule-seed]
+      name=Molecule seed
+      baseurl=file:///nonexistent
+      enabled=0
+    _molecule_prepare_seed_default_content: |
+      # Seeded by molecule
   tasks:
     - name: Wait for systemd to finish booting
       when: molecule_prepare_systemd_wait | default(true)
@@ -24,3 +43,30 @@
       loop_control:
         label: "{{ item.name }}"
       no_log: "{{ item.password is defined }}"
+
+    - name: Ensure the prepared packages are installed
+      when: molecule_prepare_packages | default([]) is truthy
+      ansible.builtin.package:
+        name: "{{ molecule_prepare_packages }}"
+        state: "present"
+
+    - name: Ensure the seeded files' directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+      loop: "{{ _molecule_prepare_seed_files | map(attribute='path') | map('dirname') | unique }}"
+
+    - name: Seed the files the role must handle
+      ansible.builtin.copy:
+        dest: "{{ item.path }}"
+        content: "{{ item.content | default(_molecule_prepare_seed_repo_content
+          if item.path.endswith('.repo') else _molecule_prepare_seed_default_content) }}"
+        owner: "{{ item.owner | default('root') }}"
+        group: "{{ item.group | default('root') }}"
+        mode: "{{ item.mode | default('0644') }}"
+      loop: "{{ _molecule_prepare_seed_files }}"
+      loop_control:
+        label: "{{ item.path }}"

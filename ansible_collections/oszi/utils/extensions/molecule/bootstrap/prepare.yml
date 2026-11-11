@@ -14,9 +14,11 @@
         argv: [dnf, clean, all]
       changed_when: true
 
-    - name: Remove the apt lists
+    # apt compares cache_valid_time with the mtime of the lists directory (the images have no
+    # update-success-stamp), which the removal refreshes; an old mtime makes the role's update run.
+    - name: Remove the apt lists and age the lists directory
       when: "'debian' in group_names"
       ansible.builtin.shell:
-        cmd: "set -euo pipefail; rm -rf -- /var/lib/apt/lists/*"
+        cmd: "set -euo pipefail; rm -rf -- /var/lib/apt/lists/*; touch -d '1970-01-02' /var/lib/apt/lists"
         executable: /bin/bash
       changed_when: true

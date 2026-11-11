@@ -1,21 +1,7 @@
 ---
+# The role manages the flatpak package only for the system method; the shared prepare installs it.
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
-
-# The role manages the flatpak package only for the system method.
-- name: Install flatpak as root
-  hosts: all
-  become: true
-  gather_facts: false
-  tasks:
-    - name: Import bootstrap role
-      ansible.builtin.import_role:
-        name: oszi.utils.bootstrap
-
-    - name: Ensure flatpak is installed
-      ansible.builtin.package:
-        name: "flatpak"
-        state: "present"
 
 - name: Prepare the test user's flatpak exports
   hosts: all
@@ -23,11 +9,19 @@
   become_user: tester
   gather_facts: false
   tasks:
+    # The file module applies the mode to every parent it creates, so the parents come first.
     - name: Ensure the user flatpak exports directory exists
+      ansible.builtin.file:
+        path: "~/.local/share/flatpak/exports"
+        state: "directory"
+        mode: "0755"
+
+    # Too restrictive on purpose: the role must correct the mode to 0755.
+    - name: Ensure the user flatpak exports bin directory exists
       ansible.builtin.file:
         path: "~/.local/share/flatpak/exports/bin"
         state: "directory"
-        mode: "0755"
+        mode: "0700"
 
     # Listed in flatpak_exports_bin_aliases_absent, so the role must remove it.
     - name: Ensure an obsolete alias exists

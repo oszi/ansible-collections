@@ -1,10 +1,11 @@
 ---
 # Molecule scenario for oszi.thirdparty.opentofu with the default opentofu_enabled: false (uninstall path).
-# prepare.yml seeds every path listed as absent below; the role must remove them.
+# Prepare seeds every path listed as absent below; the role must remove them.
 provisioner:
   inventory:
     group_vars:
       all:
+        molecule_prepare_seed_verify_absent: true
         molecule_verify_commands:
           - {cmd: "! command -v tofu"}
         molecule_verify_packages:

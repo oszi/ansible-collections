@@ -1,6 +1,7 @@
 ---
 # Rootless molecule scenario for oszi.general.cloudflare_dns: the shared converge runs the role as tester.
-# The CloudFlare API is external, so only the no-op path with an empty zone is tested.
+# The CloudFlare API is external, so only the no-op path with an empty zone is tested: records and an
+# invalid token are set, so the gate is what keeps the module from being called (it would fail fast).
 provisioner:
   inventory:
     group_vars:
@@ -11,3 +12,17 @@ provisioner:
         molecule_become_user: tester
         cloudflare_dns_zone: ""
         cloudflare_dns_host_record: "molecule"
+        # TEST-NET-1; the module never sees it with the empty zone.
+        cloudflare_dns_extra_a_records:
+          - {record: molecule, value: 192.0.2.1}
+        # Test-only placeholder, never a real token; the module declares api_token no_log.
+        cloudflare_dns_api_token: "molecule-invalid-token"
+        # The role included as tester keeps its defaults: the skipped tasks set no facts. This proves the
+        # include path is clean, the gate itself is proven by converge not failing with the invalid token.
+        molecule_verify_role_vars:
+          role: oszi.general.cloudflare_dns
+          user: tester
+          that:
+            - "ansible_facts.user_uid | int != 0"
+            - "cloudflare_dns_host_record_a_value == ''"
+            - "cloudflare_dns_host_record_aaaa_value == ''"

@@ -1,0 +1,58 @@
+---
+# Molecule scenario for oszi.thirdparty.opentofu with opentofu_enabled and opentofu_upstream_enabled: true
+# on Fedora, which otherwise installs the distribution package. Needs network access to get.opentofu.org
+# and packages.opentofu.org. Prepare seeds stubs of both signing keys, which the role must replace with
+# the verified downloads. Switching to upstream does not remove a previously installed distribution
+# package: the role only installs tofu, and this scenario starts from a pristine image.
+platforms:
+  - name: "${MOLECULE_SCENARIO_NAME}-fedora"
+    image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}fedora:${MOLECULE_BUILD_FEDORA_VERSION:-latest}"
+    pre_build_image: true
+    command: "/sbin/init"
+    systemd: always
+    groups: [fedora, redhat]
+
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        opentofu_enabled: true
+        opentofu_upstream_enabled: true
+        molecule_prepare_seed_files:
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu}
+          - {path: /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo}
+        molecule_verify_role_defaults_file: "${MOLECULE_PROJECT_DIRECTORY}/roles/opentofu/defaults/main.yml"
+        # yum_repository renders list values as continuation lines indented with a tab.
+        molecule_verify_paths:
+          - path: /etc/yum.repos.d/opentofu.repo
+            mode: "0644"
+            owner: root
+            group: root
+            lines:
+              - "[opentofu]"
+              - "baseurl = {{ molecule_role_defaults.opentofu_rpm_baseurl }}"
+              - "gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu"
+              - "\tfile:///etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo"
+              - "gpgcheck = 1"
+              - "repo_gpgcheck = 0"
+              - "enabled = 1"
+              - "includepkgs = tofu"
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu
+            mode: "0644"
+            owner: root
+            group: root
+            checksum: "{{ molecule_role_defaults.opentofu_rpm_gpgkey_checksum }}"
+          - path: /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo
+            mode: "0644"
+            owner: root
+            group: root
+            checksum: "{{ molecule_role_defaults.opentofu_rpm_repo_gpgkey_checksum }}"
+        molecule_verify_commands:
+          - {cmd: "tofu version", stdout_contains: "OpenTofu v"}
+          - {cmd: "dnf repoquery --installed --qf '%{from_repo}\\n' tofu", stdout: "opentofu"}
+          - {cmd: "[ \"$$(rpm -q --qf '%{VENDOR}\\n' tofu)\" != 'Fedora Project' ]"}
+          - {cmd: "head -c 14 /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu", stdout: "-----BEGIN PGP"}
+          - {cmd: "head -c 14 /etc/pki/rpm-gpg/RPM-GPG-KEY-opentofu-repo", stdout: "-----BEGIN PGP"}
+        molecule_verify_packages:
+          present: [tofu]
+          absent: [opentofu]

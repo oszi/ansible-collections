@@ -14,14 +14,29 @@ provisioner:
         molecule_converge_roles:
           - name: oszi.general.podman
           - name: oszi.general.podman_quadlets
+        # Prepare seeds the absent item, so podman must be installed ahead of the converge.
+        molecule_prepare_packages: [podman]
         podman_quadlets_list:
           - name: test.network
             state: present_disabled
             quadlet: |
               [Network]
               Label=app=molecule
+          # Volume and pod units carry the type suffix in their service names.
+          - name: test.volume
+            state: present_disabled
+            quadlet: |
+              [Volume]
+              Label=app=molecule
+          - name: test.pod
+            state: present_disabled
+            quadlet: |
+              [Pod]
+              PodName=molecule-test
           - name: test.container
             state: present_disabled
+            # Runs once: the quadlet file is the creates guard, so the second converge skips it.
+            init_script: "install -d -m 0750 /srv/test/init"
             quadlet: |
               [Unit]
               Description=Molecule test container
@@ -57,7 +72,10 @@ provisioner:
         molecule_verify_paths:
           - {path: /etc/containers/systemd, state: directory, mode: "0755", owner: root, group: root}
           - {path: /etc/containers/systemd/test.network, mode: "0644", owner: root, group: root}
+          - {path: /etc/containers/systemd/test.volume, mode: "0644", owner: root, group: root}
+          - {path: /etc/containers/systemd/test.pod, mode: "0644", owner: root, group: root}
           - {path: /etc/containers/systemd/test.container, mode: "0644", owner: root, group: root}
+          - {path: /srv/test/init, state: directory, mode: "0750", owner: root, group: root}
           - {path: "/etc/containers/systemd/test-web@.container", mode: "0644", owner: root, group: root}
           - {path: /srv/test/config.txt, mode: "0640", owner: root, group: root}
           - {path: /etc/containers/systemd/old.container, state: absent}
@@ -67,14 +85,23 @@ provisioner:
           # The generator prints every generated unit between ---NAME--- separators.
           - cmd: |
               out="$$(/usr/lib/systemd/system-generators/podman-system-generator -dryrun)"
-              for unit in test.service test-network.service test-web@.service; do
+              for unit in test.service test-network.service test-volume.service test-pod.service test-web@.service; do
                 grep -Fxq -- "---$${unit}---" <<<"$$out"
               done
               ! grep -Fq -- '---old.service---' <<<"$$out"
           - {cmd: "systemctl cat test.service | grep -Fx 'Description=Molecule test container'"}
+          # The generated units resolve the network quadlet to its podman name and dependency.
+          - {cmd: "systemctl cat test.service | grep -F -- '--network systemd-test'"}
+          - {cmd: "systemctl cat test.service | grep -Fx 'Requires=test-network.service'"}
+          - {cmd: "systemctl cat test.service | grep -F -- '-v /srv/test/config.txt:/config.txt:ro,Z'"}
           - {cmd: "systemctl cat test-network.service | grep -F 'podman network create'"}
+          - {cmd: "systemctl cat test-network.service | grep -F -- '--label app=molecule'"}
+          - {cmd: "systemctl cat test-volume.service | grep -F -- '--label app=molecule'"}
+          - {cmd: "systemctl cat test-pod.service | grep -F -- '--name molecule-test'"}
           - {cmd: "systemctl cat test-web@molecule.service | grep -Fx 'Description=Molecule test template %i'"}
           - {cmd: "! systemctl cat old.service"}
         molecule_verify_units:
           - {name: test.service, active: inactive, enabled: generated}
           - {name: test-network.service, active: inactive, enabled: generated}
+          - {name: test-volume.service, active: inactive, enabled: generated}
+          - {name: test-pod.service, active: inactive, enabled: generated}

@@ -2,21 +2,20 @@
 - name: Import the shared prepare playbook
   ansible.builtin.import_playbook: oszi.utils.molecule.prepare
 
-- name: Seed an obsolete unit for the role to remove
+# The seeded units are loaded like those of an earlier installation, so the role's reload must drop them.
+- name: Load the seeded obsolete units
   hosts: all
   become: true
   gather_facts: false
   tasks:
-    - name: Create the obsolete swapfile.service
-      ansible.builtin.copy:
-        content: |
-          [Unit]
-          Description=Obsolete molecule fixture
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
 
-          [Service]
-          Type=oneshot
-          ExecStart=/bin/true
-        dest: "/etc/systemd/system/swapfile.service"
-        owner: "root"
-        group: "root"
-        mode: "0644"
+    - name: Assert the seeded units are loaded
+      ansible.builtin.command:  # noqa: command-instead-of-module
+        cmd: "systemctl show --property=LoadState --value {{ item | quote }}"
+      loop: [swapfile.service, swapfile@molecule.service]
+      register: _systemd_prepare_load_result
+      changed_when: false
+      failed_when: "_systemd_prepare_load_result.stdout | trim != 'loaded'"

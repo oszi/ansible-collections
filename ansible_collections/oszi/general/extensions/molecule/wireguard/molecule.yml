@@ -1,13 +1,12 @@
 ---
 # Molecule scenario for oszi.general.wireguard with a wg-quick config; shared settings come from ../config.yml.
 # prepare.yml generates a throwaway private key inside each container; converge.yml reads it into
-# molecule_wireguard_private_key without logging. Interfaces need CAP_NET_ADMIN and the host kernel module,
-# so no wg-quick services are started.
+# molecule_wireguard_private_key without logging. Interfaces need CAP_NET_ADMIN and the host kernel module:
+# the container guard of wireguard_quick_services keeps the wg-quick unit inactive.
 provisioner:
   inventory:
     group_vars:
       all:
-        wireguard_quick_services: []
         wireguard_quick_configs:
           wg0: |
             [Interface]
@@ -27,10 +26,8 @@ provisioner:
         molecule_verify_units:
           - {name: wg-quick@wg0.service, active: inactive, enabled: disabled}
       redhat:
-        molecule_wireguard_tools_package: wireguard-tools
         molecule_verify_packages:
           present: [wireguard-tools]
       debian:
-        molecule_wireguard_tools_package: wireguard-tools
         molecule_verify_packages:
           present: [wireguard, wireguard-tools]

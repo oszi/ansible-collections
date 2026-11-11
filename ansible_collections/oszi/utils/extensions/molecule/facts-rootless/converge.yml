@@ -6,6 +6,16 @@
   become_user: "{{ molecule_become_user }}"
   gather_facts: false
   tasks:
+    # vars/main.yml: without any prior gathering the cache is seeded empty, so the role gathers min and
+    # virtual with !all only; the facts scenario covers the seeding from implicit gathering.
+    # The difference filter returns a set, so the order of the gathered subsets varies between runs.
+    - name: Assert that no facts are gathered before the role runs
+      ansible.builtin.assert:
+        that:
+          - "facts_gathered_subset_cache is not defined"
+          - "ansible_facts.gather_subset is not defined"
+        quiet: true
+
     - name: Import facts role with the default subset
       ansible.builtin.import_role:
         name: oszi.utils.facts
@@ -14,6 +24,7 @@
       ansible.builtin.assert:
         that:
           - "facts_gathered_subset_cache == ['min', 'virtual']"
+          - "ansible_facts.gather_subset | sort == ['!all', 'min', 'virtual']"
           - "ansible_facts.user_id == 'tester'"
           - "ansible_facts.user_uid | int != 0"
           - "ansible_facts.user_dir == '/home/tester'"

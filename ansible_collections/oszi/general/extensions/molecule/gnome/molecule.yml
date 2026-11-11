@@ -3,13 +3,14 @@
 # The role's default package lists are not overridden, so packages renamed or dropped in a new distribution
 # release fail the converge; this installs the full GNOME package set (about 1 GB per platform).
 # The verified packages are a subset covering each distro-conditional branch of the defaults.
-# group_vars replace lists as a whole, so the per-distribution lists are built from _common and _distro parts.
+# group_vars replace lists as a whole, so the per-distribution lists are built from _common and _distro parts;
+# the ubuntu platform is also in the debian group and inherits the lists it does not redefine.
 provisioner:
   inventory:
     group_vars:
       all:
-        # Installed by prepare.yml from the role's default blacklist, so the role must remove them.
-        molecule_gnome_seed_packages: [gnome-tour]
+        # Small packages from the role's default blacklist, installed by prepare so the role must remove them.
+        molecule_prepare_packages: [gnome-tour]
         molecule_verify_commands:
           - {cmd: "gnome-shell --version", stdout_contains: "GNOME Shell"}
           - {cmd: "command -v gnome-tweaks dconf-editor getfacl"}
@@ -27,18 +28,19 @@ provisioner:
         # Blacklisted replacements of default packages, and the seeded package.
         molecule_verify_packages_absent_common: [gnome-tour, eog, gedit, gnome-terminal, totem]
       fedora:
-        molecule_gnome_seed_packages: [gnome-tour, fedora-chromium-config]
+        molecule_prepare_packages: [gnome-tour, fedora-chromium-config, gnome-shell-extension-background-logo]
         molecule_verify_packages_present_distro:
           - gnome-extensions-app
           - gnome-shell-extension-appindicator
           - gnome-shell-extension-blur-my-shell
         molecule_verify_packages_absent_distro: [fedora-chromium-config, gnome-shell-extension-background-logo]
       debian:
+        # One of the pre-installed games the role blacklists on the Debian family.
+        molecule_prepare_packages: [gnome-tour, gnome-mines]
         molecule_verify_packages_present_distro: [gnome-shell-extension-prefs, gnome-shell-extensions]
-        molecule_verify_packages_absent_distro: []
+        molecule_verify_packages_absent_distro: [gnome-mines]
       ubuntu:
         molecule_verify_packages_present_distro:
           - gnome-shell-extension-prefs
           - gnome-shell-extensions
           - gnome-shell-ubuntu-extensions
-        molecule_verify_packages_absent_distro: []

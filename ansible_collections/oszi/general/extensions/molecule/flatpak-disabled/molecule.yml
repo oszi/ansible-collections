@@ -1,0 +1,13 @@
+---
+# Molecule scenario for oszi.general.flatpak disabled; shared settings come from ../config.yml.
+# Prepare installs flatpak, so the uninstall path of the system method has a package to remove.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        flatpak_disabled: true
+        molecule_prepare_packages: [flatpak]
+        molecule_verify_commands:
+          - {cmd: "! command -v flatpak"}
+        molecule_verify_packages:
+          absent: [flatpak]

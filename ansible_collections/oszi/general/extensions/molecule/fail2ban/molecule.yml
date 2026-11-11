@@ -6,10 +6,10 @@ provisioner:
     group_vars:
       all:
         # Cross-role switches as in a container inventory; the role defaults them to false when undefined.
+        # fail2ban_disabled is not set: its default derives from ssh_server_disabled (undefined here) and
+        # the distribution, so the role is enabled on every platform.
         selinux_disabled: true
         firewalld_disabled: true
-        # Defaults to the inverse of ssh_server_disabled, which is undefined here.
-        fail2ban_disabled: false
         molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
         molecule_verify_paths_common:
           - {path: /etc/fail2ban/fail2ban.local, mode: "0644", owner: root, group: root}
@@ -21,6 +21,9 @@ provisioner:
           # The jail.local values are live in the running server.
           - {cmd: "fail2ban-client get sshd bantime", stdout: "86400"}
           - {cmd: "fail2ban-client get sshd maxretry", stdout: "5"}
+          - {cmd: "fail2ban-client get sshd findtime", stdout: "3600"}
+          # The port is derived from bootstrap_ssh_port and ansible_port, both undefined here.
+          - {cmd: "grep -Fx 'port = 22' /etc/fail2ban/jail.local"}
           - {cmd: "fail2ban-client get logtarget", stdout_contains: "STDERR"}
           # The systemd backend reads the journal on every platform.
           - {cmd: "fail2ban-client get sshd journalmatch", stdout_contains: "_SYSTEMD_UNIT="}

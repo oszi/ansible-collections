@@ -1,16 +1,28 @@
 ---
 # Shared molecule verify playbook; see _scripts/tests/MOLECULE.md.
 # Asserts the inventory variables molecule_verify_paths, molecule_verify_commands,
-# molecule_verify_units (name, load, active, enabled) and molecule_verify_packages, all optional.
+# molecule_verify_units (name, load, active, enabled), molecule_verify_packages and
+# molecule_verify_role_vars, all optional. molecule_verify_role_defaults_file loads a role's
+# defaults as molecule_role_defaults for the expected values.
 - name: Verify molecule instances
   hosts: all
   become: true
   gather_facts: false
+  vars:
+    _molecule_verify_content_paths: "{{ molecule_verify_paths | default([]) | selectattr('content', 'defined') | list
+      + molecule_verify_paths | default([]) | selectattr('content', 'undefined') | selectattr('lines', 'defined') | list }}"
   tasks:
+    - name: Load the role defaults
+      when: molecule_verify_role_defaults_file is defined
+      ansible.builtin.include_vars:
+        file: "{{ molecule_verify_role_defaults_file }}"
+        name: "molecule_role_defaults"
+
     - name: Stat the verified paths
       ansible.builtin.stat:
         path: "{{ item.path }}"
         follow: false
+        checksum_algorithm: "sha256"
       loop: "{{ molecule_verify_paths | default([]) }}"
       loop_control:
         label: "{{ item.path }}"
@@ -30,9 +42,32 @@
           - "item.item.mode is not defined or item.stat.mode == item.item.mode"
           - "item.item.owner is not defined or item.stat.pw_name == item.item.owner"
           - "item.item.group is not defined or item.stat.gr_name == item.item.group"
+          - "item.item.checksum is not defined or item.stat.checksum == item.item.checksum
+            | regex_replace('^sha256:', '')"
         fail_msg: "{{ item.item }} does not match: {{ item.stat }}"
         quiet: true
       loop: "{{ _molecule_verify_stat_results.results }}"
+      loop_control:
+        label: "{{ item.item.path }}"
+
+    - name: Slurp the verified paths with content or lines
+      ansible.builtin.slurp:
+        src: "{{ item.path }}"
+      loop: "{{ _molecule_verify_content_paths }}"
+      loop_control:
+        label: "{{ item.path }}"
+      register: _molecule_verify_slurp_results
+
+    - name: Assert the verified paths' content
+      vars:
+        _molecule_verify_content: "{{ item.content | b64decode }}"
+      ansible.builtin.assert:
+        that:
+          - "item.item.content is not defined or _molecule_verify_content == item.item.content"
+          - "item.item.lines | default([]) | difference(_molecule_verify_content | split('\n')) == []"
+        fail_msg: "{{ item.item.path }} does not match: {{ _molecule_verify_content }}"
+        quiet: true
+      loop: "{{ _molecule_verify_slurp_results.results }}"
       loop_control:
         label: "{{ item.item.path }}"
 
@@ -70,12 +105,13 @@
       changed_when: false
       register: _molecule_verify_unit_results
 
+    # systemctl show reports not-found for unknown units with exit code 0, hence the loaded default.
     - name: Assert the verified systemd units' states
       vars:
         _molecule_verify_unit: "{{ dict(item.stdout_lines | map('split', '=', 1)) }}"
       ansible.builtin.assert:
         that:
-          - "item.item.load is not defined or _molecule_verify_unit.LoadState == item.item.load"
+          - "_molecule_verify_unit.LoadState == item.item.load | default('loaded')"
           - "item.item.active is not defined or _molecule_verify_unit.ActiveState == item.item.active"
           - "item.item.enabled is not defined or _molecule_verify_unit.UnitFileState == item.item.enabled"
         fail_msg: "{{ item.item }} does not match: {{ _molecule_verify_unit }}"
@@ -102,3 +138,25 @@
         fail_msg: "Package {{ item }} is installed"
         quiet: true
       loop: "{{ molecule_verify_packages.absent | default([]) }}"
+
+# molecule_verify_role_vars (role, tasks_from, user, that) includes a role publicly as the given user,
+# so its variables derived from the effective user are visible, and asserts expressions over them.
+# A play of its own: dependencies must run as that user too, which include_role apply cannot do.
+- name: Verify role variables
+  hosts: all
+  become: true
+  become_user: "{{ molecule_verify_role_vars.user | default('root') }}"
+  gather_facts: false
+  tasks:
+    - name: Include the role publicly
+      when: molecule_verify_role_vars is defined
+      ansible.builtin.include_role:
+        name: "{{ molecule_verify_role_vars.role }}"
+        tasks_from: "{{ molecule_verify_role_vars.tasks_from | default('main') }}"
+        public: true
+
+    - name: Assert the role variables
+      when: molecule_verify_role_vars is defined
+      ansible.builtin.assert:
+        that: "{{ molecule_verify_role_vars.that }}"
+        quiet: true
