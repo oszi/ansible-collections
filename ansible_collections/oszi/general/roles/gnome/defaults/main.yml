@@ -9,10 +9,6 @@ gnome_packages:
     ]
     if (ansible_facts.os_family == 'RedHat') else [] }}"
   - "{{ [
-      'gnome-shell-extension-blur-my-shell',
-    ]
-    if (ansible_facts.distribution == 'Fedora') else [] }}"
-  - "{{ [
       'gnome-shell-extension-prefs',
       'gnome-shell-extensions',
     ]
@@ -50,6 +46,7 @@ gnome_blacklisted_packages:
       'fedora-chromium-config-gnome',
       'fedora-chromium-config-gssapi',
       'gnome-shell-extension-background-logo',
+      'gnome-shell-extension-blur-my-shell',
     ]
     if (ansible_facts.distribution == 'Fedora') else [] }}"
   # Unwanted common Gnome packages

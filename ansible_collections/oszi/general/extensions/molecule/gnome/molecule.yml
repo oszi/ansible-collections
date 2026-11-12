@@ -32,8 +32,10 @@ provisioner:
         molecule_verify_packages_present_distro:
           - gnome-extensions-app
           - gnome-shell-extension-appindicator
+        molecule_verify_packages_absent_distro:
+          - fedora-chromium-config
+          - gnome-shell-extension-background-logo
           - gnome-shell-extension-blur-my-shell
-        molecule_verify_packages_absent_distro: [fedora-chromium-config, gnome-shell-extension-background-logo]
       debian:
         # One of the pre-installed games the role blacklists on the Debian family.
         molecule_prepare_packages: [gnome-tour, gnome-mines]
