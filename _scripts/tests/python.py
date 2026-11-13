@@ -10,9 +10,9 @@ from testlib import RC, Output, run_shell_get_lines, run_tests, run_tests_parall
 
 GIT_LS_FILES = r"""
 set -euo pipefail
-git ls-files -c -o --exclude-standard --deduplicate -- '*.py'
-git ls-files -c -o --exclude-standard --deduplicate -z -- '**scripts/*' '**/bin/*' '**/sbin/*' ':!:*.'{j2,jinja2,jinja} \
-    | xargs -0 -r awk -- 'FNR>1 {nextfile} /^#![^ ]+[/ ](python3?)$/ {print FILENAME; nextfile}'
+git ls-files -z -c -o --exclude-standard --deduplicate -- '*.py'
+git ls-files -z -c -o --exclude-standard --deduplicate -- '**scripts/*' '**/bin/*' '**/sbin/*' ':!:*.'{j2,jinja2,jinja} \
+    | xargs -0 -r awk -- 'FNR>1 {nextfile} /^#![^ ]+[/ ](python3?)$/ {printf "%s%c", FILENAME, 0; nextfile}'
 """
 
 PYLINT_CMD = ["pylint", "--disable=duplicate-code,import-error", "--"]
@@ -29,7 +29,7 @@ args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 
 def main() -> None:
     app_args = args_parser.parse_args()
-    paths = app_args.paths or run_shell_get_lines(GIT_LS_FILES, unique=True)
+    paths = app_args.paths or run_shell_get_lines(GIT_LS_FILES, null_delimited=True, unique=True)
     env = os.environ.copy()
 
     # Change python cache directory for read-only, agentic environments.

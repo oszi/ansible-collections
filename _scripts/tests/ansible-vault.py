@@ -8,9 +8,9 @@ from testlib import boolean_test_decorator, run_shell_get_lines
 
 GIT_LS_FILES = r"""
 set -euo pipefail
-git ls-files -c -o --exclude-standard --deduplicate -z -- '**_vars/**vault.'{yaml,yml,json} '*.'{key,csr,p12} \
+git ls-files -z -c -o --exclude-standard --deduplicate -- '**_vars/**vault.'{yaml,yml,json} '*.'{key,csr,p12} \
     '**/'{private,privkey,\*[-.]key}.pem \
-    | (xargs -0 -r grep --files-without-match -- $'^$ANSIBLE_VAULT' ||:)
+    | (xargs -0 -r grep -Z --files-without-match -- $'^$ANSIBLE_VAULT' ||:)
 """
 
 args_parser = ArgumentParser(
@@ -21,7 +21,7 @@ args_parser = ArgumentParser(
 
 @boolean_test_decorator("ansible-vault.py")
 def assert_ansible_vault_files() -> bool:
-    if paths := run_shell_get_lines(GIT_LS_FILES):
+    if paths := run_shell_get_lines(GIT_LS_FILES, null_delimited=True):
         print(*paths, sep="\n", file=sys.stderr)
         return False
     return True

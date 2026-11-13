@@ -247,13 +247,20 @@ def success(subject: str, duration: Optional[float] = None, sys_exit: bool = Fal
     return RC.status(RC.OK, sys_exit)
 
 
-def run_shell_get_lines(shell_cmd: str, unique: bool = False, **kwargs) -> List[str]:
+def run_shell_get_lines(shell_cmd: str, *, null_delimited: bool = False, unique: bool = False, **kwargs) -> List[str]:
     try:
-        lines = sp.check_output(
-            shell_cmd, executable=SHELL, shell=True, encoding="utf-8", errors="surrogateescape", **kwargs
-        ).splitlines()
+        # Passing encoding enables newline translation, which means losing \r with NULL-delimited strings.
+        # Let callers control encoding and decode automatically below.
+        result = sp.check_output(shell_cmd, executable=SHELL, shell=True, **kwargs)
+        if isinstance(result, bytes):
+            result = result.decode(encoding="utf-8", errors="surrogateescape")
     except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
         error_code_exc("testlib.run_shell_get_lines", err, sys_exit=True)
+
+    if null_delimited:
+        lines = [line for line in result.split("\0") if line]
+    else:
+        lines = result.splitlines(keepends=False)
 
     if unique:
         lines = list(dict.fromkeys(lines))
@@ -462,9 +469,9 @@ def git_chdir() -> None | NoReturn:
 
 def git_changed_paths(ref: str = "HEAD") -> List[str] | NoReturn:
     git_diff_files = (
-        f"git diff --name-only --no-renames {shlex.quote(ref)} -- && git ls-files --others --exclude-standard"
+        f"git diff -z --name-only --no-renames {shlex.quote(ref)} -- && git ls-files -z --others --exclude-standard"
     )
-    return run_shell_get_lines(git_diff_files, unique=True)
+    return run_shell_get_lines(git_diff_files, null_delimited=True, unique=True)
 
 
 def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optional[str]:
@@ -478,7 +485,7 @@ def git_previous_release_tag() -> Optional[str]:
     release = git_latest_release_tag("HEAD", exact=True)
     # Untagged commits since the latest release.
     if release is None:
-        return git_latest_release_tag("HEAD", exact=False)
+        return git_latest_release_tag("HEAD")
     # Uncommited changes since the HEAD release.
     if git_changed_paths(release):
         return release
