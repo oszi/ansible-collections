@@ -34,6 +34,7 @@ COLLECTIONS = ("general", "thirdparty", "utils")
 SCENARIOS_DIR = Path("extensions") / "molecule"
 
 # Changes to the shared molecule framework and tooling affect every role.
+# oszi.utils.bootstrap and testlib.py are not part of the framework.
 FRAMEWORK_PATHS = (
     "_scripts/tests/molecule.py",
     "requirements.txt",
@@ -240,6 +241,14 @@ def get_subcommand_arg(molecule_args: List[str]) -> str:
     return ""
 
 
+def split_forwarded_args(molecule_args: List[str]) -> Tuple[List[str], List[str]]:
+    """Molecule's own arguments and the forwarded ansible arguments, including the separating --."""
+    if "--" in molecule_args:
+        index = molecule_args.index("--")
+        return molecule_args[:index], molecule_args[index:]
+    return molecule_args, []
+
+
 def detect_workers() -> int:
     """Detect the optimal number of workers based on inotify max_user_instances and podman transient store."""
     podman = shlex.quote(os.getenv("MOLECULE_PODMAN_EXECUTABLE") or "podman")
@@ -282,16 +291,18 @@ def run_build_playbook() -> int:
     return run_test_cmd(BUILD_PLAYBOOK_CMD, [BUILD_PLAYBOOK], BUILD_PLAYBOOK, env=env, output=Output.LIVE_QUIET)
 
 
-def run_molecule_with_all(molecule_args: List[str]) -> int:
-    targets = [{"args": ["--all"], "cwd": NAMESPACE_PATH / collection} for collection in COLLECTIONS]
+def run_molecule_with_all(molecule_args: List[str], forwarded_args: List[str]) -> int:
+    targets = [{"args": ["--all", *forwarded_args], "cwd": NAMESPACE_PATH / collection} for collection in COLLECTIONS]
     return run_tests_parallel(MOLECULE_CMD + molecule_args, targets, max_workers=1, output=Output.LIVE_WITH_STATUS)
 
 
-def run_molecule_with_scenarios(scenarios: Dict[str, List[Path]], molecule_args: List[str], workers: int) -> int:
+def run_molecule_with_scenarios(
+    scenarios: Dict[str, List[Path]], molecule_args: List[str], forwarded_args: List[str], workers: int = 0
+) -> int:
     targets = []
     for collection, scenario_paths in scenarios.items():
         for scenario_path in scenario_paths:
-            targets.append({"args": ["-s", scenario_path.name], "cwd": NAMESPACE_PATH / collection})
+            targets.append({"args": ["-s", scenario_path.name, *forwarded_args], "cwd": NAMESPACE_PATH / collection})
 
     if workers < 1:
         workers = detect_workers()
@@ -315,9 +326,10 @@ def run_molecule_with_scenarios(scenarios: Dict[str, List[Path]], molecule_args:
 def main() -> None:
     app_args = args_parser.parse_args()
     molecule_args = app_args.fqcns[app_args.fqcns.index("--") + 1 :] if "--" in app_args.fqcns else []
+    molecule_args, forwarded_args = split_forwarded_args(molecule_args)
     molecule_args = molecule_args or MOLECULE_DEFAULT_ARGS
 
-    if any(arg.startswith("--workers") or arg.startswith("--parallel") for arg in molecule_args):
+    if any(arg.startswith(("--workers", "--parallel")) for arg in molecule_args):
         print_hint("Use molecule.py --workers N")
         error_code("molecule's --workers/--parallel are not supported!", sys_exit=True)
 
@@ -351,9 +363,9 @@ def main() -> None:
             RC.status(rc, sys_exit=True)
 
     if app_args.all and subcommand == "reset":
-        rc = run_molecule_with_all(molecule_args)
+        rc = run_molecule_with_all(molecule_args, forwarded_args)
     else:
-        rc = run_molecule_with_scenarios(scenarios, molecule_args, app_args.workers)
+        rc = run_molecule_with_scenarios(scenarios, molecule_args, forwarded_args, app_args.workers)
     RC.status(rc, sys_exit=True)
 
 
