@@ -395,11 +395,11 @@ def boolean_test_decorator(subject: str) -> Callable[[Callable[_PARAMS, bool]], 
 
 
 class RoleMeta:
+    # Enforce meta/main.yml as the only accepted format.
     META_MAIN_PATH = Path("meta") / "main.yml"
-    ROLE_META_GLOB = "*/roles/*/meta/main.yml"
 
-    def __init__(self, meta_path: Path | str):
-        self.meta_path = Path(meta_path)
+    def __init__(self, role_path: Path | str):
+        self.meta_path = Path(role_path) / RoleMeta.META_MAIN_PATH
 
     @property
     def role(self) -> Path:
@@ -410,8 +410,18 @@ class RoleMeta:
         return self.role.parent.parent
 
     @property
+    def namespace(self) -> Path:
+        return self.collection.parent
+
+    @property
     def fqcn(self) -> str:
-        return f"{NAMESPACE_PATH.name}.{self.collection.name}.{self.role.name}"
+        return f"{self.namespace.name}.{self.collection.name}.{self.role.name}"
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.role!r})"
+
+    def __str__(self) -> str:
+        return str(self.meta_path)
 
     def load(self, raise_errors: bool = True) -> Dict[str, Any]:
         try:
@@ -425,8 +435,8 @@ class RoleMeta:
 
     @staticmethod
     def from_glob(collection: Optional[str] = None) -> List["RoleMeta"]:
-        pattern = collection + RoleMeta.ROLE_META_GLOB.lstrip("*") if collection else RoleMeta.ROLE_META_GLOB
-        return [RoleMeta(meta_path) for meta_path in sorted(NAMESPACE_PATH.glob(pattern))]
+        pattern = f"{collection or '[a-zA-Z]*'}/roles/[a-zA-Z]*/"
+        return [RoleMeta(role_path) for role_path in sorted(NAMESPACE_PATH.glob(pattern))]
 
     @staticmethod
     def from_fqcn(fqcn: str) -> "RoleMeta":
@@ -435,8 +445,7 @@ class RoleMeta:
             raise ValueError(f"{fqcn} is not of 3 parts!")
         if parts[0] != NAMESPACE_PATH.name:
             raise ValueError(f"{fqcn} is not in namespace:{NAMESPACE_PATH.name}!")
-
-        return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2] / RoleMeta.META_MAIN_PATH)
+        return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2])
 
 
 def is_virtual_machine() -> bool | NoReturn:
@@ -447,11 +456,11 @@ def is_virtual_machine() -> bool | NoReturn:
     return rc == RC.OK
 
 
-def git_chdir() -> None:
+def git_chdir() -> None | NoReturn:
     os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
 
 
-def git_changed_paths(ref: str = "HEAD") -> List[str]:
+def git_changed_paths(ref: str = "HEAD") -> List[str] | NoReturn:
     git_diff_files = (
         f"git diff --name-only --no-renames {shlex.quote(ref)} -- && git ls-files --others --exclude-standard"
     )
