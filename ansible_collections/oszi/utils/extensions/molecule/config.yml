@@ -19,20 +19,21 @@ driver:
 # the scenarios; the driver never builds them and fails in the create step when one is missing.
 # MOLECULE_BUILD_IMAGE_PREFIX and MOLECULE_BUILD_{FEDORA,DEBIAN,UBUNTU}_VERSION select the images here
 # and in the build playbook; same defaults in both.
+# MOLECULE_PLATFORM_PREFIX (unset: empty) prefixes the instance names to keep checkouts apart.
 platforms:
-  - name: "${MOLECULE_SCENARIO_NAME}-fedora"
+  - name: "${MOLECULE_PLATFORM_PREFIX}${MOLECULE_SCENARIO_NAME}-fedora"
     image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}fedora:${MOLECULE_BUILD_FEDORA_VERSION:-latest}"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [fedora, redhat]
-  - name: "${MOLECULE_SCENARIO_NAME}-debian"
+  - name: "${MOLECULE_PLATFORM_PREFIX}${MOLECULE_SCENARIO_NAME}-debian"
     image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}debian:${MOLECULE_BUILD_DEBIAN_VERSION:-stable}"
     pre_build_image: true
     command: "/sbin/init"
     systemd: always
     groups: [debian]
-  - name: "${MOLECULE_SCENARIO_NAME}-ubuntu"
+  - name: "${MOLECULE_PLATFORM_PREFIX}${MOLECULE_SCENARIO_NAME}-ubuntu"
     image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}ubuntu:${MOLECULE_BUILD_UBUNTU_VERSION:-latest}"
     pre_build_image: true
     command: "/sbin/init"

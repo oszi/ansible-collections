@@ -101,9 +101,21 @@ deep-merged under every scenario's `molecule.yml` (dicts merge recursively, list
 
 The base config sets `prerun: false` (ansible-compat would otherwise try to install the source-only
 collections from Galaxy), disables the dependency step, defines the three platforms named
-`${MOLECULE_SCENARIO_NAME}-{fedora,debian,ubuntu}` with inventory groups `fedora`/`redhat`, `debian`,
-`ubuntu`/`debian` from pre-built images, configures ansible.cfg (pipelining on: so a task costs one
-`podman exec`), and sets the inventory defaults such as `ansible_user: root`.
+`${MOLECULE_PLATFORM_PREFIX}${MOLECULE_SCENARIO_NAME}-{fedora,debian,ubuntu}` with inventory groups
+`fedora`/`redhat`, `debian`, `ubuntu`/`debian` from pre-built images, configures ansible.cfg (pipelining on:
+so a task costs one `podman exec`), and sets the inventory defaults such as `ansible_user: root`.
+
+The platform names are the container names, which are unique per podman user: checkouts running the same scenario
+at the same time would conflict with each other. `MOLECULE_PLATFORM_PREFIX` in the environment (unset by default)
+prefixes them, for example `MOLECULE_PLATFORM_PREFIX=b-`; it must be valid in a container name. Scenarios that
+redefine `platforms` must keep the prefix in their platform names.
+
+The platform prefix does not isolate Molecule's state and generated inventory. Molecule stores these under
+`~/.ansible/tmp/molecule.*`, keyed by the collection directory's basename and scenario name, so matching
+scenarios in different checkouts still share them. Concurrent runs can overwrite each other's inventory or
+skip creation because the shared state already marks instances as created. Use a separate `ANSIBLE_HOME`
+per checkout as well, or set `MOLECULE_EPHEMERAL_DIRECTORY` separately for each collection/scenario. Keep
+the same prefix and state directory through create, converge, verify and destroy.
 
 `${VAR}` and `$VAR` in base config and `molecule.yml` are interpolated from molecule's environment
 (including `MOLECULE_PROJECT_DIRECTORY`, the collection directory, and `MOLECULE_SCENARIO_NAME`);
@@ -214,6 +226,8 @@ and flatpak remotes and apps (bubblewrap).
 * Verify commands run with `pipefail`: `cmd | grep -q` can fail with SIGPIPE; use plain `grep`.
 * Only `molecule test` takes `-p`; the single-platform loop is
   `molecule test -s X -p X-debian --destroy never`, then `molecule destroy -s X` before setup changes.
+  With `MOLECULE_PLATFORM_PREFIX` set, `-p` takes the prefixed name.
+* Platform names in a scenario's own `platforms` start with `${MOLECULE_PLATFORM_PREFIX}`, as in the base config.
 * The images have no `ip` command, so network facts give no `default_ipv4` unless iproute is installed in
   prepare. Other requirements of facts can also be absent.
 

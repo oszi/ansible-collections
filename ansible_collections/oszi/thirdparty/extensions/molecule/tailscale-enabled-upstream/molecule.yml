@@ -6,7 +6,7 @@
 # previously installed distribution package: the upstream repository only has to win the version
 # comparison, and this scenario starts from a pristine image.
 platforms:
-  - name: "${MOLECULE_SCENARIO_NAME}-fedora"
+  - name: "${MOLECULE_PLATFORM_PREFIX}${MOLECULE_SCENARIO_NAME}-fedora"
     image: "${MOLECULE_BUILD_IMAGE_PREFIX:-localhost/molecule_local/oszi/}fedora:${MOLECULE_BUILD_FEDORA_VERSION:-latest}"
     pre_build_image: true
     command: "/sbin/init"
