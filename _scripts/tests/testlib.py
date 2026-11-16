@@ -248,17 +248,21 @@ def success(subject: str, duration: Optional[float] = None, sys_exit: bool = Fal
 
 
 def run_shell_get_lines(shell_cmd: str, *, null_delimited: bool = False, unique: bool = False, **kwargs) -> List[str]:
+    # Passing encoding enables newline translation, which means losing \r with NULL-delimited strings.
+    # Let callers control encoding and decode automatically below.
     try:
-        # Passing encoding enables newline translation, which means losing \r with NULL-delimited strings.
-        # Let callers control encoding and decode automatically below.
         result = sp.check_output(shell_cmd, executable=SHELL, shell=True, **kwargs)
-        if isinstance(result, bytes):
-            result = result.decode(encoding="utf-8", errors="surrogateescape")
     except (sp.SubprocessError, OSError, KeyboardInterrupt) as err:
         error_code_exc("testlib.run_shell_get_lines", err, sys_exit=True)
 
+    if isinstance(result, bytes):
+        result = result.decode(encoding="utf-8", errors="surrogateescape")
+
     if null_delimited:
-        lines = [line for line in result.split("\0") if line]
+        lines = result.split("\0")
+        # Drop the trailing empty item left by the final NULL terminator or an empty result.
+        if not lines[-1]:
+            lines.pop(-1)
     else:
         lines = result.splitlines(keepends=False)
 
