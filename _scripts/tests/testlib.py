@@ -463,9 +463,11 @@ def git_chdir() -> None | NoReturn:
     os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
 
 
-def git_changed_paths(ref: str = "HEAD") -> List[str] | NoReturn:
+def git_changed_paths(ref: str = "HEAD", *, relative: bool = False) -> List[str] | NoReturn:
+    # Untracked files are always listed relative to and limited to the current directory.
     git_diff_files = (
-        f"git diff -z --name-only --no-renames {shlex.quote(ref)} -- && git ls-files -z --others --exclude-standard"
+        f"git diff -z --name-only --no-renames{' --relative' if relative else ''} {shlex.quote(ref)} -- "
+        "&& git ls-files -z --others --exclude-standard"
     )
     return run_shell_get_lines(git_diff_files, null_delimited=True, unique=True)
 

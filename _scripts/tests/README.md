@@ -10,7 +10,7 @@ _scripts/run-tests.sh # [--all|ansible-lint|ansible-test|ansible-vault|galaxy-ta
 Arguments between `[` and `]` after a test name are passed to that test verbatim, including `--`.  
 A literal `]` cannot be passed this way; run the test script directly instead.
 ```bash
-_scripts/run-tests.sh python [ --black ] molecule [ oszi.general.shell -- test --destroy never ]
+_scripts/run-tests.sh ansible-lint [ --all ] molecule [ oszi.utils -- test --destroy never ]
 ```
 
 Molecule tests are opt-in and run only when requested; see [MOLECULE.md](MOLECULE.md).  
@@ -25,9 +25,11 @@ Reformat python with black - check-only by default:
 _scripts/run-tests.sh python [ --black ]
 ```
 
-All arguments of the ansible-lint test are passed to ansible-lint verbatim:
+Without arguments, only the paths changed since the previous release are linted; whole roles if touched.  
+Automatic selection respects ansible-lint's configured exclusions and discovery rules.
+Arguments after `--` are passed to ansible-lint verbatim:
 ```bash
-_scripts/run-tests.sh ansible-lint [ ansible_collections/oszi/utils ]
+_scripts/run-tests.sh ansible-lint # '[' [--all] [ansible_collections/oszi/utils ...] [-- ANSIBLE_LINT_ARGS ...] ']'
 ```
 
 The ansible-test test runs `ansible-test sanity` and `units` tests of the collections locally.  
