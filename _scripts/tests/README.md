@@ -4,7 +4,7 @@ A collection of scripts for automated tests such as source code linting.
 
 Stable interface to run tests:
 ```bash
-_scripts/run-tests.sh # [ansible-lint|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
+_scripts/run-tests.sh # [--all|ansible-lint|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
 ```
 
 Arguments between `[` and `]` after a test name are passed to that test verbatim, including `--`.  

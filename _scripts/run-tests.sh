@@ -69,14 +69,16 @@ is_opt_in() {
 # Tests to run, with the slice of $args passed to each.
 names=() starts=() lengths=() args=()
 
-# Run all tests by default, except opt-in tests (e.g. molecule).
-if [[ $# -eq 0 ]]; then
+# Run all tests by default, except opt-in tests (e.g. molecule) unless --all is given.
+if [[ $# -eq 0 || ( $# -eq 1 && "$1" == "--all" ) ]]; then
     for test in "${all_tests[@]}"; do
-        is_opt_in "$test" && continue
+        [[ $# -eq 0 ]] && is_opt_in "$test" && continue
         names+=("$test") starts+=(0) lengths+=(0)
     done
+elif [[ "$1" == "--all" ]]; then
+    exit_with_error "--all takes no other arguments!"
 elif [[ "$1" =~ ^-*(h|help)$ ]]; then
-    echo "Usage: ${0} [-h|--help] [TEST [ '[' TEST_ARGS ... ']' ]] ..." >&2
+    echo "Usage: ${0} [-h|--help] [--all | TEST [ '[' TEST_ARGS ... ']' ] ...]" >&2
     for test in "${all_tests[@]}"; do
         is_opt_in "$test" && suffix=" (opt-in)" || suffix=""
         echo "${test}${suffix}" >&2
