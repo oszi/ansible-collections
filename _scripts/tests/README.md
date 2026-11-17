@@ -4,7 +4,7 @@ A collection of scripts for automated tests such as source code linting.
 
 Stable interface to run tests:
 ```bash
-_scripts/run-tests.sh # [--all|ansible-lint|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
+_scripts/run-tests.sh # [--all|ansible-lint|ansible-test|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
 ```
 
 Arguments between `[` and `]` after a test name are passed to that test verbatim, including `--`.  
@@ -28,6 +28,13 @@ _scripts/run-tests.sh python [ --black ]
 All arguments of the ansible-lint test are passed to ansible-lint verbatim:
 ```bash
 _scripts/run-tests.sh ansible-lint [ ansible_collections/oszi/utils ]
+```
+
+The ansible-test test runs `ansible-test sanity` and `units` tests of the collections locally.  
+Paths select collections, files or directories; ansible-test needs a writable `/tmp` (e.g., agents).  
+Plugin source paths select all unit tests; paths under `tests/unit` select specific tests.
+```bash
+_scripts/run-tests.sh ansible-test # '[' [--sanity] [--units] [ansible_collections/oszi/utils/plugins/ ...] ']'
 ```
 
 Tests are written in python, using a common library: [testlib.py](testlib.py)

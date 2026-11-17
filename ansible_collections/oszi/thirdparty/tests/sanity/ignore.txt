@@ -1,0 +1,2 @@
+extensions/molecule/config.yml symlinks
+roles/gcloud_sdk/files/bin/gcloud-entrypoint.sh shebang

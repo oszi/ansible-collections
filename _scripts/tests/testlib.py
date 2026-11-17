@@ -350,7 +350,7 @@ def run_tests_parallel(
             job_kwargs = kwargs.copy()
             job_kwargs.update(target)
             job_args = job_kwargs.pop("args", [])
-            job_subject = f"{cmd[0]}: {' '.join(job_args) or '-'}"
+            job_subject = job_kwargs.pop("subject", None) or f"{cmd[0]}: {' '.join(job_args) or '-'}"
         else:
             job_kwargs = kwargs
             job_args = [target]

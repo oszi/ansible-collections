@@ -1,0 +1,3 @@
+extensions/molecule/config.yml symlinks
+roles/libvirt/files/bin/virsh-usb shebang
+roles/libvirt/files/bin/virt-viewer-fzf shebang

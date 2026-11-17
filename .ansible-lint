@@ -3,11 +3,20 @@ verbosity: 1
 
 offline: true
 
+# Versioned sanity ignore files are symlinks, which ansible-lint skips; lint their target.
+kinds:
+  - sanity-ignore-file: "**/tests/sanity/ignore.txt"
+
 skip_list:
   - "experimental"
   - "jinja[spacing]"
   - "no-handler"
 
+exclude_paths:
+  - "/ansible_collections/*/"
+  - "!/ansible_collections/oszi/"
+
+# Exclude in parent repositories:
 # exclude_paths:
 #   - "collections"
 #   - "*vault.yml"

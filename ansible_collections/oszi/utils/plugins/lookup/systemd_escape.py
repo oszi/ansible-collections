@@ -1,14 +1,8 @@
-# pylint: disable=missing-class-docstring,missing-function-docstring,missing-module-docstring,line-too-long
-from subprocess import check_output, CalledProcessError
-
-from ansible.errors import AnsibleError
-from ansible.plugins.lookup import LookupBase
-from ansible.utils.display import Display
-
+# pylint: disable=missing-class-docstring,missing-function-docstring,missing-module-docstring,line-too-long,wrong-import-position
 DOCUMENTATION = r"""
 name: systemd_escape
-author: "David O. (oszi.dev)"
-version_added: "4.0"
+author: "David O. (@oszi)"
+version_added: "4.0.0"
 short_description: A simple wrapper around systemd-escape.
 description:
     - A simple wrapper around systemd-escape.
@@ -61,6 +55,12 @@ options:
         required: False
 """
 
+from subprocess import check_output, CalledProcessError
+
+from ansible.errors import AnsibleError
+from ansible.plugins.lookup import LookupBase
+from ansible.utils.display import Display
+
 display = Display()
 
 
@@ -69,13 +69,13 @@ class LookupModule(LookupBase):
     FLAG_OPTIONS = [
         "path",
         "unescape",
+        "mangle",
+        "instance",
     ]
 
     KEY_VALUE_OPTIONS = [
         "suffix",
         "template",
-        "mangle",
-        "instance",
     ]
 
     def run(self, terms, variables=None, **kwargs):

@@ -1,0 +1,2 @@
+plugins/lookup/systemd_escape.py validate-modules:missing-gplv3-license
+plugins/lookup/wg_pubkey.py validate-modules:missing-gplv3-license

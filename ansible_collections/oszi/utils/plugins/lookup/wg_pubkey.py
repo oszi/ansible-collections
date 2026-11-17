@@ -1,15 +1,8 @@
-# pylint: disable=missing-class-docstring,missing-function-docstring,missing-module-docstring,line-too-long
-from functools import partial
-from subprocess import check_output, CalledProcessError
-
-from ansible.errors import AnsibleError
-from ansible.plugins.lookup import LookupBase
-from ansible.utils.display import Display
-
+# pylint: disable=missing-class-docstring,missing-function-docstring,missing-module-docstring,line-too-long,wrong-import-position
 DOCUMENTATION = r"""
 name: wg_pubkey
-author: "David O. (oszi.dev)"
-version_added: "3.5"
+author: "David O. (@oszi)"
+version_added: "3.5.0"
 short_description: Generate wireguard public keys from private keys.
 description:
     - Generate wireguard public keys from private keys.
@@ -18,6 +11,13 @@ options:
         description: private key(s)
         required: True
 """
+
+from functools import partial
+from subprocess import check_output, CalledProcessError
+
+from ansible.errors import AnsibleError
+from ansible.plugins.lookup import LookupBase
+from ansible.utils.display import Display
 
 display = Display()
 

@@ -1,0 +1,11 @@
+roles/containerhost/templates/bin/toolbox-container-attach.j2 shebang
+roles/containerhost/templates/bin/toolbox-container-host.j2 shebang
+roles/containerhost/templates/bin/toolbox-container-kube.j2 shebang
+roles/containerhost/templates/bin/toolbox-container.j2 shebang
+roles/toolbox/files/bin/ansible-ssh shebang
+roles/toolbox/files/bin/ansible-vault-id-client shebang
+roles/toolbox/files/bin/json2yaml shebang
+roles/toolbox/files/bin/yaml2json shebang
+roles/workstation/files/bin/alert shebang
+roles/workstation/files/bin/bluetooth-switch shebang
+roles/workstation/files/bin/smartcard-restart shebang

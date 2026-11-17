@@ -15,4 +15,8 @@ molecule-plugins[podman]
 
 # Python Testing
 black
+mock
 pylint
+pytest
+pytest-mock
+pytest-xdist

@@ -11,6 +11,7 @@
 .~*
 
 ### Ansible ###
+**/tests/output/
 *.retry
 .ansible/
 .vagrant/
