@@ -23,7 +23,7 @@ Scripts to facilitate ansible deployments and source control.
 * **[run-tests.sh](run-tests.sh)** `[-h|--help] [TEST [ '[' TEST_ARGS ... ']' ]] ...`  
   Run test scripts in [\_scripts/tests](tests); see the [README.md](tests/README.md).
 * **[\_ansible.mk](_ansible.mk)** `localhost workstation update versions ... playbooks/* oszi.*`  
-  `[VERBOSE=y] [CHECK=y] [LIMIT=HOST] [TAGS=TAG1,TAG2] [SKIP_TAGS=TAG1,TAG2]`  
+  `[ANSIBLE_VERBOSE=y] [ANSIBLE_CHECK=y] [ANSIBLE_LIMIT=HOST] [ANSIBLE_TAGS=TAG1,TAG2] ...`  
   Makefile fragment for a common ansible interface. See the [examples](../examples).
 * **[\_scripts.mk](_scripts.mk)** `venv update-collections tests reset clean verify`  
   `[COLLECTIONS=path] [SCRIPTS=path] [VENV=path]`  

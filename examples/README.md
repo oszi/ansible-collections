@@ -16,7 +16,7 @@ by making workstations part of the containerhosts and toolbox *groups*.
 # cd examples
 ansible-playbook --list-tags oszi.environments.workstation
 ansible-playbook -K --check --diff oszi.environments.workstation
-make workstation TAGS=shell,dotfiles
+make workstation ANSIBLE_TAGS=shell,dotfiles
 ```
 
 ```bash

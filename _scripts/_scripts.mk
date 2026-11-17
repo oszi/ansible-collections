@@ -13,8 +13,8 @@ venv: $(_VENV_LOCK) FORCE
 
 $(_VENV_LOCK): $(COLLECTIONS)/requirements.txt $(COLLECTIONS)/requirements.yml
 	python3 -m venv $(VENV) && . $(VENV)/bin/activate \
-	&& pip install -r $(COLLECTIONS)/requirements.txt \
-	&& ansible-galaxy collection install -r $(COLLECTIONS)/requirements.yml -p $(COLLECTIONS) \
+	&& pip install -U -r $(COLLECTIONS)/requirements.txt \
+	&& ansible-galaxy collection install -U -r $(COLLECTIONS)/requirements.yml -p $(COLLECTIONS) \
 	&& touch $(_VENV_LOCK)
 
 ifneq ($(filter $(COLLECTIONS),. ..),$(COLLECTIONS))
@@ -24,19 +24,6 @@ update-collections: FORCE
 		|| git -C $(COLLECTIONS) rev-parse --short HEAD) && set -x \
 	&& git commit -S -n -m "Update ansible-collections [$${VERSION}]" $(COLLECTIONS) \
 	&& git push --follow-tags
-else
-MOLECULE_ARGS ?= --ignore-framework
-molecule: FORCE
-	@$(VENV_ACTIVATE) && $(SCRIPTS)/run-tests.sh $@ [ $(MOLECULE_ARGS) ]
-
-molecule-all: MOLECULE_ARGS := --all
-molecule-all: molecule
-
-molecule-list: MOLECULE_ARGS := --ignore-framework --list
-molecule-list: molecule
-
-molecule-reset: MOLECULE_ARGS := --all -- reset
-molecule-reset: molecule
 endif
 
 TESTS_ARGS ?=
