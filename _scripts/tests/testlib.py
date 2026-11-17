@@ -459,14 +459,6 @@ class RoleMeta:
         return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2])
 
 
-def is_virtual_machine() -> bool | NoReturn:
-    try:
-        rc = sp.run(["systemd-detect-virt", "--vm", "--quiet"], check=False, stdin=sp.DEVNULL).returncode
-    except OSError as err:
-        error_code_exc("testlib.is_virtual_machine", err, sys_exit=True)
-    return rc == RC.OK
-
-
 def git_chdir() -> None | NoReturn:
     os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
 

@@ -5,8 +5,6 @@ containers with systemd as init. `oszi.environments` is out of scope. Containers
 rootless capability set: no `--privileged`, no `CAP_SYS_ADMIN`.
 
 Molecule tests are slow and need podman and network access; agents must not run molecule unless asked.
-`molecule.py` refuses to run outside a virtual machine as detected by `systemd-detect-virt --vm`;
-`--bare-metal` overrides it. `--list` never runs anything and is not gated.
 
 ## Quick start
 

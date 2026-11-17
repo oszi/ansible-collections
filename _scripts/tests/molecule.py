@@ -22,7 +22,6 @@ from testlib import (
     git_chdir,
     git_changed_paths,
     git_previous_release_tag,
-    is_virtual_machine,
     print_hint,
     print_success,
     run_shell_get_lines,
@@ -54,7 +53,7 @@ BUILD_PLAYBOOK = "oszi.utils.molecule.build"
 INOTIFY_MAX_USER_INSTANCES_PATH = Path("/proc/sys/fs/inotify/max_user_instances")
 
 args_parser = ArgumentParser(
-    usage="molecule.py [--help] [--all] [--ignore-framework] [--list] [--bare-metal] [--workers N] [FQCN ...] [-- MOLECULE_ARGS ...]",
+    usage="molecule.py [--help] [--all] [--ignore-framework] [--list] [--workers N] [FQCN ...] [-- MOLECULE_ARGS ...]",
     description="Run molecule scenarios of the roles affected since the previous release, "
     "of the given roles or collections (e.g. oszi.general.shell, oszi.utils), or of everything.",
     epilog="Molecule arguments after -- replace the default 'test', e.g. -- converge. "
@@ -64,7 +63,6 @@ args_parser = ArgumentParser(
 args_parser.add_argument("--all", help="run the scenarios of all roles", action="store_true")
 args_parser.add_argument("--ignore-framework", help="select only the roles touched directly", action="store_true")
 args_parser.add_argument("--list", help="list selected scenarios without running anything", action="store_true")
-args_parser.add_argument("--bare-metal", help="allow running outside a virtual machine", action="store_true")
 args_parser.add_argument("--workers", help="number of parallel scenarios (<1 for auto)", type=int, default=0)
 args_parser.add_argument("fqcns", help="[FQCN ...] [-- MOLECULE_ARGS ...]", nargs=REMAINDER)
 
@@ -348,10 +346,6 @@ def main() -> None:
             for scenario_path in scenario_paths:
                 print(f"{NAMESPACE_PATH.name}.{collection}: {scenario_path.name}")
         RC.status(RC.OK, sys_exit=True)
-
-    if not app_args.bare_metal and not is_virtual_machine():
-        print_hint("Use molecule.py --bare-metal to allow running outside a virtual machine.")
-        error_code("molecule must run in a virtual machine!", sys_exit=True)
 
     if shutil.which(MOLECULE_CMD[0]) is None:
         error_code("molecule not found! `source venv/bin/activate`", sys_exit=True)
