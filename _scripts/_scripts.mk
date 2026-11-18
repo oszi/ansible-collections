@@ -11,10 +11,11 @@ all: FORCE
 
 venv: $(_VENV_LOCK) FORCE
 
+# Prefer collections bundled in the ansible python package (no -U for galaxy install).
 $(_VENV_LOCK): $(COLLECTIONS)/requirements.txt $(COLLECTIONS)/requirements.yml
 	python3 -m venv $(VENV) && . $(VENV)/bin/activate \
 	&& pip install -U -r $(COLLECTIONS)/requirements.txt \
-	&& ansible-galaxy collection install -U -r $(COLLECTIONS)/requirements.yml -p $(COLLECTIONS) \
+	&& ansible-galaxy collection install -r $(COLLECTIONS)/requirements.yml -p $(COLLECTIONS) \
 	&& touch $(_VENV_LOCK)
 
 ifneq ($(filter $(COLLECTIONS),. ..),$(COLLECTIONS))
