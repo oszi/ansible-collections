@@ -17,6 +17,8 @@ from testlib import (
     run_tests,
 )
 
+HINT_PATHS_MAX = 20
+
 args_parser = ArgumentParser(
     usage="ansible-lint.py [--help] [--all] [PATHS ...] [-- ANSIBLE_LINT_ARGS ...]",
     description="Run ansible-lint on the paths changed since the previous release, on the given paths, or on everything.",
@@ -71,7 +73,11 @@ def select_paths(app_args, ansible_lint_args: List[str]) -> Tuple[Optional[List[
 
     # Relative to the current directory, which may be a subdirectory of a parent repository.
     lint_paths = _changed_lint_paths(git_changed_paths(release, relative=True), ansible_lint_args)
-    return lint_paths, [f"Changes since release {release} affect {len(lint_paths)} path(s)."]
+    notes = [f"Changes since release {release} affect {len(lint_paths)} lintable path(s)."]
+    if 0 < len(lint_paths) <= HINT_PATHS_MAX:
+        changes = "\n# ".join(["Affected lintable path(s):", *lint_paths])
+        notes.append(changes)
+    return lint_paths, notes
 
 
 def main() -> None:

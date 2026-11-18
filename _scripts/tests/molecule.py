@@ -173,7 +173,7 @@ def select_roles(app_args) -> Tuple[Set[str], List[str]]:
         fqcns = fqcns[: fqcns.index("--")]
     if app_args.all:
         if fqcns:
-            error_code("--all cannot be combined with FQCNs.", sys_exit=True)
+            error_code("molecule.py --all cannot be combined with FQCNs.", sys_exit=True)
         return _all_roles_fqcn(), ["Selected all roles."]
 
     if fqcns:
@@ -203,8 +203,8 @@ def select_roles(app_args) -> Tuple[Set[str], List[str]]:
     notes = [f"Changes since release {release} affect {len(roles)} role(s)."]
     if framework_changes:
         effect = "are ignored" if app_args.ignore_framework else "affect every role"
-        changes = "\n# ".join(framework_changes)
-        notes.append(f"Framework changes {effect}.\n# {changes}")
+        changes = "\n# ".join([f"Framework changes {effect}:", *framework_changes])
+        notes.append(changes)
     return roles, notes
 
 
