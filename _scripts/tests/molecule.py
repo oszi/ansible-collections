@@ -351,8 +351,7 @@ def main() -> None:
 
     subcommand = get_subcommand_arg(molecule_args)
     if subcommand in MOLECULE_INSTANCE_COMMANDS:
-        rc = run_build_playbook()
-        if rc != RC.OK:
+        if (rc := run_build_playbook()) != RC.OK:
             RC.status(rc, sys_exit=True)
 
     if app_args.all and subcommand == "reset":

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
-import importlib.util
 import shutil
-import sys
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -14,8 +12,7 @@ UNIT_TESTS_PATH = Path("tests") / "unit"
 
 ANSIBLE_TEST_CMD = ["ansible-test"]
 ANSIBLE_TEST_ARGS = [
-    "--local",
-    f"--python-interpreter={sys.executable}",
+    "--docker=default",
     f"--color={'yes' if Color.COLORS_ENABLED else 'no'}",
 ]
 
@@ -84,13 +81,14 @@ def select_targets(paths: List[str], commands: List[str]) -> Dict[str, Selection
     return selected
 
 
-def prime_sanity_venvs(collection: Path) -> int:
-    # Sanity virtualenvs are shared in ~/.ansible/test/venv and rebuilt in place when incomplete,
-    # so parallel sanity jobs would race on a cold cache; create them once beforehand.
+def prepare_containers(collection: Path) -> int:
+    # Parallel jobs race on a cold image store and on creating ~/.ansible/test/id_rsa, which --prime-containers
+    # does not create; one serial container start pulls the image and creates the key pair.
+    prepare_cmd = ANSIBLE_TEST_CMD + ["shell"]
     return run_test_cmd(
-        ANSIBLE_TEST_CMD + ["sanity", "--prime-venvs", *ANSIBLE_TEST_ARGS],
+        prepare_cmd + ANSIBLE_TEST_ARGS + ["--", "true"],
         [],
-        "ansible-test sanity --prime-venvs",
+        "ansible-test prepare containers",
         cwd=str(collection),
         output=Output.ON_FAILURE_QUIET,
     )
@@ -105,22 +103,20 @@ def main() -> None:
         print_success("ansible-test: nothing to test!")
         RC.status(RC.OK, sys_exit=True)
 
-    missing_pytest = "units" in commands and importlib.util.find_spec("pytest") is None
-    if shutil.which(ANSIBLE_TEST_CMD[0]) is None or missing_pytest:
-        error_code("ansible-test or pytest not found! `source venv/bin/activate`", sys_exit=True)
+    if shutil.which(ANSIBLE_TEST_CMD[0]) is None:
+        error_code("ansible-test not found! `source venv/bin/activate`", sys_exit=True)
 
     jobs = [
         {
             "args": [command, *ANSIBLE_TEST_ARGS, *targets],
             "cwd": str(collection),
-            "subject": " ".join(["ansible-test", f"{command}:", f"{NAMESPACE_PATH.name}.{collection.name}", *targets]),
+            "subject": f"{ANSIBLE_TEST_CMD[0]} {command}: {NAMESPACE_PATH.name}.{collection.name}",
         }
         for command, selection in selected.items()
         for collection, targets in selection.items()
     ]
 
-    sanity_collections = list(selected.get("sanity", {}))
-    if sanity_collections and (rc := prime_sanity_venvs(sanity_collections[0])) != RC.OK:
+    if (rc := prepare_containers(NAMESPACE_PATH / "utils")) != RC.OK:
         RC.status(rc, sys_exit=True)
 
     rc = run_tests_parallel(ANSIBLE_TEST_CMD, jobs)

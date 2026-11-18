@@ -34,7 +34,7 @@ Arguments after `--` are passed to ansible-lint verbatim:
 _scripts/run-tests.sh ansible-lint # '[' [--all] [ansible_collections/oszi/utils ...] [-- ANSIBLE_LINT_ARGS ...] ']'
 ```
 
-The ansible-test test runs `ansible-test sanity` and `units` tests of the collections locally.  
+The ansible-test test runs `ansible-test sanity` and `units` tests of the collections with docker/podman.  
 Paths select collections, files or directories; ansible-test needs a writable `/tmp` (e.g., agents).  
 Plugin source paths select all unit tests; paths under `tests/unit` select specific tests.
 ```bash
