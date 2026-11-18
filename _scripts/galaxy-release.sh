@@ -99,7 +99,7 @@ new_version_spec="==${new_version}"
 
 echo "Releasing ${SEVERITY} version ${new_version}..." >&2
 
-echo -n "Run tests? y: default tests, all: including opt-in (e.g., molecule) [y/all/N]" >&2
+echo -n "Run tests? (y: default tests, all: all tests, all targets) [y/all/N]" >&2
 read -r answer
 run_tests_args=()
 [[ "${answer,,}" == "all" ]] && run_tests_args+=(--all)

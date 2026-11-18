@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # pylint: disable=line-too-long,missing-function-docstring,missing-module-docstring
-# run-tests: opt-in
 import os
 import shlex
 import shutil

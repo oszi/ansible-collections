@@ -7,6 +7,8 @@ Stable interface to run tests:
 _scripts/run-tests.sh # [--all|ansible-lint|ansible-test|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
 ```
 
+`--all` runs every test, including opt-in tests, and passes `--all` to `ansible-lint` and `molecule`.
+
 Arguments between `[` and `]` after a test name are passed to that test verbatim, including `--`.  
 A literal `]` cannot be passed this way; run the test script directly instead.
 ```bash

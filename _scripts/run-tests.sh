@@ -53,62 +53,93 @@ for test in "$tests_dir"/*.py; do
     [[ "$test" == */testlib.py ]] || all_tests+=("$(basename -s .py "$test")")
 done
 
-is_test() {
-    local test
-    for test in "${all_tests[@]}"; do
-        [[ "$1" == "$test" ]] && return 0
+# Tests that run only when requested by name or with --all.
+opt_in=(molecule)
+
+# Tests that accept --all themselves to test everything, not only changes since the previous release.
+all_supported=(ansible-lint molecule)
+
+in_list() {
+    local item needle="$1"
+    shift
+
+    for item in "$@"; do
+        [[ "$needle" == "$item" ]] && return 0
     done
     return 1
 }
 
-is_opt_in() {
-    local test="$1"
-    grep -q '^# run-tests: opt-in$' -- "${tests_dir}/${test}.py"
-}
-
-# Tests to run, with the slice of $args passed to each.
+# Tests to run; each test's arguments are its slice of $args.
 names=() starts=() lengths=() args=()
 
-# Run all tests by default, except opt-in tests (e.g. molecule) unless --all is given.
-if [[ $# -eq 0 || ( $# -eq 1 && "$1" == "--all" ) ]]; then
-    for test in "${all_tests[@]}"; do
-        [[ $# -eq 0 ]] && is_opt_in "$test" && continue
-        names+=("$test") starts+=(0) lengths+=(0)
-    done
-elif [[ "$1" == "--all" ]]; then
-    exit_with_error "--all takes no other arguments!"
-elif [[ "$1" =~ ^-*(h|help)$ ]]; then
+add_test() {  # NAME [ARG ...]
+    names+=("$1")
+    starts+=("${#args[@]}")
+    lengths+=($(( $# - 1 )))
+    args+=("${@:2}")
+}
+
+add_arg() {  # To the last added test.
+    args+=("$1")
+    lengths[-1]=$(( lengths[-1] + 1 ))
+}
+
+exit_with_usage() {
+    local test all_suffix opt_in_suffix
+
     echo "Usage: ${0} [-h|--help] [--all | TEST [ '[' TEST_ARGS ... ']' ] ...]" >&2
     for test in "${all_tests[@]}"; do
-        is_opt_in "$test" && suffix=" (opt-in)" || suffix=""
-        echo "${test}${suffix}" >&2
+        in_list "$test" "${all_supported[@]}" && all_suffix=" (--all)" || all_suffix=""
+        in_list "$test" "${opt_in[@]}" && opt_in_suffix=" (opt-in)" || opt_in_suffix=""
+        printf "%s%s%s\n" "$test" "$all_suffix" "$opt_in_suffix"
     done
     exit 2
-else
-    # Words outside brackets are test names; test arguments may equal test names or contain "--".
-    # A literal "]" cannot be passed; run the test script directly instead.
-    in_args=0 can_open=0
+}
+
+# Words outside brackets are test names; test arguments may equal test names or contain "--".
+# A literal "]" cannot be passed; run the test script directly instead.
+parse_test_args() {
+    local arg in_args=0 after_name=0
+
     for arg in "$@"; do
         if (( in_args )); then
             if [[ "$arg" == "]" ]]; then
                 in_args=0
             else
-                args+=("$arg")
-                lengths[-1]=$(( lengths[-1] + 1 ))
+                add_arg "$arg"
             fi
         elif [[ "$arg" == "[" ]]; then
-            (( can_open )) || exit_with_error "'[' must follow a test name!"
-            in_args=1 can_open=0
+            (( after_name )) || exit_with_error "'[' must follow a test name!"
+            in_args=1 after_name=0
         elif [[ "$arg" == "]" ]]; then
             exit_with_error "']' unmatched!"
-        elif is_test "$arg"; then
-            names+=("$arg") starts+=("${#args[@]}") lengths+=(0)
-            can_open=1
+        elif in_list "$arg" "${all_tests[@]}"; then
+            add_test "$arg"
+            after_name=1
         else
             exit_with_not_found "${tests_dir}/${arg}.py"
         fi
     done
     (( ! in_args )) || exit_with_error "'[' unclosed!"
+}
+
+if [[ $# -eq 0 ]]; then
+    for test in "${all_tests[@]}"; do
+        in_list "$test" "${opt_in[@]}" || add_test "$test"
+    done
+elif [[ "$1" == "--all" ]]; then
+    (( $# == 1 )) || exit_with_error "--all takes no other arguments!"
+    for test in "${all_tests[@]}"; do
+        if in_list "$test" "${all_supported[@]}"; then
+            add_test "$test" --all
+        else
+            add_test "$test"
+        fi
+    done
+elif [[ "$1" =~ ^(-h|--help)$ ]]; then
+    exit_with_usage
+else
+    parse_test_args "$@"
 fi
 
 rc=0
