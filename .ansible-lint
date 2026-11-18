@@ -3,6 +3,9 @@ verbosity: 1
 
 offline: true
 
+supported_ansible_also:
+  - "2.20.0"
+
 # Versioned sanity ignore files are symlinks, which ansible-lint skips; lint their target.
 kinds:
   - sanity-ignore-file: "**/tests/sanity/ignore.txt"
