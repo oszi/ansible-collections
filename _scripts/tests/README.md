@@ -6,7 +6,6 @@ Stable interface to run tests:
 ```bash
 _scripts/run-tests.sh # [--all|ansible-lint|ansible-test|ansible-vault|galaxy-tags|molecule|python|shellcheck] ...
 ```
-
 `--all` runs every test, including opt-in tests, and passes `--all` to `ansible-lint` and `molecule`.
 
 Arguments between `[` and `]` after a test name are passed to that test verbatim, including `--`.  
@@ -40,5 +39,16 @@ Plugin source paths select all unit tests; paths under `tests/unit` select speci
 ```bash
 _scripts/run-tests.sh ansible-test # '[' [--sanity] [--units] [ansible_collections/oszi/utils/plugins/ ...] ']'
 ```
+
+Under rootless podman, ansible-test uses the `podman` network to isolate tests from the network.  
+If stopping containers fails with `rootless netns: kill network process: permission denied`,  
+the Debian/Ubuntu AppArmor profile for `pasta` lacks a signal rule:
+```bash
+pasta_local='\n  include if exists <local/usr.bin.pasta>'
+sudo sed -z -i "s|\(${pasta_local}\)\?\n}\n*\$|${pasta_local}\n}\n|" /etc/apparmor.d/usr.bin.pasta
+echo '  signal (receive) peer={podman,unconfined},' | sudo tee /etc/apparmor.d/local/usr.bin.pasta
+sudo apparmor_parser -r /etc/apparmor.d/usr.bin.pasta
+```
+Avoid `--docker-network=bridge` as a workaround; tests are then not isolated from the network.
 
 Tests are written in python, using a common library: [testlib.py](testlib.py)
