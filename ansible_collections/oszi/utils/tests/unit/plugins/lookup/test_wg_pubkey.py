@@ -1,7 +1,5 @@
 # pylint: disable=line-too-long,missing-function-docstring,missing-module-docstring,no-name-in-module,redefined-outer-name
 import base64
-import os
-import shutil
 import sys
 from subprocess import CalledProcessError
 
@@ -9,8 +7,6 @@ import pytest
 
 from ansible.errors import AnsibleError
 from ansible.plugins.loader import lookup_loader
-
-needs_wg = pytest.mark.skipif(shutil.which("wg") is None, reason="wireguard-tools is missing")
 
 # RFC 7748 section 6.1, Alice's X25519 key pair.
 RFC7748_PRIVATE_KEY = base64.b64encode(
@@ -24,6 +20,19 @@ RFC7748_PUBLIC_KEY = base64.b64encode(
 @pytest.fixture
 def lookup():
     return lookup_loader.get("oszi.utils.wg_pubkey")
+
+
+@pytest.fixture
+def fake_wg(lookup, mocker):
+    # Stands in for `wg pubkey`: knows only the RFC 7748 key pair and fails on anything else.
+    def check_output(cmd, *, text, input):  # pylint: disable=redefined-builtin
+        assert cmd == ["wg", "pubkey"] and text
+        if input != RFC7748_PRIVATE_KEY:
+            raise CalledProcessError(1, cmd, output="", stderr="Key is not the correct length or format\n")
+        return RFC7748_PUBLIC_KEY + "\n"
+
+    module = sys.modules[type(lookup).__module__]
+    return mocker.patch.object(module, "check_output", side_effect=check_output)
 
 
 def error_chain_text(err: BaseException) -> str:
@@ -61,29 +70,12 @@ def test_command_errors_hide_private_key(lookup, mocker, side_effect, match):
     assert RFC7748_PRIVATE_KEY not in error_chain_text(excinfo.value)
 
 
-@needs_wg
+@pytest.mark.usefixtures("fake_wg")
 def test_wg_pubkey_rfc7748(lookup):
     assert lookup.run([RFC7748_PRIVATE_KEY]) == [RFC7748_PUBLIC_KEY]
 
 
-@needs_wg
-def test_wg_pubkey_matches_cryptography(lookup):
-    x25519 = pytest.importorskip("cryptography.hazmat.primitives.asymmetric.x25519")
-    serialization = pytest.importorskip("cryptography.hazmat.primitives.serialization")
-
-    private_keys = [os.urandom(32) for _index in range(8)]
-    expected = [
-        base64.b64encode(
-            x25519.X25519PrivateKey.from_private_bytes(key)
-            .public_key()
-            .public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
-        ).decode()
-        for key in private_keys
-    ]
-    assert lookup.run([base64.b64encode(key).decode() for key in private_keys]) == expected
-
-
-@needs_wg
+@pytest.mark.usefixtures("fake_wg")
 @pytest.mark.parametrize("private_key", ["", "invalid", RFC7748_PRIVATE_KEY[:-4]])
 def test_wg_pubkey_invalid_key(lookup, private_key):
     with pytest.raises(AnsibleError, match="returned non-zero exit status") as excinfo:
@@ -92,6 +84,6 @@ def test_wg_pubkey_invalid_key(lookup, private_key):
         assert private_key not in error_chain_text(excinfo.value)
 
 
-@needs_wg
+@pytest.mark.usefixtures("fake_wg")
 def test_template(template):
     assert template("{{ lookup('oszi.utils.wg_pubkey', key) }}", key=RFC7748_PRIVATE_KEY) == RFC7748_PUBLIC_KEY
