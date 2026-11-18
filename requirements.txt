@@ -1,5 +1,6 @@
-# Use the latest python packages or install from the distribution...
-# apt/dnf install ansible python3-cryptography python3-jmespath python3-netaddr python3-psutil python3-yaml
+# Use the latest python packages for development and testing;
+# install from the distribution on supported hosts...
+# apt/dnf install ansible python3-{cryptography,jmespath,netaddr,psutil,yaml}
 ansible>=15.0.0
 ansible-core>=2.22.0
 cryptography
@@ -14,6 +15,7 @@ molecule
 molecule-plugins[podman]
 
 # Python Testing
+# apt/dnf install black pylint python3-pytest-{mock,xdist}
 black
 mock
 pylint

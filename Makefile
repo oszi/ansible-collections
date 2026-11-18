@@ -3,6 +3,15 @@ COLLECTIONS := .
 
 include _scripts/_scripts.mk
 
+venv: $(VENV)/.lock FORCE
+
+# Prefer collections bundled in the ansible python package (no -U for galaxy install).
+$(VENV)/.lock: requirements.txt requirements.yml
+	python3 -m venv $(VENV) && . $(VENV)/bin/activate \
+	&& pip install -U -r requirements.txt \
+	&& ansible-galaxy collection install -r requirements.yml -p $(COLLECTIONS) \
+	&& touch $(VENV)/.lock
+
 # galaxy-release.sh includes run-tests.sh
 major minor patch: FORCE
 	@$(VENV_ACTIVATE) && $(SCRIPTS)/galaxy-release.sh $@

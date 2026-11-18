@@ -25,9 +25,10 @@ Scripts to facilitate ansible deployments and source control.
 * **[\_ansible.mk](_ansible.mk)** `localhost workstation update versions ... playbooks/* oszi.*`  
   `[ANSIBLE_VERBOSE=y] [ANSIBLE_CHECK=y] [ANSIBLE_LIMIT=HOST] [ANSIBLE_TAGS=TAG1,TAG2] ...`  
   Makefile fragment for a common ansible interface. See the [examples](../examples).
-* **[\_scripts.mk](_scripts.mk)** `venv update-collections tests reset clean verify`  
+* **[\_scripts.mk](_scripts.mk)** `update-collections tests reset clean verify`  
   `[COLLECTIONS=path] [SCRIPTS=path] [VENV=path]`  
-  Makefile fragment for venv and scripts integration.
+  Makefile fragment for venv activation and scripts integration.  
+  A venv can be created in the collections repository for development and testing.
 
 If collections is a git submodule, symlink what you need in a \_scripts directory.  
 All scripts (except galaxy\*) support parent repositories.
