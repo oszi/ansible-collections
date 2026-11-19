@@ -23,6 +23,7 @@ from testlib import (
     git_previous_release_tag,
     print_hint,
     print_success,
+    print_warning,
     run_shell_get_lines,
     run_test_cmd,
     run_tests_parallel,
@@ -88,38 +89,50 @@ def _scenario_converged_roles(scenario_path: Path) -> FrozenSet[str]:
     """FQCNs listed in molecule_converge_roles of a scenario's inventory group_vars; parsed once per scenario."""
     try:
         with scenario_path.open("r", encoding="utf-8") as f:
-            molecule_yml = yaml.safe_load(f) or {}
-        group_vars = molecule_yml["provisioner"]["inventory"]["group_vars"]
-    except (OSError, yaml.YAMLError, KeyError, TypeError):
-        return frozenset()
+            node = yaml.safe_load(f) or {}
+        for key in ("provisioner", "inventory", "group_vars"):
+            if not isinstance(node, dict):
+                raise ValueError(f"not a mapping above {key}")
+            node = node.get(key) or {}
+        if not isinstance(node, dict):
+            raise ValueError("group_vars is not a mapping")
 
-    roles = set()
-    for variables in group_vars.values():
-        for entry in (variables or {}).get("molecule_converge_roles") or []:
-            roles.add(entry.get("name", "") if isinstance(entry, dict) else str(entry))
+        roles = set()
+        for group, variables in node.items():
+            if not isinstance(variables := variables or {}, dict):
+                raise ValueError(f"group_vars.{group} is not a mapping")
+            if not isinstance(entries := variables.get("molecule_converge_roles") or [], list):
+                raise ValueError(f"group_vars.{group}.molecule_converge_roles is not a list")
+            for entry in entries:
+                name = entry.get("name") if isinstance(entry, dict) else entry
+                if not isinstance(name, str):
+                    raise ValueError(f"group_vars.{group}.molecule_converge_roles has an entry without a name")
+                roles.add(name)
+    except (OSError, ValueError, yaml.YAMLError) as err:
+        print_warning(f"Ignoring molecule_converge_roles of {scenario_path}: {err}")
+        return frozenset()
     return frozenset(roles)
 
 
-def _role_scenarios(role_meta: RoleMeta) -> List[Path]:
-    """Scenario directories named {role} or {role}-{variant}, plus scenarios converging the role."""
+def _role_scenarios(role_meta: RoleMeta) -> List[Tuple[str, Path]]:
+    """Collections and directories of scenarios named {role} or {role}-{variant}, plus scenarios converging the role."""
     scenarios = []
-    for scenario_path in _collection_scenario_files(role_meta.collection.name):
-        scenario = scenario_path.parent.name
-        if (
-            scenario == role_meta.role.name
-            or scenario.startswith(f"{role_meta.role.name}-")
-            or role_meta.fqcn in _scenario_converged_roles(scenario_path)
-        ):
-            scenarios.append(scenario_path.parent)
+    for collection in COLLECTIONS:
+        for scenario_path in _collection_scenario_files(collection):
+            scenario = scenario_path.parent.name
+            if (
+                collection == role_meta.collection.name
+                and (scenario == role_meta.role.name or scenario.startswith(f"{role_meta.role.name}-"))
+            ) or role_meta.fqcn in _scenario_converged_roles(scenario_path):
+                scenarios.append((collection, scenario_path.parent))
     return scenarios
 
 
 def _role_dependencies(role_meta: RoleMeta) -> Set[str]:
     """Roles listed as dependencies in meta/main.yml. Called once per role in dependent_roles."""
-    meta = role_meta.load(raise_errors=False)
+    dependencies = role_meta.load(raise_errors=False).get("dependencies") or []
     return {
-        entry.get("role", entry.get("name", "")) if isinstance(entry, dict) else str(entry)
-        for entry in meta.get("dependencies") or []
+        entry.get("role", entry.get("name", "")) if isinstance(entry, dict) else str(entry) for entry in dependencies
     }
 
 
@@ -217,9 +230,9 @@ def select_scenarios(roles: Iterable[str]) -> Dict[str, List[Path]]:
         role_scenario_paths = _role_scenarios(role_meta)
         if not role_scenario_paths:
             untested.append(role_meta.fqcn)
-        for scenario_path in role_scenario_paths:
-            if scenario_path not in scenarios[role_meta.collection.name]:
-                scenarios[role_meta.collection.name].append(scenario_path)
+        for collection, scenario_path in role_scenario_paths:
+            if scenario_path not in scenarios[collection]:
+                scenarios[collection].append(scenario_path)
     if untested:
         print_hint(f"Roles without molecule scenarios: {', '.join(untested)}")
     return scenarios

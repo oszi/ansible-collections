@@ -6,14 +6,16 @@ import sys
 from argparse import ArgumentParser
 from tempfile import TemporaryDirectory
 
-from testlib import RC, Output, run_shell_get_lines, run_tests, run_tests_parallel, print_hint
-
-GIT_LS_FILES = r"""
-set -euo pipefail
-git ls-files -z -c -o --exclude-standard --deduplicate -- '*.py'
-git ls-files -z -c -o --exclude-standard --deduplicate -- '**scripts/*' '**/bin/*' '**/sbin/*' ':!:*.'{j2,jinja2,jinja} \
-    | xargs -0 -r awk -- 'FNR>1 {nextfile} /^#![^ ]+[/ ](python3?)$/ {printf "%s%c", FILENAME, 0; nextfile}'
-"""
+from testlib import (
+    PYTHON_INTERPRETERS,
+    PYTHON_PATHSPECS,
+    RC,
+    Output,
+    git_ls_files_with_interpreters,
+    run_tests,
+    run_tests_parallel,
+    print_hint,
+)
 
 PYLINT_CMD = ["pylint", "--disable=duplicate-code,import-error", "--"]
 BLACK_CMD = ["black", "--check", "-l", "120", "--target-version=py311", "--"]
@@ -29,7 +31,7 @@ args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 
 def main() -> None:
     app_args = args_parser.parse_args()
-    paths = app_args.paths or run_shell_get_lines(GIT_LS_FILES, null_delimited=True, unique=True)
+    paths = app_args.paths or git_ls_files_with_interpreters(PYTHON_PATHSPECS, PYTHON_INTERPRETERS)
     env = os.environ.copy()
 
     # Change python cache directory for read-only, agentic environments.

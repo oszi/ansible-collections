@@ -1,6 +1,7 @@
 # pylint: disable=too-few-public-methods,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
 import functools
 import os
+import re
 import shlex
 import subprocess as sp
 import sys
@@ -11,7 +12,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Callable, Dict, IO, List, NoReturn, Optional, ParamSpec
+from typing import Any, Callable, Dict, IO, Iterable, List, NoReturn, Optional, ParamSpec
 
 import yaml
 
@@ -19,6 +20,15 @@ assert sys.version_info >= (3, 11)
 
 NAMESPACE_PATH = Path("ansible_collections") / "oszi"
 RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
+
+# Executable scripts without a file extension, identified by their shebang.
+SCRIPT_PATHSPECS = ("**scripts/*", "**/bin/*", "**/sbin/*", ":!:*.j2", ":!:*.jinja2", ":!:*.jinja")
+
+PYTHON_INTERPRETERS = ("python", "python3")
+PYTHON_PATHSPECS = ("*.py",)
+
+SHELL_INTERPRETERS = ("sh", "bash", "ksh", "zsh")
+SHELL_PATHSPECS = (*(f"*.{i}" for i in SHELL_INTERPRETERS), "**/*shrc", "**/.*profile")
 
 # Override /bin/sh for bash on Debian/Ubuntu.
 SHELL = "/bin/bash"
@@ -437,8 +447,11 @@ class RoleMeta:
     def load(self, raise_errors: bool = True) -> Dict[str, Any]:
         try:
             with self.meta_path.open("r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-        except (OSError, yaml.YAMLError) as err:
+                meta = yaml.safe_load(f)
+            if not isinstance(meta, dict):
+                raise ValueError("yaml is not a mapping")
+            return meta
+        except (OSError, ValueError, yaml.YAMLError) as err:
             if raise_errors:
                 raise
             print_warning(f"Failed to load {self.meta_path}: {err}")
@@ -459,17 +472,12 @@ class RoleMeta:
         return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2])
 
 
+def all_collection_paths() -> List[Path]:
+    return sorted(NAMESPACE_PATH.glob("[a-zA-Z]*/"))
+
+
 def git_chdir() -> None | NoReturn:
     os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
-
-
-def git_changed_paths(ref: str = "HEAD", *, relative: bool = False) -> List[str] | NoReturn:
-    # Untracked files are always listed relative to and limited to the current directory.
-    git_diff_files = (
-        f"git diff -z --name-only --no-renames{' --relative' if relative else ''} {shlex.quote(ref)} -- "
-        "&& git ls-files -z --others --exclude-standard"
-    )
-    return run_shell_get_lines(git_diff_files, null_delimited=True, unique=True)
 
 
 def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optional[str]:
@@ -489,3 +497,44 @@ def git_previous_release_tag() -> Optional[str]:
         return release
     # Pristine HEAD release, rewind to the previous release.
     return git_latest_release_tag(f"{release}^")
+
+
+def git_changed_paths(ref: str = "HEAD", *, relative: bool = False) -> List[str] | NoReturn:
+    # Untracked files are always listed relative to and limited to the current directory.
+    git_diff_files = (
+        f"git diff -z --name-only --no-renames{' --relative' if relative else ''} {shlex.quote(ref)} -- "
+        "&& git ls-files -z --others --exclude-standard"
+    )
+    return run_shell_get_lines(git_diff_files, null_delimited=True, unique=True)
+
+
+def git_ls_files(pathspecs: Iterable[str]) -> List[str] | NoReturn:
+    if not isinstance(pathspecs, Iterable) or isinstance(pathspecs, (str, bytes)):
+        raise TypeError("testlib.git_ls_files: pathspecs is not an iterable, or is a string or bytes")
+
+    # Tracked files deleted from the work tree are still listed; keep only existing files, following symlinks.
+    git_ls_files_cmd = "git ls-files -z -c -o --exclude-standard --deduplicate -- " + shlex.join(pathspecs)
+    return [
+        path for path in run_shell_get_lines(git_ls_files_cmd, null_delimited=True, unique=True) if os.path.isfile(path)
+    ]
+
+
+def git_ls_files_with_interpreters(pathspecs: Iterable[str], interpreters: Iterable[str]) -> List[str] | NoReturn:
+    scripts = [path for path in git_ls_files(SCRIPT_PATHSPECS) if has_shebang(path, interpreters)]
+    return list(dict.fromkeys(git_ls_files(pathspecs) + scripts))
+
+
+def has_shebang(path: Path | str, interpreters: Iterable[str]) -> bool | NoReturn:
+    if not isinstance(path, (Path, str)):
+        raise TypeError("testlib.has_shebang: path is not a Path or string")
+    if not isinstance(interpreters, Iterable) or isinstance(interpreters, (str, bytes)):
+        raise TypeError("testlib.has_shebang: interpreters is not an iterable, or is a string or bytes")
+
+    names = b"|".join(re.escape(name.encode()) for name in interpreters)
+    pattern = rb"#!\s*\S*/(?:env\s+(?:-\S*\s+)*)?(?:" + names + rb")(?:\s.*)?"
+    try:
+        with open(path, "rb") as f:
+            first_line = f.readline(256).rstrip()
+    except OSError as err:
+        error_code(f"testlib.has_shebang: cannot read {path}: {err}", sys_exit=True)
+    return re.fullmatch(pattern, first_line) is not None

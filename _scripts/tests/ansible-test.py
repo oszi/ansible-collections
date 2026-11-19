@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
+import os
 import shutil
 
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from testlib import NAMESPACE_PATH, RC, Color, Output, error_code, print_success, run_test_cmd, run_tests_parallel
+from testlib import (
+    NAMESPACE_PATH,
+    RC,
+    Color,
+    Output,
+    all_collection_paths,
+    error_code,
+    print_success,
+    run_test_cmd,
+    run_tests_parallel,
+)
 
 UNIT_TESTS_PATH = Path("tests") / "unit"
 
@@ -36,10 +47,6 @@ args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 Selection = Dict[Path, List[str]]
 
 
-def all_collections() -> List[Path]:
-    return [path.parent for path in sorted(NAMESPACE_PATH.glob("[a-zA-Z]*/galaxy.yml"))]
-
-
 def add_target(selection: Selection, collection: Path, target: Optional[str]) -> None:
     if target is None:
         selection[collection] = []
@@ -56,11 +63,17 @@ def target_arg(path: Path, target: Path) -> Optional[str]:
     return f"{target.as_posix()}/" if path.is_dir() else target.as_posix()
 
 
+def lexical_path(path_str: str) -> Path:
+    # Keep the final component unresolved, so symlinks belong to the collection containing them.
+    path = Path(os.path.abspath(path_str))
+    return path.parent.resolve() / path.name if path.name else path
+
+
 def select_targets(paths: List[str], commands: List[str]) -> Dict[str, Selection]:
-    collections = [collection.resolve() for collection in all_collections()]
+    collections = [collection.resolve() for collection in all_collection_paths()]
     selected: Dict[str, Selection] = {command: {} for command in commands}
     for path_str in paths:
-        path = Path(path_str).resolve()
+        path = lexical_path(path_str)
         collection = next((collection for collection in collections if path.is_relative_to(collection)), None)
         if collection is None:
             error_code(f"{path_str} is not in a collection of {NAMESPACE_PATH}!", sys_exit=True)
@@ -98,7 +111,7 @@ def main() -> None:
     app_args = args_parser.parse_args()
     commands = [command for command in COMMANDS if getattr(app_args, command)] or list(COMMANDS)
 
-    selected = select_targets(app_args.paths or [str(path) for path in all_collections()], commands)
+    selected = select_targets(app_args.paths or [str(path) for path in all_collection_paths()], commands)
     if not any(selected.values()):
         print_success("ansible-test: nothing to test!")
         RC.status(RC.OK, sys_exit=True)

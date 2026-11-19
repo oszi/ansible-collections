@@ -27,7 +27,7 @@ def assert_role_tags() -> bool:
 
         try:
             meta = role_meta.load(raise_errors=True)
-        except (OSError, yaml.YAMLError):
+        except (OSError, ValueError, yaml.YAMLError):
             print_error(f"{role_must_have} a valid {RoleMeta.META_MAIN_PATH} file!")
             rc = RC.ERROR
             continue

@@ -156,7 +156,7 @@ if [[ $rc -ne 0 && "${#names[@]}" -gt 1 ]]; then
     print_error "tests failed: ${failed[*]}"
 fi
 
-if [[ -t 1 ]]; then  # stdout
+if [[ -t 1 ]] && (( SECONDS >= 3 )); then  # stdout; skip for quick runs
     printf "\007"
 fi
 
