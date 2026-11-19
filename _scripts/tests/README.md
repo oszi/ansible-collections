@@ -27,27 +27,26 @@ _scripts/run-tests.sh python [ --black ]
 ```
 
 Without arguments, only the paths changed since the previous release are linted; whole roles if touched.  
-Automatic selection respects ansible-lint's configured exclusions and discovery rules.
+Automatic selection respects ansible-lint's configured exclusions and discovery rules.  
 Arguments after `--` are passed to ansible-lint verbatim:
 ```bash
-_scripts/run-tests.sh ansible-lint # '[' [--all] [ansible_collections/oszi/utils ...] [-- ANSIBLE_LINT_ARGS ...] ']'
+_scripts/run-tests.sh ansible-lint # '[' [--all] [ansible_collections/... ...] [-- ANSIBLE_LINT_ARGS ...] ']'
 ```
 
 The ansible-test test runs `ansible-test sanity` and `units` tests of the collections with docker/podman.  
 Paths select collections, files or directories; ansible-test needs a writable `/tmp` (e.g., agents).  
 Plugin source paths select all unit tests; paths under `tests/unit` select specific tests.
 ```bash
-_scripts/run-tests.sh ansible-test # '[' [--sanity] [--units] [ansible_collections/oszi/utils/plugins/ ...] ']'
+_scripts/run-tests.sh ansible-test # '[' [--sanity] [--units] [ansible_collections/... ...] ']'
 ```
 
 Under rootless podman, ansible-test uses the `podman` network to isolate tests from the network.  
 If stopping containers fails with `rootless netns: kill network process: permission denied`,  
 the Debian/Ubuntu AppArmor profile for `pasta` lacks a signal rule:
 ```bash
-pasta_local='\n  include if exists <local/usr.bin.pasta>'
-sudo sed -z -i "s|\(${pasta_local}\)\?\n}\n*\$|${pasta_local}\n}\n|" /etc/apparmor.d/usr.bin.pasta
-echo '  signal (receive) peer={podman,unconfined},' | sudo tee /etc/apparmor.d/local/usr.bin.pasta
-sudo apparmor_parser -r /etc/apparmor.d/usr.bin.pasta
+pasta_path=/etc/apparmor.d/usr.bin.pasta pasta_signal='signal (receive) peer={podman,unconfined},'
+grep -qF "$pasta_signal" "$pasta_path" || sudo sed -z -i "s|}\n*\$|\n  ${pasta_signal}\n}\n|" "$pasta_path" \
+&& sudo apparmor_parser -r "$pasta_path"
 ```
 Avoid `--docker-network=bridge` as a workaround; tests are then not isolated from the network.
 
