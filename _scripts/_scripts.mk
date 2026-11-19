@@ -15,6 +15,10 @@ update-collections: FORCE
 		|| git -C $(COLLECTIONS) rev-parse --short HEAD) && set -x \
 	&& git commit -S -n -m "Update ansible-collections [$${VERSION}]" $(COLLECTIONS) \
 	&& git push --follow-tags
+
+venv: FORCE
+	@echo "A venv can be created at '$(VENV)' for development and testing." >&2 \
+	&& exit 2
 endif
 
 TESTS_ARGS ?=

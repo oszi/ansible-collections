@@ -1,6 +1,3 @@
-# Requires ./activate and ./ansible.cfg
-ANSIBLE_PLAYBOOK := . ./activate && ansible-playbook
-
 ANSIBLE_VERBOSE    ?=
 ANSIBLE_CHECK      ?=
 ANSIBLE_CONNECTION ?=
@@ -11,6 +8,7 @@ ANSIBLE_SKIP_TAGS  ?=
 _CMD_FLAG = $(if $(filter 1 Y y Yes YES yes True TRUE true,$(value $(2))), $(1),)
 _CMD_ARG  = $(if $(value $(2)), $(1) '$(subst ','\'',$(value $(2)))',)
 
+ANSIBLE_PLAYBOOK := ansible-playbook
 ANSIBLE_ARGS += $\
 	$(call _CMD_FLAG,-vvv,ANSIBLE_VERBOSE)$\
 	$(call _CMD_FLAG,--check --diff,ANSIBLE_CHECK)$\
@@ -28,10 +26,10 @@ baselinux containerhost toolbox workstation update: %: oszi.environments.%
 debug versions: %: oszi.utils.%
 
 playbooks/% oszi.environments.% oszi.general.% oszi.thirdparty.% oszi.utils.%: activate ansible.cfg FORCE
-	$(ANSIBLE_PLAYBOOK) $(ANSIBLE_ARGS) $@; \
+	. ./activate && $(ANSIBLE_PLAYBOOK) $(ANSIBLE_ARGS) $@; \
 	rc=$$?; printf "\007"; exit $$rc;
 
 activate ansible.cfg:
-	@test -f $@ || (echo "./$@ not found! Copy examples/$@"; exit 127)
+	@test -f $@ || (echo "./$@ not found! Copy examples/$@" >&2 && exit 127)
 
 .PHONY: FORCE
