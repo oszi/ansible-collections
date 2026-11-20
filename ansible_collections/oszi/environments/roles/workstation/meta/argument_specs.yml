@@ -23,6 +23,7 @@ argument_specs:
           - Contains language support (hunspell), smartcard tools (pcscd, pcsc-lite)
           - Includes hardware utilities only for physical machines (ddccontrol, i2c-tools, ltunify, piper)
           - Desktop applications (firewall-config, gparted, keepassxc, remmina, wireshark, etc.)
+          - Excludes firewall-config with O(oszi.general.firewalld#role:main:firewalld_disabled), as it depends on firewalld
         type: list
         elements: raw
         required: false

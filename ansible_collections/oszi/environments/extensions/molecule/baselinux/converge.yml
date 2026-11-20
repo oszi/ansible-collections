@@ -1,0 +1,6 @@
+---
+# Converge with the production playbook: the baselinux role and its disabled dependencies.
+- name: Import the baselinux playbook
+  ansible.builtin.import_playbook: oszi.environments.baselinux
+  vars:
+    baselinux_hosts: [redhat, debian]

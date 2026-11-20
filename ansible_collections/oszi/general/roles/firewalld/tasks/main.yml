@@ -8,7 +8,12 @@
         file: firewalld.yml
 
     - name: Ensure Firewalld is NOT installed
-      when: firewalld_disabled
+      when: firewalld_disabled and firewalld_manage_packages
       ansible.builtin.package:
         name: "firewalld"
         state: "absent"
+
+    - name: Firewalld role completed
+      ansible.builtin.assert:
+        that: true
+        quiet: true

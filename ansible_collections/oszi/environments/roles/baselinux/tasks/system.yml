@@ -53,12 +53,40 @@
           - "nftables"
         state: "present"
 
-    # Subcommands (restore, save, etc) are automatic.
+    # Alternatives store the paths as registered by the packages: /usr/bin where /usr/sbin links to it.
+    - name: Find the system binaries directory
+      ansible.builtin.stat:
+        path: "/usr/sbin"
+      register: _baselinux_sbin_result
+
+    # Subcommands (restore, save, etc) are followers of the package-registered groups; a link or path
+    # differing from the registered one re-registers the group without them. RedHat registers ip6tables
+    # as a follower of iptables, Debian as a group of its own.
+    # On RedHat, the package's priority and followers are passed so that an entry registered without them
+    # is re-registered as the package does; the module compares both against the current entry.
     - name: Configure iptables alternatives
+      vars:
+        _baselinux_sbin_path: "{{ _baselinux_sbin_result.stat.lnk_source | default('/usr/sbin') }}"
+        _baselinux_iptables_followers:
+          - name: "ip6tables"
+            link: "{{ _baselinux_sbin_path }}/ip6tables"
+            path: "{{ _baselinux_sbin_path }}/ip6tables-nft"
+          - name: "iptables-restore"
+            link: "{{ _baselinux_sbin_path }}/iptables-restore"
+            path: "{{ _baselinux_sbin_path }}/iptables-nft-restore"
+          - name: "iptables-save"
+            link: "{{ _baselinux_sbin_path }}/iptables-save"
+            path: "{{ _baselinux_sbin_path }}/iptables-nft-save"
+          - name: "ip6tables-restore"
+            link: "{{ _baselinux_sbin_path }}/ip6tables-restore"
+            path: "{{ _baselinux_sbin_path }}/ip6tables-nft-restore"
+          - name: "ip6tables-save"
+            link: "{{ _baselinux_sbin_path }}/ip6tables-save"
+            path: "{{ _baselinux_sbin_path }}/ip6tables-nft-save"
       community.general.alternatives:
         name: "{{ item }}"
-        link: "/usr/sbin/{{ item }}"
-        path: "/usr/sbin/{{ item }}-nft"
-      with_items:
-        - iptables
-        - ip6tables
+        link: "{{ _baselinux_sbin_path }}/{{ item }}"
+        path: "{{ _baselinux_sbin_path }}/{{ item }}-nft"
+        priority: "{{ 10 if ansible_facts.os_family == 'RedHat' else omit }}"
+        subcommands: "{{ _baselinux_iptables_followers if ansible_facts.os_family == 'RedHat' else omit }}"
+      loop: "{{ ['iptables'] if ansible_facts.os_family == 'RedHat' else ['iptables', 'ip6tables'] }}"

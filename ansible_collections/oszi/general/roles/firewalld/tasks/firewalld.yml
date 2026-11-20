@@ -4,6 +4,7 @@
 # whether SSHD is running on an alternate port already or not.
 
 - name: Ensure conflicting firewalls are not installed
+  when: firewalld_manage_packages
   ansible.builtin.package:
     name:
       # Fedora/EL
@@ -15,6 +16,7 @@
   notify: "Restart firewalld"
 
 - name: Install firewalld daemon
+  when: firewalld_manage_packages
   ansible.builtin.package:
     name: "firewalld"
     state: "present"

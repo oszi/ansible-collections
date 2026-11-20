@@ -1,0 +1,44 @@
+---
+# Molecule scenario for oszi.environments.toolbox; shared settings come from ../config.yml.
+# The dependencies have scenarios of their own and are disabled here; a new baselinux or toolbox
+# dependency must be disabled in every environments scenario that includes it. The full default
+# package list is installed to catch packages renamed or dropped in new distribution releases;
+# heavy by nature. Prepare installs a blacklisted package for the role to remove.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        package_manager_disabled: true
+        python_disabled: true
+        shell_disabled: true
+        wireguard_disabled: true
+        systemd_disabled: true
+        firewalld_disabled: true
+        selinux_disabled: true
+        ssh_server_disabled: true
+        fail2ban_disabled: true
+        dotfiles_disabled: true
+        acme_disabled: true
+
+        molecule_prepare_packages: [speedtest-cli]
+
+        molecule_verify_paths:
+          - {path: /usr/local/bin/ansible-ssh, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/ansible-vault-id-client, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/json2yaml, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/yaml2json, mode: "0755", owner: root, group: root}
+        molecule_verify_commands:
+          - {cmd: "echo '{\"a\": [1]}' | json2yaml", stdout: "a:\n- 1"}
+          - {cmd: "printf 'a:\\n- 1\\n' | yaml2json", stdout: "{\"a\": [1]}"}
+          - {cmd: "ansible-ssh --help", stdout_contains: "usage: ansible-ssh"}
+          - {cmd: "bash -n /usr/local/bin/ansible-vault-id-client"}
+          - {cmd: "ansible --version", stdout_contains: "ansible"}
+          - {cmd: "ansible-lint --version", stdout_contains: "ansible-lint"}
+        molecule_verify_packages:
+          present: "{{ molecule_verify_packages_common + molecule_verify_packages_distro }}"
+          absent: [speedtest-cli, sslsplit, hddtemp]
+        molecule_verify_packages_common: [ansible-core, git, jq, nftables, nmap, rsync, strace]
+      redhat:
+        molecule_verify_packages_distro: [ShellCheck, bind-utils, gcc-c++, iproute, vim-enhanced]
+      debian:
+        molecule_verify_packages_distro: [bind9-utils, build-essential, iproute2, shellcheck, vim]

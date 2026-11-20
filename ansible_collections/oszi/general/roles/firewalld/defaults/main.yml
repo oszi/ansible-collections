@@ -2,6 +2,10 @@
 # Disable firewalld?
 firewalld_disabled: "{{ 'container' in ansible_facts.virtualization_tech_guest }}"
 
+# Install firewalld and remove conflicting firewalls, or uninstall firewalld when disabled?
+# Disable to keep firewalld installed with firewalld disabled, e.g. for other packages depending on it.
+firewalld_manage_packages: true
+
 # Override the firewalld default zone?
 # Upstream default: public
 # Fedora: FedoraWorkstation / FedoraServer

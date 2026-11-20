@@ -1,0 +1,7 @@
+---
+# Converge with the production playbook: the toolbox role, its disabled dependencies and the
+# disabled thirdparty roles.
+- name: Import the toolbox playbook
+  ansible.builtin.import_playbook: oszi.environments.toolbox
+  vars:
+    toolbox_hosts: [redhat, debian]

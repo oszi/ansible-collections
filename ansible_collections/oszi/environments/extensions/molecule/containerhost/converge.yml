@@ -1,0 +1,7 @@
+---
+# Converge with the production playbook: the containerhost role, its disabled dependencies and the
+# disabled thirdparty roles.
+- name: Import the containerhost playbook
+  ansible.builtin.import_playbook: oszi.environments.containerhost
+  vars:
+    containerhost_hosts: [redhat, debian]

@@ -1,0 +1,96 @@
+---
+# Molecule scenario for oszi.environments.baselinux; shared settings come from ../config.yml.
+# The dependencies have scenarios of their own and are disabled here; a new baselinux dependency
+# must be disabled in every environments scenario. The container guard skips the privileged tasks,
+# whose inputs are set anyway so verify proves nothing was written. Prepare generates two test CAs
+# on the controller: one to trust, one seeded at the blacklisted path for the role to remove.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        package_manager_disabled: true
+        python_disabled: true
+        shell_disabled: true
+        wireguard_disabled: true
+        systemd_disabled: true
+        firewalld_disabled: true
+        selinux_disabled: true
+        ssh_server_disabled: true
+        fail2ban_disabled: true
+        dotfiles_disabled: true
+        acme_disabled: true
+
+        baselinux_symlinks:
+          /usr/local/bin/molecule-link: /usr/bin/true
+        baselinux_absent_paths:
+          - /opt/molecule-absent-file
+          - /opt/molecule-absent-dir
+        molecule_ca_dir: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/certs"
+        baselinux_ca_trust_anchors:
+          - "{{ molecule_ca_dir }}/molecule-ca.crt"
+        baselinux_ca_trust_anchors_blacklisted_paths:
+          - "{{ molecule_blacklisted_ca_path }}"
+
+        # Privileged inputs, skipped by the container guard.
+        baselinux_timezone: "Antarctica/Troll"
+        baselinux_etc_hosts:
+          molecule.invalid: 192.0.2.1
+        baselinux_sysctl_values:
+          vm.overcommit_memory: 1
+        baselinux_udev_rules:
+          99-molecule: 'SUBSYSTEM=="usb", TAG+="molecule"'
+        baselinux_sudoers_rules:
+          molecule: "Defaults:root !lecture"
+        baselinux_swapfile_size: "16m"
+        baselinux_dhclient_resolvconf_disabled: true
+
+        molecule_prepare_packages: [openssl, qemu-guest-agent]
+        molecule_prepare_seed_files:
+          - {path: /usr/local/bin/molecule-link}
+          - {path: /opt/molecule-absent-file}
+          - {path: /opt/molecule-absent-dir/nested/file}
+
+        molecule_verify_paths: "{{ molecule_verify_paths_common + molecule_verify_paths_distro }}"
+        molecule_verify_paths_common:
+          - {path: /usr/local/bin/molecule-link, state: link, src: /usr/bin/true}
+          - {path: /opt/molecule-absent-file, state: absent}
+          - {path: /opt/molecule-absent-dir, state: absent}
+          - {path: "{{ molecule_blacklisted_ca_path }}", state: absent}
+          - {path: /etc/sudoers.d/molecule, state: absent}
+          - {path: /etc/sudoers.d/no-pwfeedback, state: absent}
+          - {path: /etc/udev/rules.d/99-molecule.rules, state: absent}
+          - {path: /swapfile, state: absent}
+          - {path: /etc/systemd/system/swapfile.swap, state: absent}
+          - {path: /etc/dhcp/dhclient-enter-hooks.d/make_resolv_conf, state: absent}
+        molecule_verify_commands:
+          - {cmd: "openssl verify -CAfile {{ molecule_ca_bundle_path }} /root/molecule-certs/molecule-ca.crt",
+             stdout_contains: ": OK"}
+          - {cmd: "! openssl verify -CAfile {{ molecule_ca_bundle_path }} /root/molecule-certs/molecule-blacklisted.crt"}
+          - {cmd: "iptables --version", stdout_contains: "nf_tables"}
+          - {cmd: "ip6tables --version", stdout_contains: "nf_tables"}
+          # The followers of the package-registered alternatives must survive the selection.
+          - {cmd: "for c in ip{,6}tables-{save,restore}; do $$c --version | grep -F nf_tables; done"}
+          - {cmd: "! grep -F molecule.invalid /etc/hosts"}
+          - {cmd: "! grep -rsF vm.overcommit_memory /etc/sysctl.d /etc/sysctl.conf"}
+          - {cmd: "! readlink /etc/localtime | grep -F Antarctica/Troll"}
+        molecule_verify_packages:
+          present: "{{ molecule_iptables_packages + ['nftables'] }}"
+          absent: [qemu-guest-agent, open-vm-tools]
+      redhat:
+        molecule_blacklisted_ca_path: /etc/pki/ca-trust/source/anchors/molecule-blacklisted.pem
+        molecule_ca_bundle_path: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+        molecule_iptables_packages: [iptables-nft]
+        molecule_verify_paths_distro:
+          - path: /etc/pki/ca-trust/source/anchors/molecule-ca.pem
+            mode: "0644"
+            owner: root
+            group: root
+      debian:
+        molecule_blacklisted_ca_path: /usr/local/share/ca-certificates/molecule-blacklisted.crt
+        molecule_ca_bundle_path: /etc/ssl/certs/ca-certificates.crt
+        molecule_iptables_packages: [iptables]
+        molecule_verify_paths_distro:
+          - path: /usr/local/share/ca-certificates/molecule-ca.crt
+            mode: "0644"
+            owner: root
+            group: root

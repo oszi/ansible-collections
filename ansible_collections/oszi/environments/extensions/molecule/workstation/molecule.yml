@@ -1,0 +1,92 @@
+---
+# Molecule scenario for oszi.environments.workstation; shared settings come from ../config.yml.
+# The production playbook also applies containerhost and toolbox, which have scenarios of their own;
+# their packages and every dependency are disabled here, and a new dependency of these roles must be
+# disabled in every environments scenario that includes it. Gnome has no switch, so its package lists
+# are emptied. firewall-config depends on firewalld, so the role leaves it out with firewalld disabled
+# and the disabled firewalld role keeps firewalld removed. The full workstation package list is installed
+# to catch packages renamed or dropped in new distribution releases. Without Gnome, prepare installs
+# what the role expects on Debian/Ubuntu: kmod for /etc/modprobe.d, udev for udevadm verify and the XKB symbols.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        package_manager_disabled: true
+        python_disabled: true
+        shell_disabled: true
+        wireguard_disabled: true
+        systemd_disabled: true
+        firewalld_disabled: true
+        selinux_disabled: true
+        ssh_server_disabled: true
+        fail2ban_disabled: true
+        dotfiles_disabled: true
+        acme_disabled: true
+        podman_disabled: true
+        libvirt_disabled: true
+        flatpak_disabled: true
+        snap_disabled: true
+        chromium_policies_disabled: true
+        gnome_packages: []
+        gnome_blacklisted_packages: []
+        gnome_users: []
+        toolbox_packages: []
+
+        # Defaults to the shell integrations path, empty with the shell role disabled.
+        workstation_shell_aliases_path: /etc/profile.d/workstation-aliases.sh
+        workstation_hid_apple_options:
+          fnmode: 2
+          swap_opt_cmd: 1
+
+        molecule_prepare_seed_files:
+          - {path: /etc/udev/rules.d/yubikey-fix.rules}
+
+        molecule_files_path: "${MOLECULE_PROJECT_DIRECTORY}/roles/workstation/files"
+        molecule_verify_paths:
+          - {path: /usr/local/bin/alert, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/bluetooth-switch, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/smartcard-restart, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/yubikey-fix, state: link, src: smartcard-restart}
+          - {path: /etc/profile.d/workstation-aliases.sh, mode: "0644", owner: root, group: root,
+             lines: ["alias o='xdg-open'"]}
+          - path: /etc/sudoers.d/plugdev-pcscd
+            mode: "0440"
+            owner: root
+            group: root
+            content: "{{ lookup('file', molecule_files_path + '/etc/sudoers.d/plugdev-pcscd', rstrip=false) }}"
+          - {path: /etc/udev/rules.d/yubikey-fix.rules, state: absent}
+          - {path: /etc/udev/rules.d/70-smartcard-restart.rules, mode: "0644", owner: root, group: root}
+          - path: /etc/pipewire/media-session.d/bluez-monitor.conf
+            mode: "0644"
+            owner: root
+            group: root
+            content: "{{ lookup('file', molecule_files_path + '/etc/pipewire/media-session.d/bluez-monitor.conf',
+              rstrip=false) }}"
+          - path: /etc/gai.conf
+            mode: "0644"
+            owner: root
+            group: root
+            content: "{{ lookup('file', molecule_files_path + '/etc/gai.conf', rstrip=false) }}"
+          - path: /etc/modprobe.d/hid_apple.conf
+            mode: "0644"
+            owner: root
+            group: root
+            content: "options hid_apple fnmode=2 swap_opt_cmd=1\n"
+        molecule_verify_commands:
+          - {cmd: "for f in /usr/local/bin/{alert,bluetooth-switch,smartcard-restart}; do bash -n \"$$f\"; done"}
+          - {cmd: "sh -n /etc/profile.d/workstation-aliases.sh"}
+          - {cmd: "getent group plugdev"}
+          - {cmd: "visudo -cf /etc/sudoers.d/plugdev-pcscd"}
+          - {cmd: "udevadm verify /etc/udev/rules.d/70-smartcard-restart.rules"}
+          - {cmd: "grep -F 'RUN+=\"/usr/local/bin/smartcard-restart\"' /etc/udev/rules.d/70-smartcard-restart.rules"}
+          - {cmd: "grep -F '[ Alt_R, Multi_key ]' /usr/share/X11/xkb/symbols/level3"}
+        molecule_verify_packages:
+          present: "{{ molecule_verify_packages_common + molecule_verify_packages_distro }}"
+          absent: [xclip, spice-vdagent, open-vm-tools-desktop, firewall-config, firewalld]
+        molecule_verify_packages_common: [gparted, keepassxc, pcsc-tools, wireshark, yubikey-manager]
+      redhat:
+        molecule_prepare_packages: [xclip]
+        molecule_verify_packages_distro: [hunspell-en, pcsc-lite]
+      debian:
+        molecule_prepare_packages: [xclip, kmod, udev, xkb-data]
+        molecule_verify_packages_distro: [hunspell-en-us, pcscd, scdaemon]

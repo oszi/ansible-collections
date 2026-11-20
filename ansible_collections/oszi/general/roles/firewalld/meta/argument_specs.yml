@@ -16,6 +16,14 @@ argument_specs:
         type: bool
         required: false
 
+      firewalld_manage_packages:
+        description:
+          - Whether to install firewalld and remove conflicting firewalls, or to uninstall firewalld when disabled
+          - Disable to keep firewalld installed with O(firewalld_disabled), e.g. for other packages depending on it
+        type: bool
+        required: false
+        default: true
+
       firewalld_default_zone:
         description:
           - Override the firewalld default zone

@@ -1,0 +1,91 @@
+---
+- name: Generate the test CAs on the controller
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  vars:
+    molecule_ca_dir: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/certs"
+  tasks:
+    - name: Ensure the test CA directory exists
+      ansible.builtin.file:
+        path: "{{ molecule_ca_dir }}"
+        state: "directory"
+        mode: "0700"
+
+    - name: Generate the test CA keys
+      community.crypto.openssl_privatekey:
+        path: "{{ molecule_ca_dir }}/{{ item }}.key"
+        type: "ECC"
+        curve: "secp256r1"
+        mode: "0600"
+      loop: [molecule-ca, molecule-blacklisted]
+      no_log: true
+
+    - name: Generate the test CA signing requests
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ molecule_ca_dir }}/{{ item }}.key"
+        common_name: "{{ item }}"
+        basic_constraints: ["CA:TRUE"]
+        basic_constraints_critical: true
+        key_usage: [keyCertSign, cRLSign]
+        key_usage_critical: true
+      loop: [molecule-ca, molecule-blacklisted]
+      register: _molecule_ca_csr_results
+
+    - name: Generate the self-signed test CA certificates
+      community.crypto.x509_certificate:
+        path: "{{ molecule_ca_dir }}/{{ item.item }}.crt"
+        csr_content: "{{ item.csr }}"
+        privatekey_path: "{{ molecule_ca_dir }}/{{ item.item }}.key"
+        provider: "selfsigned"
+        selfsigned_not_after: "+1d"
+        mode: "0644"
+      loop: "{{ _molecule_ca_csr_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+- name: Import the shared prepare playbook
+  ansible.builtin.import_playbook: oszi.utils.molecule.prepare
+
+- name: Install the test CAs
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure the reference directory exists
+      ansible.builtin.file:
+        path: "/root/molecule-certs"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0700"
+
+    - name: Copy the test CA certificates for verify
+      ansible.builtin.copy:
+        src: "{{ molecule_ca_dir }}/{{ item }}.crt"
+        dest: "/root/molecule-certs/{{ item }}.crt"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      loop: [molecule-ca, molecule-blacklisted]
+
+    - name: Trust the blacklisted test CA, which the role must remove
+      ansible.builtin.copy:
+        src: "{{ molecule_ca_dir }}/molecule-blacklisted.crt"
+        dest: "{{ molecule_blacklisted_ca_path }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      register: _molecule_blacklisted_ca_result
+
+    - name: Update the CA trust with the blacklisted test CA
+      when: _molecule_blacklisted_ca_result is changed
+      ansible.builtin.command:
+        cmd: "{{ 'update-ca-trust' if 'redhat' in group_names else 'update-ca-certificates' }}"
+      changed_when: true
+
+    - name: Assert the blacklisted test CA is trusted before converge
+      ansible.builtin.command:
+        cmd: "openssl verify -CAfile {{ molecule_ca_bundle_path }} /root/molecule-certs/molecule-blacklisted.crt"
+      changed_when: false

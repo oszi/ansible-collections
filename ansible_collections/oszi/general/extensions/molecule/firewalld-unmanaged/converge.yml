@@ -1,0 +1,4 @@
+---
+# Converge with the production playbook: bootstrap, then the firewalld role.
+- name: Import the firewalld playbook
+  ansible.builtin.import_playbook: oszi.general.firewalld

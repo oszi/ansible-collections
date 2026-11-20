@@ -1,0 +1,13 @@
+---
+# Molecule scenario for oszi.general.firewalld without package management; shared settings come from ../config.yml.
+# The container guard sets firewalld_disabled; with firewalld_manage_packages false the role must keep
+# the firewalld package that prepare installs.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        firewalld_manage_packages: false
+        molecule_verify_packages:
+          present: [firewalld]
+        molecule_verify_commands:
+          - {cmd: "command -v firewall-cmd"}

@@ -28,8 +28,9 @@ workstation_packages_pt_default:
       'piper',
     ]
     if ansible_facts.virtualization_role != 'guest' else [] }}"
+  # firewall-config depends on firewalld, which a disabled firewalld role removes.
+  - "{{ ['firewall-config'] if not firewalld_disabled | default(false) else [] }}"
   - efitools
-  - firewall-config
   - gamemode
   - gparted
   - keepassxc

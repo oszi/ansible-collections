@@ -12,6 +12,7 @@ from typing import Dict, FrozenSet, Iterable, List, Set, Tuple
 import yaml
 
 from testlib import (
+    COLLECTIONS,
     NAMESPACE_PATH,
     Color,
     Output,
@@ -29,7 +30,8 @@ from testlib import (
     run_tests_parallel,
 )
 
-COLLECTIONS = ("general", "thirdparty", "utils")
+# Roles of these collections are selected only directly, never as dependents of affected roles.
+CLOSURE_EXCLUDED_COLLECTIONS = ("environments",)
 SCENARIOS_DIR = Path("extensions") / "molecule"
 
 # Changes to the shared molecule framework and tooling affect every role.
@@ -138,7 +140,11 @@ def _role_dependencies(role_meta: RoleMeta) -> Set[str]:
 
 def _dependent_roles(roles: Set[str]) -> Set[str]:
     """Transitive closure of the roles depending on the given roles. Called once in affected_roles."""
-    dependencies = {role.fqcn: _role_dependencies(role) for role in _all_roles()}
+    dependencies = {
+        role.fqcn: _role_dependencies(role)
+        for role in _all_roles()
+        if role.collection.name not in CLOSURE_EXCLUDED_COLLECTIONS
+    }
     result = set(roles)
     while True:
         new_roles = {role for role, deps in dependencies.items() if deps & result} - result

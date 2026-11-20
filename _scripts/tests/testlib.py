@@ -18,6 +18,7 @@ import yaml
 
 assert sys.version_info >= (3, 11)
 
+COLLECTIONS = ("environments", "general", "thirdparty", "utils")
 NAMESPACE_PATH = Path("ansible_collections") / "oszi"
 RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
 
@@ -473,7 +474,7 @@ class RoleMeta:
 
 
 def all_collection_paths() -> List[Path]:
-    return sorted(NAMESPACE_PATH.glob("[a-zA-Z]*/"))
+    return [NAMESPACE_PATH / collection for collection in COLLECTIONS]
 
 
 def git_chdir() -> None | NoReturn:

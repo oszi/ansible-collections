@@ -1,8 +1,7 @@
 # Molecule Tests
 
-Molecule tests run the roles of `oszi.general`, `oszi.thirdparty` and `oszi.utils` in rootless Podman
-containers with systemd as init. `oszi.environments` is out of scope. Containers get the default
-rootless capability set: no `--privileged`, no `CAP_SYS_ADMIN`.
+Molecule tests run the roles of every collection in rootless Podman containers with systemd as init.
+Containers get the default rootless capability set: no `--privileged`, no `CAP_SYS_ADMIN`.
 
 Molecule tests are slow and need podman and network access; agents must not run molecule unless asked.
 
@@ -71,7 +70,7 @@ EOF
 ansible_collections/oszi/utils/extensions/molecule/
   config.yml       # base config: driver, platforms, ansible
 
-ansible_collections/oszi/{general,thirdparty}/extensions/molecule/
+ansible_collections/oszi/{environments,general,thirdparty}/extensions/molecule/
   config.yml       # symlinks to config.yml in utils
 
 ansible_collections/oszi/utils/playbooks/molecule/
@@ -179,13 +178,21 @@ plays. Scenario names are `{role}` or `{role}-{variant}`; role names never conta
 
 ## Scenarios in place
 
-Every role of the three collections has a `{role}` scenario; variants cover uninstall paths (`-disabled`),
+Every role has a `{role}` scenario; variants cover uninstall paths (`-disabled`),
 `update` entrypoints (converge-only test sequence), enabled thirdparty repositories (`-enabled`, vendor network
 needed), the upstream repositories of roles defaulting to the distribution package (`-enabled-upstream`, Fedora),
 the ssh server, and rootless mode. Heavy by nature: the enabled thirdparty scenarios download vendor packages,
 `gnome` installs the full default package set (about 1 GB per platform) to catch packages renamed or dropped
 in new distribution releases, `gnome_users` a small dconf set (each setting is a `podman exec`),
 and `borgmatic` and `python` need PyPI.
+
+The `oszi.environments` scenarios converge the production playbooks with every dependency disabled
+(`{role}_disabled: true`, emptied lists for roles without a switch), as the dependencies have scenarios of their
+own; a new dependency must be disabled in every environments scenario including it. The converge stubs set the
+playbooks' `{role}_hosts` to `[redhat, debian]` on the import: play hosts are templated without inventory
+variables, so group_vars cannot retarget them. The privileged baselinux tasks are skipped by the container guard,
+so their inputs are set and asserted unwritten. `toolbox` and `workstation` install their full default package
+sets, like `gnome`. Environments roles are selected only when changed directly, never as dependents.
 
 Rootless-tagged roles (`_scripts/galaxy-tags.py -t rootless`) have a `{role}-rootless` scenario running
 the role as `tester` via `molecule_become_user`, so `ansible_facts.user_uid` is non-zero and the tilde
@@ -195,7 +202,8 @@ would manage as root, and `molecule_verify_role_vars` asserts the defaults deriv
 Not testable in these containers: firewalld enabled (polkit needs `CAP_SYS_ADMIN`), nested podman
 (quadlet and kube services, deploy and pull paths), snaps and `snap update` (snapd exits with 237/KEYRING),
 SELinux changes, libvirt daemons, ACME issuance, the CloudFlare API, `localectl`, `wg-quick` interfaces,
-and flatpak remotes and apps (bubblewrap).
+flatpak remotes and apps (bubblewrap), udev rule reloads and events (no `systemd-udevd`), and real
+toolbox containers (the scripts run against argument-printing stubs).
 
 ## Checklist for scenario authors
 

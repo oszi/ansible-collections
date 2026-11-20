@@ -1,0 +1,7 @@
+---
+# Converge with the production playbook: the containerhost, toolbox and workstation roles, their disabled
+# dependencies and the disabled thirdparty roles.
+- name: Import the workstation playbook
+  ansible.builtin.import_playbook: oszi.environments.workstation
+  vars:
+    workstation_hosts: [redhat, debian]

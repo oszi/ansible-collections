@@ -1,0 +1,56 @@
+---
+# Molecule scenario for oszi.environments.containerhost; shared settings come from ../config.yml.
+# The dependencies have scenarios of their own and are disabled here; a new baselinux or containerhost
+# dependency must be disabled in every environments scenario that includes it. Nested containers cannot
+# run, so the toolbox-container scripts call stubs seeded by prepare that print their arguments, and
+# the image pull stays disabled.
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        package_manager_disabled: true
+        python_disabled: true
+        shell_disabled: true
+        wireguard_disabled: true
+        systemd_disabled: true
+        firewalld_disabled: true
+        selinux_disabled: true
+        ssh_server_disabled: true
+        fail2ban_disabled: true
+        dotfiles_disabled: true
+        acme_disabled: true
+        podman_disabled: true
+
+        # Defaults to podman_disabled.
+        containerhost_toolbox_container_disabled: false
+        containerhost_toolbox_container_image: "quay.io/molecule/toolbox"
+        containerhost_runtime: "/usr/local/libexec/molecule-runtime"
+
+        molecule_stub_content: |
+          #!/bin/sh
+          printf '%s\n' "$$@"
+        molecule_prepare_seed_files:
+          - {path: /usr/local/libexec/molecule-runtime, content: "{{ molecule_stub_content }}", mode: "0755"}
+          - {path: /usr/local/sbin/kubectl, content: "{{ molecule_stub_content }}", mode: "0755"}
+
+        molecule_verify_paths:
+          - {path: /usr/local/bin/toolbox-container, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/toolbox-container-attach, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/toolbox-container-host, mode: "0755", owner: root, group: root}
+          - {path: /usr/local/bin/toolbox-container-kube, mode: "0755", owner: root, group: root}
+        # The stubs print one argument per line; paste joins them and sed drops the random name suffix.
+        molecule_verify_commands:
+          - {cmd: "for f in /usr/local/bin/toolbox-container*; do bash -n \"$$f\"; done"}
+          - cmd: "toolbox-container :molecule -v /x -- cmd arg | paste -sd ' ' | sed 's/toolbox-[0-9]*/toolbox-N/'"
+            stdout: "run -it --rm --name=toolbox-N -v /x quay.io/molecule/toolbox:molecule cmd arg"
+          - cmd: "toolbox-container-host -- id | paste -sd ' '"
+            stdout_contains: "--privileged --userns=host --pid=host --ipc=host --network=host --uts=host"
+          - cmd: "toolbox-container-host -- id | paste -sd ' '"
+            stdout_contains: "--workdir=/host quay.io/molecule/toolbox id"
+          - cmd: "toolbox-container-attach box -- id | paste -sd ' '"
+            stdout_contains: "--userns=container:box --pid=container:box"
+          - cmd: "toolbox-container-attach box -- id | paste -sd ' '"
+            stdout_contains: "--volumes-from=box quay.io/molecule/toolbox id"
+          - {cmd: "! toolbox-container-attach"}
+          - cmd: "toolbox-container-kube -- sh | paste -sd ' ' | sed 's/toolbox-[0-9]*/toolbox-N/'"
+            stdout: "run toolbox-N --rm --stdin --tty --restart=Never --image=quay.io/molecule/toolbox -- sh"
