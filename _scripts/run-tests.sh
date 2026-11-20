@@ -57,7 +57,7 @@ done
 opt_in=(molecule)
 
 # Tests that accept --all themselves to test everything, not only changes since the previous release.
-all_supported=(ansible-lint molecule)
+all_supported=(ansible-lint ansible-test molecule)
 
 in_list() {
     local item needle="$1"

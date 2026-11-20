@@ -1,3 +1,4 @@
+extensions/molecule/config.yml symlinks
 roles/containerhost/templates/bin/toolbox-container-attach.j2 shebang
 roles/containerhost/templates/bin/toolbox-container-host.j2 shebang
 roles/containerhost/templates/bin/toolbox-container-kube.j2 shebang
