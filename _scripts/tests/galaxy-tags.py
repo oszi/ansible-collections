@@ -9,7 +9,7 @@ import yaml
 from testlib import NAMESPACE_PATH, Color, RC, RoleMeta, boolean_test_decorator, chdir_project, print_error
 
 MUTUALLY_EXCLUSIVE_TAGS = {"baselinux", "containers", "thirdparty", "toolbox", "workstation"}
-MUTUALLY_EXCLUSIVE_TAGS_STR = Color.BOLD(", ".join(sorted(MUTUALLY_EXCLUSIVE_TAGS)))
+MUTUALLY_EXCLUSIVE_TAGS_STR = Color.BOLD(*sorted(MUTUALLY_EXCLUSIVE_TAGS), sep=", ")
 
 args_parser = ArgumentParser(
     usage="galaxy-tags.py [--help]",

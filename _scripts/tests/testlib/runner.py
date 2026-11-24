@@ -56,11 +56,11 @@ def print_error(message: str, rc: int = RC.ERROR) -> None:
 
 
 def print_warning(message: str) -> None:
-    print(Color.YELLOW(f"WARNING: {message}"), file=sys.stderr)
+    print(Color.YELLOW("WARNING:", message), file=sys.stderr)
 
 
 def print_hint(message: str) -> None:
-    print(Color.BLUE(f"HINT: {message}"), file=sys.stderr)
+    print(Color.BLUE("HINT:", message), file=sys.stderr)
 
 
 def print_success(message: str) -> None:
@@ -68,7 +68,7 @@ def print_success(message: str) -> None:
 
 
 def print_test_cmd(cmd: List[str], targets: Optional[List[str]] = None, cwd: Optional[str] = None) -> None:
-    message = Color.CYAN(f"Running: {Color.BOLD(' '.join(cmd))}")
+    message = Color.CYAN("Running:", Color.BOLD(*cmd))
     if cwd:
         message += f" @{cwd}"
     if targets:

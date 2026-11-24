@@ -64,8 +64,8 @@ class Color:
             self.code = code
             self.reset = reset
 
-        def __call__(self, text: Any) -> str:
-            return f"{Color.sgr(self.code)}{text}{Color.sgr(self.reset)}"
+        def __call__(self, *values: Any, sep: str = " ") -> str:
+            return f"{Color.sgr(self.code)}{sep.join(map(str, values))}{Color.sgr(self.reset)}"
 
         def __repr__(self) -> str:
             return f"{self.__class__.__qualname__}({self.code!r}, {self.reset!r})"
