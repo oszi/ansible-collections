@@ -56,11 +56,11 @@ def print_error(message: str, rc: int = RC.ERROR) -> None:
 
 
 def print_warning(message: str) -> None:
-    print(Color.YELLOW("WARNING:", message), file=sys.stderr)
+    print(Color.YELLOW(f"WARNING: {message}"), file=sys.stderr)
 
 
-def print_hint(message: str) -> None:
-    print(Color.BLUE("HINT:", message), file=sys.stderr)
+def print_hint(message: str, *lines: str, line_sep: str = "\n# ") -> None:
+    print(Color.BLUE(f"HINT: {message}", *lines, sep=line_sep), file=sys.stderr)
 
 
 def print_success(message: str) -> None:

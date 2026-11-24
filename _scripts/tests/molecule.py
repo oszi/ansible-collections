@@ -188,13 +188,14 @@ def _affected_roles(paths: Iterable[str], ignore_framework: bool = False) -> Tup
     return _dependent_roles(roles), framework_changes
 
 
-def select_roles(app_args) -> Tuple[Set[str], List[str]]:
+def select_roles(app_args) -> Set[str]:
     """Roles from the CLI, or the roles affected since the previous release."""
     fqcns = app_args.fqcns
     if app_args.all:
         if fqcns:
             error_code("molecule.py --all cannot be combined with FQCNs.", sys_exit=True)
-        return _all_roles_fqcn(), ["Selected all roles."]
+        print_hint("Selected all roles.")
+        return _all_roles_fqcn()
 
     if fqcns:
         namespace = NAMESPACE_PATH.name
@@ -213,19 +214,19 @@ def select_roles(app_args) -> Tuple[Set[str], List[str]]:
             if fqcn not in available_roles:
                 error_code(f"Role not found: {fqcn}", sys_exit=True)
             roles.add(fqcn)
-        return roles, [f"Selected {len(roles)} role(s) from the command line."]
+        print_hint(f"Selected {len(roles)} role(s) from the command line.")
+        return roles
 
     release = git_previous_release_tag()
     if release is None:
         error_code("No release tag found. Wrong repository?", sys_exit=True)
 
     roles, framework_changes = _affected_roles(git_changed_paths(release), app_args.ignore_framework)
-    notes = [f"Changes since release {release} affect {len(roles)} role(s)."]
+    print_hint(f"Changes since release {release} affect {len(roles)} role(s).")
     if framework_changes:
         effect = "are ignored" if app_args.ignore_framework else "affect every role"
-        changes = "\n# ".join([f"Framework changes {effect}:", *framework_changes])
-        notes.append(changes)
-    return roles, notes
+        print_hint(f"Framework changes {effect}:", *framework_changes)
+    return roles
 
 
 def select_scenarios(roles: Iterable[str]) -> Dict[str, List[Path]]:
@@ -351,10 +352,7 @@ def main() -> None:
         error_code("molecule's --workers/--parallel are not supported!", sys_exit=True)
 
     chdir_project()
-    roles, notes = select_roles(app_args)
-    for note in notes:
-        print_hint(note)
-
+    roles = select_roles(app_args)
     scenarios = select_scenarios(roles)
     if not any(scenarios.values()):
         nothing_to_test(MOLECULE_CMD[0], sys_exit=True)

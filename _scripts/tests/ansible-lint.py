@@ -83,32 +83,35 @@ def _changed_lint_paths(paths: Iterable[str], ansible_lint_args: List[str]) -> T
     return sorted(lint_paths), []
 
 
-def select_paths(app_args, ansible_lint_args: List[str]) -> Tuple[Optional[List[str]], List[str]]:
+def select_paths(app_args, ansible_lint_args: List[str]) -> Optional[List[str]]:
     """Paths from the CLI, the paths changed since the previous release, or None for everything."""
     paths = app_args.paths
     if app_args.all:
         if paths:
             error_code("ansible-lint.py --all cannot be combined with PATHS.", sys_exit=True)
-        return None, ["Selected everything."]
+        print_hint("Selected everything.")
+        return None
 
     if paths:
-        return paths, [f"Selected {len(paths)} path(s) from the command line."]
+        print_hint(f"Selected {len(paths)} path(s) from the command line.")
+        return paths
 
     release = git_previous_release_tag()
     if release is None:
-        return None, ["No release tag found, selected everything."]
+        print_hint("No release tag found, selected everything.")
+        return None
 
     # Relative to the current directory, which may be a subdirectory of a parent repository.
     lint_paths, config_changes = _changed_lint_paths(git_changed_paths(release), ansible_lint_args)
     if lint_paths is None:
-        changes = "\n# ".join(["Configuration changes affect everything:", *config_changes])
-        return None, [f"Changes since release {release} select everything.", changes]
+        print_hint(f"Changes since release {release} select everything.")
+        print_hint("Configuration changes affect everything:", *config_changes)
+        return None
 
-    notes = [f"Changes since release {release} affect {len(lint_paths)} lintable path(s)."]
+    print_hint(f"Changes since release {release} affect {len(lint_paths)} lintable path(s).")
     if 0 < len(lint_paths) <= HINT_PATHS_MAX:
-        changes = "\n# ".join(["Affected lintable path(s):", *lint_paths])
-        notes.append(changes)
-    return lint_paths, notes
+        print_hint("Affected lintable path(s):", *lint_paths)
+    return lint_paths
 
 
 def main() -> None:
@@ -131,10 +134,7 @@ def main() -> None:
     # Change ansible temp directory for read-only, agentic environments.
     os.environ.setdefault("ANSIBLE_LOCAL_TEMP", tempdir.name)
 
-    paths, notes = select_paths(app_args, ansible_lint_args)
-    for note in notes:
-        print_hint(note)
-
+    paths = select_paths(app_args, ansible_lint_args)
     run_tests(ANSIBLE_LINT_CMD + ansible_lint_args + ["--"], paths, sys_exit=True)
 
 

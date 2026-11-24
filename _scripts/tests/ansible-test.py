@@ -4,7 +4,7 @@ import os
 
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set
 
 from testlib import (
     NAMESPACE_PATH,
@@ -109,31 +109,35 @@ def select_targets(paths: List[str], commands: List[str]) -> Dict[str, Set[Path]
     return selected
 
 
-def select_paths(app_args) -> Tuple[List[str], List[str]]:
+def select_paths(app_args) -> List[str]:
     """Paths from the CLI, the paths affected by changes since the previous release, or every collection."""
     if app_args.all and app_args.paths:
         error_code("ansible-test.py --all cannot be combined with PATHS.", sys_exit=True)
     if app_args.paths:
-        return app_args.paths, [f"Selected {len(app_args.paths)} path(s) from the command line."]
+        print_hint(f"Selected {len(app_args.paths)} path(s) from the command line.")
+        return app_args.paths
 
     all_paths = [str(path) for path in all_collection_paths() if path.is_dir()]
     if not all_paths:
-        return [], [f"No collections of {NAMESPACE_PATH} in {os.getcwd()}."]
+        print_hint(f"No collections of {NAMESPACE_PATH} in {os.getcwd()}.")
+        return []
     if app_args.all:
-        return all_paths, ["Selected everything."]
+        print_hint("Selected everything.")
+        return all_paths
 
     release = git_previous_release_tag()
     if release is None:
-        return all_paths, ["No release tag found, selected everything."]
+        print_hint("No release tag found, selected everything.")
+        return all_paths
 
     # Relative to the current directory, which may be a subdirectory of a parent repository.
     changed_paths = git_changed_paths(release)
+    print_hint(f"Selected changes since release {release}.")
     if framework_changes := [path for path in changed_paths if path in FRAMEWORK_PATHS]:
-        changes = "\n# ".join(["Framework changes affect every collection:", *framework_changes])
-        return all_paths, [f"Selected changes since release {release}.", changes]
+        print_hint("Framework changes affect every collection:", *framework_changes)
+        return all_paths
 
-    paths = [path for path in changed_paths if any(Path(path).is_relative_to(collection) for collection in all_paths)]
-    return paths, [f"Selected changes since release {release}."]
+    return [path for path in changed_paths if any(Path(path).is_relative_to(collection) for collection in all_paths)]
 
 
 def prepare_containers(cwd: str) -> int:
@@ -154,10 +158,7 @@ def main() -> None:
     app_args.paths = chdir_project(app_args.paths)
     commands = [command for command in COMMANDS if getattr(app_args, command)] or list(COMMANDS)
 
-    paths, notes = select_paths(app_args)
-    for note in notes:
-        print_hint(note)
-
+    paths = select_paths(app_args)
     selected = select_targets(paths, commands)
     if not any(selected.values()):
         nothing_to_test(ANSIBLE_TEST_CMD[0], sys_exit=True)
