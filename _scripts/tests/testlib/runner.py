@@ -1,5 +1,6 @@
 # pylint: disable=too-few-public-methods,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
 import functools
+import shutil
 import subprocess as sp
 import sys
 import threading
@@ -21,11 +22,13 @@ __all__ = [
     "print_hint",
     "print_success",
     "print_test_cmd",
-    "format_duration",
+    "elapsed",
     "error_code",
     "error_code_exc",
     "failure",
     "success",
+    "nothing_to_test",
+    "require_commands",
     "run_shell_get_lines",
     "run_test_cmd",
     "run_tests",
@@ -76,7 +79,9 @@ def print_test_cmd(cmd: List[str], targets: Optional[List[str]] = None, cwd: Opt
     print(message, file=sys.stderr)
 
 
-def format_duration(seconds: float) -> str:
+def elapsed(seconds: Optional[float], prefix: str = "") -> str:
+    if seconds is None:
+        return ""
     if seconds < 60:
         duration = f"{seconds:.2f}s"
     else:
@@ -86,7 +91,7 @@ def format_duration(seconds: float) -> str:
 
     if DEBUG:
         duration += f" at {time.strftime('%H:%M:%S')}"
-    return duration
+    return f"{prefix}{duration}"
 
 
 def error_code(message: str, rc: int = RC.ERROR, sys_exit: bool = False) -> int | NoReturn:
@@ -102,18 +107,13 @@ def error_code(message: str, rc: int = RC.ERROR, sys_exit: bool = False) -> int 
 def error_code_exc(
     subject: str, err: BaseException, duration: Optional[float] = None, sys_exit: bool = False
 ) -> int | NoReturn:
-    duration_str = f" after {format_duration(duration)}" if duration is not None else ""
     if isinstance(err, KeyboardInterrupt):
-        message = f"{subject} was interrupted{duration_str}!"
         rc = RC.INTERRUPT
     elif isinstance(err, sp.TimeoutExpired):
-        message = f"{subject} has timed out{duration_str}!"
         rc = RC.TIMEOUT
     elif isinstance(err, sp.CalledProcessError):
-        message = f"{subject} failed{duration_str}!"
         rc = err.returncode
     else:
-        message = f"{subject} failed{duration_str}: {err}"
         rc = RC.ERROR
 
     if DEBUG:
@@ -121,7 +121,10 @@ def error_code_exc(
     elif not RC.is_early_exit(rc):
         print_hint(DEBUG_HELP)
 
-    return error_code(message, rc, sys_exit)
+    if isinstance(err, (KeyboardInterrupt, sp.TimeoutExpired, sp.CalledProcessError)):
+        return failure(subject, rc, duration, sys_exit)
+
+    return error_code(f"{subject} failed{elapsed(duration, ' after ')}: {err}", rc, sys_exit)
 
 
 def failure(
@@ -132,21 +135,30 @@ def failure(
     if rc == RC.OK:
         raise ValueError("testlib.failure called with RC.OK")
 
-    duration_str = f" after {format_duration(duration)}" if duration is not None else ""
     if rc == RC.TIMEOUT:
-        message = f"{subject} has timed out{duration_str}!"
+        message = f"{subject} has timed out{elapsed(duration, ' after ')}!"
     elif RC.is_signal(rc):
-        message = f"{subject} was interrupted{duration_str}!"
+        message = f"{subject} was interrupted{elapsed(duration, ' after ')}!"
     else:
-        message = f"{subject} failed{duration_str}!"
+        message = f"{subject} failed{elapsed(duration, ' after ')}!"
 
     return error_code(message, rc, sys_exit)
 
 
 def success(subject: str, duration: Optional[float] = None, sys_exit: bool = False) -> int | NoReturn:
-    duration_str = f" in {format_duration(duration)}" if duration is not None else ""
-    print_success(f"{subject} passed{duration_str}!")
+    print_success(f"{subject} passed{elapsed(duration, ' in ')}!")
     return RC.status(RC.OK, sys_exit)
+
+
+def nothing_to_test(subject: str, sys_exit: bool = False) -> int | NoReturn:
+    print_success(f"{subject}: nothing to test!")
+    return RC.status(RC.OK, sys_exit)
+
+
+def require_commands(*args: str) -> None | NoReturn:
+    if missing := [name for name in args if shutil.which(name) is None]:
+        print_hint("source venv/bin/activate")
+        error_code(f"{', '.join(missing)} not found!", sys_exit=True)
 
 
 def run_shell_get_lines(shell_cmd: str, *, null_delimited: bool = False, unique: bool = False, **kwargs) -> List[str]:
@@ -220,13 +232,14 @@ def run_test_cmd(  # pylint: disable=too-many-arguments
         return failure(subject, result.returncode, duration)
 
 
-def run_tests(cmd: List[str], targets: List[str], *, sys_exit: bool = False, **kwargs) -> int | NoReturn:
-    if not isinstance(cmd, list):
-        raise TypeError("run_tests: cmd is not a list")
-    if not isinstance(targets, list):
-        raise TypeError("run_tests: targets is not a list")
+def run_tests(
+    cmd: List[str], targets: Optional[List[str]] = None, *, sys_exit: bool = False, **kwargs
+) -> int | NoReturn:
+    if targets is not None and not targets:
+        return nothing_to_test(cmd[0], sys_exit)
 
-    rc = run_test_cmd(cmd, targets, cmd[0], **kwargs)
+    require_commands(cmd[0])
+    rc = run_test_cmd(cmd, targets or [], cmd[0], **kwargs)
     return RC.status(rc, sys_exit)
 
 
@@ -240,12 +253,10 @@ def run_tests_parallel(
     sys_exit: bool = False,
     **kwargs,
 ) -> int | NoReturn:
-    if not isinstance(cmd, list):
-        raise TypeError("run_tests_parallel: cmd is not a list")
-    if not isinstance(targets, list):
-        raise TypeError("run_tests_parallel: targets is not a list")
     if not targets:
-        return run_tests(cmd, targets, sys_exit=sys_exit, **kwargs)
+        return nothing_to_test(cmd[0], sys_exit)
+
+    require_commands(cmd[0])
     if "output" not in kwargs:
         kwargs["output"] = Output.BUFFERED_WITH_STATUS
 

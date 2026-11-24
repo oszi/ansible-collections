@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
 import os
-import shutil
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -13,11 +12,13 @@ from testlib import (
     Color,
     Output,
     all_collection_paths,
+    chdir_project,
     error_code,
     git_changed_paths,
     git_previous_release_tag,
+    nothing_to_test,
     print_hint,
-    print_success,
+    require_commands,
     run_test_cmd,
     run_tests_parallel,
 )
@@ -34,6 +35,12 @@ ANSIBLE_TEST_ARGS = [
 ]
 
 COMMANDS = ("sanity", "units")
+
+# Changes to the tooling, e.g. the ansible-core version, affect every collection.
+FRAMEWORK_PATHS = (
+    "_scripts/tests/ansible-test.py",
+    "requirements.txt",
+)
 
 args_parser = ArgumentParser(
     usage="ansible-test.py [--help] [--all] [--sanity] [--units] [PATHS ...]",
@@ -104,29 +111,32 @@ def select_targets(paths: List[str], commands: List[str]) -> Dict[str, Set[Path]
 
 def select_paths(app_args) -> Tuple[List[str], List[str]]:
     """Paths from the CLI, the paths affected by changes since the previous release, or every collection."""
-    all_paths = [str(path) for path in all_collection_paths() if path.is_dir()]
-    if app_args.all:
-        if app_args.paths:
-            error_code("ansible-test.py --all cannot be combined with PATHS.", sys_exit=True)
-        return all_paths, ["Selected everything."]
-
+    if app_args.all and app_args.paths:
+        error_code("ansible-test.py --all cannot be combined with PATHS.", sys_exit=True)
     if app_args.paths:
         return app_args.paths, [f"Selected {len(app_args.paths)} path(s) from the command line."]
+
+    all_paths = [str(path) for path in all_collection_paths() if path.is_dir()]
+    if not all_paths:
+        return [], [f"No collections of {NAMESPACE_PATH} in {os.getcwd()}."]
+    if app_args.all:
+        return all_paths, ["Selected everything."]
 
     release = git_previous_release_tag()
     if release is None:
         return all_paths, ["No release tag found, selected everything."]
 
     # Relative to the current directory, which may be a subdirectory of a parent repository.
-    paths = [
-        path
-        for path in git_changed_paths(release)
-        if any(Path(path).is_relative_to(collection) for collection in all_paths)
-    ]
+    changed_paths = git_changed_paths(release)
+    if framework_changes := [path for path in changed_paths if path in FRAMEWORK_PATHS]:
+        changes = "\n# ".join(["Framework changes affect every collection:", *framework_changes])
+        return all_paths, [f"Selected changes since release {release}.", changes]
+
+    paths = [path for path in changed_paths if any(Path(path).is_relative_to(collection) for collection in all_paths)]
     return paths, [f"Selected changes since release {release}."]
 
 
-def prepare_containers(collection: Path) -> int:
+def prepare_containers(cwd: str) -> int:
     # Parallel jobs race on a cold image store and on creating ~/.ansible/test/id_rsa, which --prime-containers
     # does not create; one serial container start pulls the image and creates the key pair.
     prepare_cmd = ANSIBLE_TEST_CMD + ["shell"]
@@ -134,13 +144,14 @@ def prepare_containers(collection: Path) -> int:
         prepare_cmd + ANSIBLE_TEST_ARGS + ["--", "true"],
         [],
         "ansible-test prepare containers",
-        cwd=str(collection),
+        cwd=cwd,
         output=Output.ON_FAILURE_QUIET,
     )
 
 
 def main() -> None:
     app_args = args_parser.parse_args()
+    app_args.paths = chdir_project(app_args.paths)
     commands = [command for command in COMMANDS if getattr(app_args, command)] or list(COMMANDS)
 
     paths, notes = select_paths(app_args)
@@ -149,11 +160,7 @@ def main() -> None:
 
     selected = select_targets(paths, commands)
     if not any(selected.values()):
-        print_success("ansible-test: nothing to test!")
-        RC.status(RC.OK, sys_exit=True)
-
-    if shutil.which(ANSIBLE_TEST_CMD[0]) is None:
-        error_code("ansible-test not found! `source venv/bin/activate`", sys_exit=True)
+        nothing_to_test(ANSIBLE_TEST_CMD[0], sys_exit=True)
 
     jobs = [
         {
@@ -165,7 +172,8 @@ def main() -> None:
         for collection in sorted(selection)
     ]
 
-    if (rc := prepare_containers(NAMESPACE_PATH / "utils")) != RC.OK:
+    require_commands(ANSIBLE_TEST_CMD[0])
+    if (rc := prepare_containers(jobs[0]["cwd"])) != RC.OK:
         RC.status(rc, sys_exit=True)
 
     rc = run_tests_parallel(ANSIBLE_TEST_CMD, jobs)

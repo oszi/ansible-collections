@@ -8,6 +8,10 @@ _scripts/run-tests.sh # [--all|ansible-lint|ansible-test|ansible-vault|galaxy-ta
 ```
 `--all` runs every test, including opt-in tests, and passes `--all` to `ansible-lint`, `ansible-test`, `molecule`.
 
+Tests run in the project directory: the git top level, or its `ansible` subdirectory if it has no `ansible.cfg`.  
+Paths passed to a test script directly are relative to the current directory, via `run-tests.sh` to the project root;  
+paths in passthrough arguments depend on the test.
+
 Arguments between `[` and `]` after a test name are passed to that test verbatim, including `--`.  
 A literal `]` cannot be passed this way; run the test script directly instead.
 ```bash

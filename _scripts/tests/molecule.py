@@ -2,9 +2,9 @@
 # pylint: disable=line-too-long,missing-function-docstring,missing-module-docstring
 import os
 import shlex
-import shutil
+import sys
 
-from argparse import ArgumentParser, REMAINDER
+from argparse import ArgumentParser
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, FrozenSet, Iterable, List, Set, Tuple
@@ -18,16 +18,18 @@ from testlib import (
     Output,
     RC,
     RoleMeta,
+    chdir_project,
     error_code,
-    git_chdir,
     git_changed_paths,
     git_previous_release_tag,
+    nothing_to_test,
     print_hint,
-    print_success,
     print_warning,
+    require_commands,
     run_shell_get_lines,
     run_test_cmd,
     run_tests_parallel,
+    split_passthrough_args,
 )
 
 # Roles of these collections are selected only directly, never as dependents of affected roles.
@@ -66,16 +68,17 @@ args_parser.add_argument("--all", help="run the scenarios of all roles", action=
 args_parser.add_argument("--ignore-framework", help="select only the roles touched directly", action="store_true")
 args_parser.add_argument("--list", help="list selected scenarios without running anything", action="store_true")
 args_parser.add_argument("--workers", help="number of parallel scenarios (<1 for auto)", type=int, default=0)
-args_parser.add_argument("fqcns", help="[FQCN ...] [-- MOLECULE_ARGS ...]", nargs=REMAINDER)
+args_parser.add_argument("fqcns", help="[FQCN ...]", nargs="*")
 
 
-def _all_roles() -> List[RoleMeta]:
-    """All roles as RoleMeta. Called once in all code paths."""
-    return [role for role in RoleMeta.from_glob() if role.collection.name in COLLECTIONS]
+@lru_cache(maxsize=None)
+def _all_roles() -> Tuple[RoleMeta, ...]:
+    """All roles as RoleMeta in a cached, ordered, immutable tuple."""
+    return tuple(role for role in RoleMeta.from_glob() if role.collection.name in COLLECTIONS)
 
 
 def _all_roles_fqcn() -> Set[str]:
-    """All roles as FQCNs. Called once in all code paths."""
+    """All roles as FQCNs."""
     return {role.fqcn for role in _all_roles()}
 
 
@@ -131,7 +134,7 @@ def _role_scenarios(role_meta: RoleMeta) -> List[Tuple[str, Path]]:
 
 
 def _role_dependencies(role_meta: RoleMeta) -> Set[str]:
-    """Roles listed as dependencies in meta/main.yml. Called once per role in dependent_roles."""
+    """Roles listed as dependencies in meta/main.yml."""
     dependencies = role_meta.load(raise_errors=False).get("dependencies") or []
     return {
         entry.get("role", entry.get("name", "")) if isinstance(entry, dict) else str(entry) for entry in dependencies
@@ -139,7 +142,7 @@ def _role_dependencies(role_meta: RoleMeta) -> Set[str]:
 
 
 def _dependent_roles(roles: Set[str]) -> Set[str]:
-    """Transitive closure of the roles depending on the given roles. Called once in affected_roles."""
+    """Transitive closure of the roles depending on the given roles."""
     dependencies = {
         role.fqcn: _role_dependencies(role)
         for role in _all_roles()
@@ -188,8 +191,6 @@ def _affected_roles(paths: Iterable[str], ignore_framework: bool = False) -> Tup
 def select_roles(app_args) -> Tuple[Set[str], List[str]]:
     """Roles from the CLI, or the roles affected since the previous release."""
     fqcns = app_args.fqcns
-    if "--" in fqcns:
-        fqcns = fqcns[: fqcns.index("--")]
     if app_args.all:
         if fqcns:
             error_code("molecule.py --all cannot be combined with FQCNs.", sys_exit=True)
@@ -340,8 +341,8 @@ def run_molecule_with_scenarios(
 
 
 def main() -> None:
-    app_args = args_parser.parse_args()
-    molecule_args = app_args.fqcns[app_args.fqcns.index("--") + 1 :] if "--" in app_args.fqcns else []
+    own_args, molecule_args = split_passthrough_args(sys.argv[1:])
+    app_args = args_parser.parse_intermixed_args(own_args)
     molecule_args, forwarded_args = split_forwarded_args(molecule_args)
     molecule_args = molecule_args or MOLECULE_DEFAULT_ARGS
 
@@ -349,15 +350,14 @@ def main() -> None:
         print_hint("Use molecule.py --workers N")
         error_code("molecule's --workers/--parallel are not supported!", sys_exit=True)
 
-    git_chdir()
+    chdir_project()
     roles, notes = select_roles(app_args)
     for note in notes:
         print_hint(note)
 
     scenarios = select_scenarios(roles)
     if not any(scenarios.values()):
-        print_success("molecule: nothing to test!")
-        RC.status(RC.OK, sys_exit=True)
+        nothing_to_test(MOLECULE_CMD[0], sys_exit=True)
 
     if app_args.list:
         for collection, scenario_paths in scenarios.items():
@@ -365,9 +365,7 @@ def main() -> None:
                 print(f"{NAMESPACE_PATH.name}.{collection}: {scenario_path.name}")
         RC.status(RC.OK, sys_exit=True)
 
-    if shutil.which(MOLECULE_CMD[0]) is None:
-        error_code("molecule not found! `source venv/bin/activate`", sys_exit=True)
-
+    require_commands(MOLECULE_CMD[0], BUILD_PLAYBOOK_CMD[0])
     subcommand = get_subcommand_arg(molecule_args)
     if subcommand in MOLECULE_INSTANCE_COMMANDS:
         if (rc := run_build_playbook()) != RC.OK:

@@ -5,20 +5,21 @@ import sys
 
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Dict, IO, List, NoReturn, Optional
+from typing import Any, Dict, IO, List, NoReturn, Optional, Tuple
 
 import yaml
 
 __all__ = [
     "COLLECTIONS",
     "NAMESPACE_PATH",
+    "all_collection_paths",
+    "getenv_bool",
+    "io_is_tty",
+    "split_passthrough_args",
     "Color",
     "Output",
     "RC",
     "RoleMeta",
-    "all_collection_paths",
-    "getenv_bool",
-    "io_is_tty",
 ]
 
 COLLECTIONS = ("environments", "general", "thirdparty", "utils")
@@ -42,9 +43,16 @@ def io_is_tty(io: IO | Any) -> bool:
         return False
 
 
+def split_passthrough_args(argv: List[str]) -> Tuple[List[str], List[str]]:
+    if "--" in argv:
+        index = argv.index("--")
+        return argv[:index], argv[index + 1 :]
+    return argv, []
+
+
 class Color:
     COLORS_ENABLED = getenv_bool(
-        "TESTLIB_COLORS_ENABLED", not getenv_bool("NO_COLOR") and (getenv_bool("PY_COLORS") or io_is_tty(sys.stdout))
+        "TESTLIB_COLORS_ENABLED", not getenv_bool("NO_COLOR") and (getenv_bool("PY_COLORS") or io_is_tty(sys.stderr))
     )
 
     @staticmethod

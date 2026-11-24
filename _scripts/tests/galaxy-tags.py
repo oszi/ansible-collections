@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 import yaml
 
-from testlib import NAMESPACE_PATH, Color, RC, RoleMeta, boolean_test_decorator, print_error
+from testlib import NAMESPACE_PATH, Color, RC, RoleMeta, boolean_test_decorator, chdir_project, print_error
 
 MUTUALLY_EXCLUSIVE_TAGS = {"baselinux", "containers", "thirdparty", "toolbox", "workstation"}
 MUTUALLY_EXCLUSIVE_TAGS_STR = Color.BOLD(", ".join(sorted(MUTUALLY_EXCLUSIVE_TAGS)))
@@ -57,6 +57,7 @@ def assert_role_tags() -> bool:
 
 def main() -> None:
     _ = args_parser.parse_args()
+    chdir_project()
     assert_role_tags()
 
 

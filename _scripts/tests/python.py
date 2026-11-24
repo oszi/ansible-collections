@@ -11,10 +11,11 @@ from testlib import (
     PYTHON_PATHSPECS,
     RC,
     Output,
+    chdir_project,
     git_ls_files_with_interpreters,
+    print_hint,
     run_tests,
     run_tests_parallel,
-    print_hint,
 )
 
 PYLINT_CMD = ["pylint", "--disable=duplicate-code,import-error", "--"]
@@ -31,7 +32,7 @@ args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 
 def main() -> None:
     app_args = args_parser.parse_args()
-    paths = app_args.paths or git_ls_files_with_interpreters(PYTHON_PATHSPECS, PYTHON_INTERPRETERS)
+    paths = chdir_project(app_args.paths) or git_ls_files_with_interpreters(PYTHON_PATHSPECS, PYTHON_INTERPRETERS)
     env = os.environ.copy()
 
     # Change python cache directory for read-only, agentic environments.

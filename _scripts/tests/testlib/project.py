@@ -6,7 +6,7 @@ import shlex
 from pathlib import Path
 from typing import Iterable, List, NoReturn, Optional
 
-from .run import error_code, run_shell_get_lines
+from .runner import error_code, run_shell_get_lines
 
 __all__ = [
     "RELEASE_TAG_GLOB",
@@ -15,7 +15,7 @@ __all__ = [
     "PYTHON_PATHSPECS",
     "SHELL_INTERPRETERS",
     "SHELL_PATHSPECS",
-    "git_chdir",
+    "chdir_project",
     "git_latest_release_tag",
     "git_previous_release_tag",
     "git_changed_paths",
@@ -36,8 +36,15 @@ SHELL_INTERPRETERS = ("sh", "bash", "ksh", "zsh")
 SHELL_PATHSPECS = (*(f"*.{i}" for i in SHELL_INTERPRETERS), "**/*shrc", "**/.*profile")
 
 
-def git_chdir() -> None | NoReturn:
-    os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
+def chdir_project(paths: Iterable[str] = ()) -> List[str] | NoReturn:
+    """Change to the project directory like run-tests.sh, and rebase paths relative to the original directory."""
+    cwd = os.getcwd()
+    project = Path(run_shell_get_lines("git rev-parse --show-toplevel")[0])
+    # The ansible subdirectory of a parent repository, e.g. an inventory with collections in a submodule.
+    if not (project / "ansible.cfg").exists() and (project / "ansible").is_dir():
+        project /= "ansible"
+    os.chdir(project)
+    return [path if os.path.isabs(path) else os.path.relpath(os.path.join(cwd, path)) for path in paths]
 
 
 def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optional[str]:

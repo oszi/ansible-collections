@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import NoReturn
 
-from testlib import boolean_test_decorator, error_code, git_ls_files
+from testlib import boolean_test_decorator, chdir_project, error_code, git_ls_files
 
 VAULT_PATHSPECS = (
     "**_vars/**vault.yaml",
@@ -50,6 +50,7 @@ def assert_ansible_vault_files() -> bool:
 
 def main() -> None:
     _ = args_parser.parse_args()
+    chdir_project()
     assert_ansible_vault_files()
 
 
