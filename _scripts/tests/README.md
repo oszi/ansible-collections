@@ -51,4 +51,4 @@ grep -qF "$pasta_signal" "$pasta_path" || sudo sed -z -i "s|}\n*\$|\n  ${pasta_s
 ```
 Avoid `--docker-network=bridge` as a workaround; tests are then not isolated from the network.
 
-Tests are written in python, using a common library: [testlib.py](testlib.py)
+Tests are written in python, using a common library: [testlib](testlib)

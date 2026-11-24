@@ -35,7 +35,7 @@ CLOSURE_EXCLUDED_COLLECTIONS = ("environments",)
 SCENARIOS_DIR = Path("extensions") / "molecule"
 
 # Changes to the shared molecule framework and tooling affect every role.
-# oszi.utils.bootstrap and testlib.py are not part of the framework.
+# oszi.utils.bootstrap and testlib are not part of the framework.
 FRAMEWORK_PATHS = (
     "_scripts/tests/molecule.py",
     "requirements.txt",

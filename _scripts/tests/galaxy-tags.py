@@ -9,7 +9,7 @@ import yaml
 from testlib import NAMESPACE_PATH, Color, RC, RoleMeta, boolean_test_decorator, print_error
 
 MUTUALLY_EXCLUSIVE_TAGS = {"baselinux", "containers", "thirdparty", "toolbox", "workstation"}
-MUTUALLY_EXCLUSIVE_TAGS_STR = f"{Color.BOLD}{', '.join(sorted(MUTUALLY_EXCLUSIVE_TAGS))}{Color.CLEAR}"
+MUTUALLY_EXCLUSIVE_TAGS_STR = Color.BOLD(", ".join(sorted(MUTUALLY_EXCLUSIVE_TAGS)))
 
 args_parser = ArgumentParser(
     usage="galaxy-tags.py [--help]",
@@ -23,7 +23,7 @@ def assert_role_tags() -> bool:
     role_count = 0
     for role_meta in RoleMeta.from_glob():
         role_count += 1
-        role_must_have = f"{Color.BOLD}{role_meta.fqcn}{Color.CLEAR} must have"
+        role_must_have = f"{Color.BOLD(role_meta.fqcn)} must have"
 
         try:
             meta = role_meta.load(raise_errors=True)
@@ -40,7 +40,7 @@ def assert_role_tags() -> bool:
             continue
 
         if role_meta.collection.name not in tags:
-            print_error(f"{role_must_have} the tag: {Color.BOLD}{role_meta.collection.name}{Color.CLEAR}")
+            print_error(f"{role_must_have} the tag: {Color.BOLD(role_meta.collection.name)}")
             rc = RC.ERROR
 
         if len(tags.intersection(MUTUALLY_EXCLUSIVE_TAGS)) != 1:

@@ -1,8 +1,5 @@
 # pylint: disable=too-few-public-methods,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
 import functools
-import os
-import re
-import shlex
 import subprocess as sp
 import sys
 import threading
@@ -10,26 +7,34 @@ import time
 import traceback
 
 from concurrent.futures import ThreadPoolExecutor
-from enum import StrEnum
-from pathlib import Path
-from typing import Any, Callable, Dict, IO, Iterable, List, NoReturn, Optional, ParamSpec
+from typing import Any, Callable, Dict, List, NoReturn, Optional, ParamSpec
 
-import yaml
+from .utils import Color, Output, RC, getenv_bool
 
-assert sys.version_info >= (3, 11)
+__all__ = [
+    "DEBUG",
+    "DEBUG_HELP",
+    "SHELL",
+    "OUTPUT_LOCK",
+    "print_error",
+    "print_warning",
+    "print_hint",
+    "print_success",
+    "print_test_cmd",
+    "format_duration",
+    "error_code",
+    "error_code_exc",
+    "failure",
+    "success",
+    "run_shell_get_lines",
+    "run_test_cmd",
+    "run_tests",
+    "run_tests_parallel",
+    "boolean_test_decorator",
+]
 
-COLLECTIONS = ("environments", "general", "thirdparty", "utils")
-NAMESPACE_PATH = Path("ansible_collections") / "oszi"
-RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
-
-# Executable scripts without a file extension, identified by their shebang.
-SCRIPT_PATHSPECS = ("**scripts/*", "**/bin/*", "**/sbin/*", ":!:*.j2", ":!:*.jinja2", ":!:*.jinja")
-
-PYTHON_INTERPRETERS = ("python", "python3")
-PYTHON_PATHSPECS = ("*.py",)
-
-SHELL_INTERPRETERS = ("sh", "bash", "ksh", "zsh")
-SHELL_PATHSPECS = (*(f"*.{i}" for i in SHELL_INTERPRETERS), "**/*shrc", "**/.*profile")
+DEBUG = getenv_bool("TESTLIB_DEBUG")
+DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
 
 # Override /bin/sh for bash on Debian/Ubuntu.
 SHELL = "/bin/bash"
@@ -38,143 +43,29 @@ SHELL = "/bin/bash"
 OUTPUT_LOCK = threading.Lock()
 
 
-def getenv_bool(key: str, default: bool = False) -> bool:
-    if key not in os.environ:
-        return default
-    return os.environ[key].lower() in {"true", "yes", "y", "1"}
-
-
-def io_is_tty(io: IO | Any) -> bool:
-    try:
-        return os.isatty(io.fileno())
-    except (AttributeError, OSError):
-        return False
-
-
-DEBUG = getenv_bool("TESTLIB_DEBUG")
-DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
-
-
-class Color:
-    COLORS_ENABLED = getenv_bool(
-        "TESTLIB_COLORS_ENABLED", not getenv_bool("NO_COLOR") and (getenv_bool("PY_COLORS") or io_is_tty(sys.stdout))
-    )
-
-    class ColorCode:
-        def __init__(self, code: int):
-            self.code = code
-
-        def __str__(self) -> str:
-            return f"\033[{self.code}m" if Color.COLORS_ENABLED else ""
-
-    CLEAR = ColorCode(0)
-    BOLD = ColorCode(1)
-    HIGHLIGHT = ColorCode(7)
-    RED = ColorCode(31)
-    GREEN = ColorCode(32)
-    YELLOW = ColorCode(33)
-    BLUE = ColorCode(34)
-    MAGENTA = ColorCode(35)
-    CYAN = ColorCode(36)
-
-
-class RC:
-    OK = 0
-    ERROR = 1
-    TIMEOUT = 124
-    SIGNAL_BASE = 128
-    SIGNAL_MAX = SIGNAL_BASE + 64
-    INTERRUPT = SIGNAL_BASE + 2  # SIGINT
-    RC_MAX = 255
-
-    @staticmethod
-    def is_signal(rc: int) -> bool:
-        return rc < 0 or RC.SIGNAL_BASE < rc <= RC.SIGNAL_MAX
-
-    @staticmethod
-    def is_early_exit(rc: int) -> bool:
-        return RC.is_signal(rc) or rc == RC.TIMEOUT
-
-    @staticmethod
-    def status(rc: int, sys_exit: bool = False) -> int | NoReturn:
-        if not isinstance(rc, int):
-            raise TypeError("RC.status called with non-integer rc")
-
-        if rc < 0:
-            rc = min(RC.SIGNAL_BASE - rc, RC.SIGNAL_MAX)
-        rc = min(rc, RC.RC_MAX)
-
-        if sys_exit:
-            sys.exit(rc)
-        return rc
-
-    @staticmethod
-    def select(*args: int, sys_exit: bool = False) -> int | NoReturn:
-        rc = RC.OK
-        for arg in args:
-            if RC.is_signal(arg):
-                rc = arg
-                break
-            if rc == RC.OK:
-                rc = arg
-
-        return RC.status(rc, sys_exit)
-
-
-class Output(StrEnum):
-    LIVE_WITH_STATUS = "live_with_status"
-    LIVE_QUIET = "live_quiet"
-    BUFFERED_WITH_STATUS = "buffered_with_status"
-    BUFFERED_QUIET = "buffered_quiet"
-    ON_FAILURE_WITH_STATUS = "on_failure_with_status"
-    ON_FAILURE_QUIET = "on_failure_quiet"
-    DISCARD = "discard"
-
-    @property
-    def is_on_failure(self) -> bool:
-        return self in (Output.ON_FAILURE_WITH_STATUS, Output.ON_FAILURE_QUIET)
-
-    @property
-    def is_buffered(self) -> bool:
-        return self in (Output.BUFFERED_WITH_STATUS, Output.BUFFERED_QUIET) or self.is_on_failure
-
-    @property
-    def has_status(self) -> bool:
-        return self in (Output.LIVE_WITH_STATUS, Output.BUFFERED_WITH_STATUS, Output.ON_FAILURE_WITH_STATUS)
-
-    @property
-    def stdout(self) -> Optional[int]:
-        return sp.DEVNULL if self == Output.DISCARD else sp.PIPE if self.is_buffered else None
-
-    @property
-    def stderr(self) -> Optional[int]:
-        # If not live, redirect stderr to stdout to preserve ordering.
-        return sp.STDOUT if self.stdout is not None else None
-
-
 def print_error(message: str, rc: int = RC.ERROR) -> None:
     if RC.is_early_exit(rc):
         color = Color.MAGENTA
     else:
         color = Color.RED
 
-    print(f"{color}{message}{Color.CLEAR}", file=sys.stderr)
+    print(color(message), file=sys.stderr)
 
 
 def print_warning(message: str) -> None:
-    print(f"{Color.YELLOW}WARNING: {message}{Color.CLEAR}", file=sys.stderr)
+    print(Color.YELLOW(f"WARNING: {message}"), file=sys.stderr)
 
 
 def print_hint(message: str) -> None:
-    print(f"{Color.BLUE}HINT: {message}{Color.CLEAR}", file=sys.stderr)
+    print(Color.BLUE(f"HINT: {message}"), file=sys.stderr)
 
 
 def print_success(message: str) -> None:
-    print(f"{Color.GREEN}{message}{Color.CLEAR}", file=sys.stderr)
+    print(Color.GREEN(message), file=sys.stderr)
 
 
 def print_test_cmd(cmd: List[str], targets: Optional[List[str]] = None, cwd: Optional[str] = None) -> None:
-    message = f"{Color.CYAN}Running: {Color.BOLD}{' '.join(cmd)}{Color.CLEAR}"
+    message = Color.CYAN(f"Running: {Color.BOLD(' '.join(cmd))}")
     if cwd:
         message += f" @{cwd}"
     if targets:
@@ -339,6 +230,8 @@ def run_tests(cmd: List[str], targets: List[str], *, sys_exit: bool = False, **k
     return RC.status(rc, sys_exit)
 
 
+# If target items are dicts, 'args' (list) is appended to 'cmd', 'subject' (str) is generated if empty,
+# and the rest (e.g. 'cwd') overrides kwargs passed to run_test_cmd.
 def run_tests_parallel(
     cmd: List[str],
     targets: List[str | Dict[str, Any]],
@@ -414,128 +307,3 @@ def boolean_test_decorator(subject: str) -> Callable[[Callable[_PARAMS, bool]], 
         return inner_function
 
     return inner_decorator
-
-
-class RoleMeta:
-    # Enforce meta/main.yml as the only accepted format.
-    META_MAIN_PATH = Path("meta") / "main.yml"
-
-    def __init__(self, role_path: Path | str):
-        self.meta_path = Path(role_path) / RoleMeta.META_MAIN_PATH
-
-    @property
-    def role(self) -> Path:
-        return self.meta_path.parent.parent
-
-    @property
-    def collection(self) -> Path:
-        return self.role.parent.parent
-
-    @property
-    def namespace(self) -> Path:
-        return self.collection.parent
-
-    @property
-    def fqcn(self) -> str:
-        return f"{self.namespace.name}.{self.collection.name}.{self.role.name}"
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.role!r})"
-
-    def __str__(self) -> str:
-        return str(self.meta_path)
-
-    def load(self, raise_errors: bool = True) -> Dict[str, Any]:
-        try:
-            with self.meta_path.open("r", encoding="utf-8") as f:
-                meta = yaml.safe_load(f)
-            if not isinstance(meta, dict):
-                raise ValueError("yaml is not a mapping")
-            return meta
-        except (OSError, ValueError, yaml.YAMLError) as err:
-            if raise_errors:
-                raise
-            print_warning(f"Failed to load {self.meta_path}: {err}")
-        return {}
-
-    @staticmethod
-    def from_glob(collection: Optional[str] = None) -> List["RoleMeta"]:
-        pattern = f"{collection or '[a-zA-Z]*'}/roles/[a-zA-Z]*/"
-        return [RoleMeta(role_path) for role_path in sorted(NAMESPACE_PATH.glob(pattern))]
-
-    @staticmethod
-    def from_fqcn(fqcn: str) -> "RoleMeta":
-        parts = fqcn.split(".")
-        if len(parts) != 3:
-            raise ValueError(f"{fqcn} is not of 3 parts!")
-        if parts[0] != NAMESPACE_PATH.name:
-            raise ValueError(f"{fqcn} is not in namespace:{NAMESPACE_PATH.name}!")
-        return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2])
-
-
-def all_collection_paths() -> List[Path]:
-    return [NAMESPACE_PATH / collection for collection in COLLECTIONS]
-
-
-def git_chdir() -> None | NoReturn:
-    os.chdir(run_shell_get_lines("git rev-parse --show-toplevel")[0])
-
-
-def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optional[str]:
-    match_kind = "--exact-match" if exact else "--abbrev=0"
-    git_describe = f"git describe --tags {match_kind} --match={shlex.quote(RELEASE_TAG_GLOB)} -- {shlex.quote(ref)}"
-    result = run_shell_get_lines(f"{git_describe} 2>/dev/null || true")
-    return result[0] if result else None
-
-
-def git_previous_release_tag() -> Optional[str]:
-    release = git_latest_release_tag("HEAD", exact=True)
-    # Untagged commits since the latest release.
-    if release is None:
-        return git_latest_release_tag("HEAD")
-    # Uncommited changes since the HEAD release.
-    if git_changed_paths(release):
-        return release
-    # Pristine HEAD release, rewind to the previous release.
-    return git_latest_release_tag(f"{release}^")
-
-
-def git_changed_paths(ref: str = "HEAD", *, relative: bool = False) -> List[str] | NoReturn:
-    # Untracked files are always listed relative to and limited to the current directory.
-    git_diff_files = (
-        f"git diff -z --name-only --no-renames{' --relative' if relative else ''} {shlex.quote(ref)} -- "
-        "&& git ls-files -z --others --exclude-standard"
-    )
-    return run_shell_get_lines(git_diff_files, null_delimited=True, unique=True)
-
-
-def git_ls_files(pathspecs: Iterable[str]) -> List[str] | NoReturn:
-    if not isinstance(pathspecs, Iterable) or isinstance(pathspecs, (str, bytes)):
-        raise TypeError("testlib.git_ls_files: pathspecs is not an iterable, or is a string or bytes")
-
-    # Tracked files deleted from the work tree are still listed; keep only existing files, following symlinks.
-    git_ls_files_cmd = "git ls-files -z -c -o --exclude-standard --deduplicate -- " + shlex.join(pathspecs)
-    return [
-        path for path in run_shell_get_lines(git_ls_files_cmd, null_delimited=True, unique=True) if os.path.isfile(path)
-    ]
-
-
-def git_ls_files_with_interpreters(pathspecs: Iterable[str], interpreters: Iterable[str]) -> List[str] | NoReturn:
-    scripts = [path for path in git_ls_files(SCRIPT_PATHSPECS) if has_shebang(path, interpreters)]
-    return list(dict.fromkeys(git_ls_files(pathspecs) + scripts))
-
-
-def has_shebang(path: Path | str, interpreters: Iterable[str]) -> bool | NoReturn:
-    if not isinstance(path, (Path, str)):
-        raise TypeError("testlib.has_shebang: path is not a Path or string")
-    if not isinstance(interpreters, Iterable) or isinstance(interpreters, (str, bytes)):
-        raise TypeError("testlib.has_shebang: interpreters is not an iterable, or is a string or bytes")
-
-    names = b"|".join(re.escape(name.encode()) for name in interpreters)
-    pattern = rb"#!\s*\S*/(?:env\s+(?:-\S*\s+)*)?(?:" + names + rb")(?:\s.*)?"
-    try:
-        with open(path, "rb") as f:
-            first_line = f.readline(256).rstrip()
-    except OSError as err:
-        error_code(f"testlib.has_shebang: cannot read {path}: {err}", sys_exit=True)
-    return re.fullmatch(pattern, first_line) is not None

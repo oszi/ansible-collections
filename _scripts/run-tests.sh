@@ -50,7 +50,7 @@ fi
 
 all_tests=()
 for test in "$tests_dir"/*.py; do
-    [[ "$test" == */testlib.py ]] || all_tests+=("$(basename -s .py "$test")")
+    all_tests+=("$(basename -s .py "$test")")
 done
 
 # Tests that run only when requested by name or with --all.

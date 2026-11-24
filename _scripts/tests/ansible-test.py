@@ -120,7 +120,7 @@ def select_paths(app_args) -> Tuple[List[str], List[str]]:
     # Relative to the current directory, which may be a subdirectory of a parent repository.
     paths = [
         path
-        for path in git_changed_paths(release, relative=True)
+        for path in git_changed_paths(release)
         if any(Path(path).is_relative_to(collection) for collection in all_paths)
     ]
     return paths, [f"Selected changes since release {release}."]

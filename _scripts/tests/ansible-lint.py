@@ -72,7 +72,7 @@ def select_paths(app_args, ansible_lint_args: List[str]) -> Tuple[Optional[List[
         return None, ["No release tag found, selected everything."]
 
     # Relative to the current directory, which may be a subdirectory of a parent repository.
-    lint_paths = _changed_lint_paths(git_changed_paths(release, relative=True), ansible_lint_args)
+    lint_paths = _changed_lint_paths(git_changed_paths(release), ansible_lint_args)
     notes = [f"Changes since release {release} affect {len(lint_paths)} lintable path(s)."]
     if 0 < len(lint_paths) <= HINT_PATHS_MAX:
         changes = "\n# ".join(["Affected lintable path(s):", *lint_paths])
