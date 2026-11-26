@@ -18,8 +18,11 @@ from testlib import (
     run_tests_parallel,
 )
 
-PYLINT_CMD = ["pylint", "--disable=duplicate-code,import-error", "--"]
-BLACK_CMD = ["black", "--check", "-l", "120", "--target-version=py311", "--"]
+PYLINT_PY_VERSION = "3.12"
+BLACK_PY_VERSION = "py312"
+
+PYLINT_CMD = ["pylint", "--disable=duplicate-code,import-error", f"--py-version={PYLINT_PY_VERSION}", "--"]
+BLACK_CMD = ["black", "--check", "-l", "120", f"--target-version={BLACK_PY_VERSION}", "--"]
 
 args_parser = ArgumentParser(
     usage="python.py [--help] [--black] [PATHS...]",
