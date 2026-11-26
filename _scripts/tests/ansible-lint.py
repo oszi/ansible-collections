@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
+import glob
 import os
 import sys
 
-from argparse import ArgumentParser
-from pathlib import Path
+from argparse import ArgumentParser, Namespace
 from tempfile import TemporaryDirectory
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional
 
 from testlib import (
+    ANSIBLE_NO_PROMPT_ENV,
+    ProjectPath,
     chdir_project,
-    error_code,
-    git_changed_paths,
-    git_previous_release_tag,
-    print_hint,
     run_tests,
+    select_changed_paths,
+    select_given_paths,
     split_passthrough_args,
 )
 
@@ -22,15 +22,14 @@ ANSIBLE_LINT_CMD = ["ansible-lint"]
 
 # Changes to the lint configuration and tooling affect every lintable path,
 # besides the active config file, ignore file and rules directories.
-CONFIG_PATHS = (
+FRAMEWORK_PATTERNS = (
     "_scripts/tests/ansible-lint.py",
-    ".ansible-lint",
+    ".ansible-lint*",
+    ".config/ansible-lint*",
     "ansible.cfg",
     "requirements.txt",
     "requirements.yml",
 )
-
-HINT_PATHS_MAX = 20
 
 args_parser = ArgumentParser(
     usage="ansible-lint.py [--help] [--all] [PATHS ...] [-- ANSIBLE_LINT_ARGS ...]",
@@ -42,76 +41,56 @@ args_parser.add_argument("--all", help="lint everything", action="store_true")
 args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 
 
-def _role_path(path: str) -> Optional[str]:
-    """Role directory of a path within a role, or None."""
-    parts = Path(path).parts
-    if "roles" in parts and len(parts) > (index := parts.index("roles")) + 2:
-        return str(Path(*parts[: index + 2]))
-    return None
-
-
-def _changed_lint_paths(paths: Iterable[str], ansible_lint_args: List[str]) -> Tuple[Optional[List[str]], List[str]]:
-    """Unique paths to lint for the changed paths, or None for everything; and the configuration changes."""
+def _lint_options(ansible_lint_args: List[str]) -> Namespace:
+    """ansible-lint options of the arguments and its configuration file."""
     # Import after main configures Ansible's temporary directory and vault environment.
     from ansiblelint.cli import get_config  # pylint: disable=import-outside-toplevel
-    from ansiblelint.file_utils import discover_lintables  # pylint: disable=import-outside-toplevel
-    from ansiblelint.loaders import IGNORE_FILE  # pylint: disable=import-outside-toplevel
 
-    options = get_config([*ansible_lint_args, "--"])
-    config_files = {
-        *CONFIG_PATHS,
-        *IGNORE_FILE,
-        *(os.path.relpath(path) for path in (options.config_file, options.ignore_file) if path),
-    }
-    rulesdirs = tuple(
-        f"{rulesdir}/" for path in options.rulesdirs if not (rulesdir := os.path.relpath(path)).startswith("..")
+    return get_config([*ansible_lint_args, "--"])
+
+
+def _framework_patterns(options: Namespace) -> List[str]:
+    """Patterns of the lint configuration and tooling, including the active config and ignore files and rules directories."""
+    config_files = tuple(
+        str(ProjectPath(path).relative_to_cwd()) for path in (options.config_file, options.ignore_file) if path
     )
-    if config_changes := [path for path in paths if path in config_files or path.startswith(rulesdirs)]:
-        return None, config_changes
+    # Rules directories outside the project, e.g. of installed packages, are not tracked.
+    rulesdirs = tuple(
+        f"{rulesdir}/"
+        for path in options.rulesdirs
+        if not (rulesdir := ProjectPath(path).relative_to_cwd()).is_absolute()
+    )
+    return [*FRAMEWORK_PATTERNS, *map(glob.escape, config_files + rulesdirs)]
+
+
+def _changed_lint_paths(paths: Iterable[ProjectPath], options: Namespace) -> List[ProjectPath]:
+    """Unique paths to lint for the changed paths."""
+    from ansiblelint.file_utils import discover_lintables  # pylint: disable=import-outside-toplevel
 
     # Explicit lint targets bypass exclusions; use normal discovery to filter automatic targets.
     # Deleted files select their role, if the role is still lintable, as references may break.
-    discovered_paths = set(discover_lintables(options))
-    discovered_roles = {role_path for path in discovered_paths if (role_path := _role_path(path)) is not None}
+    # path.role_dir excludes roles outside the collections; parent repositories without release tags select everything.
+    discovered_paths = {ProjectPath(path) for path in discover_lintables(options)}
+    discovered_roles = {role_dir for path in discovered_paths if (role_dir := path.role_dir) is not None}
     lint_paths = set()
     for path in paths:
-        role_path = _role_path(path)
+        role_dir = path.role_dir
         if path in discovered_paths:
-            lint_paths.add(role_path or path)
-        elif role_path in discovered_roles and not os.path.exists(path):
-            lint_paths.add(role_path)
-    return sorted(lint_paths), []
+            lint_paths.add(role_dir or path)
+        elif role_dir in discovered_roles and not os.path.exists(path):
+            lint_paths.add(role_dir)
+    return sorted(lint_paths)
 
 
-def select_paths(app_args, ansible_lint_args: List[str]) -> Optional[List[str]]:
+def select_paths(app_args: Namespace, ansible_lint_args: List[str]) -> Optional[List[ProjectPath]]:
     """Paths from the CLI, the paths changed since the previous release, or None for everything."""
-    paths = app_args.paths
-    if app_args.all:
-        if paths:
-            error_code("ansible-lint.py --all cannot be combined with PATHS.", sys_exit=True)
-        print_hint("Selected everything.")
-        return None
-
-    if paths:
-        print_hint(f"Selected {len(paths)} path(s) from the command line.")
-        return paths
-
-    release = git_previous_release_tag()
-    if release is None:
-        print_hint("No release tag found, selected everything.")
-        return None
-
-    # Relative to the current directory, which may be a subdirectory of a parent repository.
-    lint_paths, config_changes = _changed_lint_paths(git_changed_paths(release), ansible_lint_args)
-    if lint_paths is None:
-        print_hint(f"Changes since release {release} select everything.")
-        print_hint("Configuration changes affect everything:", *config_changes)
-        return None
-
-    print_hint(f"Changes since release {release} affect {len(lint_paths)} lintable path(s).")
-    if 0 < len(lint_paths) <= HINT_PATHS_MAX:
-        print_hint("Affected lintable path(s):", *lint_paths)
-    return lint_paths
+    selected_paths = select_given_paths(app_args.paths, app_args.all)
+    if selected_paths == []:  # Nothing given.
+        options = _lint_options(ansible_lint_args)
+        selected_paths = select_changed_paths(_framework_patterns(options))
+        if selected_paths:
+            return _changed_lint_paths(selected_paths, options)
+    return selected_paths  # None for everything.
 
 
 def main() -> None:
@@ -120,7 +99,7 @@ def main() -> None:
     app_args.paths = chdir_project(app_args.paths)
 
     # Update the env dict directly, so ansible-lint also uses it in _changed_lint_paths.
-    os.environ.update(dict.fromkeys(("ANSIBLE_ASK_VAULT_PASS", "ANSIBLE_ASK_PASS", "ANSIBLE_BECOME_ASK_PASS"), "False"))
+    os.environ.update(ANSIBLE_NO_PROMPT_ENV)
 
     tempdir = TemporaryDirectory(prefix="ansible-lint-")  # pylint: disable=consider-using-with
     vault_dummy = os.path.join(tempdir.name, "vault-password-dummy")

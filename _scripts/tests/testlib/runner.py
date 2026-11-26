@@ -8,6 +8,7 @@ import time
 import traceback
 
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from typing import Any, Callable, Dict, List, NoReturn, Optional, ParamSpec
 
 from .utils import Color, Output, RC, getenv_bool
@@ -59,7 +60,7 @@ def print_warning(message: str) -> None:
     print(Color.YELLOW(f"WARNING: {message}"), file=sys.stderr)
 
 
-def print_hint(message: str, *lines: str, line_sep: str = "\n# ") -> None:
+def print_hint(message: str, *lines: Any, line_sep: str = "\n# ") -> None:
     print(Color.BLUE(f"HINT: {message}", *lines, sep=line_sep), file=sys.stderr)
 
 
@@ -67,7 +68,7 @@ def print_success(message: str) -> None:
     print(Color.GREEN(message), file=sys.stderr)
 
 
-def print_test_cmd(cmd: List[str], targets: Optional[List[str]] = None, cwd: Optional[str] = None) -> None:
+def print_test_cmd(cmd: List[str], targets: Optional[List[Any]] = None, cwd: Optional[str] = None) -> None:
     message = Color.CYAN("Running:", Color.BOLD(*cmd))
     if cwd:
         message += f" @{cwd}"
@@ -187,7 +188,7 @@ def run_shell_get_lines(shell_cmd: str, *, null_delimited: bool = False, unique:
 
 def run_test_cmd(  # pylint: disable=too-many-arguments
     cmd: List[str],
-    targets: List[str],
+    targets: List[str | Path],
     subject: str,
     *,
     timeout: Optional[float] = None,
@@ -233,7 +234,7 @@ def run_test_cmd(  # pylint: disable=too-many-arguments
 
 
 def run_tests(
-    cmd: List[str], targets: Optional[List[str]] = None, *, sys_exit: bool = False, **kwargs
+    cmd: List[str], targets: Optional[List[str | Path]] = None, *, sys_exit: bool = False, **kwargs
 ) -> int | NoReturn:
     if targets is not None and not targets:
         return nothing_to_test(cmd[0], sys_exit)
@@ -247,7 +248,7 @@ def run_tests(
 # and the rest (e.g. 'cwd') overrides kwargs passed to run_test_cmd.
 def run_tests_parallel(
     cmd: List[str],
-    targets: List[str | Dict[str, Any]],
+    targets: List[str | Path | Dict[str, Any]],
     *,
     max_workers: Optional[int] = None,
     sys_exit: bool = False,
@@ -260,7 +261,7 @@ def run_tests_parallel(
     if "output" not in kwargs:
         kwargs["output"] = Output.BUFFERED_WITH_STATUS
 
-    def run_test_job(target: str | Dict[str, Any]) -> int:
+    def run_test_job(target: str | Path | Dict[str, Any]) -> int:
         if isinstance(target, dict):
             job_kwargs = kwargs.copy()
             job_kwargs.update(target)

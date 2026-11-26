@@ -21,12 +21,12 @@ args_parser = ArgumentParser(
 def assert_role_tags() -> bool:
     rc = RC.OK
     role_count = 0
-    for role_meta in RoleMeta.from_glob():
+    for role_meta in RoleMeta.all_roles():
         role_count += 1
         role_must_have = f"{Color.BOLD(role_meta.fqcn)} must have"
 
         try:
-            meta = role_meta.load(raise_errors=True)
+            meta = role_meta.load_meta(raise_errors=True)
         except (OSError, ValueError, yaml.YAMLError):
             print_error(f"{role_must_have} a valid {RoleMeta.META_MAIN_PATH} file!")
             rc = RC.ERROR
@@ -39,8 +39,8 @@ def assert_role_tags() -> bool:
             rc = RC.ERROR
             continue
 
-        if role_meta.collection.name not in tags:
-            print_error(f"{role_must_have} the tag: {Color.BOLD(role_meta.collection.name)}")
+        if role_meta.collection_dir.name not in tags:
+            print_error(f"{role_must_have} the tag: {Color.BOLD(role_meta.collection_dir.name)}")
             rc = RC.ERROR
 
         if len(tags.intersection(MUTUALLY_EXCLUSIVE_TAGS)) != 1:

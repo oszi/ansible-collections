@@ -29,10 +29,8 @@ args_parser.add_argument("--tags", "-t", help="filter to specific tag(s)")
 
 def get_galaxy_tags(tags_filter: Optional[List[str]] = None) -> Dict[str, List[str]]:
     tags_to_roles: Dict[str, Set[str]] = defaultdict(set)
-    for role_meta in RoleMeta.from_glob():
-        meta = role_meta.load(raise_errors=False)
-
-        for tag in (meta.get("galaxy_info") or {}).get("galaxy_tags") or []:
+    for role_meta in RoleMeta.all_roles():
+        for tag in role_meta.load_galaxy_tags():
             if tags_filter is None or tag in tags_filter:
                 tags_to_roles[tag].add(role_meta.fqcn)
 

@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name,line-too-long,missing-function-docstring,missing-module-docstring
-import os
-
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 from testlib import (
     NAMESPACE_PATH,
-    RC,
     Color,
     Output,
-    all_collection_paths,
+    ProjectPath,
+    RC,
     chdir_project,
     error_code,
-    git_changed_paths,
-    git_previous_release_tag,
     nothing_to_test,
-    print_hint,
     require_commands,
     run_test_cmd,
     run_tests_parallel,
+    select_changed_paths,
+    select_given_paths,
 )
 
 UNIT_TESTS_PATH = Path("tests") / "unit"
@@ -37,7 +34,7 @@ ANSIBLE_TEST_ARGS = [
 COMMANDS = ("sanity", "units")
 
 # Changes to the tooling, e.g. the ansible-core version, affect every collection.
-FRAMEWORK_PATHS = (
+FRAMEWORK_PATTERNS = (
     "_scripts/tests/ansible-test.py",
     "requirements.txt",
 )
@@ -61,13 +58,7 @@ args_parser.add_argument(
 args_parser.add_argument("paths", help="[PATHS ...]", nargs="*")
 
 
-def lexical_path(path_str: str) -> Path:
-    # Keep the final component unresolved, so symlinks belong to the collection containing them.
-    path = Path(os.path.abspath(path_str))
-    return path.parent.resolve() / path.name if path.name else path
-
-
-def is_plugin_path(target: Path) -> bool:
+def is_plugin_target_path(target: Path) -> bool:
     """Collection plugin/module sources, including embedded role and playbook sources."""
     parts = target.parts
     if parts[:1] == ("plugins",):
@@ -80,17 +71,12 @@ def is_plugin_path(target: Path) -> bool:
     return False
 
 
-def select_targets(paths: List[str], commands: List[str]) -> Dict[str, Set[Path]]:
+def select_targets(paths: List[ProjectPath], commands: Tuple[str, ...]) -> Dict[str, Set[ProjectPath]]:
     """Whole collections per suite; sources, unit tests and their parent directories select units."""
-    collections = [collection.resolve() for collection in all_collection_paths() if collection.is_dir()]
-    selected: Dict[str, Set[Path]] = {command: set() for command in commands}
-    for path_str in paths:
-        path = lexical_path(path_str)
-        collection = next((collection for collection in collections if path.is_relative_to(collection)), None)
-        if collection is None:
-            error_code(f"{path_str} is not in a collection of {NAMESPACE_PATH}!", sys_exit=True)
-
-        target = path.relative_to(collection)
+    selected: Dict[str, Set[ProjectPath]] = {command: set() for command in commands}
+    for path in paths:
+        collection = path.collection_dir
+        target = path.collection_subpath
 
         if "sanity" in selected:
             selected["sanity"].add(collection)
@@ -99,7 +85,7 @@ def select_targets(paths: List[str], commands: List[str]) -> Dict[str, Set[Path]
             "units" in selected
             and (collection / UNIT_TESTS_PATH).is_dir()
             and (
-                is_plugin_path(target)
+                is_plugin_target_path(target)
                 or target.is_relative_to(UNIT_TESTS_PATH)
                 or UNIT_TESTS_PATH.is_relative_to(target)
             )
@@ -109,38 +95,23 @@ def select_targets(paths: List[str], commands: List[str]) -> Dict[str, Set[Path]
     return selected
 
 
-def select_paths(app_args) -> List[str]:
-    """Paths from the CLI, the paths affected by changes since the previous release, or every collection."""
-    if app_args.all and app_args.paths:
-        error_code("ansible-test.py --all cannot be combined with PATHS.", sys_exit=True)
-    if app_args.paths:
-        print_hint(f"Selected {len(app_args.paths)} path(s) from the command line.")
-        return app_args.paths
+def select_paths(app_args) -> List[ProjectPath]:
+    """Collection paths of the selection; every collection for everything."""
+    selected_paths = select_given_paths(app_args.paths, app_args.all)
+    if selected_paths:
+        for path in selected_paths:
+            if not path.collection_dir:
+                error_code(f"{path} is not in a collection of {NAMESPACE_PATH}!", sys_exit=True)
+        return selected_paths
 
-    all_paths = [str(path) for path in all_collection_paths() if path.is_dir()]
-    if not all_paths:
-        print_hint(f"No collections of {NAMESPACE_PATH} in {os.getcwd()}.")
-        return []
-    if app_args.all:
-        print_hint("Selected everything.")
-        return all_paths
-
-    release = git_previous_release_tag()
-    if release is None:
-        print_hint("No release tag found, selected everything.")
-        return all_paths
-
-    # Relative to the current directory, which may be a subdirectory of a parent repository.
-    changed_paths = git_changed_paths(release)
-    print_hint(f"Selected changes since release {release}.")
-    if framework_changes := [path for path in changed_paths if path in FRAMEWORK_PATHS]:
-        print_hint("Framework changes affect every collection:", *framework_changes)
-        return all_paths
-
-    return [path for path in changed_paths if any(Path(path).is_relative_to(collection) for collection in all_paths)]
+    if selected_paths == []:  # Nothing given.
+        selected_paths = select_changed_paths(FRAMEWORK_PATTERNS)
+    if selected_paths is None:  # Everything.
+        return ProjectPath.all_collections()  # Empty in parent repositories.
+    return [path for path in selected_paths if path.collection_dir]
 
 
-def prepare_containers(cwd: str) -> int:
+def prepare_containers(cwd: ProjectPath | str) -> int:
     # Parallel jobs race on a cold image store and on creating ~/.ansible/test/id_rsa, which --prime-containers
     # does not create; one serial container start pulls the image and creates the key pair.
     prepare_cmd = ANSIBLE_TEST_CMD + ["shell"]
@@ -156,22 +127,20 @@ def prepare_containers(cwd: str) -> int:
 def main() -> None:
     app_args = args_parser.parse_args()
     app_args.paths = chdir_project(app_args.paths)
-    commands = [command for command in COMMANDS if getattr(app_args, command)] or list(COMMANDS)
-
-    paths = select_paths(app_args)
-    selected = select_targets(paths, commands)
-    if not any(selected.values()):
-        nothing_to_test(ANSIBLE_TEST_CMD[0], sys_exit=True)
-
+    commands = tuple(command for command in COMMANDS if getattr(app_args, command)) or COMMANDS
+    selected = select_targets(select_paths(app_args), commands)
     jobs = [
         {
             "args": [command, *ANSIBLE_TEST_ARGS],
-            "cwd": str(collection),
-            "subject": f"{ANSIBLE_TEST_CMD[0]} {command}: {NAMESPACE_PATH.name}.{collection.name}",
+            "cwd": collection_dir,
+            "subject": f"{ANSIBLE_TEST_CMD[0]} {command}: {collection_dir.collection_fqcn}",
         }
-        for command, selection in selected.items()
-        for collection in sorted(selection)
+        for command, collections in selected.items()
+        for collection_dir in sorted(collections)
     ]
+
+    if not jobs:
+        nothing_to_test(ANSIBLE_TEST_CMD[0], sys_exit=True)
 
     require_commands(ANSIBLE_TEST_CMD[0])
     if (rc := prepare_containers(jobs[0]["cwd"])) != RC.OK:

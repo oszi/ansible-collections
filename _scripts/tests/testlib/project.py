@@ -3,10 +3,12 @@ import os
 import re
 import shlex
 
-from pathlib import Path
-from typing import Iterable, List, NoReturn, Optional
+from fnmatch import fnmatchcase
+from pathlib import Path, PurePath
+from typing import Iterable, List, NoReturn, Optional, Sequence, Tuple
 
-from .runner import error_code, run_shell_get_lines
+from .runner import error_code, print_hint, run_shell_get_lines
+from .utils import ProjectPath
 
 __all__ = [
     "RELEASE_TAG_GLOB",
@@ -17,11 +19,15 @@ __all__ = [
     "SHELL_PATHSPECS",
     "chdir_project",
     "git_latest_release_tag",
-    "git_previous_release_tag",
+    "git_previous_release_with_changes",
     "git_changed_paths",
     "git_ls_files",
     "git_ls_files_with_interpreters",
     "has_shebang",
+    "match_paths",
+    "select_given_paths",
+    "select_given_fqcns",
+    "select_changed_paths",
 ]
 
 RELEASE_TAG_GLOB = "[0-9]*.[0-9]*.[0-9]*"
@@ -36,15 +42,14 @@ SHELL_INTERPRETERS = ("sh", "bash", "ksh", "zsh")
 SHELL_PATHSPECS = (*(f"*.{i}" for i in SHELL_INTERPRETERS), "**/*shrc", "**/.*profile")
 
 
-def chdir_project(paths: Iterable[str] = ()) -> List[str] | NoReturn:
-    """Change to the project directory like run-tests.sh, and rebase paths relative to the original directory."""
-    cwd = os.getcwd()
+# Change to the project directory like run-tests.sh, and rebase paths relative to it; outside paths stay absolute.
+def chdir_project(paths: Iterable[Path | str] = ()) -> List[ProjectPath] | NoReturn:
+    resolved_paths = [ProjectPath(path).lexical_absolute() for path in paths]
     project = Path(run_shell_get_lines("git rev-parse --show-toplevel")[0])
-    # The ansible subdirectory of a parent repository, e.g. an inventory with collections in a submodule.
     if not (project / "ansible.cfg").exists() and (project / "ansible").is_dir():
         project /= "ansible"
     os.chdir(project)
-    return [path if os.path.isabs(path) else os.path.relpath(os.path.join(cwd, path)) for path in paths]
+    return [path.relative_to_cwd() for path in resolved_paths]
 
 
 def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optional[str]:
@@ -54,39 +59,46 @@ def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optiona
     return result[0] if result else None
 
 
-def git_previous_release_tag() -> Optional[str]:
+def git_previous_release_with_changes() -> Optional[Tuple[str, List[ProjectPath]]] | NoReturn:
     release = git_latest_release_tag("HEAD", exact=True)
-    # Untagged commits since the latest release.
-    if release is None:
-        return git_latest_release_tag("HEAD")
-    # Uncommited changes since the HEAD release.
-    if git_changed_paths(release):
-        return release
-    # Pristine HEAD release, rewind to the previous release.
-    return git_latest_release_tag(f"{release}^")
+    if release is not None:
+        # Uncommited changes since the HEAD release.
+        if changed_paths := git_changed_paths(release):
+            return release, changed_paths
+
+        # Pristine HEAD release, rewind to the previous release.
+        release = git_latest_release_tag(f"{release}^")
+    else:
+        # Untagged commits since the latest release.
+        release = git_latest_release_tag("HEAD")
+    return (release, git_changed_paths(release)) if release is not None else None
 
 
-def git_changed_paths(ref: str = "HEAD") -> List[str] | NoReturn:
+def git_changed_paths(ref: str = "HEAD") -> List[ProjectPath] | NoReturn:
     # Untracked files are always listed relative to and limited to the current directory, make the diff relative too.
     git_diff_files = (
         f"git diff -z --name-only --no-renames --relative {shlex.quote(ref)} -- "
         "&& git ls-files -z --others --exclude-standard"
     )
-    return run_shell_get_lines(git_diff_files, null_delimited=True, unique=True)
+    return [ProjectPath(path) for path in run_shell_get_lines(git_diff_files, null_delimited=True, unique=True)]
 
 
-def git_ls_files(pathspecs: Iterable[str]) -> List[str] | NoReturn:
+def git_ls_files(pathspecs: Iterable[str]) -> List[ProjectPath] | NoReturn:
     if not isinstance(pathspecs, Iterable) or isinstance(pathspecs, (str, bytes)):
         raise TypeError("testlib.git_ls_files: pathspecs is not an iterable, or is a string or bytes")
 
     # Tracked files deleted from the work tree are still listed; keep only existing files, following symlinks.
     git_ls_files_cmd = "git ls-files -z -c -o --exclude-standard --deduplicate -- " + shlex.join(pathspecs)
     return [
-        path for path in run_shell_get_lines(git_ls_files_cmd, null_delimited=True, unique=True) if os.path.isfile(path)
+        ProjectPath(path)
+        for path in run_shell_get_lines(git_ls_files_cmd, null_delimited=True, unique=True)
+        if os.path.isfile(path)
     ]
 
 
-def git_ls_files_with_interpreters(pathspecs: Iterable[str], interpreters: Iterable[str]) -> List[str] | NoReturn:
+def git_ls_files_with_interpreters(
+    pathspecs: Iterable[str], interpreters: Iterable[str]
+) -> List[ProjectPath] | NoReturn:
     scripts = [path for path in git_ls_files(SCRIPT_PATHSPECS) if has_shebang(path, interpreters)]
     return sorted(dict.fromkeys(git_ls_files(pathspecs) + scripts))
 
@@ -105,3 +117,66 @@ def has_shebang(path: Path | str, interpreters: Iterable[str]) -> bool | NoRetur
     except OSError as err:
         error_code(f"testlib.has_shebang: cannot read {path}: {err}", sys_exit=True)
     return re.fullmatch(pattern, first_line) is not None
+
+
+# Paths matching any pattern: a file path, or a directory path with a trailing slash for everything below it.
+# Wildcards of fnmatch match within a single path component.
+def match_paths(paths: Iterable[Path], patterns: Iterable[str]) -> List[Path]:
+    compiled = [(PurePath(pattern).parts, pattern.endswith("/")) for pattern in patterns]
+
+    def is_match(parts: Sequence[str]) -> bool:
+        return any(
+            (len(parts) > len(pattern_parts) if is_dir else len(parts) == len(pattern_parts))
+            and all(fnmatchcase(part, pattern_part) for part, pattern_part in zip(parts, pattern_parts))
+            for pattern_parts, is_dir in compiled
+        )
+
+    return [path for path in paths if is_match(path.parts)]
+
+
+def select_given_paths(given: List[Path | str], select_all: bool) -> Optional[List[ProjectPath]] | NoReturn:
+    if select_all and given:
+        error_code("--all cannot be combined with paths.", sys_exit=True)
+    if select_all:
+        print_hint("Selected everything from the command line.")
+        return None  # Everything.
+    if given:
+        print_hint(f"Selected {len(given)} path(s) from the command line.")
+        return [ProjectPath(path) for path in given]
+    return []  # Nothing.
+
+
+def select_given_fqcns(given: List[str], select_all: bool) -> Optional[List[str]] | NoReturn:
+    if select_all and given:
+        error_code("--all cannot be combined with FQCNs.", sys_exit=True)
+    if select_all:
+        print_hint("Selected everything from the command line.")
+        return None  # Everything.
+    if given:
+        print_hint(f"Selected {len(given)} FQCN(s) from the command line.")
+        return given
+    return []  # Nothing.
+
+
+def select_changed_paths(
+    framework_patterns: Iterable[str], ignore_framework: bool = False, require_release: bool = False
+) -> Optional[List[ProjectPath]] | NoReturn:
+    release_with_changes = git_previous_release_with_changes()
+    if release_with_changes is None:
+        if require_release:
+            error_code("No release tag found. Wrong repository?", sys_exit=True)
+        print_hint("No release tag found, selected everything.")
+        return None  # Everything.
+
+    release, changed_paths = release_with_changes
+    print_hint(f"Changes since release {release} affect {len(changed_paths)} path(s).")
+
+    if framework_changes := match_paths(changed_paths, framework_patterns):
+        effect = "are ignored" if ignore_framework else "select everything"
+        print_hint(f"Framework changes {effect}:", *framework_changes)
+        changed_paths = (
+            [path for path in changed_paths if path not in framework_changes]
+            if ignore_framework
+            else None  # Everything.
+        )
+    return changed_paths

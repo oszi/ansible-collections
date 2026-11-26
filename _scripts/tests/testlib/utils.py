@@ -1,33 +1,42 @@
 # pylint: disable=too-few-public-methods,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring
 import os
+import re
 import subprocess as sp
 import sys
 
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Dict, IO, List, NoReturn, Optional, Tuple
+from typing import Any, Dict, IO, List, NoReturn, Optional, Set, Tuple
 
 import yaml
 
 __all__ = [
     "COLLECTIONS",
     "NAMESPACE_PATH",
-    "all_collection_paths",
+    "ANSIBLE_NO_PROMPT_ENV",
+    "ANSIBLE_ROLE_NAME_RE",
+    "ANSIBLE_ROLES_GLOB",
     "getenv_bool",
     "io_is_tty",
     "split_passthrough_args",
     "Color",
     "Output",
     "RC",
+    "ProjectPath",
     "RoleMeta",
 ]
 
 COLLECTIONS = ("environments", "general", "thirdparty", "utils")
 NAMESPACE_PATH = Path("ansible_collections") / "oszi"
 
+ANSIBLE_NO_PROMPT_ENV = {
+    "ANSIBLE_ASK_PASS": "False",
+    "ANSIBLE_ASK_VAULT_PASS": "False",
+    "ANSIBLE_BECOME_ASK_PASS": "False",
+}
 
-def all_collection_paths() -> List[Path]:
-    return [NAMESPACE_PATH / collection for collection in COLLECTIONS]
+ANSIBLE_ROLE_NAME_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9_]*")
+ANSIBLE_ROLES_GLOB = "roles/[a-zA-Z]*/"
 
 
 def getenv_bool(key: str, default: bool = False) -> bool:
@@ -43,10 +52,10 @@ def io_is_tty(io: IO | Any) -> bool:
         return False
 
 
-def split_passthrough_args(argv: List[str]) -> Tuple[List[str], List[str]]:
+def split_passthrough_args(argv: List[str], keep_separator: bool = False) -> Tuple[List[str], List[str]]:
     if "--" in argv:
         index = argv.index("--")
-        return argv[:index], argv[index + 1 :]
+        return argv[:index], argv[index if keep_separator else index + 1 :]
     return argv, []
 
 
@@ -161,36 +170,98 @@ class RC:
         return RC.status(rc, sys_exit)
 
 
+class ProjectPath(Path):
+    # Lexical: collection and role properties expect paths relative to the project root, e.g. via relative_to_cwd().
+
+    @property
+    def collection_dir(self) -> Optional["ProjectPath"]:
+        if (path := self.child_base_of(NAMESPACE_PATH)) and path.name in COLLECTIONS:
+            return path
+        return None
+
+    @property
+    def collection_fqcn(self) -> Optional[str]:
+        if collection_dir := self.collection_dir:
+            parts = collection_dir.parts
+            return f"{parts[-2]}.{parts[-1]}"
+        return None
+
+    @property
+    def collection_subpath(self) -> Optional["ProjectPath"]:
+        if collection_dir := self.collection_dir:
+            return self.relative_to(collection_dir)
+        return None
+
+    @property
+    def role_dir(self) -> Optional["ProjectPath"]:
+        if (collection_dir := self.collection_dir) and (path := self.child_base_of(collection_dir / "roles")):
+            if ANSIBLE_ROLE_NAME_RE.fullmatch(path.name) is not None:
+                return path
+        return None
+
+    @property
+    def role_fqcn(self) -> Optional[str]:
+        if role_dir := self.role_dir:
+            parts = role_dir.parts
+            return f"{parts[-4]}.{parts[-3]}.{parts[-1]}"
+        return None
+
+    def child_base_of(self, base: Path) -> Optional["ProjectPath"]:
+        parts, base_parts = self.parts, base.parts
+        base_len = len(base_parts)
+        if len(parts) > base_len and parts[:base_len] == base_parts:
+            return type(self)(*parts[: base_len + 1])
+        return None
+
+    def lexical_absolute(self) -> "ProjectPath":
+        return type(self)(os.path.abspath(self))
+
+    def relative_to_cwd(self) -> "ProjectPath":
+        # Rebase onto the shallowest ancestor that is the current directory, also via a symlinked prefix,
+        # and keep the rest lexical, so symlinks below it, e.g. a symlinked collection, are never followed out.
+        absolute = self.lexical_absolute()
+        cwd = Path.cwd()
+        for ancestor in reversed((absolute, *absolute.parents)):
+            try:
+                if ancestor == cwd or os.path.samefile(ancestor, cwd):
+                    return absolute.relative_to(ancestor)
+            except OSError:
+                continue
+        return absolute
+
+    @classmethod
+    def all_collections(cls) -> List["ProjectPath"]:
+        return [cls(path) for collection in COLLECTIONS if (path := NAMESPACE_PATH / collection).is_dir()]
+
+
 class RoleMeta:
     # Enforce meta/main.yml as the only accepted format.
     META_MAIN_PATH = Path("meta") / "main.yml"
 
-    def __init__(self, role_path: Path | str):
-        self.meta_path = Path(role_path) / RoleMeta.META_MAIN_PATH
+    def __init__(self, *args: Path | str):
+        self.role_dir = ProjectPath(*args)
+        if self.role_dir.role_dir != self.role_dir:
+            raise ValueError(f"{self} is not a role path in {NAMESPACE_PATH}")
 
     @property
-    def role(self) -> Path:
-        return self.meta_path.parent.parent
+    def collection_dir(self) -> ProjectPath:
+        return self.role_dir.collection_dir
 
     @property
-    def collection(self) -> Path:
-        return self.role.parent.parent
-
-    @property
-    def namespace(self) -> Path:
-        return self.collection.parent
+    def meta_path(self) -> Path:
+        return self.role_dir / RoleMeta.META_MAIN_PATH
 
     @property
     def fqcn(self) -> str:
-        return f"{self.namespace.name}.{self.collection.name}.{self.role.name}"
+        return self.role_dir.role_fqcn
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.role!r})"
+        return f"{self.__class__.__name__}({self.role_dir!r})"
 
     def __str__(self) -> str:
-        return str(self.meta_path)
+        return str(self.role_dir)
 
-    def load(self, raise_errors: bool = True) -> Dict[str, Any]:
+    def load_meta(self, raise_errors: bool = True) -> Dict[str, Any]:
         try:
             with self.meta_path.open("r", encoding="utf-8") as f:
                 meta = yaml.safe_load(f)
@@ -200,19 +271,35 @@ class RoleMeta:
         except (OSError, ValueError, yaml.YAMLError) as err:
             if raise_errors:
                 raise
-            print(Color.YELLOW(f"WARNING: Failed to load {self.meta_path}: {err}"), file=sys.stderr)
+            print(Color.YELLOW(f"WARNING: {self.fqcn}: {err}"), file=sys.stderr)
         return {}
 
-    @staticmethod
-    def from_glob(collection: Optional[str] = None) -> List["RoleMeta"]:
-        pattern = f"{collection or '[a-zA-Z]*'}/roles/[a-zA-Z]*/"
-        return [RoleMeta(role_path) for role_path in sorted(NAMESPACE_PATH.glob(pattern))]
+    def load_dependencies(self) -> Set[str]:
+        dependencies = self.load_meta(raise_errors=False).get("dependencies") or []
+        return {
+            entry.get("role", entry.get("name", "")) if isinstance(entry, dict) else str(entry)
+            for entry in dependencies
+        }
 
-    @staticmethod
-    def from_fqcn(fqcn: str) -> "RoleMeta":
+    def load_galaxy_tags(self) -> List[str]:
+        galaxy_info = self.load_meta(raise_errors=False).get("galaxy_info") or {}
+        return galaxy_info.get("galaxy_tags") or []
+
+    @classmethod
+    def all_roles(cls) -> List["RoleMeta"]:
+        return [
+            cls(role_dir)
+            for collection_dir in ProjectPath.all_collections()
+            for role_dir in sorted(collection_dir.glob(ANSIBLE_ROLES_GLOB))
+        ]
+
+    @classmethod
+    def from_fqcn(cls, fqcn: str) -> "RoleMeta":
         parts = fqcn.split(".")
         if len(parts) != 3:
-            raise ValueError(f"{fqcn} is not of 3 parts!")
+            raise ValueError(f"FQCN: {fqcn} is not of 3 parts!")
         if parts[0] != NAMESPACE_PATH.name:
-            raise ValueError(f"{fqcn} is not in namespace:{NAMESPACE_PATH.name}!")
-        return RoleMeta(NAMESPACE_PATH / parts[1] / "roles" / parts[2])
+            raise ValueError(f"FQCN: {fqcn} is not in namespace:{NAMESPACE_PATH.name}!")
+        if parts[1] not in COLLECTIONS:
+            raise ValueError(f"FQCN: {fqcn} is not in a collection of {', '.join(COLLECTIONS)}!")
+        return cls(NAMESPACE_PATH, parts[1], "roles", parts[2])

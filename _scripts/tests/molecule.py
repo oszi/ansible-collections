@@ -7,21 +7,21 @@ import sys
 from argparse import ArgumentParser
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, FrozenSet, Iterable, List, Set, Tuple
+from typing import FrozenSet, Iterable, List, NoReturn, Set, Tuple
 
 import yaml
 
 from testlib import (
+    ANSIBLE_NO_PROMPT_ENV,
     COLLECTIONS,
     NAMESPACE_PATH,
     Color,
     Output,
+    ProjectPath,
     RC,
     RoleMeta,
     chdir_project,
     error_code,
-    git_changed_paths,
-    git_previous_release_tag,
     nothing_to_test,
     print_hint,
     print_warning,
@@ -29,6 +29,8 @@ from testlib import (
     run_shell_get_lines,
     run_test_cmd,
     run_tests_parallel,
+    select_changed_paths,
+    select_given_fqcns,
     split_passthrough_args,
 )
 
@@ -36,13 +38,15 @@ from testlib import (
 CLOSURE_EXCLUDED_COLLECTIONS = ("environments",)
 SCENARIOS_DIR = Path("extensions") / "molecule"
 
-# Changes to the shared molecule framework and tooling affect every role.
+# Changes to the shared molecule framework, tooling and plugins affect every role.
 # oszi.utils.bootstrap and testlib are not part of the framework.
-FRAMEWORK_PATHS = (
+FRAMEWORK_PATTERNS = (
     "_scripts/tests/molecule.py",
     "requirements.txt",
     "requirements.yml",
     f"{NAMESPACE_PATH}/utils/playbooks/molecule/",
+    *(f"{NAMESPACE_PATH}/{collection}/plugins/" for collection in COLLECTIONS),
+    *(f"{NAMESPACE_PATH}/{collection}/{SCENARIOS_DIR}/*" for collection in COLLECTIONS),
 )
 
 MOLECULE_CMD = ["molecule"]
@@ -74,7 +78,7 @@ args_parser.add_argument("fqcns", help="[FQCN ...]", nargs="*")
 @lru_cache(maxsize=None)
 def _all_roles() -> Tuple[RoleMeta, ...]:
     """All roles as RoleMeta in a cached, ordered, immutable tuple."""
-    return tuple(role for role in RoleMeta.from_glob() if role.collection.name in COLLECTIONS)
+    return tuple(RoleMeta.all_roles())
 
 
 def _all_roles_fqcn() -> Set[str]:
@@ -83,10 +87,9 @@ def _all_roles_fqcn() -> Set[str]:
 
 
 @lru_cache(maxsize=None)
-def _collection_scenario_files(collection: str) -> Tuple[Path, ...]:
+def _collection_scenario_files(collection_dir: ProjectPath) -> Tuple[ProjectPath, ...]:
     """All scenario paths (molecule.yml) in a collection as a cached, ordered, immutable tuple."""
-    scenarios_path = NAMESPACE_PATH / collection / SCENARIOS_DIR
-    return tuple(sorted(scenarios_path.glob("*/molecule.y*ml")))
+    return tuple(sorted((collection_dir / SCENARIOS_DIR).glob("*/molecule.y*ml")))
 
 
 @lru_cache(maxsize=None)
@@ -113,41 +116,35 @@ def _scenario_converged_roles(scenario_path: Path) -> FrozenSet[str]:
                 if not isinstance(name, str):
                     raise ValueError(f"group_vars.{group}.molecule_converge_roles has an entry without a name")
                 roles.add(name)
+
     except (OSError, ValueError, yaml.YAMLError) as err:
         print_warning(f"Ignoring molecule_converge_roles of {scenario_path}: {err}")
         return frozenset()
     return frozenset(roles)
 
 
-def _role_scenarios(role_meta: RoleMeta) -> List[Tuple[str, Path]]:
-    """Collections and directories of scenarios named {role} or {role}-{variant}, plus scenarios converging the role."""
+def _role_scenarios(role_meta: RoleMeta) -> List[ProjectPath]:
+    """Directories of scenarios named {role} or {role}-{variant}, plus scenarios converging the role."""
+    role, role_fqcn, role_collection_dir = role_meta.role_dir.name, role_meta.fqcn, role_meta.collection_dir
     scenarios = []
-    for collection in COLLECTIONS:
-        for scenario_path in _collection_scenario_files(collection):
+    for collection_dir in ProjectPath.all_collections():
+        for scenario_path in _collection_scenario_files(collection_dir):
             scenario = scenario_path.parent.name
             if (
-                collection == role_meta.collection.name
-                and (scenario == role_meta.role.name or scenario.startswith(f"{role_meta.role.name}-"))
-            ) or role_meta.fqcn in _scenario_converged_roles(scenario_path):
-                scenarios.append((collection, scenario_path.parent))
+                collection_dir == role_collection_dir and (scenario == role or scenario.startswith(f"{role}-"))
+            ) or role_fqcn in _scenario_converged_roles(scenario_path):
+                scenarios.append(scenario_path.parent)
     return scenarios
-
-
-def _role_dependencies(role_meta: RoleMeta) -> Set[str]:
-    """Roles listed as dependencies in meta/main.yml."""
-    dependencies = role_meta.load(raise_errors=False).get("dependencies") or []
-    return {
-        entry.get("role", entry.get("name", "")) if isinstance(entry, dict) else str(entry) for entry in dependencies
-    }
 
 
 def _dependent_roles(roles: Set[str]) -> Set[str]:
     """Transitive closure of the roles depending on the given roles."""
     dependencies = {
-        role.fqcn: _role_dependencies(role)
+        role.fqcn: role.load_dependencies()
         for role in _all_roles()
-        if role.collection.name not in CLOSURE_EXCLUDED_COLLECTIONS
+        if role.collection_dir.name not in CLOSURE_EXCLUDED_COLLECTIONS
     }
+
     result = set(roles)
     while True:
         new_roles = {role for role, deps in dependencies.items() if deps & result} - result
@@ -156,94 +153,73 @@ def _dependent_roles(roles: Set[str]) -> Set[str]:
         result |= new_roles
 
 
-def _affected_roles(paths: Iterable[str], ignore_framework: bool = False) -> Tuple[Set[str], List[str]]:
-    """Roles touched by the paths and framework changes; a framework change affects every role unless ignored."""
-    namespace = NAMESPACE_PATH.name
+def _affected_roles(paths: Iterable[ProjectPath]) -> Set[str]:
+    """Roles touched by the paths, and their dependents."""
     roles: Set[str] = set()
-    framework_changes = []
     for path in paths:
-        if path.startswith(FRAMEWORK_PATHS):
-            framework_changes.append(path)
+        subparts = subpath.parts if (subpath := path.collection_subpath) else ()
+        if len(subparts) < 2:
             continue
 
-        parts = Path(path).parts
-        if parts[:2] != NAMESPACE_PATH.parts or len(parts) < 5 or parts[2] not in COLLECTIONS:
+        if role_fqcn := path.role_fqcn:
+            roles.add(role_fqcn)
+        elif subparts[:2] == SCENARIOS_DIR.parts and len(subparts) > 3:
+            roles.add(f"{path.collection_fqcn}.{subparts[2].split('-')[0]}")
+        elif subparts[0] == "playbooks" and (path.collection_dir / "roles" / Path(subparts[1]).stem).is_dir():
+            roles.add(f"{path.collection_fqcn}.{Path(subparts[1]).stem}")
+    return _dependent_roles(roles)
+
+
+def _given_roles(fqcns: Iterable[str]) -> Set[str] | NoReturn:
+    """Roles of the given role or collection FQCNs."""
+    available_roles = _all_roles_fqcn()
+    available_collections = {collection.collection_fqcn for collection in ProjectPath.all_collections()}
+    roles: Set[str] = set()
+    for fqcn in fqcns:
+        if fqcn in available_collections:
+            roles.update(name for name in available_roles if name.startswith(f"{fqcn}."))
             continue
-
-        collection, kind, name = parts[2], parts[3], parts[4]
-        if kind == "roles":
-            roles.add(f"{namespace}.{collection}.{name}")
-        elif kind == "plugins":
-            framework_changes.append(path)
-        elif kind == "extensions" and name == SCENARIOS_DIR.name and len(parts) > 5:
-            if len(parts) == 6:  # The base config.yml (symlinked from utils) or any other collection-wide file.
-                framework_changes.append(path)
-            else:
-                roles.add(f"{namespace}.{collection}.{parts[5].split('-')[0]}")
-        elif kind == "playbooks" and (NAMESPACE_PATH / collection / "roles" / Path(name).stem).is_dir():
-            roles.add(f"{namespace}.{collection}.{Path(name).stem}")
-
-    if framework_changes and not ignore_framework:
-        return _all_roles_fqcn(), framework_changes
-    return _dependent_roles(roles), framework_changes
-
-
-def select_roles(app_args) -> Set[str]:
-    """Roles from the CLI, or the roles affected since the previous release."""
-    fqcns = app_args.fqcns
-    if app_args.all:
-        if fqcns:
-            error_code("molecule.py --all cannot be combined with FQCNs.", sys_exit=True)
-        print_hint("Selected all roles.")
-        return _all_roles_fqcn()
-
-    if fqcns:
-        namespace = NAMESPACE_PATH.name
-        available_roles = _all_roles_fqcn()
-        roles: Set[str] = set()
-        for fqcn in fqcns:
-            if fqcn in {f"{namespace}.{collection}" for collection in COLLECTIONS}:
-                roles.update(name for name in available_roles if name.startswith(f"{fqcn}."))
-                continue
-            try:
-                role = RoleMeta.from_fqcn(fqcn)
-                if role.collection.name not in COLLECTIONS or not fqcn.split(".")[-1]:
-                    raise ValueError(fqcn)
-            except ValueError:
-                error_code(f"Not a role or collection FQCN in namespace {namespace}: {fqcn}", sys_exit=True)
-            if fqcn not in available_roles:
-                error_code(f"Role not found: {fqcn}", sys_exit=True)
-            roles.add(fqcn)
-        print_hint(f"Selected {len(roles)} role(s) from the command line.")
-        return roles
-
-    release = git_previous_release_tag()
-    if release is None:
-        error_code("No release tag found. Wrong repository?", sys_exit=True)
-
-    roles, framework_changes = _affected_roles(git_changed_paths(release), app_args.ignore_framework)
-    print_hint(f"Changes since release {release} affect {len(roles)} role(s).")
-    if framework_changes:
-        effect = "are ignored" if app_args.ignore_framework else "affect every role"
-        print_hint(f"Framework changes {effect}:", *framework_changes)
+        if fqcn not in available_roles:
+            error_code(f"Unknown FQCN: {fqcn}", sys_exit=True)
+        roles.add(fqcn)
     return roles
 
 
-def select_scenarios(roles: Iterable[str]) -> Dict[str, List[Path]]:
-    """Scenario directories of the roles by collection, reporting roles without scenarios."""
-    scenarios: Dict[str, List[Path]] = {collection: [] for collection in COLLECTIONS}
+def select_roles(app_args) -> Set[str]:
+    """Roles from the CLI, the roles affected since the previous release, or all roles."""
+    selected_fqcns = select_given_fqcns(app_args.fqcns, app_args.all)
+    if selected_fqcns:
+        return _given_roles(selected_fqcns)
+
+    selected_paths = (
+        select_changed_paths(FRAMEWORK_PATTERNS, app_args.ignore_framework, require_release=True)
+        if selected_fqcns == []  # Nothing given.
+        else []
+    )
+
+    if selected_fqcns is None or selected_paths is None:  # Everything.
+        return _all_roles_fqcn()
+
+    roles = _affected_roles(selected_paths)
+    if roles:
+        print_hint("Affected role(s):", *sorted(roles))
+    return roles
+
+
+def select_scenarios(roles: Iterable[str]) -> List[ProjectPath]:
+    """Sorted scenario directories of the roles, reporting roles without scenarios."""
+    scenarios: Set[ProjectPath] = set()
     untested = []
     for fqcn in sorted(roles):
         role_meta = RoleMeta.from_fqcn(fqcn)
         role_scenario_paths = _role_scenarios(role_meta)
         if not role_scenario_paths:
             untested.append(role_meta.fqcn)
-        for collection, scenario_path in role_scenario_paths:
-            if scenario_path not in scenarios[collection]:
-                scenarios[collection].append(scenario_path)
+        scenarios.update(role_scenario_paths)
+
     if untested:
         print_hint(f"Roles without molecule scenarios: {', '.join(untested)}")
-    return scenarios
+    return sorted(scenarios)
 
 
 def get_subcommand_arg(molecule_args: List[str]) -> str:
@@ -257,14 +233,6 @@ def get_subcommand_arg(molecule_args: List[str]) -> str:
         elif not arg.startswith("-"):
             return arg
     return ""
-
-
-def split_forwarded_args(molecule_args: List[str]) -> Tuple[List[str], List[str]]:
-    """Molecule's own arguments and the forwarded ansible arguments, including the separating --."""
-    if "--" in molecule_args:
-        index = molecule_args.index("--")
-        return molecule_args[:index], molecule_args[index:]
-    return molecule_args, []
 
 
 def detect_workers() -> int:
@@ -296,10 +264,8 @@ def run_build_playbook() -> int:
     env = os.environ.copy()
     env.update(
         {
-            "ANSIBLE_ASK_PASS": "False",
-            "ANSIBLE_ASK_VAULT_PASS": "False",
+            **ANSIBLE_NO_PROMPT_ENV,
             "ANSIBLE_BECOME": "False",
-            "ANSIBLE_BECOME_ASK_PASS": "False",
             "ANSIBLE_DEPRECATION_WARNINGS": "False",
             "ANSIBLE_PIPELINING": "True",
             "ANSIBLE_PYTHON_INTERPRETER": "auto_silent",
@@ -310,17 +276,16 @@ def run_build_playbook() -> int:
 
 
 def run_molecule_with_all(molecule_args: List[str], forwarded_args: List[str]) -> int:
-    targets = [{"args": ["--all", *forwarded_args], "cwd": NAMESPACE_PATH / collection} for collection in COLLECTIONS]
+    targets = [{"args": ["--all", *forwarded_args], "cwd": collection} for collection in ProjectPath.all_collections()]
     return run_tests_parallel(MOLECULE_CMD + molecule_args, targets, max_workers=1, output=Output.LIVE_WITH_STATUS)
 
 
 def run_molecule_with_scenarios(
-    scenarios: Dict[str, List[Path]], molecule_args: List[str], forwarded_args: List[str], workers: int = 0
+    scenarios: List[ProjectPath], molecule_args: List[str], forwarded_args: List[str], workers: int = 0
 ) -> int:
-    targets = []
-    for collection, scenario_paths in scenarios.items():
-        for scenario_path in scenario_paths:
-            targets.append({"args": ["-s", scenario_path.name, *forwarded_args], "cwd": NAMESPACE_PATH / collection})
+    targets = [
+        {"args": ["-s", scenario.name, *forwarded_args], "cwd": scenario.collection_dir} for scenario in scenarios
+    ]
 
     if workers < 1:
         workers = detect_workers()
@@ -344,7 +309,7 @@ def run_molecule_with_scenarios(
 def main() -> None:
     own_args, molecule_args = split_passthrough_args(sys.argv[1:])
     app_args = args_parser.parse_intermixed_args(own_args)
-    molecule_args, forwarded_args = split_forwarded_args(molecule_args)
+    molecule_args, forwarded_args = split_passthrough_args(molecule_args, keep_separator=True)
     molecule_args = molecule_args or MOLECULE_DEFAULT_ARGS
 
     if any(arg.startswith(("--workers", "--parallel")) for arg in molecule_args):
@@ -354,13 +319,12 @@ def main() -> None:
     chdir_project()
     roles = select_roles(app_args)
     scenarios = select_scenarios(roles)
-    if not any(scenarios.values()):
+    if not scenarios:
         nothing_to_test(MOLECULE_CMD[0], sys_exit=True)
 
     if app_args.list:
-        for collection, scenario_paths in scenarios.items():
-            for scenario_path in scenario_paths:
-                print(f"{NAMESPACE_PATH.name}.{collection}: {scenario_path.name}")
+        for scenario in scenarios:
+            print(f"{scenario.collection_fqcn}: {scenario.name}")
         RC.status(RC.OK, sys_exit=True)
 
     require_commands(MOLECULE_CMD[0], BUILD_PLAYBOOK_CMD[0])
