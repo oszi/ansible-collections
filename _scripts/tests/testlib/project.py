@@ -7,7 +7,7 @@ from fnmatch import fnmatchcase
 from pathlib import Path, PurePath
 from typing import Iterable, List, NoReturn, Optional, Sequence, Tuple
 
-from .console import print_hint
+from .console import print_debug, print_hint
 from .runner import error_code, run_shell_get_lines
 from .project_layout import ProjectPath
 
@@ -45,12 +45,18 @@ SHELL_PATHSPECS = (*(f"*.{i}" for i in SHELL_INTERPRETERS), "**/*shrc", "**/.*pr
 
 # Change to the project directory like run-tests.sh, and rebase paths relative to it; outside paths stay absolute.
 def chdir_project(paths: Iterable[Path | str] = ()) -> List[ProjectPath] | NoReturn:
-    resolved_paths = [ProjectPath(path).lexical_absolute() for path in paths]
+    absolute_paths = [ProjectPath(path).lexical_absolute() for path in paths]
+
     project = Path(run_shell_get_lines("git rev-parse --show-toplevel")[0])
     if not (project / "ansible.cfg").exists() and (project / "ansible").is_dir():
         project /= "ansible"
+    print_debug("chdir to:", [project], sep=" ")
     os.chdir(project)
-    return [path.relative_to_cwd() for path in resolved_paths]
+
+    resolved_paths = [path.relative_to_cwd() for path in absolute_paths]
+    if resolved_paths:
+        print_debug("chdir resolved path(s):", resolved_paths)
+    return resolved_paths
 
 
 def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optional[str]:
@@ -101,7 +107,9 @@ def git_ls_files_with_interpreters(
     pathspecs: Iterable[str], interpreters: Iterable[str]
 ) -> List[ProjectPath] | NoReturn:
     scripts = [path for path in git_ls_files(SCRIPT_PATHSPECS) if has_shebang(path, interpreters)]
-    return sorted(dict.fromkeys(git_ls_files(pathspecs) + scripts))
+    paths = sorted(dict.fromkeys(git_ls_files(pathspecs) + scripts))
+    print_debug("Discovered path(s) with interpreters:", paths)
+    return paths
 
 
 def has_shebang(path: Path | str, interpreters: Iterable[str]) -> bool | NoReturn:
@@ -143,6 +151,7 @@ def select_given_fqcns(given: List[str], select_all: bool) -> Optional[List[str]
         return None  # Everything.
     if given:
         print_hint(f"Selected {len(given)} FQCN(s) from the command line.")
+        print_debug("Given FQCN(s):", given)
         return given
     return []  # Nothing.
 
@@ -154,8 +163,10 @@ def select_given_paths(given: List[Path | str], select_all: bool) -> Optional[Li
         print_hint("Selected everything from the command line.")
         return None  # Everything.
     if given:
-        print_hint(f"Selected {len(given)} path(s) from the command line.")
-        return [ProjectPath(path) for path in given]
+        paths = [ProjectPath(path) for path in given]
+        print_hint(f"Selected {len(paths)} path(s) from the command line.")
+        print_debug("Parsed given path(s):", paths)
+        return paths
     return []  # Nothing.
 
 
@@ -174,10 +185,13 @@ def select_changed_paths(
 
     if framework_changes := match_paths(changed_paths, framework_patterns):
         effect = "are ignored" if ignore_framework else "select everything"
-        print_hint(f"Framework changes {effect}:", *framework_changes)
+        print_hint(f"Framework changes {effect}:", framework_changes)
         changed_paths = (
             [path for path in changed_paths if path not in framework_changes]
             if ignore_framework
             else None  # Everything.
         )
+
+    if changed_paths:
+        print_debug("Detected changed path(s):", changed_paths)
     return changed_paths

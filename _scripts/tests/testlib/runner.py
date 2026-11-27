@@ -174,7 +174,7 @@ def run_test_cmd(  # pylint: disable=too-many-arguments
     if not isinstance(targets, list):
         raise TypeError("run_test_cmd: targets is not a list")
 
-    if output.has_status:
+    if DEBUG or output.has_status:
         with OUTPUT_LOCK:
             print_test_cmd(cmd, targets, kwargs.get("cwd"))
 
@@ -203,7 +203,7 @@ def run_test_cmd(  # pylint: disable=too-many-arguments
             sys.stdout.buffer.flush()
 
         if result.returncode == RC.OK:
-            return success(subject, duration) if output.has_status else RC.OK
+            return success(subject, duration) if DEBUG or output.has_status else RC.OK
         return failure(subject, result.returncode, duration)
 
 

@@ -12,6 +12,7 @@ from testlib import (
     ANSIBLE_NO_PROMPT_ENV,
     ProjectPath,
     chdir_project,
+    print_debug,
     run_tests,
     select_changed_paths,
     select_given_paths,
@@ -72,13 +73,20 @@ def _changed_lint_paths(paths: Iterable[ProjectPath], options: Namespace) -> Lis
     discovered_paths = {ProjectPath(path) for path in discover_lintables(options)}
     # Excludes roles outside the collections; parent repositories without release tags select everything.
     discovered_roles = {role_dir for path in discovered_paths if (role_dir := path.collection_role_dir) is not None}
+
     lint_paths = set()
+    excluded_paths = []
     for path in paths:
         role_dir = path.collection_role_dir
         if path in discovered_paths:
             lint_paths.add(role_dir or path)
         elif role_dir in discovered_roles and not os.path.exists(path):
             lint_paths.add(role_dir)
+        else:
+            excluded_paths.append(path)
+
+    if excluded_paths:
+        print_debug("Changed path(s) excluded by lint discovery:", excluded_paths)
     return sorted(lint_paths)
 
 

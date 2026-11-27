@@ -5,7 +5,7 @@ import sys
 import time
 
 from enum import StrEnum
-from typing import Any, IO, List, NoReturn, Optional, Tuple
+from typing import Any, IO, Iterable, List, NoReturn, Optional, Tuple
 
 __all__ = [
     "DEBUG",
@@ -18,6 +18,7 @@ __all__ = [
     "print_error",
     "print_warning",
     "print_hint",
+    "print_debug",
     "print_success",
     "print_test_cmd",
     "split_passthrough_args",
@@ -38,7 +39,7 @@ def io_is_tty(io: IO | Any) -> bool:
 
 
 DEBUG = getenv_bool("TESTLIB_DEBUG")
-DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
+DEBUG_HELP = "Set env TESTLIB_DEBUG=True for verbose output and tracebacks."
 
 
 class Color:
@@ -76,6 +77,7 @@ class Color:
     BLUE = ColorCode(34, 39)
     MAGENTA = ColorCode(35, 39)
     CYAN = ColorCode(36, 39)
+    GRAY = ColorCode(90, 39)
 
 
 class OutputMode(StrEnum):
@@ -165,8 +167,19 @@ def print_warning(message: str) -> None:
     print(Color.YELLOW(f"WARNING: {message}"), file=sys.stderr)
 
 
-def print_hint(message: str, *lines: Any, line_sep: str = "\n# ") -> None:
-    print(Color.BLUE(f"HINT: {message}", *lines, sep=line_sep), file=sys.stderr)
+def print_hint(message: str, items: Iterable[Any] = (), sep: str = "\n") -> None:
+    if isinstance(items, (str, bytes)):
+        raise TypeError("testlib.print_hint: items is a string or bytes")
+
+    print(Color.BLUE(f"HINT: {message}", *items, sep=sep), file=sys.stderr)
+
+
+def print_debug(message: str, items: Iterable[Any] = (), sep: str = "\n") -> None:
+    if isinstance(items, (str, bytes)):
+        raise TypeError("testlib.print_debug: items is a string or bytes")
+
+    if DEBUG:
+        print(Color.GRAY(f"DEBUG: {message}", *items, sep=sep), file=sys.stderr)
 
 
 def print_success(message: str) -> None:

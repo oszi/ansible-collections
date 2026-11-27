@@ -23,6 +23,7 @@ from testlib import (
     chdir_project,
     error_code,
     nothing_to_test,
+    print_debug,
     print_hint,
     print_warning,
     require_commands,
@@ -206,7 +207,7 @@ def select_roles(app_args) -> Set[str]:
 
     roles = _affected_roles(selected_paths)
     if roles:
-        print_hint("Affected role(s):", *sorted(roles))
+        print_hint("Affected role(s):", sorted(roles))
     return roles
 
 
@@ -223,7 +224,10 @@ def select_scenarios(roles: Iterable[str]) -> List[ProjectPath]:
 
     if untested:
         print_hint(f"Roles without molecule scenarios: {', '.join(untested)}")
-    return sorted(scenarios)
+    selected = sorted(scenarios)
+    if selected:
+        print_debug("Selected scenario(s):", selected)
+    return selected
 
 
 def get_subcommand_arg(molecule_args: List[str]) -> str:
