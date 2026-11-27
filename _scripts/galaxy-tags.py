@@ -16,7 +16,7 @@ _SCRIPTS_PATH = Path(__file__).resolve().parent
 
 sys.path.insert(0, str(_SCRIPTS_PATH / "tests"))
 
-from testlib import RoleMeta  # pylint: disable=wrong-import-position
+from testlib import ProjectRoleMeta  # pylint: disable=wrong-import-position
 
 args_parser = ArgumentParser(
     usage="galaxy-tags.py [--help] [--json] [--tags=TAG1,TAG2]",
@@ -29,7 +29,7 @@ args_parser.add_argument("--tags", "-t", help="filter to specific tag(s)")
 
 def get_galaxy_tags(tags_filter: Optional[List[str]] = None) -> Dict[str, List[str]]:
     tags_to_roles: Dict[str, Set[str]] = defaultdict(set)
-    for role_meta in RoleMeta.all_roles():
+    for role_meta in ProjectRoleMeta.all_collection_roles():
         for tag in role_meta.load_galaxy_tags():
             if tags_filter is None or tag in tags_filter:
                 tags_to_roles[tag].add(role_meta.fqcn)

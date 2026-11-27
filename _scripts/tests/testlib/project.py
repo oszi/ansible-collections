@@ -7,8 +7,9 @@ from fnmatch import fnmatchcase
 from pathlib import Path, PurePath
 from typing import Iterable, List, NoReturn, Optional, Sequence, Tuple
 
-from .runner import error_code, print_hint, run_shell_get_lines
-from .utils import ProjectPath
+from .console import print_hint
+from .runner import error_code, run_shell_get_lines
+from .project_layout import ProjectPath
 
 __all__ = [
     "RELEASE_TAG_GLOB",

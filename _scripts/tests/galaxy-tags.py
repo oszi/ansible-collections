@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 import yaml
 
-from testlib import NAMESPACE_PATH, Color, RC, RoleMeta, boolean_test_decorator, chdir_project, print_error
+from testlib import NAMESPACE_PATH, Color, ProjectRoleMeta, RC, boolean_test_decorator, chdir_project, print_error
 
 MUTUALLY_EXCLUSIVE_TAGS = {"baselinux", "containers", "thirdparty", "toolbox", "workstation"}
 MUTUALLY_EXCLUSIVE_TAGS_STR = Color.BOLD(*sorted(MUTUALLY_EXCLUSIVE_TAGS), sep=", ")
@@ -21,14 +21,14 @@ args_parser = ArgumentParser(
 def assert_role_tags() -> bool:
     rc = RC.OK
     role_count = 0
-    for role_meta in RoleMeta.all_roles():
+    for role_meta in ProjectRoleMeta.all_collection_roles():
         role_count += 1
         role_must_have = f"{Color.BOLD(role_meta.fqcn)} must have"
 
         try:
             meta = role_meta.load_meta(raise_errors=True)
         except (OSError, ValueError, yaml.YAMLError):
-            print_error(f"{role_must_have} a valid {RoleMeta.META_MAIN_PATH} file!")
+            print_error(f"{role_must_have} a valid {ProjectRoleMeta.META_MAIN_PATH} file!")
             rc = RC.ERROR
             continue
 

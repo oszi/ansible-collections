@@ -69,12 +69,12 @@ def _changed_lint_paths(paths: Iterable[ProjectPath], options: Namespace) -> Lis
 
     # Explicit lint targets bypass exclusions; use normal discovery to filter automatic targets.
     # Deleted files select their role, if the role is still lintable, as references may break.
-    # path.role_dir excludes roles outside the collections; parent repositories without release tags select everything.
     discovered_paths = {ProjectPath(path) for path in discover_lintables(options)}
-    discovered_roles = {role_dir for path in discovered_paths if (role_dir := path.role_dir) is not None}
+    # Excludes roles outside the collections; parent repositories without release tags select everything.
+    discovered_roles = {role_dir for path in discovered_paths if (role_dir := path.collection_role_dir) is not None}
     lint_paths = set()
     for path in paths:
-        role_dir = path.role_dir
+        role_dir = path.collection_role_dir
         if path in discovered_paths:
             lint_paths.add(role_dir or path)
         elif role_dir in discovered_roles and not os.path.exists(path):

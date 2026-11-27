@@ -10,7 +10,7 @@ from testlib import (
     PYTHON_INTERPRETERS,
     PYTHON_PATHSPECS,
     RC,
-    Output,
+    OutputMode,
     chdir_project,
     git_ls_files_with_interpreters,
     print_hint,
@@ -52,7 +52,7 @@ def main() -> None:
         run_tests(black_cmd, paths, env=env, sys_exit=True)
 
     rc_pylint = run_tests(PYLINT_CMD, paths, env=env)
-    rc_black = run_tests_parallel(BLACK_CMD, paths, env=env, output=Output.ON_FAILURE_QUIET)
+    rc_black = run_tests_parallel(BLACK_CMD, paths, env=env, output=OutputMode.ON_FAILURE_QUIET)
     if rc_black != RC.OK:
         print_hint(f"{sys.argv[0]} --black")
     RC.select(rc_pylint, rc_black, sys_exit=True)

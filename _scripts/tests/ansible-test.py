@@ -7,7 +7,7 @@ from typing import Dict, List, Set, Tuple
 from testlib import (
     NAMESPACE_PATH,
     Color,
-    Output,
+    OutputMode,
     ProjectPath,
     RC,
     chdir_project,
@@ -121,7 +121,7 @@ def prepare_containers(cwd: ProjectPath | str) -> int:
         [],
         "ansible-test prepare containers",
         cwd=cwd,
-        output=Output.ON_FAILURE_QUIET,
+        output=OutputMode.ON_FAILURE_QUIET,
     )
 
 

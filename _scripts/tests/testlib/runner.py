@@ -11,18 +11,22 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable, Dict, List, NoReturn, Optional, ParamSpec
 
-from .utils import Color, Output, RC, getenv_bool
+from .console import (
+    DEBUG,
+    DEBUG_HELP,
+    OutputMode,
+    RC,
+    print_error,
+    print_hint,
+    print_success,
+    print_test_cmd,
+    print_warning,
+)
 
 __all__ = [
-    "DEBUG",
-    "DEBUG_HELP",
+    "ANSIBLE_NO_PROMPT_ENV",
     "SHELL",
     "OUTPUT_LOCK",
-    "print_error",
-    "print_warning",
-    "print_hint",
-    "print_success",
-    "print_test_cmd",
     "elapsed",
     "error_code",
     "error_code_exc",
@@ -37,47 +41,17 @@ __all__ = [
     "boolean_test_decorator",
 ]
 
-DEBUG = getenv_bool("TESTLIB_DEBUG")
-DEBUG_HELP = "Set env TESTLIB_DEBUG=True for traceback."
+ANSIBLE_NO_PROMPT_ENV = {
+    "ANSIBLE_ASK_PASS": "False",
+    "ANSIBLE_ASK_VAULT_PASS": "False",
+    "ANSIBLE_BECOME_ASK_PASS": "False",
+}
 
 # Override /bin/sh for bash on Debian/Ubuntu.
 SHELL = "/bin/bash"
 
 # Thread lock for parallel tests output.
 OUTPUT_LOCK = threading.Lock()
-
-
-def print_error(message: str, rc: int = RC.ERROR) -> None:
-    if RC.is_early_exit(rc):
-        color = Color.MAGENTA
-    else:
-        color = Color.RED
-
-    print(color(message), file=sys.stderr)
-
-
-def print_warning(message: str) -> None:
-    print(Color.YELLOW(f"WARNING: {message}"), file=sys.stderr)
-
-
-def print_hint(message: str, *lines: Any, line_sep: str = "\n# ") -> None:
-    print(Color.BLUE(f"HINT: {message}", *lines, sep=line_sep), file=sys.stderr)
-
-
-def print_success(message: str) -> None:
-    print(Color.GREEN(message), file=sys.stderr)
-
-
-def print_test_cmd(cmd: List[str], targets: Optional[List[Any]] = None, cwd: Optional[str] = None) -> None:
-    message = Color.CYAN("Running:", Color.BOLD(*cmd))
-    if cwd:
-        message += f" @{cwd}"
-    if targets:
-        message += f" # {len(targets)} target(s)"
-    if DEBUG:
-        message += f" # at {time.strftime('%H:%M:%S')}"
-
-    print(message, file=sys.stderr)
 
 
 def elapsed(seconds: Optional[float], prefix: str = "") -> str:
@@ -192,7 +166,7 @@ def run_test_cmd(  # pylint: disable=too-many-arguments
     subject: str,
     *,
     timeout: Optional[float] = None,
-    output: Output = Output.LIVE_WITH_STATUS,
+    output: OutputMode = OutputMode.LIVE_WITH_STATUS,
     **kwargs,
 ) -> int | NoReturn:
     if not isinstance(cmd, list):
@@ -259,7 +233,7 @@ def run_tests_parallel(
 
     require_commands(cmd[0])
     if "output" not in kwargs:
-        kwargs["output"] = Output.BUFFERED_WITH_STATUS
+        kwargs["output"] = OutputMode.BUFFERED_WITH_STATUS
 
     def run_test_job(target: str | Path | Dict[str, Any]) -> int:
         if isinstance(target, dict):

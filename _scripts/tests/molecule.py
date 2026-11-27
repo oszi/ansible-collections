@@ -16,10 +16,10 @@ from testlib import (
     COLLECTIONS,
     NAMESPACE_PATH,
     Color,
-    Output,
+    OutputMode,
     ProjectPath,
+    ProjectRoleMeta,
     RC,
-    RoleMeta,
     chdir_project,
     error_code,
     nothing_to_test,
@@ -76,9 +76,9 @@ args_parser.add_argument("fqcns", help="[FQCN ...]", nargs="*")
 
 
 @lru_cache(maxsize=None)
-def _all_roles() -> Tuple[RoleMeta, ...]:
-    """All roles as RoleMeta in a cached, ordered, immutable tuple."""
-    return tuple(RoleMeta.all_roles())
+def _all_roles() -> Tuple[ProjectRoleMeta, ...]:
+    """All roles as ProjectRoleMeta in a cached, ordered, immutable tuple."""
+    return tuple(ProjectRoleMeta.all_collection_roles())
 
 
 def _all_roles_fqcn() -> Set[str]:
@@ -123,7 +123,7 @@ def _scenario_converged_roles(scenario_path: Path) -> FrozenSet[str]:
     return frozenset(roles)
 
 
-def _role_scenarios(role_meta: RoleMeta) -> List[ProjectPath]:
+def _role_scenarios(role_meta: ProjectRoleMeta) -> List[ProjectPath]:
     """Directories of scenarios named {role} or {role}-{variant}, plus scenarios converging the role."""
     role, role_fqcn, role_collection_dir = role_meta.role_dir.name, role_meta.fqcn, role_meta.collection_dir
     scenarios = []
@@ -163,7 +163,7 @@ def _affected_roles(paths: Iterable[ProjectPath]) -> Set[str]:
         if len(subparts) < 2:
             continue
 
-        if role_fqcn := path.role_fqcn:
+        if role_fqcn := path.collection_role_fqcn:
             roles.add(role_fqcn)
         # A file in a scenario directory: {role}[-{variant}]
         elif subparts[:2] == SCENARIOS_DIR.parts and len(subparts) > 3:
@@ -215,7 +215,7 @@ def select_scenarios(roles: Iterable[str]) -> List[ProjectPath]:
     scenarios: Set[ProjectPath] = set()
     untested = []
     for fqcn in sorted(roles):
-        role_meta = RoleMeta.from_fqcn(fqcn)
+        role_meta = ProjectRoleMeta.from_fqcn(fqcn)
         role_scenario_paths = _role_scenarios(role_meta)
         if not role_scenario_paths:
             untested.append(role_meta.fqcn)
@@ -276,12 +276,12 @@ def run_build_playbook() -> int:
             "ANSIBLE_VERBOSITY": "0",
         }
     )
-    return run_test_cmd(BUILD_PLAYBOOK_CMD, [BUILD_PLAYBOOK], BUILD_PLAYBOOK, env=env, output=Output.LIVE_QUIET)
+    return run_test_cmd(BUILD_PLAYBOOK_CMD, [BUILD_PLAYBOOK], BUILD_PLAYBOOK, env=env, output=OutputMode.LIVE_QUIET)
 
 
 def run_molecule_with_all(molecule_args: List[str], forwarded_args: List[str]) -> int:
     targets = [{"args": ["--all", *forwarded_args], "cwd": collection} for collection in ProjectPath.all_collections()]
-    return run_tests_parallel(MOLECULE_CMD + molecule_args, targets, max_workers=1, output=Output.LIVE_WITH_STATUS)
+    return run_tests_parallel(MOLECULE_CMD + molecule_args, targets, max_workers=1, output=OutputMode.LIVE_WITH_STATUS)
 
 
 def run_molecule_with_scenarios(
@@ -294,15 +294,16 @@ def run_molecule_with_scenarios(
     if workers < 1:
         workers = detect_workers()
 
+    # Explicitly enable colors for captured output.
     env = os.environ.copy()
     if Color.COLORS_ENABLED:
         env.setdefault("PY_COLORS", "1")
         env.setdefault("ANSIBLE_FORCE_COLOR", "1")
 
     output = (
-        Output.ON_FAILURE_WITH_STATUS
+        OutputMode.ON_FAILURE_WITH_STATUS
         if get_subcommand_arg(molecule_args) == "test"
-        else Output.BUFFERED_WITH_STATUS if workers != 1 and len(targets) > 1 else Output.LIVE_WITH_STATUS
+        else OutputMode.BUFFERED_WITH_STATUS if workers != 1 and len(targets) > 1 else OutputMode.LIVE_WITH_STATUS
     )
 
     # With 1 worker, scenarios are executed one by one, continuing after failures;
