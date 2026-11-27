@@ -157,16 +157,20 @@ def _affected_roles(paths: Iterable[ProjectPath]) -> Set[str]:
     """Roles touched by the paths, and their dependents."""
     roles: Set[str] = set()
     for path in paths:
-        subparts = subpath.parts if (subpath := path.collection_subpath) else ()
+        if (collection_dir := path.collection_dir) is None:
+            continue
+        subparts = path.relative_to(collection_dir).parts
         if len(subparts) < 2:
             continue
 
         if role_fqcn := path.role_fqcn:
             roles.add(role_fqcn)
+        # A file in a scenario directory: {role}[-{variant}]
         elif subparts[:2] == SCENARIOS_DIR.parts and len(subparts) > 3:
             roles.add(f"{path.collection_fqcn}.{subparts[2].split('-')[0]}")
-        elif subparts[0] == "playbooks" and (path.collection_dir / "roles" / Path(subparts[1]).stem).is_dir():
-            roles.add(f"{path.collection_fqcn}.{Path(subparts[1]).stem}")
+        # A playbook name matching a role name.
+        elif subparts[0] == "playbooks" and (role_dir := collection_dir / "roles" / Path(subparts[1]).stem).is_dir():
+            roles.add(f"{path.collection_fqcn}.{role_dir.name}")
     return _dependent_roles(roles)
 
 

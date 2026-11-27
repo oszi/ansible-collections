@@ -187,12 +187,6 @@ class ProjectPath(Path):
         return None
 
     @property
-    def collection_subpath(self) -> Optional["ProjectPath"]:
-        if collection_dir := self.collection_dir:
-            return self.relative_to(collection_dir)
-        return None
-
-    @property
     def role_dir(self) -> Optional["ProjectPath"]:
         if (collection_dir := self.collection_dir) and (path := self.child_base_of(collection_dir / "roles")):
             if ANSIBLE_ROLE_NAME_RE.fullmatch(path.name) is not None:
@@ -291,6 +285,7 @@ class RoleMeta:
             cls(role_dir)
             for collection_dir in ProjectPath.all_collections()
             for role_dir in sorted(collection_dir.glob(ANSIBLE_ROLES_GLOB))
+            if ANSIBLE_ROLE_NAME_RE.fullmatch(role_dir.name) is not None
         ]
 
     @classmethod

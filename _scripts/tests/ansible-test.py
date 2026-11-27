@@ -75,8 +75,9 @@ def select_targets(paths: List[ProjectPath], commands: Tuple[str, ...]) -> Dict[
     """Whole collections per suite; sources, unit tests and their parent directories select units."""
     selected: Dict[str, Set[ProjectPath]] = {command: set() for command in commands}
     for path in paths:
-        collection = path.collection_dir
-        target = path.collection_subpath
+        if (collection := path.collection_dir) is None:
+            continue
+        target = path.relative_to(collection)
 
         if "sanity" in selected:
             selected["sanity"].add(collection)

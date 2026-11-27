@@ -25,8 +25,8 @@ __all__ = [
     "git_ls_files_with_interpreters",
     "has_shebang",
     "match_paths",
-    "select_given_paths",
     "select_given_fqcns",
+    "select_given_paths",
     "select_changed_paths",
 ]
 
@@ -62,7 +62,7 @@ def git_latest_release_tag(ref: str = "HEAD", *, exact: bool = False) -> Optiona
 def git_previous_release_with_changes() -> Optional[Tuple[str, List[ProjectPath]]] | NoReturn:
     release = git_latest_release_tag("HEAD", exact=True)
     if release is not None:
-        # Uncommited changes since the HEAD release.
+        # Uncommitted changes since the HEAD release.
         if changed_paths := git_changed_paths(release):
             return release, changed_paths
 
@@ -134,18 +134,6 @@ def match_paths(paths: Iterable[Path], patterns: Iterable[str]) -> List[Path]:
     return [path for path in paths if is_match(path.parts)]
 
 
-def select_given_paths(given: List[Path | str], select_all: bool) -> Optional[List[ProjectPath]] | NoReturn:
-    if select_all and given:
-        error_code("--all cannot be combined with paths.", sys_exit=True)
-    if select_all:
-        print_hint("Selected everything from the command line.")
-        return None  # Everything.
-    if given:
-        print_hint(f"Selected {len(given)} path(s) from the command line.")
-        return [ProjectPath(path) for path in given]
-    return []  # Nothing.
-
-
 def select_given_fqcns(given: List[str], select_all: bool) -> Optional[List[str]] | NoReturn:
     if select_all and given:
         error_code("--all cannot be combined with FQCNs.", sys_exit=True)
@@ -155,6 +143,18 @@ def select_given_fqcns(given: List[str], select_all: bool) -> Optional[List[str]
     if given:
         print_hint(f"Selected {len(given)} FQCN(s) from the command line.")
         return given
+    return []  # Nothing.
+
+
+def select_given_paths(given: List[Path | str], select_all: bool) -> Optional[List[ProjectPath]] | NoReturn:
+    if select_all and given:
+        error_code("--all cannot be combined with paths.", sys_exit=True)
+    if select_all:
+        print_hint("Selected everything from the command line.")
+        return None  # Everything.
+    if given:
+        print_hint(f"Selected {len(given)} path(s) from the command line.")
+        return [ProjectPath(path) for path in given]
     return []  # Nothing.
 
 
